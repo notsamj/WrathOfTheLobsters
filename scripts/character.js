@@ -106,7 +106,6 @@ class Character extends Entity {
         if (!this.isMoving()){
             return false;
         }
-        //console.log("ab", Math.ceil(this.movementDetails["reached_destination_tick"]), TICK_SCHEDULER.getNumTicks())
         return Math.ceil(this.movementDetails["reached_destination_tick"]) != TICK_SCHEDULER.getNumTicks();
     }
 
@@ -128,8 +127,16 @@ class Character extends Entity {
     display(lX, rX, bY, tY){
         let x = this.getDisplayX(lX);
         let y = this.getDisplayY(bY);
-        console.log(lX - this.lastLX, this.tileX)
-        this.lastLX = lX;
+        let iX = this.getInterpolatedX(); // TEMP
+        let cT = Date.now();
+        if (iX == this.lastX){ return; }
+        if (!Number.isNaN(this.lastX)){
+            console.log(iX-this.lastX, cT - this.lastTime, (iX-this.lastX) / (cT - this.lastTime), this.tileX)
+        }else{
+            console.log(iX-this.lastX, cT - this.lastTime, null, this.tileX)
+        }
+        this.lastX = iX;
+        this.lastTime = cT;
         if (!pointInRectangle(x, y, 0, getScreenWidth(), 0, getScreenHeight())){ return; }
         if (this.animationManager.getDirection() == "back"){
             this.inventory.displaySelectedItem(lX, bY);

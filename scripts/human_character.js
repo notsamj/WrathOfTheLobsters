@@ -57,15 +57,16 @@ class HumanCharacter extends Character {
                 return;
             }
         }
+        console.log("Moving again", this.tileX, this.lastX/64)
         // TODO: Check if there is a tile that I'm walking to
         let desiredMoveSpeed = PROGRAM_SETTINGS["general"]["walk_speed"];
         desiredMoveSpeed *= (wantsToSprint ? PROGRAM_SETTINGS["general"]["sprint_multiplier"] : 1);
-        let progressFromPrevious = 0;
+        let tickProgressFromPrevious = 0;
         // If say at tileX 1.5 and moving right then keep that 0.5 as progress for the next move
         if (this.isMoving() && direction == this.movementDetails["direction"]){
-            progressFromPrevious = this.movementDetails["reached_destination_tick"] - Math.floor(this.movementDetails["reached_destination_tick"]);
+            tickProgressFromPrevious = Math.ceil(this.movementDetails["reached_destination_tick"]) - this.movementDetails["reached_destination_tick"];
         }
-        console.log(progressFromPrevious) // TODO this is the problem
+        let distanceProgressFromPrevious = tickProgressFromPrevious * []
         this.movementDetails = {
             "direction": direction,
             "speed": desiredMoveSpeed,
@@ -73,7 +74,7 @@ class HumanCharacter extends Character {
             "last_location_x": this.tileX,
             "last_location_y": this.tileY,
             "last_location_tick": numTicks,
-            "reached_destination_tick": numTicks + PROGRAM_SETTINGS["general"]["tile_size"] / desiredMoveSpeed * 1000 / PROGRAM_SETTINGS["general"]["ms_between_ticks"] - progressFromPrevious
+            "reached_destination_tick": numTicks + PROGRAM_SETTINGS["general"]["tile_size"] / desiredMoveSpeed * 1000 / PROGRAM_SETTINGS["general"]["ms_between_ticks"] - tickProgressFromPrevious
         }
         this.tileX = newTileX;
         this.tileY = newTileY;

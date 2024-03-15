@@ -8,4 +8,4 @@ images/not-active/*
 *.ogg
 *.ignore
 backups/*
-*/node_modules
+Game Maker/server/node_modules

@@ -128,6 +128,8 @@ class Character extends Entity {
     display(lX, rX, bY, tY){
         let x = this.getDisplayX(lX);
         let y = this.getDisplayY(bY);
+        console.log(lX - this.lastLX, this.tileX)
+        this.lastLX = lX;
         if (!pointInRectangle(x, y, 0, getScreenWidth(), 0, getScreenHeight())){ return; }
         if (this.animationManager.getDirection() == "back"){
             this.inventory.displaySelectedItem(lX, bY);

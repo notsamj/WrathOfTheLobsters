@@ -26,7 +26,7 @@ async function setup() {
 
 
     let enemy = new Character("british_pvt_g");
-    SCENE.addEntity(enemy);
+    //SCENE.addEntity(enemy);
     enemy.tileX = 5;
     enemy.tileY = 4;
     enemy.getInventory().add(new Musket("brown_bess", {
@@ -34,7 +34,7 @@ async function setup() {
     }));
 
     let enemy2 = new Character("usa_pvt");
-    SCENE.addEntity(enemy2);
+    //SCENE.addEntity(enemy2);
     enemy2.tileX = 4;
     enemy2.tileY = 3;
 

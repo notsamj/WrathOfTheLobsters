@@ -1,0 +1,11 @@
+.ipynb_checkpoints
+images/Python
+*.txt
+test.html
+*.pdn
+images/not-active/*
+.DS_Store
+*.ogg
+*.ignore
+backups/*
+*/node_modules

@@ -1,0 +1,86 @@
+// Global variables
+const IMAGES = {};
+const SCENE = new RetroGameScene();
+const FRAME_COUNTER = new FrameRateCounter(PROGRAM_SETTINGS["general"]["frame_rate"]);
+const TICK_SCHEDULER = new TickScheduler(1000/PROGRAM_SETTINGS["general"]["tick_rate"]);
+const USER_INPUT_MANAGER = new UserInputManager();
+const MY_HUD = new HUD();
+const TILE_PLACER = new TilePlacer(SCENE);
+const MAIL_SERVICE = new MailService();
+const SERVER_CONNECTION = new ServerConnection();
+
+
+// Functions
+async function setup() {
+    await loadToImages("page_background");
+
+    // Setup user input handling
+    USER_INPUT_MANAGER.register("click", "mousedown", (event) => { return event.which==1; });
+    USER_INPUT_MANAGER.register("click", "mouseup", (event) => { return event.which==1; }, false);
+    USER_INPUT_MANAGER.register("right_click", "mousedown", (event) => { return event.which==3; });
+    USER_INPUT_MANAGER.register("right_click", "mouseup", (event) => { return event.which==3; }, false);
+
+    SCENE.addEntity(TILE_PLACER);
+    SCENE.setFocusedEntity(TILE_PLACER);
+
+    // Create Canvas
+    let canvas = createCanvas(getCanvasWidth(), getCanvasHeight());
+    window.onresize = function(event) {
+        resizeCanvas(getCanvasWidth(), getCanvasHeight());
+    };
+
+    // Disable context menu
+    document.getElementById("main_area").addEventListener("contextmenu", (event) => {event.preventDefault()});
+
+    frameRate(0);
+    TICK_SCHEDULER.setStartTime(Date.now());
+    requestAnimationFrame(tick);
+}
+
+function getCanvasWidth(){
+    return getScreenWidth() - 2 * PROGRAM_SETTINGS["ui"]["side_area_widths"];
+}
+
+function getCanvasHeight(){
+    return getScreenHeight() - 2 * PROGRAM_SETTINGS["ui"]["side_area_heights"];
+}
+
+function draw() {
+    clear();
+    SCENE.display();
+    let fps = FRAME_COUNTER.getFPS();
+    MY_HUD.updateElement("fps", fps);
+    MY_HUD.display();
+}
+
+async function tick(){
+    if (TICK_SCHEDULER.getTickLock().notReady()){ 
+        requestAnimationFrame(tick);
+        return; 
+    }
+
+    let expectedTicks = TICK_SCHEDULER.getExpectedNumberOfTicksPassed();
+    
+    // If not ready for a tick then return
+    if (TICK_SCHEDULER.getNumTicks() >= expectedTicks){
+        requestAnimationFrame(tick);
+        return;
+    }
+
+    TICK_SCHEDULER.getTickLock().lock()
+
+    // Tick the scene
+    await SCENE.tick();
+
+    // Count the tick
+    TICK_SCHEDULER.countTick();
+
+    // Draw a frame
+    if (FRAME_COUNTER.ready()){
+        FRAME_COUNTER.countFrame();
+        draw();
+    }
+    TICK_SCHEDULER.getTickLock().unlock();
+    requestAnimationFrame(tick);
+}
+

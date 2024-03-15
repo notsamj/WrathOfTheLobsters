@@ -9,3 +9,4 @@ images/not-active/*
 *.ignore
 backups/*
 Game Maker/server/node_modules
+images/source/

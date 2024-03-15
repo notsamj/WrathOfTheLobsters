@@ -1,0 +1,64 @@
+html, body {
+    margin: 0 0 0 0;
+    height: 100%;
+    overflow: hidden
+}
+
+#top_bar {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    height: 128px;
+    background-color: red;
+}
+
+#left_bar {
+    position: fixed;
+    left: 0;
+    height: 100%;
+    width: 200px;
+    background-color: green;
+}
+
+#right_bar {
+    position: fixed;
+    height: 100%;
+    width: 200px;
+    right: 0;
+    background-color: blue;
+}
+
+#bottom_bar {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    height: 128px;
+    background-color: purple;
+}
+
+#main_area {
+    position: fixed;
+    top: 128px;
+    left: 200px;
+}
+
+#previous_button, #next_button {
+    position: fixed;
+    bottom: 0;
+    height: 128px;
+    width: 200px;
+}
+
+#previous_button {
+    left: 0;
+}
+
+#next_button {
+    right: 0;
+}
+
+#tile_selection_area {
+    margin-left: 200px;
+    margin-right: 200px;
+    height: 128px;
+}

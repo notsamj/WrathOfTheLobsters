@@ -1,0 +1,7 @@
+{
+    "materials": [
+        {"name": "dirt", "file_link": "images/dirt.png"},
+        {"name": "grass", "file_link": "images/grass.png"},
+        {"name": "house", "file_link": "images/house.png"}
+    ]
+}

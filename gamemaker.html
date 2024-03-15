@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Game Maker</title>
+
+    <link rel="stylesheet" href="Game Maker/stylesheets/main.css">
+
+    <!-- Data -->
+    <script src="Game Maker/data/data_json.js"></script>
+
+    <!-- Dependencies -->
+
+    <!-- General -->
+    <script src="scripts/general/notsam_linked_list.js"></script>
+    <script src="scripts/general/notsam_linked_set.js"></script>
+    <script src="scripts/general/frame_rate_counter.js"></script>
+    <script src="scripts/general/lock.js"></script>
+    <script src="scripts/general/cooldown_lock.js"></script>
+    <script src="scripts/general/helper_functions.js"></script>
+    <script src="scripts/general/hitboxes.js"></script>
+    <script src="scripts/general/hud.js"></script>
+    <script src="scripts/general/tick_scheduler.js"></script>
+    <script src="scripts/general/user_input_manager.js"></script>
+    <script src="scripts/general/mail_service.js"></script>
+
+    <script src="scripts/server_communication/server_connection.js"></script>
+
+    <script src="scripts/visual_item.js"></script>
+    <script src="scripts/entity.js"></script>
+    <script src="scripts/retro_game_scene.js"></script>
+    <script src="scripts/tile.js"></script>
+
+    <!-- Unique to Game Maker -->
+    <script src="Game Maker/scripts/tile_placer.js"></script>
+
+    <!-- Main Script --> 
+    <script src="Game Maker/scripts/game_maker.js"></script>
+
+    <!-- UI Script -->
+    <script src="Game Maker/scripts/ui.js"></script>
+
+    <!-- P5 --> 
+    <script src="../p5/p5.js"></script>
+</head>
+<body>
+    <!-- This is where the Canvas will end up -->
+    <div id="left_bar"></div>
+    <div id="right_bar"></div>
+    <div id="top_bar">
+        <button id="load_materials_button">Load Material Package</button>
+        <button id="load_level_button">Load Level</button>
+        <button id="save_button">Save</button>
+    </div>
+    <div id="bottom_bar">
+        <button id="previous_button">Previous</button>
+        <button id="next_button">Next</button>
+        <div id="tile_selection_area">
+            
+        </div>
+    </div>
+
+    <main id="main_area"></main>
+</body>
+</html>

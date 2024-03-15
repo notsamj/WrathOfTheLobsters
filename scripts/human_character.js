@@ -65,6 +65,7 @@ class HumanCharacter extends Character {
         if (this.isMoving() && direction == this.movementDetails["direction"]){
             progressFromPrevious = this.movementDetails["reached_destination_tick"] - Math.floor(this.movementDetails["reached_destination_tick"]);
         }
+        console.log(progressFromPrevious) // TODO this is the problem
         this.movementDetails = {
             "direction": direction,
             "speed": desiredMoveSpeed,

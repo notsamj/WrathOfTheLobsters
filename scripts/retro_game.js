@@ -17,7 +17,7 @@ async function setup() {
 
     PROGRAM_SETTINGS["general"]["ms_between_ticks"] = Math.floor(1000 / PROGRAM_SETTINGS["general"]["tick_rate"]); // Expected to be an integer so floor isn't really necessary
     
-    let samuel = new HumanCharacter("usa_pvt");
+    let samuel = new HumanCharacter("british_pvt_g");
     samuel.getInventory().add(new HumanMusket("brown_bess", {
         "player": samuel
     }));

@@ -17,6 +17,14 @@ class Character extends Entity {
         this.inventory = new Inventory();
     }
 
+    getWidth(){
+        return PROGRAM_SETTINGS["general"]["tile_size"];
+    }
+
+    getHeight(){
+        return PROGRAM_SETTINGS["general"]["tile_size"];
+    }
+
     getInventory(){
         return this.inventory;
     }
@@ -70,6 +78,18 @@ class Character extends Entity {
         return this.tileY;
     }
 
+    getInterpoaltedTickX(){
+        let xOfTile = SCENE.getXOfTile(this.tileX);
+        // If not moving (or moving u/d) then x is just tile x
+        if (!this.isMoving() || this.movementDetails["direction"] == "up" || this.movementDetails["direction"] == "down"){
+            return xOfTile;
+        }
+        // Else moving l/r
+        let dir = this.movementDetails["direction"] == "left" ? -1 : 1;
+        let x = SCENE.getXOfTile(this.movementDetails["last_location_x"]);
+        return x + this.movementDetails["speed"] * dir * (TICK_SCHEDULER.getNumTicks() - this.movementDetails["last_tick_number"]) * PROGRAM_SETTINGS["ms_between_ticks"] / 1000;
+    }
+
     getInterpolatedX(){
         let xOfTile = SCENE.getXOfTile(this.tileX);
         // If not moving (or moving u/d) then x is just tile x
@@ -96,6 +116,18 @@ class Character extends Entity {
         let dir = this.movementDetails["direction"] == "down" ? -1 : 1;
         let y = SCENE.getYOfTile(this.movementDetails["last_location_y"]);
         return y + this.movementDetails["speed"] * dir * (FRAME_COUNTER.getLastFrameTime() - this.movementDetails["last_frame_time"]) / 1000;
+    }
+
+    getInterpolatedTickY(){
+        let yOfTile = SCENE.getYOfTile(this.tileY);
+        // If not moving (or moving l/r) then y is just tile y
+        if (!this.isMoving() || this.movementDetails["direction"] == "left" || this.movementDetails["direction"] == "right"){
+            return yOfTile;
+        }
+        // Else moving l/r
+        let dir = this.movementDetails["direction"] == "down" ? -1 : 1;
+        let y = SCENE.getYOfTile(this.movementDetails["last_location_y"]);
+        return y + this.movementDetails["speed"] * dir * (TICK_SCHEDULER.getNumTicks() - this.movementDetails["last_tick_number"]) * PROGRAM_SETTINGS["ms_between_ticks"] / 1000;
     }
 
     getDisplayY(bY){
@@ -127,16 +159,6 @@ class Character extends Entity {
     display(lX, rX, bY, tY){
         let x = this.getDisplayX(lX);
         let y = this.getDisplayY(bY);
-        let iX = this.getInterpolatedX(); // TEMP
-        let cT = Date.now();
-        if (iX == this.lastX){ return; }
-        if (!Number.isNaN(this.lastX)){
-            console.log(iX-this.lastX, cT - this.lastTime, (iX-this.lastX) / (cT - this.lastTime), this.tileX)
-        }else{
-            console.log(iX-this.lastX, cT - this.lastTime, null, this.tileX)
-        }
-        this.lastX = iX;
-        this.lastTime = cT;
         if (!pointInRectangle(x, y, 0, getScreenWidth(), 0, getScreenHeight())){ return; }
         if (this.animationManager.getDirection() == "back"){
             this.inventory.displaySelectedItem(lX, bY);

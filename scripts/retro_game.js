@@ -57,6 +57,8 @@ async function setup() {
     USER_INPUT_MANAGER.register("right_click", "mousedown", (event) => { return event.which==3; });
     USER_INPUT_MANAGER.register("right_click", "mouseup", (event) => { return event.which==3; }, false);
 
+    USER_INPUT_MANAGER.register("left_click", "click", (event) => { return event.which==1; }, true, {"ticked": true, "ticked_activation": false});
+
     // Disable context menu
     document.getElementById("main_area").addEventListener("contextmenu", (event) => {event.preventDefault()});
 
@@ -119,6 +121,8 @@ async function tick(){
 
         // Tick the scene
         await SCENE.tick();
+        // Tick the USER_INPUT_MANAGER
+        USER_INPUT_MANAGER.tick();
 
         // Count the tick
         TICK_SCHEDULER.countTick();

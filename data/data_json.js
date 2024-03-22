@@ -1,4 +1,4 @@
-var PROGRAM_SETTINGS = {
+const PROGRAM_SETTINGS = {
     /*"general": {
         "canvas_width": 1920,
         "canvas_height": 927,
@@ -10,6 +10,46 @@ var PROGRAM_SETTINGS = {
         "walk_speed": 100,
         "animation_frame_time": 200
     },*/
+
+    "tile_attributes": {
+        "grass": [
+            "walkable"
+        ],
+        "dirt": [
+            "walkable"
+        ],
+        "house": [
+            "walkable"
+        ]
+    },
+
+    "gun_data": {
+        "brown_bess": {
+            "display": {
+                "left": {
+                    "x_offset": 2-32,
+                    "y_offset": 32-28 // 32-28
+                },
+                "right": {
+                    "x_offset": 62-32,
+                    "y_offset": 32-28 // 32-28
+                }
+            }
+        }
+    },
+
+    "smoke_generation": {
+        "min_circles_per_smoke_cloud": 10,
+        "max_circles_per_smoke_cloud": 20,
+        "min_radius": 6,
+        "max_radius": 10,
+        "center_radius": 20,
+        "smoke_colour": "#ededeb",
+        "smoke_opacity": 0.99,
+        "min_life_ms": 2000, // 3000?
+        "max_life_ms": 10000, // 10000?
+        "max_speed": 0.5
+    },
 
     "general": {
         "tick_rate": 20, // Tick rate of 20 is expected, keep in mind that if the user moves > 1 tile per tick it will cause issues
@@ -43,8 +83,8 @@ var PROGRAM_SETTINGS = {
             "brown_bess": {
                 "aiming": {
                     "front": {
-                        "x_offset": -1,
-                        "y_offset": 5
+                        "x_offset": -1, // -1
+                        "y_offset": 5 // 5
                     },
                     "left": {
                         "x_offset": -5,

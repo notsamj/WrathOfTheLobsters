@@ -33,6 +33,7 @@ class HumanCharacter extends Character {
         let direction;
         let newTileX = this.tileX;
         let newTileY = this.tileY;
+
         if (wantsToMoveDown){
             direction = "down";
             newTileY -= 1;
@@ -46,6 +47,7 @@ class HumanCharacter extends Character {
             direction = "up";
             newTileY += 1;
         }
+
         // Turn in direction if not moving
         if (!this.isMoving()){
             if (this.animationManager.getAlternativeDirection() != direction){
@@ -57,22 +59,45 @@ class HumanCharacter extends Character {
                 return;
             }
         }
-        console.log("Moving again", this.tileX, this.lastX/64)
+
+        // Check if the tile is walkable before moving
+        if (!SCENE.tileAtLocationHasAttribute(newTileX, newTileY, "walkable")){
+            console.log(SCENE.getTileAtLocation(newTileX, newTileY))
+            if (this.isMoving()){
+                this.movementDetails = null;
+            }
+            return; 
+        }
+
+        //console.log("Moving again", this.tileX, this.lastX/64)
         // TODO: Check if there is a tile that I'm walking to
         let desiredMoveSpeed = PROGRAM_SETTINGS["general"]["walk_speed"];
         desiredMoveSpeed *= (wantsToSprint ? PROGRAM_SETTINGS["general"]["sprint_multiplier"] : 1);
         let tickProgressFromPrevious = 0;
         // If say at tileX 1.5 and moving right then keep that 0.5 as progress for the next move
+        let lastLocationX = this.tileX;
+        let lastLocationY = this.tileY;
+        // Handle tick progress from previous
         if (this.isMoving() && direction == this.movementDetails["direction"]){
             tickProgressFromPrevious = Math.ceil(this.movementDetails["reached_destination_tick"]) - this.movementDetails["reached_destination_tick"];
+            let distanceProgressFromPrevious = tickProgressFromPrevious * this.movementDetails["speed"] / 1000 * PROGRAM_SETTINGS["general"]["ms_between_ticks"];
+            if (direction == "down"){
+                lastLocationY -= distanceProgressFromPrevious / PROGRAM_SETTINGS["general"]["tile_size"];
+            }else if (direction == "left"){
+                lastLocationX -= distanceProgressFromPrevious / PROGRAM_SETTINGS["general"]["tile_size"];
+            }else if (direction == "right"){
+                lastLocationX += distanceProgressFromPrevious / PROGRAM_SETTINGS["general"]["tile_size"];
+            }else{ // Up
+                lastLocationY += distanceProgressFromPrevious / PROGRAM_SETTINGS["general"]["tile_size"];
+            }
         }
-        let distanceProgressFromPrevious = tickProgressFromPrevious * []
         this.movementDetails = {
             "direction": direction,
             "speed": desiredMoveSpeed,
             "last_frame_time": FRAME_COUNTER.getLastFrameTime(),
-            "last_location_x": this.tileX,
-            "last_location_y": this.tileY,
+            "last_tick_number": TICK_SCHEDULER.getNumTicks(),
+            "last_location_x": lastLocationX,
+            "last_location_y": lastLocationY,
             "last_location_tick": numTicks,
             "reached_destination_tick": numTicks + PROGRAM_SETTINGS["general"]["tile_size"] / desiredMoveSpeed * 1000 / PROGRAM_SETTINGS["general"]["ms_between_ticks"] - tickProgressFromPrevious
         }

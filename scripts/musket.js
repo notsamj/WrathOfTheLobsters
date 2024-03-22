@@ -3,13 +3,103 @@ class Musket {
         this.model = model;
         this.tryingToAim = false;
         this.player = objectHasKey(details, "player") ? details["player"] : null;
+        this.reloaded = true;
+    }
+
+    getWidth(){
+        return PROGRAM_SETTINGS["general"]["tile_size"];
+    }
+
+    getHeight(){
+        return PROGRAM_SETTINGS["general"]["tile_size"];
     }
 
     // Abstract
     tick(){}
 
+    getEndOfGunX(){
+        let debug = {};
+        // Get tile x of player (player not moving)
+        let x = SCENE.getXOfTile(this.player.getTileX());
+         // From top left to center of the player model
+        x += PROGRAM_SETTINGS["general"]["tile_size"] / 2;
+        // Add gun y offset, y is now center of the gun
+        x += PROGRAM_SETTINGS["model_positions"][this.player.getModel()][this.model]["aiming"][this.player.getFacingDirection()]["x_offset"];
+
+        let playerDirection = this.player.getFacingDirection();
+        let playerAimingAngleRAD = this.getAngleRAD();
+        let playerAimingAngleDEG = toFixedDegrees(playerAimingAngleRAD);
+        let gunDirection;
+
+        // Determine if using the right gun image or left gun image
+        if (playerDirection == "front"){
+            gunDirection = playerAimingAngleDEG > 270 ? "right" : "left";
+        }else if (playerDirection == "left"){
+            gunDirection = "left";
+        }else if (playerDirection == "right"){
+            gunDirection = "right";
+        }else if (playerDirection == "back"){
+            gunDirection = playerAimingAngleDEG < 90 ? "right" : "left";
+        }
+
+        // Change angle if left gun image
+        if (gunDirection == "left"){
+            playerAimingAngleRAD -= Math.PI;
+        }
+
+        let endOfBarrelXOffset = PROGRAM_SETTINGS["gun_data"][this.model]["display"][gunDirection]["x_offset"];
+        let endOfBarrelYOffset = PROGRAM_SETTINGS["gun_data"][this.model]["display"][gunDirection]["y_offset"];
+        return Math.cos(playerAimingAngleRAD) * endOfBarrelXOffset - Math.sin(playerAimingAngleRAD) * endOfBarrelYOffset + x;
+
+    }
+
+    getEndOfGunY(){
+        let debug = {};
+        // Get tile y of player (player not moving)
+        let y = SCENE.getYOfTile(this.player.getTileY());
+        // From top left to center of the player model
+        y -= PROGRAM_SETTINGS["general"]["tile_size"] / 2;
+        // Add gun y offset, y is now center of the gun
+        y += PROGRAM_SETTINGS["model_positions"][this.player.getModel()][this.model]["aiming"][this.player.getFacingDirection()]["y_offset"] * -1
+        
+        let playerDirection = this.player.getFacingDirection();
+        let playerAimingAngleRAD = this.getAngleRAD();
+        let playerAimingAngleDEG = toFixedDegrees(playerAimingAngleRAD);
+        let gunDirection;
+
+        // Determine if using the right gun image or left gun image
+        if (playerDirection == "front"){
+            gunDirection = playerAimingAngleDEG > 270 ? "right" : "left";
+        }else if (playerDirection == "left"){
+            gunDirection = "left";
+        }else if (playerDirection == "right"){
+            gunDirection = "right";
+        }else if (playerDirection == "back"){
+            gunDirection = playerAimingAngleDEG < 90 ? "right" : "left";
+        }
+
+        // Change angle if left gun image
+        if (gunDirection == "left"){
+            playerAimingAngleRAD -= Math.PI;
+        }
+
+        // This should be the center of the musket image?
+        let endOfBarrelXOffset = PROGRAM_SETTINGS["gun_data"][this.model]["display"][gunDirection]["x_offset"];
+        let endOfBarrelYOffset = PROGRAM_SETTINGS["gun_data"][this.model]["display"][gunDirection]["y_offset"];
+        return Math.sin(playerAimingAngleRAD) * endOfBarrelXOffset + Math.cos(playerAimingAngleRAD) * endOfBarrelYOffset + y;
+    }
+
+    shoot(){
+        // Add smoke where gun is shot
+        SCENE.addExpiringVisual(SmokeCloud.create(this.getEndOfGunX(), this.getEndOfGunY()));
+    }
+
+    isReloaded(){
+        return this.reloaded;
+    }
+
     isAiming(){
-        return this.tryingToAim && this.directionToAimIsOk();
+        return this.tryingToAim && this.directionToAimIsOk() && !this.player.isMoving();
     }
 
     directionToAimIsOk(){
@@ -55,6 +145,7 @@ class Musket {
     display(lX, bY){
         let x = this.getImageX(lX);
         let y = this.getImageY(bY);
+        //console.log(x - 32, "displaygunmiddlex")
         let playerDirection = this.player.getFacingDirection();
         let isAiming = this.isAiming();
 

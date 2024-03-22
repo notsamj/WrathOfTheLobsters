@@ -4,6 +4,16 @@ if (typeof window === "undefined"){
 }
 
 // TODO: Comments
+function listHasElement(list, element){
+    for (let listElement of list){
+        if (listElement === element){
+            return true;
+        }
+    }
+    return false;
+}
+
+// TODO: Comments
 function toFixedDegrees(angleRAD){
     return fixDegrees(toDegrees(angleRAD));
 }

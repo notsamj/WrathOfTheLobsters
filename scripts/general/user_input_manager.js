@@ -24,16 +24,19 @@ class UserInputManager {
                 The function that checks if the event meets requirements
             onOff:
                 Whether or not the event activates or deactivates the node
+            extraInfo:
+                Extra information for setting up the noode
         Method Description: Sets up a listener for an event and potentially creates a node
         Method Return: void
     */
-    register(alias, eventName, checker, onOff=true){
+    register(alias, eventName, checker, onOff=true, extraInfo=null){
         let node = this.get(alias);
         document.addEventListener(eventName, (event) => {
             if (checker(event)){
                 node.setActivated(onOff);
             }
         });
+        node.setExtraInfo(extraInfo);
     }
 
     /*
@@ -92,6 +95,15 @@ class UserInputManager {
     notActivated(alias){
         return !this.isActivated(alias);
     }
+
+    // TODO: Comments
+    tick(){
+        for (let handlerNode of this.handlerNodes){
+            if (handlerNode.isTicked()){
+                handlerNode.tick();
+            }
+        }
+    }
 }
 
 /*
@@ -142,5 +154,20 @@ class UserInputNode {
     */
     isActivated(){
         return this.activated;
+    }
+
+    // TODO: Comments for these 3
+    setExtraInfo(extraInfo){
+        if (extraInfo == null){ return; }
+        this.extraInfo = extraInfo;
+        if (extraInfo["ticked"]){ this.ticked = true;}
+    }
+
+    isTicked(){
+        return this.ticked;
+    }
+
+    tick(){
+        this.activated = this.extraInfo["ticked_activation"];
     }
 }

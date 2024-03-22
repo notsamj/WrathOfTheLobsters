@@ -4,6 +4,15 @@ class RetroGameScene {
         this.entities = new NotSamLinkedList();
         this.focusedEntity = null;
         this.chunks = new NotSamLinkedList();
+        this.expiringVisuals = new NotSamLinkedList();
+    }
+
+    tileAtLocationHasAttribute(tileX, tileY, attribute){
+        if (!this.hasTileCoveringLocation(tileX, tileY)){ return false; }
+        let tileAtLocation = this.getTileCoveringLocation(tileX, tileY);
+        let materialName = tileAtLocation.getMaterial()["name"];
+        if (!objectHasKey(PROGRAM_SETTINGS["tile_attributes"], materialName)){ return false; }
+        return listHasElement(PROGRAM_SETTINGS["tile_attributes"][materialName], attribute);
     }
 
     async loadMaterialList(materialList){
@@ -66,7 +75,6 @@ class RetroGameScene {
                 tileJSON["tiles"].push(individualTileJSON);
             }
         }
-        console.log("TileJSON", tileJSON)
         return tileJSON;
     }
 
@@ -125,13 +133,26 @@ class RetroGameScene {
     }
 
     deleteMaterial(tileX, tileY){
-        if (this.hasTileOnLocation(tileX, tileY)){
+        if (this.hasTileAtLocation(tileX, tileY)){
             this.getTileAtLocation(tileX, tileY).delete();
         }
     }
 
-    hasTileOnLocation(tileX, tileY){
+    hasTileAtLocation(tileX, tileY){
         return this.getTileAtLocation(tileX, tileY) != null;
+    }
+
+    hasTileCoveringLocation(tileX, tileY){
+        return this.getTileCoveringLocation(tileX, tileY) != null;
+    }
+
+    getTileCoveringLocation(tileX, tileY){
+        for (let [chunk, cI] of this.chunks){
+            if (chunk.covers(tileX, tileY)){
+                return chunk.getTileCoveringLocation(tileX, tileY);
+            }
+        }
+        return null;
     }
 
     getCreateChunkAtLocation(tileX, tileY){
@@ -153,9 +174,10 @@ class RetroGameScene {
         return null;
     }
 
+    // Note: This is only tiles naturally at location not just covering
     getTileAtLocation(tileX, tileY){
         for (let [chunk, chunkIndex] of this.chunks){
-            if (chunk.covers(tileX, tileY)){
+            if (chunk.coversNaturally(tileX, tileY)){
                 return chunk.getTileAtLocation(tileX, tileY);
             }
         }
@@ -175,7 +197,7 @@ class RetroGameScene {
     }
 
     getDisplayXFromTileX(lX, tileX){
-        return tileX * PROGRAM_SETTINGS["general"]["tile_size"] - lX;
+        return this.getXOfTile(tileX) - lX;
     }
 
     getXOfTile(tileX){
@@ -183,7 +205,7 @@ class RetroGameScene {
     }
 
     getDisplayYFromTileY(bY, tileY){
-        return this.changeToScreenY((tileY+1) * PROGRAM_SETTINGS["general"]["tile_size"] - bY);
+        return this.changeToScreenY(this.getYOfTile(tileY) - bY);
     }
 
     getYOfTile(tileY){
@@ -261,10 +283,23 @@ class RetroGameScene {
             entity.display(lX, rX, bY, tY);
         }
 
+        // Delete expired visuals
+        this.expiringVisuals.deleteWithCondition((visual) => {
+            return visual.isExpired();
+        });
+        // Display Expiring Visuals
+        for (let [visual, vI] of this.expiringVisuals){
+            visual.display(lX, rX, bY, tY);
+        }
+
         // Display focused entity
         if (this.hasEntityFocused()){
             this.getFocusedEntity().display(lX, rX, bY, tY);
         }
+    }
+
+    addExpiringVisual(expiringVisual){
+        this.expiringVisuals.push(expiringVisual);
     }
 
 
@@ -344,7 +379,7 @@ class Chunk {
         return null;
     }
 
-    getTileCovering(tileX, tileY){
+    getTileCoveringLocation(tileX, tileY){
         for (let [tile, tileI] of this.tiles){
             if (tile.covers(tileX, tileY)){
                 return tile;
@@ -364,10 +399,10 @@ class Chunk {
     touchesRegion(lX, rX, bY, tY){
         let lChunkX = Chunk.tileToChunkCoordinate(RetroGameScene.getTileXAt(lX));
         let rChunkX = Chunk.tileToChunkCoordinate(RetroGameScene.getTileXAt(rX));
-        if (this.chunkX < lChunkX || this.chunkX > rChunkX){ return false; }
+        if (this.getRightX() < lChunkX || this.getLeftX() > rChunkX){ return false; }
         let bChunkY = Chunk.tileToChunkCoordinate(RetroGameScene.getTileYAt(bY));
         let tChunkY = Chunk.tileToChunkCoordinate(RetroGameScene.getTileYAt(tY));
-        if (this.chunkY < bChunkY || this.chunkY > tChunkY){ return false; }
+        if (this.getTopY() < bChunkY || this.getBottomY() > tChunkY){ return false; }
         return true;
     }
 
@@ -376,6 +411,7 @@ class Chunk {
         return leftX;
     }
 
+    // Note: Be careful if you have a 5000 long tile in bottom right it will extend this right
     getRightX(){
         let rightX = (this.chunkX + 1) * PROGRAM_SETTINGS["general"]["chunk_size"] - 1;
         for (let [tile, tI] of this.tiles){
@@ -392,10 +428,11 @@ class Chunk {
         return topY;
     }
 
+    // Note: Be careful if you have a 5000 long tile in bottom right it will extend this right
     getBottomY(){
         let bottomY = this.chunkY * PROGRAM_SETTINGS["general"]["chunk_size"];
         for (let [tile, tI] of this.tiles){
-            let tileBottomY = tile.getLeftX();
+            let tileBottomY = tile.getBottomY();
             if (tileBottomY < bottomY){
                 bottomY = tileBottomY;
             }
@@ -403,12 +440,38 @@ class Chunk {
         return bottomY;
     }
 
+    getNaturalLeftX(){
+        return this.getLeftX();
+    }
+
+    getNaturalRightX(){
+        return (this.chunkX + 1) * PROGRAM_SETTINGS["general"]["chunk_size"] - 1;
+    }
+
+    getNaturalTopY(){
+        this.getTopY();
+    }
+
+    getNaturalBottomY(){
+        return this.chunkY * PROGRAM_SETTINGS["general"]["chunk_size"];
+    }
+
     covers(tileX, tileY){
-        let chunkLeftX = this.getLeftX();
-        let chunkRightX = this.getRightX();
-        let chunkTopY = this.getTopY();
-        let chunkBottomY = this.getBottomY();
-        return tileX >= chunkLeftX && tileX <= chunkRightX && tileY >= chunkBottomY && tileY <= chunkTopY;
+        let chunkLeftX = this.getNaturalLeftX();
+        let chunkRightX = this.getNaturalRightX();
+        let chunkTopY = this.getNaturalTopY();
+        let chunkBottomY = this.getNaturalBottomY();
+        // If within natural boundries
+        if (tileX >= chunkLeftX && tileX <= chunkRightX && tileY >= chunkBottomY && tileY <= chunkTopY){ return true; }
+        // If to the left then no
+        if (tileX < chunkLeftX){ return false; }
+        // If above it then no
+        if (tileY > chunkTopY){ return false; }
+        // Check all tiles
+        for (let [tile, tileI] of this.tiles){
+            if (tile.covers(tileX, tileY)){ return true; }
+        }
+        return false;
     }
 
     coversNaturally(tileX, tileY){
@@ -416,7 +479,7 @@ class Chunk {
     }
 
     placeMaterial(material, tileX, tileY){
-        let tile = this.getTileCovering(tileX, tileY);
+        let tile = this.getTileCoveringLocation(tileX, tileY);
         // If tile doesn't exist, add it
         if (!tile){
             tile = new Tile(SCENE, this, material, tileX, tileY);

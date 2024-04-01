@@ -11,7 +11,6 @@ const SERVER_CONNECTION = new ServerConnection();
 
 // Global variables
 var loadedMaterialTiles = [];
-var bottomMenuState = GAME_MAKER_SETTINGS["bottom_menu_states"]["normal_materials"];
 
 // Functions
 async function setup() {
@@ -85,5 +84,20 @@ async function tick(){
     }
     TICK_SCHEDULER.getTickLock().unlock();
     requestAnimationFrame(tick);
+}
+
+async function loadTilesFromServer(fileName){
+    let response = await SERVER_CONNECTION.sendMail({"action": "load", "file_name": "material/" + fileName}, "load_material");
+    if (response == null){
+        alert("Timeout while loading materials from server.");
+        return;
+    }else if (!response["success"]){
+        alert(response["reason"]);
+        return;
+    }
+    let tiles = JSON.parse(response["data"])["materials"];
+    loadTilesToBottomMenu(tiles);
+    // Update global variable
+    loadedMaterialTiles = tiles;
 }
 

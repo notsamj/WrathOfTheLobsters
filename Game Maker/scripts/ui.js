@@ -1,5 +1,16 @@
+// Global Constants
+
+// Used to prevent loading tiles again before finishing
 const LOAD_TILES_LOCK = new Lock();
+// Used to make accessing bottom menu states easier
+const BOTTOM_MENU_STATES = GAME_MAKER_SETTINGS["bottom_menu_states"]; 
+
+// Global Variables
+
+// Used to determine the position in the current list of tiles so that they can be scrolled
 var tilePosition = 0;
+// Used to keep track of whether the 
+var bottomMenuState = GAME_MAKER_SETTINGS["bottom_menu_states"]["normal_materials"];
 // On Start Up
 document.addEventListener("DOMContentLoaded", (event) => {
     // Load tiles from json
@@ -16,7 +27,7 @@ document.addEventListener("DOMContentLoaded", (event) => {
     };
 
     // Load Materials from json
-    document.getElementById("load_materials_button").onclick = (event) => { loadTileFromServer(prompt("Please enter the material name:", "default.json")); };
+    document.getElementById("load_materials_button").onclick = (event) => { loadTilesFromServer(prompt("Please enter the material name:", "default.json")); };
 
     // Switch to between materials and special tiles
     document.getElementById("switch_material_type_button").onclick = (event) => { switchToSpecialMaterials(); }
@@ -33,23 +44,18 @@ document.addEventListener("DOMContentLoaded", (event) => {
         }
         alert("Saved!");
     };
-    loadTileFromServer("default.json");
+    loadTilesFromServer("default.json");
 });
 
-async function loadTileFromServer(fileName){
-    let response = await SERVER_CONNECTION.sendMail({"action": "load", "file_name": "material/" + fileName}, "load_material");
-    if (response == null){
-        alert("Timeout while loading materials from server.");
-        return;
-    }else if (!response["success"]){
-        alert(response["reason"]);
-        return;
+function switchToSpecialMaterials(){
+    let currentState = bottomMenuState;
+    if (currentState == BOTTOM_MENU_STATES["normal_materials"]){
+        loadSpecialTilesToBottomMenu();
+    }else if (loadedMaterialTiles.length > 0){
+        loadTilesToBottomMenu(loadedMaterialTiles);
     }
-    let tiles = JSON.parse(response["data"])["materials"];
-    loadTiles(tiles);
-    // Update global variable
-    loadedMaterialTiles = tiles;
 }
+
 
 function deleteTileMenu(){
     let menuDiv = document.getElementById("tile_selection_area");
@@ -77,7 +83,11 @@ function createTile(tileDetails){
     return imageTile;
 }
 
-async function loadTiles(tiles){
+function createSpecialTile(){
+    
+}
+
+async function loadTilesToBottomMenu(tiles){
     if (LOAD_TILES_LOCK.isLocked()){ return; }
     LOAD_TILES_LOCK.lock();
     let numTilesToShow = howManyTilesFit();
@@ -94,4 +104,9 @@ async function loadTiles(tiles){
         tilePosition++;
     }
     LOAD_TILES_LOCK.unlock();
+}
+
+function loadSpecialTilesToBottomMenu(){
+    deleteTileMenu();
+    // TODO
 }

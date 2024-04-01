@@ -1,9 +1,9 @@
 // Global variables
 const IMAGES = {};
 const SCENE = new RetroGameScene();
-const FRAME_COUNTER = new FrameRateCounter(PROGRAM_SETTINGS["general"]["frame_rate"]);
+const FRAME_COUNTER = new FrameRateCounter(RETRO_GAME_SETTINGS["general"]["frame_rate"]);
 const MY_HUD = new HUD();
-const TICK_SCHEDULER = new TickScheduler(Math.floor(1000/PROGRAM_SETTINGS["general"]["tick_rate"]));
+const TICK_SCHEDULER = new TickScheduler(Math.floor(1000/RETRO_GAME_SETTINGS["general"]["tick_rate"]));
 const USER_INPUT_MANAGER = new UserInputManager();
 
 // Functions
@@ -15,7 +15,7 @@ async function setup() {
     await CharacterAnimationManager.loadAllImages("usa_pvt");
     await Musket.loadAllImages("brown_bess");
 
-    PROGRAM_SETTINGS["general"]["ms_between_ticks"] = Math.floor(1000 / PROGRAM_SETTINGS["general"]["tick_rate"]); // Expected to be an integer so floor isn't really necessary
+    RETRO_GAME_SETTINGS["general"]["ms_between_ticks"] = Math.floor(1000 / RETRO_GAME_SETTINGS["general"]["tick_rate"]); // Expected to be an integer so floor isn't really necessary
     
     let samuel = new HumanCharacter("british_pvt_g");
     samuel.getInventory().add(new HumanMusket("brown_bess", {

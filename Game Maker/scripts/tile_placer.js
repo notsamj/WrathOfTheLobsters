@@ -30,11 +30,11 @@ class TilePlacer extends Entity {
     }
 
     getX(){
-        return this.tileX * PROGRAM_SETTINGS["general"]["tile_size"];
+        return this.tileX * RETRO_GAME_SETTINGS["general"]["tile_size"];
     }
 
     getY(){
-        return this.tileY * PROGRAM_SETTINGS["general"]["tile_size"];
+        return this.tileY * RETRO_GAME_SETTINGS["general"]["tile_size"];
     }
 
     display(lX, rX, bY, tY){
@@ -47,7 +47,7 @@ class TilePlacer extends Entity {
         MY_HUD.updateElement("Placer Tile X", this.placerTileX);
         MY_HUD.updateElement("Placer Tile Y", this.placerTileY);
         fill(color(252, 240, 63, 20))
-        rect(x, y, PROGRAM_SETTINGS["general"]["tile_size"]);
+        rect(x, y, RETRO_GAME_SETTINGS["general"]["tile_size"]);
     }
 
     tick(){

@@ -18,6 +18,9 @@ document.addEventListener("DOMContentLoaded", (event) => {
     // Load Materials from json
     document.getElementById("load_materials_button").onclick = (event) => { loadTileFromServer(prompt("Please enter the material name:", "default.json")); };
 
+    // Switch to between materials and special tiles
+    document.getElementById("switch_material_type_button").onclick = (event) => { switchToSpecialMaterials(); }
+
     // Save tiles to json
     document.getElementById("save_button").onclick = async (event) => {
         let response = await SERVER_CONNECTION.sendMail({"action": "save", "data": SCENE.toTileJSON(), "file_name": "level/" + prompt("Please enter name of the level to save:", "default.json")}, "save");
@@ -36,13 +39,16 @@ document.addEventListener("DOMContentLoaded", (event) => {
 async function loadTileFromServer(fileName){
     let response = await SERVER_CONNECTION.sendMail({"action": "load", "file_name": "material/" + fileName}, "load_material");
     if (response == null){
-        alert("Timeout.");
+        alert("Timeout while loading materials from server.");
         return;
     }else if (!response["success"]){
         alert(response["reason"]);
         return;
     }
-    loadTiles(JSON.parse(response["data"])["materials"]);
+    let tiles = JSON.parse(response["data"])["materials"];
+    loadTiles(tiles);
+    // Update global variable
+    loadedMaterialTiles = tiles;
 }
 
 function deleteTileMenu(){
@@ -51,7 +57,7 @@ function deleteTileMenu(){
 }
 
 function howManyTilesFit(){
-    return Math.floor(getScreenWidth() / PROGRAM_SETTINGS["general"]["tile_size"]) * 2;
+    return Math.floor(getScreenWidth() / RETRO_GAME_SETTINGS["general"]["tile_size"]) * 2;
 }
 
 function createTile(tileDetails){
@@ -63,8 +69,8 @@ function createTile(tileDetails){
     }
     let imageTile = document.createElement("img");
     imageTile.src = tileDetails["file_link"];
-    imageTile.setAttribute("width", PROGRAM_SETTINGS["general"]["tile_size"]);
-    imageTile.setAttribute("height", PROGRAM_SETTINGS["general"]["tile_size"]);
+    imageTile.setAttribute("width", RETRO_GAME_SETTINGS["general"]["tile_size"]);
+    imageTile.setAttribute("height", RETRO_GAME_SETTINGS["general"]["tile_size"]);
     imageTile.onclick = () => {
         TILE_PLACER.setMaterial(tileDetails);
     }

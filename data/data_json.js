@@ -1,4 +1,4 @@
-const PROGRAM_SETTINGS = {
+const RETRO_GAME_SETTINGS = {
     /*"general": {
         "canvas_width": 1920,
         "canvas_height": 927,
@@ -25,6 +25,7 @@ const PROGRAM_SETTINGS = {
 
     "gun_data": {
         "brown_bess": {
+            "range": 150*64,
             "display": {
                 "left": {
                     "x_offset": 2-32,
@@ -39,16 +40,27 @@ const PROGRAM_SETTINGS = {
     },
 
     "smoke_generation": {
-        "min_circles_per_smoke_cloud": 10,
-        "max_circles_per_smoke_cloud": 20,
+        "min_circles_per_smoke_cloud": 15,
+        "max_circles_per_smoke_cloud": 25,
         "min_radius": 6,
         "max_radius": 10,
-        "center_radius": 20,
+        "center_radius": 25,
         "smoke_colour": "#ededeb",
         "smoke_opacity": 0.99,
         "min_life_ms": 2000, // 3000?
         "max_life_ms": 10000, // 10000?
         "max_speed": 0.5
+    },
+
+    "bullet_impact_generation": {
+        "min_dirt_per_impact": 6,
+        "max_dirt_per_impact": 7,
+        "size": 4,
+        "center_radius": 1,
+        "dirt_colour": "#404040",
+        "min_life_ms": 400,
+        "max_life_ms": 600,
+        "max_speed": 50
     },
 
     "general": {

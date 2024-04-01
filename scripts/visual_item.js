@@ -1,5 +1,5 @@
 class VisualItem {
-    constructor(scene, width=PROGRAM_SETTINGS["general"]["tile_size"], height=PROGRAM_SETTINGS["general"]["tile_size"]){
+    constructor(scene, width=RETRO_GAME_SETTINGS["general"]["tile_size"], height=RETRO_GAME_SETTINGS["general"]["tile_size"]){
         this.scene = scene;
         this.width = width;
         this.height = height;

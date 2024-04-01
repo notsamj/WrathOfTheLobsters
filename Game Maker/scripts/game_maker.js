@@ -1,14 +1,17 @@
-// Global variables
+// Global constants
 const IMAGES = {};
 const SCENE = new RetroGameScene();
-const FRAME_COUNTER = new FrameRateCounter(PROGRAM_SETTINGS["general"]["frame_rate"]);
-const TICK_SCHEDULER = new TickScheduler(1000/PROGRAM_SETTINGS["general"]["tick_rate"]);
+const FRAME_COUNTER = new FrameRateCounter(GAME_MAKER_SETTINGS["general"]["frame_rate"]);
+const TICK_SCHEDULER = new TickScheduler(1000/GAME_MAKER_SETTINGS["general"]["tick_rate"]);
 const USER_INPUT_MANAGER = new UserInputManager();
 const MY_HUD = new HUD();
 const TILE_PLACER = new TilePlacer(SCENE);
 const MAIL_SERVICE = new MailService();
 const SERVER_CONNECTION = new ServerConnection();
 
+// Global variables
+var loadedMaterialTiles = [];
+var bottomMenuState = GAME_MAKER_SETTINGS["bottom_menu_states"]["normal_materials"];
 
 // Functions
 async function setup() {
@@ -38,11 +41,11 @@ async function setup() {
 }
 
 function getCanvasWidth(){
-    return getScreenWidth() - 2 * PROGRAM_SETTINGS["ui"]["side_area_widths"];
+    return getScreenWidth() - 2 * GAME_MAKER_SETTINGS["ui"]["side_area_widths"];
 }
 
 function getCanvasHeight(){
-    return getScreenHeight() - 2 * PROGRAM_SETTINGS["ui"]["side_area_heights"];
+    return getScreenHeight() - 2 * GAME_MAKER_SETTINGS["ui"]["side_area_heights"];
 }
 
 function draw() {

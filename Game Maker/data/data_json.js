@@ -1,4 +1,4 @@
-const PROGRAM_SETTINGS = {
+const GAME_MAKER_SETTINGS = {
     "general": {
         "tick_rate": 50,
         "frame_rate": 60,
@@ -26,8 +26,13 @@ const PROGRAM_SETTINGS = {
         "text_size": 20,
         "key_colour": "#ff6700",
         "value_colour": "#0066ff"
+    },
+
+    "bottom_menu_states": {
+        "normal_materials": 0,
+        "special_tiles": 1
     }
 }
 if (typeof window === "undefined"){
-    module.exports = PROGRAM_SETTINGS;
+    module.exports = GAME_MAKER_SETTINGS;
 }

@@ -48,7 +48,7 @@ class HUD {
         Method Return: void
     */
     display(){
-        let sizeOfText = PROGRAM_SETTINGS["hud"]["text_size"];
+        let sizeOfText = RETRO_GAME_SETTINGS["hud"]["text_size"];
         textSize(sizeOfText);
         textAlign(LEFT, TOP);
         let i = 1;
@@ -132,11 +132,11 @@ class HUDElement {
     */
     display(x, y){
         stroke(1);
-        fill(PROGRAM_SETTINGS["hud"]["key_colour"]);
+        fill(RETRO_GAME_SETTINGS["hud"]["key_colour"]);
         let key = this.name + ": ";
         text(key, x, y);
         let xOffset = textWidth(key);
-        fill(PROGRAM_SETTINGS["hud"]["value_colour"]);
+        fill(RETRO_GAME_SETTINGS["hud"]["value_colour"]);
         text(`${this.value}`, x + xOffset, y);
         this.readyToDisplay = false;
         this.extraTimeLock.lock();

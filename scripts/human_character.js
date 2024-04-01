@@ -71,8 +71,8 @@ class HumanCharacter extends Character {
 
         //console.log("Moving again", this.tileX, this.lastX/64)
         // TODO: Check if there is a tile that I'm walking to
-        let desiredMoveSpeed = PROGRAM_SETTINGS["general"]["walk_speed"];
-        desiredMoveSpeed *= (wantsToSprint ? PROGRAM_SETTINGS["general"]["sprint_multiplier"] : 1);
+        let desiredMoveSpeed = RETRO_GAME_SETTINGS["general"]["walk_speed"];
+        desiredMoveSpeed *= (wantsToSprint ? RETRO_GAME_SETTINGS["general"]["sprint_multiplier"] : 1);
         let tickProgressFromPrevious = 0;
         // If say at tileX 1.5 and moving right then keep that 0.5 as progress for the next move
         let lastLocationX = this.tileX;
@@ -80,15 +80,15 @@ class HumanCharacter extends Character {
         // Handle tick progress from previous
         if (this.isMoving() && direction == this.movementDetails["direction"]){
             tickProgressFromPrevious = Math.ceil(this.movementDetails["reached_destination_tick"]) - this.movementDetails["reached_destination_tick"];
-            let distanceProgressFromPrevious = tickProgressFromPrevious * this.movementDetails["speed"] / 1000 * PROGRAM_SETTINGS["general"]["ms_between_ticks"];
+            let distanceProgressFromPrevious = tickProgressFromPrevious * this.movementDetails["speed"] / 1000 * RETRO_GAME_SETTINGS["general"]["ms_between_ticks"];
             if (direction == "down"){
-                lastLocationY -= distanceProgressFromPrevious / PROGRAM_SETTINGS["general"]["tile_size"];
+                lastLocationY -= distanceProgressFromPrevious / RETRO_GAME_SETTINGS["general"]["tile_size"];
             }else if (direction == "left"){
-                lastLocationX -= distanceProgressFromPrevious / PROGRAM_SETTINGS["general"]["tile_size"];
+                lastLocationX -= distanceProgressFromPrevious / RETRO_GAME_SETTINGS["general"]["tile_size"];
             }else if (direction == "right"){
-                lastLocationX += distanceProgressFromPrevious / PROGRAM_SETTINGS["general"]["tile_size"];
+                lastLocationX += distanceProgressFromPrevious / RETRO_GAME_SETTINGS["general"]["tile_size"];
             }else{ // Up
-                lastLocationY += distanceProgressFromPrevious / PROGRAM_SETTINGS["general"]["tile_size"];
+                lastLocationY += distanceProgressFromPrevious / RETRO_GAME_SETTINGS["general"]["tile_size"];
             }
         }
         this.movementDetails = {
@@ -99,7 +99,7 @@ class HumanCharacter extends Character {
             "last_location_x": lastLocationX,
             "last_location_y": lastLocationY,
             "last_location_tick": numTicks,
-            "reached_destination_tick": numTicks + PROGRAM_SETTINGS["general"]["tile_size"] / desiredMoveSpeed * 1000 / PROGRAM_SETTINGS["general"]["ms_between_ticks"] - tickProgressFromPrevious
+            "reached_destination_tick": numTicks + RETRO_GAME_SETTINGS["general"]["tile_size"] / desiredMoveSpeed * 1000 / RETRO_GAME_SETTINGS["general"]["ms_between_ticks"] - tickProgressFromPrevious
         }
         this.tileX = newTileX;
         this.tileY = newTileY;

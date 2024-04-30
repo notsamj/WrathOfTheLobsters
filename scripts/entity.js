@@ -1,5 +1,5 @@
 class Entity extends VisualItem {
-    constructor(width=RETRO_GAME_SETTINGS["general"]["tile_size"], height=RETRO_GAME_SETTINGS["general"]["tile_size"]){
+    constructor(width=RETRO_GAME_DATA["general"]["tile_size"], height=RETRO_GAME_DATA["general"]["tile_size"]){
         super(width, height);
         this.id = null;
     }

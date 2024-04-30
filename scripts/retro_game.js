@@ -1,10 +1,14 @@
-// Global variables
+// Global constants
 const IMAGES = {};
 const SCENE = new RetroGameScene();
-const FRAME_COUNTER = new FrameRateCounter(RETRO_GAME_SETTINGS["general"]["frame_rate"]);
+const FRAME_COUNTER = new FrameRateCounter(RETRO_GAME_DATA["general"]["frame_rate"]);
 const MY_HUD = new HUD();
-const TICK_SCHEDULER = new TickScheduler(Math.floor(1000/RETRO_GAME_SETTINGS["general"]["tick_rate"]));
+const TICK_SCHEDULER = new TickScheduler(Math.floor(1000/RETRO_GAME_DATA["general"]["tick_rate"]));
 const USER_INPUT_MANAGER = new UserInputManager();
+
+// Global Variables
+var mouseX = 0;
+var mouseY = 0;
 
 // Functions
 async function setup() {
@@ -15,8 +19,13 @@ async function setup() {
     await CharacterAnimationManager.loadAllImages("usa_pvt");
     await Musket.loadAllImages("brown_bess");
 
-    RETRO_GAME_SETTINGS["general"]["ms_between_ticks"] = Math.floor(1000 / RETRO_GAME_SETTINGS["general"]["tick_rate"]); // Expected to be an integer so floor isn't really necessary
+    RETRO_GAME_DATA["general"]["ms_between_ticks"] = Math.floor(1000 / RETRO_GAME_DATA["general"]["tick_rate"]); // Expected to be an integer so floor isn't really necessary
     
+    window.onmousemove = (event) => {
+        mouseX = event.clientX;
+        mouseY = event.clientY;
+    }
+
     let samuel = new HumanCharacter("british_pvt_g");
     samuel.getInventory().add(new HumanMusket("brown_bess", {
         "player": samuel
@@ -77,12 +86,12 @@ async function setup() {
     SCENE.loadTilesFromJSON(LEVEL_DATA["default.json"]);
 
     // Create Canvas
-    createCanvas(getCanvasWidth(), getCanvasHeight());
-    window.onresize = function(event) {
-        resizeCanvas(getCanvasWidth(), getCanvasHeight());
-    };
+    let canvasDOM = document.getElementById("canvas");
+    canvasDOM.width = getScreenWidth();
+    canvasDOM.height = getScreenHeight();
+    // Set global variable drawingContext
+    drawingContext = canvasDOM.getContext("2d");
 
-    frameRate(0);
     TICK_SCHEDULER.setStartTime(Date.now());
     requestAnimationFrame(tick);
 }
@@ -99,7 +108,6 @@ function drawCrosshair(){
 }
 
 function draw() {
-    clear();
     SCENE.display();
     let fps = FRAME_COUNTER.getFPS();
     MY_HUD.updateElement("fps", fps);
@@ -121,6 +129,7 @@ async function tick(){
 
         // Tick the scene
         await SCENE.tick();
+        
         // Tick the USER_INPUT_MANAGER
         USER_INPUT_MANAGER.tick();
 
@@ -132,6 +141,12 @@ async function tick(){
     // Draw a frame
     if (FRAME_COUNTER.ready()){
         FRAME_COUNTER.countFrame();
+        let canvas = document.getElementById("canvas");
+        // Update Canvas size if applicable
+        if (getScreenWidth() != canvas.width || getScreenHeight() != canvas.height){
+            canvas.width = getScreenWidth();
+            canvas.height = getScreenHeight();
+        }
         draw();
     }
     requestAnimationFrame(tick);
@@ -144,3 +159,8 @@ function getCanvasWidth(){
 function getCanvasHeight(){
     return getScreenHeight();
 }
+
+// Start Up
+window.addEventListener("load", () => {
+    setup();
+});

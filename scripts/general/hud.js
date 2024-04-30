@@ -48,20 +48,22 @@ class HUD {
         Method Return: void
     */
     display(){
-        let sizeOfText = RETRO_GAME_SETTINGS["hud"]["text_size"];
-        textSize(sizeOfText);
-        textAlign(LEFT, TOP);
         let i = 1;
         for (let element of this.hudElements){
             if (!element.isReadyToDisplay()){
                 continue;
             }
-            element.display(10, i * sizeOfText);
+            element.display(10, i * RETRO_GAME_DATA["hud"]["text_size"]);
             i++;
         }
     }
 
-    // TODO: Comments
+    /*
+        Method Name: clearAll
+        Method Parameters: None
+        Method Description: Clears all elements from the screen
+        Method Return: void
+    */
     clearAll(){
         for (let element of this.hudElements){
             element.clear();
@@ -84,7 +86,7 @@ class HUDElement {
         this.name = name;
         this.readyToDisplay = true;
         this.value = null;
-        this.extraTimeLock = new CooldownLock(1000); // TODO: Test if this works so no flashing
+        this.extraTimeLock = new CooldownLock(1000);
     }
 
     /*
@@ -131,13 +133,10 @@ class HUDElement {
         Method Return: void
     */
     display(x, y){
-        stroke(1);
-        fill(RETRO_GAME_SETTINGS["hud"]["key_colour"]);
         let key = this.name + ": ";
-        text(key, x, y);
-        let xOffset = textWidth(key);
-        fill(RETRO_GAME_SETTINGS["hud"]["value_colour"]);
-        text(`${this.value}`, x + xOffset, y);
+        makeText(key, x, y, getScreenWidth(), getScreenHeight(), Colour.fromCode(RETRO_GAME_DATA["hud"]["key_colour"]), RETRO_GAME_DATA["hud"]["text_size"], "left", "top");
+        let xOffset = measureTextWidth(key);
+        makeText(`${this.value}`, x + xOffset, y, getScreenWidth(), getScreenHeight(), Colour.fromCode(RETRO_GAME_DATA["hud"]["value_colour"]), RETRO_GAME_DATA["hud"]["text_size"], "left", "top");
         this.readyToDisplay = false;
         this.extraTimeLock.lock();
     }
@@ -152,7 +151,12 @@ class HUDElement {
         return this.readyToDisplay || this.extraTimeLock.notReady();
     }
 
-    // TODO: Comments
+    /*
+        Method Name: clear
+        Method Parameters: None
+        Method Description: Removes an element from the screen. Requires it to be requested again to be displayed
+        Method Return: void
+    */
     clear(){
         this.extraTimeLock.unlock();
     }

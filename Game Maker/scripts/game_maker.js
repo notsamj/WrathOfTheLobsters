@@ -34,7 +34,6 @@ async function setup() {
     // Disable context menu
     document.getElementById("main_area").addEventListener("contextmenu", (event) => {event.preventDefault()});
 
-    frameRate(0);
     TICK_SCHEDULER.setStartTime(Date.now());
     requestAnimationFrame(tick);
 }

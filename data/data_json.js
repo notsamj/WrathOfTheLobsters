@@ -1,16 +1,4 @@
-const RETRO_GAME_SETTINGS = {
-    /*"general": {
-        "canvas_width": 1920,
-        "canvas_height": 927,
-        "center_area_height": 832,
-        "center_area_width": 1824,
-        "tick_rate": 100,
-        "frame_rate": 60,
-        "tile_size": 64,
-        "walk_speed": 100,
-        "animation_frame_time": 200
-    },*/
-
+const RETRO_GAME_DATA = {
     "tile_attributes": {
         "grass": [
             "walkable"
@@ -37,6 +25,10 @@ const RETRO_GAME_SETTINGS = {
                 }
             }
         }
+    },
+
+    "ui": {
+        "font_family": "arial"
     },
 
     "smoke_generation": {

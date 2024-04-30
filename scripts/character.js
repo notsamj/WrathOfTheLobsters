@@ -18,11 +18,11 @@ class Character extends Entity {
     }
 
     getWidth(){
-        return RETRO_GAME_SETTINGS["general"]["tile_size"];
+        return RETRO_GAME_DATA["general"]["tile_size"];
     }
 
     getHeight(){
-        return RETRO_GAME_SETTINGS["general"]["tile_size"];
+        return RETRO_GAME_DATA["general"]["tile_size"];
     }
 
     getInventory(){
@@ -87,7 +87,7 @@ class Character extends Entity {
         // Else moving l/r
         let dir = this.movementDetails["direction"] == "left" ? -1 : 1;
         let x = SCENE.getXOfTile(this.movementDetails["last_location_x"]);
-        return x + this.movementDetails["speed"] * dir * (TICK_SCHEDULER.getNumTicks() - this.movementDetails["last_tick_number"]) * RETRO_GAME_SETTINGS["ms_between_ticks"] / 1000;
+        return x + this.movementDetails["speed"] * dir * (TICK_SCHEDULER.getNumTicks() - this.movementDetails["last_tick_number"]) * RETRO_GAME_DATA["ms_between_ticks"] / 1000;
     }
 
     getInterpolatedX(){
@@ -127,7 +127,7 @@ class Character extends Entity {
         // Else moving l/r
         let dir = this.movementDetails["direction"] == "down" ? -1 : 1;
         let y = SCENE.getYOfTile(this.movementDetails["last_location_y"]);
-        return y + this.movementDetails["speed"] * dir * (TICK_SCHEDULER.getNumTicks() - this.movementDetails["last_tick_number"]) * RETRO_GAME_SETTINGS["ms_between_ticks"] / 1000;
+        return y + this.movementDetails["speed"] * dir * (TICK_SCHEDULER.getNumTicks() - this.movementDetails["last_tick_number"]) * RETRO_GAME_DATA["ms_between_ticks"] / 1000;
     }
 
     getDisplayY(bY){

@@ -40,27 +40,12 @@
     <!-- UI Script -->
     <script src="Game Maker/scripts/ui.js"></script>
 
-    <!-- P5 --> 
-    <script src="../p5/p5.js"></script>
+    <!-- 2d Canvas Helper --> 
+    <script src="scripts/general/simple_2d_canvas_helper.js"></script>
 </head>
 <body>
-    <!-- This is where the Canvas will end up -->
-    <div id="left_bar"></div>
-    <div id="right_bar"></div>
-    <div id="top_bar">
-        <button id="load_materials_button">Load Material Package</button>
-        <button id="switch_material_type_button">Toggle Special Tiles</button>
-        <button id="load_level_button">Load Level</button>
-        <button id="save_button">Save Level</button>
-    </div>
-    <div id="bottom_bar">
-        <button id="previous_button">Previous</button>
-        <button id="next_button">Next</button>
-        <div id="tile_selection_area">
-            
-        </div>
-    </div>
-
-    <main id="main_area"></main>
+    <main id="main_area">
+        <canvas id="canvas"></canvas>
+    </main>
 </body>
 </html>

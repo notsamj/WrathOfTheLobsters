@@ -8,11 +8,11 @@ class Tile extends VisualItem {
     }
 
     getX(){
-        return this.tileX * RETRO_GAME_SETTINGS["general"]["tile_size"];
+        return this.tileX * RETRO_GAME_DATA["general"]["tile_size"];
     }
 
     getY(){
-        return this.tileY * RETRO_GAME_SETTINGS["general"]["tile_size"];
+        return this.tileY * RETRO_GAME_DATA["general"]["tile_size"];
     }
 
     getTileX(){
@@ -28,7 +28,7 @@ class Tile extends VisualItem {
     }
 
     getRightX(){
-        return this.tileX + (this.width / RETRO_GAME_SETTINGS["general"]["tile_size"] - 1);
+        return this.tileX + (this.width / RETRO_GAME_DATA["general"]["tile_size"] - 1);
     }
 
     getTopY(){
@@ -36,7 +36,7 @@ class Tile extends VisualItem {
     }
 
     getBottomY(){
-        return this.tileY - (this.height / RETRO_GAME_SETTINGS["general"]["tile_size"] - 1);
+        return this.tileY - (this.height / RETRO_GAME_DATA["general"]["tile_size"] - 1);
     }
 
     getImage(){

@@ -7,11 +7,11 @@ class Musket {
     }
 
     getWidth(){
-        return RETRO_GAME_SETTINGS["general"]["tile_size"];
+        return RETRO_GAME_DATA["general"]["tile_size"];
     }
 
     getHeight(){
-        return RETRO_GAME_SETTINGS["general"]["tile_size"];
+        return RETRO_GAME_DATA["general"]["tile_size"];
     }
 
     // Abstract
@@ -22,24 +22,23 @@ class Musket {
         // Get tile x of player (player not moving)
         let x = SCENE.getXOfTile(this.player.getTileX());
          // From top left to center of the player model
-        x += RETRO_GAME_SETTINGS["general"]["tile_size"] / 2;
+        x += RETRO_GAME_DATA["general"]["tile_size"] / 2;
         // Add gun y offset, y is now center of the gun
-        x += RETRO_GAME_SETTINGS["model_positions"][this.player.getModel()][this.model]["aiming"][this.player.getFacingDirection()]["x_offset"];
+        x += RETRO_GAME_DATA["model_positions"][this.player.getModel()][this.model]["aiming"][this.player.getFacingDirection()]["x_offset"];
 
         let playerDirection = this.player.getFacingDirection();
         let playerAimingAngleRAD = this.getAngleRAD();
-        let playerAimingAngleDEG = toFixedDegrees(playerAimingAngleRAD);
         let gunDirection;
 
         // Determine if using the right gun image or left gun image
         if (playerDirection == "front"){
-            gunDirection = playerAimingAngleDEG > 270 ? "right" : "left";
+            gunDirection = playerAimingAngleRAD > toRadians(270) ? "right" : "left";
         }else if (playerDirection == "left"){
             gunDirection = "left";
         }else if (playerDirection == "right"){
             gunDirection = "right";
         }else if (playerDirection == "back"){
-            gunDirection = playerAimingAngleDEG < 90 ? "right" : "left";
+            gunDirection = playerAimingAngleRAD < toRadians(90) ? "right" : "left";
         }
 
         // Change angle if left gun image
@@ -47,8 +46,8 @@ class Musket {
             playerAimingAngleRAD -= Math.PI;
         }
 
-        let endOfBarrelXOffset = RETRO_GAME_SETTINGS["gun_data"][this.model]["display"][gunDirection]["x_offset"];
-        let endOfBarrelYOffset = RETRO_GAME_SETTINGS["gun_data"][this.model]["display"][gunDirection]["y_offset"];
+        let endOfBarrelXOffset = RETRO_GAME_DATA["gun_data"][this.model]["display"][gunDirection]["x_offset"];
+        let endOfBarrelYOffset = RETRO_GAME_DATA["gun_data"][this.model]["display"][gunDirection]["y_offset"];
         return Math.cos(playerAimingAngleRAD) * endOfBarrelXOffset - Math.sin(playerAimingAngleRAD) * endOfBarrelYOffset + x;
 
     }
@@ -58,9 +57,9 @@ class Musket {
         // Get tile y of player (player not moving)
         let y = SCENE.getYOfTile(this.player.getTileY());
         // From top left to center of the player model
-        y -= RETRO_GAME_SETTINGS["general"]["tile_size"] / 2;
+        y -= RETRO_GAME_DATA["general"]["tile_size"] / 2;
         // Add gun y offset, y is now center of the gun
-        y += RETRO_GAME_SETTINGS["model_positions"][this.player.getModel()][this.model]["aiming"][this.player.getFacingDirection()]["y_offset"] * -1
+        y += RETRO_GAME_DATA["model_positions"][this.player.getModel()][this.model]["aiming"][this.player.getFacingDirection()]["y_offset"] * -1
         
         let playerDirection = this.player.getFacingDirection();
         let playerAimingAngleRAD = this.getAngleRAD();
@@ -69,13 +68,13 @@ class Musket {
 
         // Determine if using the right gun image or left gun image
         if (playerDirection == "front"){
-            gunDirection = playerAimingAngleDEG > 270 ? "right" : "left";
+            gunDirection = playerAimingAngleRAD > toRadians(270) ? "right" : "left";
         }else if (playerDirection == "left"){
             gunDirection = "left";
         }else if (playerDirection == "right"){
             gunDirection = "right";
         }else if (playerDirection == "back"){
-            gunDirection = playerAimingAngleDEG < 90 ? "right" : "left";
+            gunDirection = playerAimingAngleRAD < toRadians(90) ? "right" : "left";
         }
 
         // Change angle if left gun image
@@ -84,8 +83,8 @@ class Musket {
         }
 
         // This should be the center of the musket image?
-        let endOfBarrelXOffset = RETRO_GAME_SETTINGS["gun_data"][this.model]["display"][gunDirection]["x_offset"];
-        let endOfBarrelYOffset = RETRO_GAME_SETTINGS["gun_data"][this.model]["display"][gunDirection]["y_offset"];
+        let endOfBarrelXOffset = RETRO_GAME_DATA["gun_data"][this.model]["display"][gunDirection]["x_offset"];
+        let endOfBarrelYOffset = RETRO_GAME_DATA["gun_data"][this.model]["display"][gunDirection]["y_offset"];
         return Math.sin(playerAimingAngleRAD) * endOfBarrelXOffset + Math.cos(playerAimingAngleRAD) * endOfBarrelYOffset + y;
     }
 
@@ -108,7 +107,7 @@ class Musket {
     }
 
     directionToAimIsOk(){
-        let angleTryingToAimAtDEG = this.getAngleDEG();
+        let angleTryingToAimAtDEG = toFixedDegrees(this.getAngleRAD());
         let playerDirection = this.player.getFacingDirection();
         if (playerDirection == "front"){
             return angleTryingToAimAtDEG > 180 && angleTryingToAimAtDEG <= 359;
@@ -122,31 +121,6 @@ class Musket {
         throw new Error(`Invalid player direction: ${playerDirection}`);
     }
 
-    getAngleDEG(){
-        return toFixedDegrees(this.getAngleRAD());
-    }
-
-    getAngleRAD(){
-        let x = window.mouseX;
-        let y = SCENE.changeFromScreenY(window.mouseY);
-        let xOffset = x - getScreenWidth() / 2;
-        let yOffset = y - getScreenHeight() / 2;
-        if (xOffset == 0){
-            if (yOffset > 0){
-                return Math.PI/2;
-            }else if (yOffset < 0){
-                return Math.PI*3/2;
-            }else{
-                return 0;
-            }
-        }
-        let angleRAD = Math.atan(yOffset/xOffset);
-        if (xOffset < 0){
-            angleRAD -= Math.PI;
-        }
-        return angleRAD;
-    }
-
     display(lX, bY){
         let x = this.getImageX(lX);
         let y = this.getImageY(bY);
@@ -158,7 +132,7 @@ class Musket {
         let displayRotateAngleRAD;
         let playerAimingAngleRAD = this.getAngleRAD();
         let playerAimingAngleDEG = toFixedDegrees(playerAimingAngleRAD);
-        let atTheReady = RETRO_GAME_SETTINGS["model_positions"]["at_the_ready_rotation"];
+        let atTheReady = RETRO_GAME_DATA["model_positions"]["at_the_ready_rotation"];
         if (isAiming){
             if (playerDirection == "front"){
                 image = playerAimingAngleDEG > 270 ? IMAGES[this.model + "_right_64"] : IMAGES[this.model + "_left_64"];
@@ -201,12 +175,12 @@ class Musket {
 
     getImageX(lX){
         let x = this.player.getDisplayX(lX);
-        return x + RETRO_GAME_SETTINGS["model_positions"][this.player.getModel()][this.model][this.isAiming() ? "aiming" : "not_aiming"][this.player.getFacingDirection()]["x_offset"];
+        return x + RETRO_GAME_DATA["model_positions"][this.player.getModel()][this.model][this.isAiming() ? "aiming" : "not_aiming"][this.player.getFacingDirection()]["x_offset"];
     }
 
     getImageY(bY){
         let y = this.player.getDisplayY(bY);
-        return y + RETRO_GAME_SETTINGS["model_positions"][this.player.getModel()][this.model][this.isAiming() ? "aiming" : "not_aiming"][this.player.getFacingDirection()]["y_offset"];
+        return y + RETRO_GAME_DATA["model_positions"][this.player.getModel()][this.model][this.isAiming() ? "aiming" : "not_aiming"][this.player.getFacingDirection()]["y_offset"];
     }
 
     static async loadAllImages(model){

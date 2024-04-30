@@ -11,8 +11,8 @@ class RetroGameScene {
         if (!this.hasTileCoveringLocation(tileX, tileY)){ return false; }
         let tileAtLocation = this.getTileCoveringLocation(tileX, tileY);
         let materialName = tileAtLocation.getMaterial()["name"];
-        if (!objectHasKey(RETRO_GAME_SETTINGS["tile_attributes"], materialName)){ return false; }
-        return listHasElement(RETRO_GAME_SETTINGS["tile_attributes"][materialName], attribute);
+        if (!objectHasKey(RETRO_GAME_DATA["tile_attributes"], materialName)){ return false; }
+        return listHasElement(RETRO_GAME_DATA["tile_attributes"][materialName], attribute);
     }
 
     async loadMaterialList(materialList){
@@ -83,11 +83,11 @@ class RetroGameScene {
     }
 
     getMaterialXTileSize(materialName){
-        return this.getMaterialImage(materialName).width / RETRO_GAME_SETTINGS["general"]["tile_size"];
+        return this.getMaterialImage(materialName).width / RETRO_GAME_DATA["general"]["tile_size"];
     }
 
     getMaterialYTileSize(materialName){
-        return this.getMaterialImage(materialName).height / RETRO_GAME_SETTINGS["general"]["tile_size"];
+        return this.getMaterialImage(materialName).height / RETRO_GAME_DATA["general"]["tile_size"];
     }
 
     hasEntityFocused(){
@@ -189,11 +189,11 @@ class RetroGameScene {
     }
 
     static getTileXAt(x){
-        return Math.floor(x / RETRO_GAME_SETTINGS["general"]["tile_size"]);
+        return Math.floor(x / RETRO_GAME_DATA["general"]["tile_size"]);
     }
 
     static getTileYAt(y){
-        return Math.floor(y / RETRO_GAME_SETTINGS["general"]["tile_size"]);
+        return Math.floor(y / RETRO_GAME_DATA["general"]["tile_size"]);
     }
 
     getDisplayXFromTileX(lX, tileX){
@@ -201,7 +201,7 @@ class RetroGameScene {
     }
 
     getXOfTile(tileX){
-        return tileX * RETRO_GAME_SETTINGS["general"]["tile_size"];
+        return tileX * RETRO_GAME_DATA["general"]["tile_size"];
     }
 
     getDisplayYFromTileY(bY, tileY){
@@ -209,7 +209,7 @@ class RetroGameScene {
     }
 
     getYOfTile(tileY){
-        return (tileY+1) * RETRO_GAME_SETTINGS["general"]["tile_size"];
+        return (tileY+1) * RETRO_GAME_DATA["general"]["tile_size"];
     }
 
     getDisplayX(centerX, width, lX){
@@ -426,7 +426,7 @@ class Chunk {
     }
 
     recalculateBoundaries(){
-        let bottomY = this.chunkY * RETRO_GAME_SETTINGS["general"]["chunk_size"];
+        let bottomY = this.chunkY * RETRO_GAME_DATA["general"]["chunk_size"];
         for (let [tile, tI] of this.tiles){
             let tileBottomY = tile.getBottomY();
             if (tileBottomY < bottomY){
@@ -435,7 +435,7 @@ class Chunk {
         }
         this.bottomY = bottomY;
 
-        let rightX = (this.chunkX + 1) * RETRO_GAME_SETTINGS["general"]["chunk_size"] - 1;
+        let rightX = (this.chunkX + 1) * RETRO_GAME_DATA["general"]["chunk_size"] - 1;
         for (let [tile, tI] of this.tiles){
             let tileRightX = tile.getRightX();
             if (tileRightX > rightX){
@@ -443,8 +443,8 @@ class Chunk {
             }
         }
         this.rightX = rightX;
-        this.leftX = this.chunkX * RETRO_GAME_SETTINGS["general"]["chunk_size"];
-        this.topY = (this.chunkY + 1) * RETRO_GAME_SETTINGS["general"]["chunk_size"] - 1;
+        this.leftX = this.chunkX * RETRO_GAME_DATA["general"]["chunk_size"];
+        this.topY = (this.chunkY + 1) * RETRO_GAME_DATA["general"]["chunk_size"] - 1;
     }
 
     getNaturalLeftX(){
@@ -452,7 +452,7 @@ class Chunk {
     }
 
     getNaturalRightX(){
-        return (this.chunkX + 1) * RETRO_GAME_SETTINGS["general"]["chunk_size"] - 1;
+        return (this.chunkX + 1) * RETRO_GAME_DATA["general"]["chunk_size"] - 1;
     }
 
     getNaturalTopY(){
@@ -460,7 +460,7 @@ class Chunk {
     }
 
     getNaturalBottomY(){
-        return this.chunkY * RETRO_GAME_SETTINGS["general"]["chunk_size"];
+        return this.chunkY * RETRO_GAME_DATA["general"]["chunk_size"];
     }
 
     covers(tileX, tileY){
@@ -527,7 +527,7 @@ class Chunk {
     }
 
     static tileToChunkCoordinate(coordinate){
-        return Math.floor(coordinate / RETRO_GAME_SETTINGS["general"]["chunk_size"]);
+        return Math.floor(coordinate / RETRO_GAME_DATA["general"]["chunk_size"]);
     }
 }
 

@@ -5,7 +5,7 @@ class CharacterAnimationManager extends AnimationManager {
         this.walkingCountLR = 0;
         this.walkingCountUD = 0;
         this.walkingUDNext = 1;
-        this.movingStepCD = new CooldownLock(RETRO_GAME_SETTINGS["general"]["animation_frame_time"]);
+        this.movingStepCD = new CooldownLock(RETRO_GAME_DATA["general"]["animation_frame_time"]);
     }
 
     getDirection(){

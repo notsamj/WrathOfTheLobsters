@@ -1,6 +1,6 @@
 // If using NodeJS then do required imports
 if (typeof window === "undefined"){
-    PROGRAM_DATA = require("../../data/data_json.js");
+    RETRO_GAME_DATA = require("../../data/data_json.js");
 }
 
 // TODO: Comments
@@ -35,7 +35,7 @@ function getImage(imageName){
 // TODO: Comments
 function getTickMultiplier(){
     return 1; // TODO: Remove this function?
-    // return PROGRAM_DATA["settings"]["assumed_tick_rate"] / PROGRAM_DATA["settings"]["tick_rate"];
+    // return RETRO_GAME_DATA["settings"]["assumed_tick_rate"] / RETRO_GAME_DATA["settings"]["tick_rate"];
 }
 
 // TODO: Comments
@@ -236,7 +236,7 @@ function getDegreesFromDisplacement(dX, dY){
     Method Return: String
 */
 function planeModelToType(model){
-    return PROGRAM_DATA["plane_data"][model]["type"];
+    return RETRO_GAME_DATA["plane_data"][model]["type"];
 }
 
 /*
@@ -468,7 +468,7 @@ function randomNumber(maxExclusive){
     Method Return: boolean, True -> On same team, False -> Not on the same team
 */
 function onSameTeam(class1, class2){
-    return countryToAlliance(PROGRAM_DATA["plane_data"][class1]["country"]) == countryToAlliance(PROGRAM_DATA["plane_data"][class2]["country"]);
+    return countryToAlliance(RETRO_GAME_DATA["plane_data"][class1]["country"]) == countryToAlliance(RETRO_GAME_DATA["plane_data"][class2]["country"]);
 }
 
 /*
@@ -710,7 +710,7 @@ function randomFloatBetween(lowerBound, upperBound){
     Method Return: String
 */
 function countryToAlliance(country){
-    return PROGRAM_DATA["country_to_alliance"][country];
+    return RETRO_GAME_DATA["country_to_alliance"][country];
 }
 
 /*
@@ -722,7 +722,7 @@ function countryToAlliance(country){
     Method Return: String
 */
 function planeModelToCountry(planeModel){
-    return PROGRAM_DATA["plane_data"][planeModel]["country"];
+    return RETRO_GAME_DATA["plane_data"][planeModel]["country"];
 }
 
 /*

@@ -3,8 +3,8 @@
         Assuming player does not move > 1 tile / tick
 */
 class Character extends Entity {
-    constructor(model){
-        super();
+    constructor(gamemode, model){
+        super(gamemode);
         this.model = model;
         this.animationManager = new CharacterAnimationManager();
         this.tileX = 0;
@@ -79,26 +79,26 @@ class Character extends Entity {
     }
 
     getInterpoaltedTickX(){
-        let xOfTile = SCENE.getXOfTile(this.tileX);
+        let xOfTile = this.gamemode.getScene().getXOfTile(this.tileX);
         // If not moving (or moving u/d) then x is just tile x
         if (!this.isMoving() || this.movementDetails["direction"] == "up" || this.movementDetails["direction"] == "down"){
             return xOfTile;
         }
         // Else moving l/r
         let dir = this.movementDetails["direction"] == "left" ? -1 : 1;
-        let x = SCENE.getXOfTile(this.movementDetails["last_location_x"]);
+        let x = this.gamemode.getScene().getXOfTile(this.movementDetails["last_location_x"]);
         return x + this.movementDetails["speed"] * dir * (TICK_SCHEDULER.getNumTicks() - this.movementDetails["last_tick_number"]) * RETRO_GAME_DATA["ms_between_ticks"] / 1000;
     }
 
     getInterpolatedX(){
-        let xOfTile = SCENE.getXOfTile(this.tileX);
+        let xOfTile = this.gamemode.getScene().getXOfTile(this.tileX);
         // If not moving (or moving u/d) then x is just tile x
         if (!this.isMoving() || this.movementDetails["direction"] == "up" || this.movementDetails["direction"] == "down"){
             return xOfTile;
         }
         // Else moving l/r
         let dir = this.movementDetails["direction"] == "left" ? -1 : 1;
-        let x = SCENE.getXOfTile(this.movementDetails["last_location_x"]);
+        let x = this.gamemode.getScene().getXOfTile(this.movementDetails["last_location_x"]);
         return x + this.movementDetails["speed"] * dir * (FRAME_COUNTER.getLastFrameTime() - this.movementDetails["last_frame_time"]) / 1000;
     }
 
@@ -107,31 +107,31 @@ class Character extends Entity {
     }
 
     getInterpolatedY(){
-        let yOfTile = SCENE.getYOfTile(this.tileY);
+        let yOfTile = this.gamemode.getScene().getYOfTile(this.tileY);
         // If not moving (or moving l/r) then y is just tile y
         if (!this.isMoving() || this.movementDetails["direction"] == "left" || this.movementDetails["direction"] == "right"){
             return yOfTile;
         }
         // Else moving l/r
         let dir = this.movementDetails["direction"] == "down" ? -1 : 1;
-        let y = SCENE.getYOfTile(this.movementDetails["last_location_y"]);
+        let y = this.gamemode.getScene().getYOfTile(this.movementDetails["last_location_y"]);
         return y + this.movementDetails["speed"] * dir * (FRAME_COUNTER.getLastFrameTime() - this.movementDetails["last_frame_time"]) / 1000;
     }
 
     getInterpolatedTickY(){
-        let yOfTile = SCENE.getYOfTile(this.tileY);
+        let yOfTile = this.gamemode.getScene().getYOfTile(this.tileY);
         // If not moving (or moving l/r) then y is just tile y
         if (!this.isMoving() || this.movementDetails["direction"] == "left" || this.movementDetails["direction"] == "right"){
             return yOfTile;
         }
         // Else moving l/r
         let dir = this.movementDetails["direction"] == "down" ? -1 : 1;
-        let y = SCENE.getYOfTile(this.movementDetails["last_location_y"]);
+        let y = this.gamemode.getScene().getYOfTile(this.movementDetails["last_location_y"]);
         return y + this.movementDetails["speed"] * dir * (TICK_SCHEDULER.getNumTicks() - this.movementDetails["last_tick_number"]) * RETRO_GAME_DATA["ms_between_ticks"] / 1000;
     }
 
     getDisplayY(bY){
-        return SCENE.changeToScreenY(this.getInterpolatedY() - bY);
+        return this.gamemode.getScene().changeToScreenY(this.getInterpolatedY() - bY);
     }
 
     betweenTiles(){

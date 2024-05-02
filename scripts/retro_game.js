@@ -1,10 +1,12 @@
 // Global constants
 const IMAGES = {};
-const SCENE = new RetroGameScene();
 const FRAME_COUNTER = new FrameRateCounter(RETRO_GAME_DATA["general"]["frame_rate"]);
 const MY_HUD = new HUD();
 const TICK_SCHEDULER = new TickScheduler(Math.floor(1000/RETRO_GAME_DATA["general"]["tick_rate"]));
+const GAMEMODE_MANAGER = new GamemodeManager();
 const USER_INPUT_MANAGER = new UserInputManager();
+const MENU_MANAGER = new MenuManager();
+const SOUND_MANAGER = new SoundManager();
 
 // Global Variables
 var mouseX = 0;
@@ -25,28 +27,6 @@ async function setup() {
         mouseX = event.clientX;
         mouseY = event.clientY;
     }
-
-    let samuel = new HumanCharacter("british_pvt_g");
-    samuel.getInventory().add(new HumanMusket("brown_bess", {
-        "player": samuel
-    }));
-    SCENE.addEntity(samuel);
-    SCENE.setFocusedEntity(samuel);
-
-
-    let enemy = new Character("british_pvt_g");
-    //SCENE.addEntity(enemy);
-    enemy.tileX = 5;
-    enemy.tileY = 4;
-    enemy.getInventory().add(new Musket("brown_bess", {
-        "player": enemy
-    }));
-
-    let enemy2 = new Character("usa_pvt");
-    //SCENE.addEntity(enemy2);
-    enemy2.tileX = 4;
-    enemy2.tileY = 3;
-
 
     USER_INPUT_MANAGER.register("move_up", "keydown", (event) => { return event.keyCode==87; });
     USER_INPUT_MANAGER.register("move_up", "keyup", (event) => { return event.keyCode==87; }, false);
@@ -83,35 +63,38 @@ async function setup() {
         }
     }
 
-    SCENE.loadTilesFromJSON(LEVEL_DATA["default.json"]);
-
     // Create Canvas
     let canvasDOM = document.getElementById("canvas");
     canvasDOM.width = getScreenWidth();
     canvasDOM.height = getScreenHeight();
+
     // Set global variable drawingContext
     drawingContext = canvasDOM.getContext("2d");
 
     TICK_SCHEDULER.setStartTime(Date.now());
+
+    MENU_MANAGER.setup();
+    MenuManager.setupClickListener();
+    
     requestAnimationFrame(tick);
 }
 
 function drawCrosshair(){
     let x = window.mouseX;
-    let y = SCENE.changeFromScreenY(window.mouseY);
+    let y = this.getScene().changeFromScreenY(window.mouseY);
     let crosshairImage = IMAGES["crosshair"];
     let crosshairWidth = crosshairImage.width;
     let crosshairHeight = crosshairImage.height;
-    let displayX = SCENE.getDisplayX(x, crosshairWidth, 0);
-    let displayY = SCENE.getDisplayY(y, crosshairHeight, 0);
+    let displayX = this.getScene().getDisplayX(x, crosshairWidth, 0);
+    let displayY = this.getScene().getDisplayY(y, crosshairHeight, 0);
     drawingContext.drawImage(crosshairImage, displayX, displayY); 
 }
 
 function draw() {
-    SCENE.display();
-    let fps = FRAME_COUNTER.getFPS();
-    MY_HUD.updateElement("fps", fps);
-    MY_HUD.display();
+    // Temporary white background
+    noStrokeRectangle(Colour.fromCode("#ffffff"), 0, 0, getScreenWidth(), getScreenHeight());
+    GAMEMODE_MANAGER.display();
+    MENU_MANAGER.display();
 }
 
 async function tick(){
@@ -121,14 +104,13 @@ async function tick(){
     }
 
     let expectedTicks = TICK_SCHEDULER.getExpectedNumberOfTicksPassed();
-    //console.log(expectedTicks)
     
     // If ready for a tick then execute
     if (TICK_SCHEDULER.getNumTicks() < expectedTicks){
         TICK_SCHEDULER.getTickLock().lock()
 
-        // Tick the scene
-        await SCENE.tick();
+        // Tick the game mode
+        await GAMEMODE_MANAGER.tick();
         
         // Tick the USER_INPUT_MANAGER
         USER_INPUT_MANAGER.tick();
@@ -164,3 +146,43 @@ function getCanvasHeight(){
 window.addEventListener("load", () => {
     setup();
 });
+
+function startGame(){
+    GAMEMODE_MANAGER.setActiveGamemode(new RetroGame())
+}
+
+function startGameMaker(){
+
+}
+
+class RetroGame extends Gamemode {
+    constructor(){
+        super();
+        this.scene.loadTilesFromJSON(LEVEL_DATA["default.json"]);
+
+        let samuel = new HumanCharacter(this, "british_pvt_g");
+        samuel.getInventory().add(new HumanMusket("brown_bess", {
+            "player": samuel
+        }));
+        this.scene.addEntity(samuel);
+        this.scene.setFocusedEntity(samuel);
+
+
+        let enemy = new Character("british_pvt_g");
+        //this.scene.addEntity(enemy);
+        enemy.tileX = 5;
+        enemy.tileY = 4;
+        enemy.getInventory().add(new Musket("brown_bess", {
+            "player": enemy
+        }));
+
+        let enemy2 = new Character(this, "usa_pvt");
+        //this.scene.addEntity(enemy2);
+        enemy2.tileX = 4;
+        enemy2.tileY = 3;
+    }
+
+    display(){
+        this.scene.display();
+    }
+}

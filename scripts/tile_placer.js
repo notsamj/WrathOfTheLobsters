@@ -38,8 +38,8 @@ class TilePlacer extends Entity {
     }
 
     display(lX, rX, bY, tY){
-        let x = SCENE.getDisplayXFromTileX(lX, this.placerTileX);
-        let y = SCENE.getDisplayYFromTileY(bY, this.placerTileY);
+        let x = this.getScene().getDisplayXFromTileX(lX, this.placerTileX);
+        let y = this.getScene().getDisplayYFromTileY(bY, this.placerTileY);
         //MY_HUD.updateElement("Tile Display X", x);
         //MY_HUD.updateElement("Tile Display Y", y);
         MY_HUD.updateElement("Center Tile X", this.tileX);
@@ -51,10 +51,10 @@ class TilePlacer extends Entity {
 
     tick(){
         let canvasX = window.mouseX;
-        let canvasY = SCENE.changeFromScreenY(window.mouseY);
-        if (canvasX < 0 || canvasX >= SCENE.getWidth() || canvasY < 0 || canvasY >= SCENE.getHeight()){ return; }
-        let engineX = canvasX + SCENE.getLX();
-        let engineY = canvasY + SCENE.getBY();
+        let canvasY = this.getScene().changeFromScreenY(window.mouseY);
+        if (canvasX < 0 || canvasX >= this.getScene().getWidth() || canvasY < 0 || canvasY >= this.getScene().getHeight()){ return; }
+        let engineX = canvasX + this.getScene().getLX();
+        let engineY = canvasY + this.getScene().getBY();
         let newPlacerTileX = RetroGameScene.getTileXAt(engineX);
         let newPlacerTileY = RetroGameScene.getTileYAt(engineY);
         // If the new placer tile has moved
@@ -103,7 +103,7 @@ class TilePlacer extends Entity {
             return;
         }
         this.readyToPlaceLock.lock();
-        SCENE.placeMaterial(this.currentMaterial, this.placerTileX, this.placerTileY);
+        this.getScene().placeMaterial(this.currentMaterial, this.placerTileX, this.placerTileY);
     }
 
     checkDelete(){
@@ -115,7 +115,7 @@ class TilePlacer extends Entity {
             return;
         }
         this.readyToPlaceLock.lock();
-        SCENE.deleteMaterial(this.placerTileX, this.placerTileY);
+        this.getScene().deleteMaterial(this.placerTileX, this.placerTileY);
     }
 
 }

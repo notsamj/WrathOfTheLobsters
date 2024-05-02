@@ -1,6 +1,7 @@
 class Tile extends VisualItem {
     constructor(scene, chunk, material, tileX, tileY){
-        super(scene, IMAGES[material["name"]].width, IMAGES[material["name"]].height);
+        super(IMAGES[material["name"]].width, IMAGES[material["name"]].height);
+        this.scene = scene;
         this.chunk = chunk;
         this.material = material;
         this.tileX = tileX;
@@ -61,10 +62,10 @@ class Tile extends VisualItem {
         // Note: Since we are just flooring x anyway to display use a floor of lX
         lX = Math.floor(lX);
         if (!this.touchesRegion(lX, rX, bY, tY)){ return; }
-        let x = SCENE.getDisplayXFromTileX(lX, this.tileX);
-        let y = SCENE.getDisplayYFromTileY(bY, this.tileY);
+        let x = this.scene.getDisplayXFromTileX(lX, this.tileX);
+        let y = this.scene.getDisplayYFromTileY(bY, this.tileY);
         let floorX = Math.floor(x);
-        let floorX1 = Math.floor(SCENE.getDisplayXFromTileX(lX, this.tileX+1));
+        let floorX1 = Math.floor(this.scene.getDisplayXFromTileX(lX, this.tileX+1));
         if (floorX1 - floorX != 64){
             console.log(x, lX, floorX, floorX1);
         }

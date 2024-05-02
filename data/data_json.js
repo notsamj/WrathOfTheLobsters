@@ -1,4 +1,21 @@
 const RETRO_GAME_DATA = {
+    "game_maker": {
+        "server_ip": "localhost",
+        "server_port": 8080,
+        "bottom_menu_states": {
+            "normal_materials": 0,
+            "special_tiles": 1
+        }
+    },
+
+    "menu": {
+        "option_slider": {
+            "slider_width_px": 20,
+            "x_size": 300
+        },
+        "text_box_padding_proportion": 0.1
+    },
+
     "tile_attributes": {
         "grass": [
             "walkable"
@@ -55,6 +72,13 @@ const RETRO_GAME_DATA = {
         "max_speed": 50
     },
 
+    "sound_data": {
+        "sounds": [
+        ],
+        "url": "./sounds",
+        "file_type": ".mp3"
+    },
+
     "general": {
         "tick_rate": 20, // Tick rate of 20 is expected, keep in mind that if the user moves > 1 tile per tick it will cause issues
         "frame_rate": 60,
@@ -62,8 +86,12 @@ const RETRO_GAME_DATA = {
         "walk_speed": 120,
         "sprint_multiplier": 2.0,
         "animation_frame_time": 100,
-        "chunk_size": 16
+        "chunk_size": 16,
+        "expected_canvas_width": 1920,
+        "expected_canvas_height": 1080
     },
+
+    "extra_settings": [],
 
     "character": {
         "hotbar_size": 10,

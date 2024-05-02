@@ -159,7 +159,7 @@ class RetroGameScene {
         let existingChunk = this.getChunkAtLocation(tileX, tileY);
         // Create if not existing
         if (existingChunk == null){
-            existingChunk = new Chunk(Chunk.tileToChunkCoordinate(tileX), Chunk.tileToChunkCoordinate(tileY));
+            existingChunk = new Chunk(this, Chunk.tileToChunkCoordinate(tileX), Chunk.tileToChunkCoordinate(tileY));
             this.chunks.push(existingChunk);
         }
         return existingChunk;
@@ -356,7 +356,8 @@ class RetroGameScene {
 }
 
 class Chunk {
-    constructor(chunkX, chunkY){
+    constructor(scene, chunkX, chunkY){
+        this.scene = scene;
         this.chunkX = chunkX;
         this.chunkY = chunkY;
         this.tiles = new NotSamLinkedList();
@@ -489,7 +490,7 @@ class Chunk {
         let tile = this.getTileCoveringLocation(tileX, tileY);
         // If tile doesn't exist, add it
         if (!tile){
-            tile = new Tile(SCENE, this, material, tileX, tileY);
+            tile = new Tile(this.scene, this, material, tileX, tileY);
             this.tiles.push(tile);
         }
         // Else if the tile exists but has a different material then change
@@ -497,7 +498,7 @@ class Chunk {
             tile.changeMaterial(material);
         }else{
             tile.delete();
-            tile = new Tile(SCENE, this, material, tileX, tileY);
+            tile = new Tile(this.scene, this, material, tileX, tileY);
             this.tiles.push(tile);
         }
         this.recalculateBoundaries();

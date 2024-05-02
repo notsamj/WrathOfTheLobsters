@@ -1,6 +1,6 @@
 class HumanCharacter extends Character {
-    constructor(model){
-        super(model);
+    constructor(gamemode, model){
+        super(gamemode, model);
         this.lookingDetails = {
             "direction": null,
             "look_lock": new TickLock(3)
@@ -61,7 +61,7 @@ class HumanCharacter extends Character {
         }
 
         // Check if the tile is walkable before moving
-        if (!SCENE.tileAtLocationHasAttribute(newTileX, newTileY, "walkable")){
+        if (!this.getScene().tileAtLocationHasAttribute(newTileX, newTileY, "walkable")){
             if (this.isMoving()){
                 this.movementDetails = null;
             }

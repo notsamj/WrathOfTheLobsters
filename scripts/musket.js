@@ -14,13 +14,17 @@ class Musket {
         return RETRO_GAME_DATA["general"]["tile_size"];
     }
 
+    getScene(){
+        return this.player.getScene();
+    }
+
     // Abstract
     tick(){}
 
     getEndOfGunX(){
         let debug = {};
         // Get tile x of player (player not moving)
-        let x = SCENE.getXOfTile(this.player.getTileX());
+        let x = this.getScene().getXOfTile(this.player.getTileX());
          // From top left to center of the player model
         x += RETRO_GAME_DATA["general"]["tile_size"] / 2;
         // Add gun y offset, y is now center of the gun
@@ -55,7 +59,7 @@ class Musket {
     getEndOfGunY(){
         let debug = {};
         // Get tile y of player (player not moving)
-        let y = SCENE.getYOfTile(this.player.getTileY());
+        let y = this.getScene().getYOfTile(this.player.getTileY());
         // From top left to center of the player model
         y -= RETRO_GAME_DATA["general"]["tile_size"] / 2;
         // Add gun y offset, y is now center of the gun
@@ -90,11 +94,11 @@ class Musket {
 
     shoot(){
         // Add smoke where gun is shot
-        SCENE.addExpiringVisual(SmokeCloud.create(this.getEndOfGunX(), this.getEndOfGunY()));
+        this.getScene().addExpiringVisual(SmokeCloud.create(this.getEndOfGunX(), this.getEndOfGunY()));
         // Try to kill whenever is there
         
         // If the shot didn't hit anything alive then show particles when it hit
-        //SCENE.addExpiringVisual(BulletImpact.create(TODO))
+        //this.getScene().addExpiringVisual(BulletImpact.create(TODO))
 
     }
 

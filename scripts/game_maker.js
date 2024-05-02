@@ -1,11 +1,11 @@
 // Global constants
 const IMAGES = {};
-const SCENE = new RetroGameScene();
+const this.getScene() = new RetroGameScene();
 const FRAME_COUNTER = new FrameRateCounter(GAME_MAKER_SETTINGS["general"]["frame_rate"]);
 const TICK_SCHEDULER = new TickScheduler(1000/GAME_MAKER_SETTINGS["general"]["tick_rate"]);
 const USER_INPUT_MANAGER = new UserInputManager();
 const MY_HUD = new HUD();
-const TILE_PLACER = new TilePlacer(SCENE);
+const TILE_PLACER = new TilePlacer(this.getScene());
 const MAIL_SERVICE = new MailService();
 const SERVER_CONNECTION = new ServerConnection();
 
@@ -22,8 +22,8 @@ async function setup() {
     USER_INPUT_MANAGER.register("right_click", "mousedown", (event) => { return event.which==3; });
     USER_INPUT_MANAGER.register("right_click", "mouseup", (event) => { return event.which==3; }, false);
 
-    SCENE.addEntity(TILE_PLACER);
-    SCENE.setFocusedEntity(TILE_PLACER);
+    this.getScene().addEntity(TILE_PLACER);
+    this.getScene().setFocusedEntity(TILE_PLACER);
 
     // Create Canvas
     let canvas = createCanvas(getCanvasWidth(), getCanvasHeight());
@@ -48,7 +48,7 @@ function getCanvasHeight(){
 
 function draw() {
     clear();
-    SCENE.display();
+    this.getScene().display();
     let fps = FRAME_COUNTER.getFPS();
     MY_HUD.updateElement("fps", fps);
     MY_HUD.display();
@@ -71,7 +71,7 @@ async function tick(){
     TICK_SCHEDULER.getTickLock().lock()
 
     // Tick the scene
-    await SCENE.tick();
+    await this.getScene().tick();
 
     // Count the tick
     TICK_SCHEDULER.countTick();

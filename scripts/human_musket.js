@@ -13,7 +13,7 @@ class HumanMusket extends Musket {
 
     getAngleRAD(){
         let x = mouseX;
-        let y = SCENE.changeFromScreenY(mouseY);
+        let y = this.getScene().changeFromScreenY(mouseY);
         let xOffset = x - getScreenWidth() / 2;
         let yOffset = y - getScreenHeight() / 2;
         if (xOffset == 0){

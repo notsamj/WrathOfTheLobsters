@@ -32,8 +32,8 @@ class BulletImpact {
             if (squareObject["expirey"] < currentTime){ continue; }
             let totalExistenceTime = squareObject["expirey"] - squareObject["spawn_time"];
             let currentExistenceTime = currentTime - squareObject["spawn_time"];
-            let screenX = SCENE.getDisplayX(squareObject["x"] + currentExistenceTime/1000 * squareObject["x_velocity"], 0, lX);
-            let screenY = SCENE.getDisplayY(squareObject["y"] + currentExistenceTime/1000 * squareObject["y_velocity"], 0, bY);
+            let screenX = this.getScene().getDisplayX(squareObject["x"] + currentExistenceTime/1000 * squareObject["x_velocity"], 0, lX);
+            let screenY = this.getScene().getDisplayY(squareObject["y"] + currentExistenceTime/1000 * squareObject["y_velocity"], 0, bY);
             noStrokeRectangle(Colour.fromCode(RETRO_GAME_DATA["bullet_impact_generation"]["dirt_colour"]), screenX, screenY, squareObject["size"]);
         }
     }
@@ -86,7 +86,6 @@ class BulletImpact {
             let yVelocity = randomFloatBetween(RETRO_GAME_DATA["bullet_impact_generation"]["max_speed"] * -1, RETRO_GAME_DATA["bullet_impact_generation"]["max_speed"]);
             squares.push({"x": squareX, "y": squareY, "size": squareSize, "spawn_time": spawnTime, "expirey": spawnTime + squareLifeLength, "x_velocity": xVelocity, "y_velocity": yVelocity});
         }
-        console.log("Creates", squares)
         return new BulletImpact(squares);
     }
 }

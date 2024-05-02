@@ -32,8 +32,8 @@ class SmokeCloud {
             if (circleObject["expirey"] < currentTime){ continue; }
             let totalExistenceTime = circleObject["expirey"] - circleObject["spawn_time"];
             let currentExistenceTime = currentTime - circleObject["spawn_time"];
-            let screenX = SCENE.getDisplayX(circleObject["x"] + currentExistenceTime/1000 * circleObject["x_velocity"], 0, lX);
-            let screenY = SCENE.getDisplayY(circleObject["y"] + currentExistenceTime/1000 * circleObject["y_velocity"], 0, bY);
+            let screenX = this.getScene().getDisplayX(circleObject["x"] + currentExistenceTime/1000 * circleObject["x_velocity"], 0, lX);
+            let screenY = this.getScene().getDisplayY(circleObject["y"] + currentExistenceTime/1000 * circleObject["y_velocity"], 0, bY);
             let smokeColour = Colour.fromCode(RETRO_GAME_DATA["smoke_generation"]["smoke_colour"]);
             smokeColour.setAlpha(Math.floor(RETRO_GAME_DATA["smoke_generation"]["smoke_opacity"]*255 * (1-currentExistenceTime/totalExistenceTime)));
             noStrokeCircle(smokeColour, screenX, screenY, circleObject["radius"]*2);

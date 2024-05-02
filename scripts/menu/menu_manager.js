@@ -15,6 +15,7 @@ class MenuManager {
     setup(){
         this.mainMenu = new MainMenu();
         this.soundMenu = new SoundMenu();
+        this.pauseMenu = new PauseMenu();
         this.extraSettingsMenu = new ExtraSettingsMenu();
         this.activeMenu = this.mainMenu;
         this.temporaryMessages = new NotSamLinkedList();
@@ -163,10 +164,14 @@ class MenuManager {
         if (newMenu == "main"){
             this.activeMenu = this.mainMenu;
         }else if (newMenu == "pauseMenu"){
-            GAMEMODE_MANAGER.getActiveGamemode().pause();
+            if (!TICK_SCHEDULER.isPaused()){
+                TICK_SCHEDULER.pause();
+            }
             this.activeMenu = this.pauseMenu;
         }else if (newMenu == "game"){
-            GAMEMODE_MANAGER.getActiveGamemode().unpause();
+            if (TICK_SCHEDULER.isPaused()){
+                TICK_SCHEDULER.unpause();
+            }
             this.activeMenu = null;
         }else if (newMenu == "sound"){
             this.activeMenu = this.soundMenu;

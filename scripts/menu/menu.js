@@ -10,7 +10,6 @@ class Menu {
         Method Return: Constructor
     */
     constructor(){
-        this.visible = false;
         this.components = [];
     }
 

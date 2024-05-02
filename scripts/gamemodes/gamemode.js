@@ -20,13 +20,10 @@ class Gamemode {
     getScene(){
         return this.scene;
     }
-
-    unpause(){
-        // TODO
-    }
     
     // Abstract
     tick(){}
+    end(){}
 }
 // If using NodeJS then export the class
 if (typeof window === "undefined"){

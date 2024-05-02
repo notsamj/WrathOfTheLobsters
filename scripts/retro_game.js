@@ -98,7 +98,7 @@ function draw() {
 }
 
 async function tick(){
-    if (TICK_SCHEDULER.getTickLock().notReady() || TICK_SCHEDULER.isPaused()){ 
+    if (TICK_SCHEDULER.getTickLock().notReady()){ 
         requestAnimationFrame(tick);
         return; 
     }
@@ -106,7 +106,7 @@ async function tick(){
     let expectedTicks = TICK_SCHEDULER.getExpectedNumberOfTicksPassed();
     
     // If ready for a tick then execute
-    if (TICK_SCHEDULER.getNumTicks() < expectedTicks){
+    if (TICK_SCHEDULER.getNumTicks() < expectedTicks && !TICK_SCHEDULER.isPaused()){
         TICK_SCHEDULER.getTickLock().lock()
 
         // Tick the game mode
@@ -184,5 +184,9 @@ class RetroGame extends Gamemode {
 
     display(){
         this.scene.display();
+    }
+
+    tick(){
+        this.scene.tick();
     }
 }

@@ -92,6 +92,36 @@ class Colour {
     }
 
     /*
+        Method Name: toCode
+        Method Parameters: None
+        Method Description: Creates a Colour code from a colour instance
+        Method Return: String
+    */
+    toCode(){
+        let redValue = this.red;
+        let blueValue = this.blue;
+        let greenValue = this.green;
+
+        let redInt2 = redValue % 16;
+        let greenInt2 = greenValue % 16;
+        let blueInt2 = blueValue % 16;
+
+        let redInt1 = (redValue - redInt2) / 16;
+        let blueInt1 = (blueValue - blueInt2) / 16;
+        let greenInt1 = (greenValue - greenInt2) / 16;
+
+        let aCode = "a".charCodeAt(0);
+        let hexidecimalIntegerToChar = (value) => {
+            return value < 10 ? value.toString() : String.fromCharCode(value - 10 + aCode);
+        }
+
+        let redCode = hexidecimalIntegerToChar(redInt1) + hexidecimalIntegerToChar(redInt2);
+        let blueCode = hexidecimalIntegerToChar(blueInt1) + hexidecimalIntegerToChar(blueInt2);
+        let greenCode = hexidecimalIntegerToChar(greenInt1) + hexidecimalIntegerToChar(greenInt2);
+        return "#" + redCode + greenCode + blueCode;
+    }
+
+    /*
         Method Name: fromCode
         Method Parameters:
             code:

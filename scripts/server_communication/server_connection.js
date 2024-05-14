@@ -11,14 +11,14 @@ class ServerConnection {
         Method Return: Constructor
     */
     constructor(){
-        this.ip = GAME_MAKER_SETTINGS["server_data"]["server_ip"];
-        this.port = GAME_MAKER_SETTINGS["server_data"]["server_port"];
+        this.ip = RETRO_GAME_DATA["game_maker"]["server_ip"];
+        this.port = RETRO_GAME_DATA["game_maker"]["server_port"];
         this.setup = false;
         this.socket = null;
         this.openedLock = new Lock();
         this.openedLock.lock();
-        MAIL_SERVICE.addMonitor("error", (errorMessage) => {console.log(errorMessage);});
-        this.setupConnection();
+        this.mailService = new MailService();
+        this.mailService.addMonitor("error", (errorMessage) => {console.log(errorMessage);});
     }
 
     async setupConnection(){
@@ -30,7 +30,7 @@ class ServerConnection {
         });
         this.socket.addEventListener("message", (event) => {
             let data = event.data;
-            if (MAIL_SERVICE.deliver(data)){
+            if (mailService.deliver(data)){
                 return;
             }
             console.error("Received unknown data:", data);
@@ -48,7 +48,7 @@ class ServerConnection {
     }
 
     async sendMail(jsonObject, mailBox, timeout=1000){
-        return await MAIL_SERVICE.sendJSON(mailBox, jsonObject, timeout);
+        return await mailService.sendJSON(mailBox, jsonObject, timeout);
     }
 
     sendJSON(jsonObject){

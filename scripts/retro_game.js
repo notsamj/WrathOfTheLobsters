@@ -28,6 +28,11 @@ async function setup() {
         mouseY = event.clientY;
     }
 
+    // Game Maker
+    USER_INPUT_MANAGER.register("left_click", "mousedown", (event) => { return event.which==1; });
+    USER_INPUT_MANAGER.register("left_click", "mouseup", (event) => { return event.which==1; }, false);
+
+    // Game
     USER_INPUT_MANAGER.register("move_up", "keydown", (event) => { return event.keyCode==87; });
     USER_INPUT_MANAGER.register("move_up", "keyup", (event) => { return event.keyCode==87; }, false);
 
@@ -46,10 +51,10 @@ async function setup() {
     USER_INPUT_MANAGER.register("right_click", "mousedown", (event) => { return event.which==3; });
     USER_INPUT_MANAGER.register("right_click", "mouseup", (event) => { return event.which==3; }, false);
 
-    USER_INPUT_MANAGER.register("left_click", "click", (event) => { return event.which==1; }, true, {"ticked": true, "ticked_activation": false});
+    USER_INPUT_MANAGER.register("left_click_ticked", "click", (event) => { return event.which==1; }, true, {"ticked": true, "ticked_activation": false});
 
     // Disable context menu
-    document.getElementById("main_area").addEventListener("contextmenu", (event) => {event.preventDefault()});
+    //document.getElementById("main_area").addEventListener("contextmenu", (event) => {event.preventDefault()});
 
     window.onblur = () => {
         if (!TICK_SCHEDULER.isPaused()){
@@ -152,7 +157,7 @@ function startGame(){
 }
 
 function startGameMaker(){
-
+    GAMEMODE_MANAGER.setActiveGamemode(new GameMaker())
 }
 
 class RetroGame extends Gamemode {

@@ -3,13 +3,14 @@ class RetroGameScene {
         this.objects = [];
         this.entities = new NotSamLinkedList();
         this.focusedEntity = null;
-        this.chunks = new NotSamLinkedList();
+        this.visualChunks = new NotSamLinkedList();
+        this.physicalChunks = new NotSamLinkedList();
         this.expiringVisuals = new NotSamLinkedList();
     }
 
     tileAtLocationHasAttribute(tileX, tileY, attribute){
         if (!this.hasTileCoveringLocation(tileX, tileY)){ return false; }
-        let tileAtLocation = this.getTileCoveringLocation(tileX, tileY);
+        let tileAtLocation = this.getPhysicalTileCoveringLocation(tileX, tileY);
         let materialName = tileAtLocation.getMaterial()["name"];
         if (!objectHasKey(RETRO_GAME_DATA["tile_attributes"], materialName)){ return false; }
         return listHasElement(RETRO_GAME_DATA["tile_attributes"][materialName], attribute);
@@ -30,13 +31,14 @@ class RetroGameScene {
 
     async loadTilesFromJSON(tileJSON){
         // Clear current chunks
-        this.chunks.clear();
+        this.visualChunks.clear();
+        this.physicalChunks.clear();
         
         // Load Materials
         await this.loadMaterialList(tileJSON["materials"])
 
         // Load tiles
-        for (let tile of tileJSON["tiles"]){
+        for (let tile of tileJSON["visual_tiles"]){
             let material = null;
             // Note: Assuming material exists
             for (let materialObject of tileJSON["materials"]){
@@ -45,15 +47,29 @@ class RetroGameScene {
                     break;
                 }
             }
-            this.placeMaterial(material, tile["tile_x"], tile["tile_y"]);
+            this.placeVisualTile(material, tile["tile_x"], tile["tile_y"]);
+        }
+
+        for (let tile of tileJSON["physical_tiles"]){
+            let material = null;
+            // Note: Assuming material exists
+            for (let materialObject of tileJSON["materials"]){
+                if (materialObject["name"] == tile["material"]){
+                    material = materialObject;
+                    break;
+                }
+            }
+            this.placePhysicalTile(material, tile["tile_x"], tile["tile_y"]);
         }
     }
 
     toTileJSON(){
         let tileJSON = {};
         tileJSON["materials"] = [];
-        tileJSON["tiles"] = [];
-        for (let [chunk, cI] of this.chunks){
+        tileJSON["visual_tiles"] = [];
+        tileJSON["physical_tiles"] = [];
+        // Save Visual Chunks to JSON
+        for (let [chunk, cI] of this.visualChunks){
             for (let [tile, tI] of chunk.getTiles()){
                 let material = tile.getMaterial();
                 let materialExists = false;
@@ -72,7 +88,31 @@ class RetroGameScene {
                     "tile_x": tile.getTileX(),
                     "tile_y": tile.getTileY()
                 }
-                tileJSON["tiles"].push(individualTileJSON);
+                tileJSON["visual_tiles"].push(individualTileJSON);
+            }
+        }
+
+        // Save Physical Chunks to JSON
+        for (let [chunk, cI] of this.physicalChunks){
+            for (let [tile, tI] of chunk.getTiles()){
+                let material = tile.getMaterial();
+                let materialExists = false;
+                for (let savedMaterial of tileJSON["materials"]){
+                    if (savedMaterial["name"] == material["name"]){
+                        materialExists = true;
+                        break;
+                    }
+                }
+                // Save material if applicable
+                if (!materialExists){
+                    tileJSON["materials"].push(material);
+                }
+                let individualTileJSON = {
+                    "material": material["name"],
+                    "tile_x": tile.getTileX(),
+                    "tile_y": tile.getTileY()
+                }
+                tileJSON["physical_tiles"].push(individualTileJSON);
             }
         }
         return tileJSON;
@@ -117,7 +157,7 @@ class RetroGameScene {
         }
     }
 
-    placeMaterial(material, tileX, tileY){
+    placeVisualTile(material, tileX, tileY){
         // Delete all other tiles that are covered by region
         let materialXTileSize = this.getMaterialXTileSize(material["name"]);
         let materialYTileSize = this.getMaterialYTileSize(material["name"]);
@@ -129,7 +169,7 @@ class RetroGameScene {
 
         // Place tile
         let chunk = this.getCreateChunkAtLocation(tileX, tileY);
-        chunk.placeMaterial(material, tileX, tileY);
+        chunk.placeVisualTile(material, tileX, tileY);
     }
 
     deleteMaterial(tileX, tileY){
@@ -143,11 +183,11 @@ class RetroGameScene {
     }
 
     hasTileCoveringLocation(tileX, tileY){
-        return this.getTileCoveringLocation(tileX, tileY) != null;
+        return this.getVisualTileCoveringLocation(tileX, tileY) != null;
     }
 
-    getTileCoveringLocation(tileX, tileY){
-        for (let [chunk, cI] of this.chunks){
+    getVisualTileCoveringLocation(tileX, tileY){
+        for (let [chunk, cI] of this.visualChunks){
             if (chunk.covers(tileX, tileY)){
                 return chunk.getTileCoveringLocation(tileX, tileY);
             }
@@ -160,13 +200,13 @@ class RetroGameScene {
         // Create if not existing
         if (existingChunk == null){
             existingChunk = new Chunk(this, Chunk.tileToChunkCoordinate(tileX), Chunk.tileToChunkCoordinate(tileY));
-            this.chunks.push(existingChunk);
+            this.visualChunks.push(existingChunk);
         }
         return existingChunk;
     }
 
     getChunkAtLocation(tileX, tileY){
-        for (let [chunk, chunkIndex] of this.chunks){
+        for (let [chunk, chunkIndex] of this.visualChunks){
             if (chunk.coversNaturally(tileX, tileY)){
                 return chunk;
             }
@@ -176,7 +216,7 @@ class RetroGameScene {
 
     // Note: This is only tiles naturally at location not just covering
     getTileAtLocation(tileX, tileY){
-        for (let [chunk, chunkIndex] of this.chunks){
+        for (let [chunk, chunkIndex] of this.visualChunks){
             if (chunk.coversNaturally(tileX, tileY)){
                 return chunk.getTileAtLocation(tileX, tileY);
             }
@@ -273,7 +313,7 @@ class RetroGameScene {
         this.displayPageBackground();
 
         // Display Tiles
-        for (let [chunk, cI] of this.chunks){
+        for (let [chunk, cI] of this.visualChunks){
             chunk.display(lX, rX, bY, tY);
         }
 
@@ -486,7 +526,7 @@ class Chunk {
         return Chunk.tileToChunkCoordinate(tileX) == this.chunkX && Chunk.tileToChunkCoordinate(tileY) == this.chunkY;
     }
 
-    placeMaterial(material, tileX, tileY){
+    placeVisualTile(material, tileX, tileY){
         let tile = this.getTileCoveringLocation(tileX, tileY);
         // If tile doesn't exist, add it
         if (!tile){

@@ -114,3 +114,25 @@ class Component {
     // Abstract Method
     display(){}
 }
+
+// TODO: Comments
+class ComponentGroup extends Component {
+    constructor(){
+        super();
+        this.components = [];
+    }
+
+    addComponent(component){
+        this.components.push(component);
+    }
+
+    display(){
+        for (let component of this.components){
+            component.display();
+        }
+    }
+
+    getComponents(){
+        return this.components;
+    }
+}

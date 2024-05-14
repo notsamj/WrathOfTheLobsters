@@ -17,6 +17,7 @@ class MenuManager {
         this.soundMenu = new SoundMenu();
         this.pauseMenu = new PauseMenu();
         this.extraSettingsMenu = new ExtraSettingsMenu();
+        this.gameMakerMenu = new GameMakerUI();
         this.activeMenu = this.mainMenu;
         this.temporaryMessages = new NotSamLinkedList();
     }
@@ -173,6 +174,8 @@ class MenuManager {
                 TICK_SCHEDULER.unpause();
             }
             this.activeMenu = null;
+        }else if (newMenu == "game_maker"){
+            this.activeMenu = this.gameMakerMenu;
         }else if (newMenu == "sound"){
             this.activeMenu = this.soundMenu;
         }else if (newMenu == "extraSettings"){
@@ -213,6 +216,8 @@ class MenuManager {
             return this.participantMenu;
         }else if (menuName == "host"){
             return this.hostMenu;
+        }else if (menuName == "game_maker"){
+            return this.gameMakerMenu;
         }
         // Else
         return null;

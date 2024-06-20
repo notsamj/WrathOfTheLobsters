@@ -2,6 +2,11 @@
     "materials": [
         {"name": "dirt", "file_link": "images/dirt.png"},
         {"name": "grass", "file_link": "images/grass.png"},
-        {"name": "house", "file_link": "images/house.png"}
+        {"name": "house", "file_link": "images/house.png"},
+        {"name": "water", "file_link": "images/water.png"},
+        {"name": "rock_on_dirt", "file_link": "images/rock_on_dirt.png"},
+        {"name": "rock_on_grass", "file_link": "images/rock_on_grass.png"},
+        {"name": "bush", "file_link": "images/bush.png"},
+        {"name": "thick_bush", "file_link": "images/thick_bush.png"}
     ]
 }

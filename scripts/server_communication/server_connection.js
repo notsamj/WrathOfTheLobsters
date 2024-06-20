@@ -17,45 +17,74 @@ class ServerConnection {
         this.socket = null;
         this.openedLock = new Lock();
         this.openedLock.lock();
-        this.mailService = new MailService();
+        this.mailService = new MailService(this);
         this.mailService.addMonitor("error", (errorMessage) => {console.log(errorMessage);});
+        this.classLock = new Lock();
+    }
+
+    close(){
+        if (this.socket == null){ return; }
+        this.socket.close();
     }
 
     async setupConnection(){
+        await this.classLock.awaitUnlock(true);
+        this.openedLock.lock();
+        
+        this.setup = false;
         this.socket = new WebSocket("ws://" + this.ip + ":" + this.port);
+
+        let safetyTimeout = setTimeout(() => { this.openedLock.unlock(); }, 1000);
+
         this.socket.addEventListener("open", (event) => {
             console.log("Connection to server opened.");
             this.setup = true;
+            clearTimeout(safetyTimeout);
             this.openedLock.unlock();
         });
         this.socket.addEventListener("message", (event) => {
             let data = event.data;
-            if (mailService.deliver(data)){
+            if (this.mailService.deliver(data)){
                 return;
             }
             console.error("Received unknown data:", data);
         });
         this.socket.addEventListener("error", (event) => {
             console.log("Connection to server failed.", "red", 5000);
+            clearTimeout(safetyTimeout);
             this.openedLock.unlock();
         });
+
         // Wait for connection to open (or give up after 5 seconds)
         await this.openedLock.awaitUnlock();
+        
         // If the setup failed then return
+        this.classLock.unlock();
         if (!this.setup){
-            console.log("Failed to setup"); 
+            console.log("Failed to setup server connection.");
+            return false; 
         }
+        return true;
+    }
+
+    async testConnection(){
+        await this.classLock.awaitUnlock();
+        let response = await this.sendMail({"action": "ping"}, "ping");
+        return response != null;
     }
 
     async sendMail(jsonObject, mailBox, timeout=1000){
-        return await mailService.sendJSON(mailBox, jsonObject, timeout);
+        if (!this.setup){ return null; }
+        return await this.mailService.sendJSON(mailBox, jsonObject, timeout)
     }
 
-    sendJSON(jsonObject){
+    async sendJSON(jsonObject){
         this.send(JSON.stringify(jsonObject));
     }
 
-    send(message){
-        this.socket.send(message);
+    async send(message){
+        await this.classLock.awaitUnlock(true);
+        await this.socket.send(message);
+        this.classLock.unlock(); 
     }
 }

@@ -1,10 +1,10 @@
 // TODO: File needs comments
 const fs = require("fs");
 const WebSocketServer = require("ws").WebSocketServer;
-const NotSamLinkedList = require("../../scripts/general/notsam_linked_list.js");
-const Lock = require("../../scripts/general/lock.js");
-const SERVER_DATA = require("../data/data_json.js");
-class WW2PGServer {
+const NotSamLinkedList = require("../scripts/general/notsam_linked_list.js");
+const Lock = require("../scripts/general/lock.js");
+const RETRO_GAME_DATA = require("../data/data_json.js");
+class Server {
     constructor(port){
         this.server = new WebSocketServer({ "port": port })
         this.port = port;
@@ -34,9 +34,17 @@ class Client {
 
     handleMessage(dataString){
         let dataJSON = JSON.parse(dataString);
+        let action = dataJSON["action"];
+
+        // Check for ping
+        if (action == "ping"){
+            this.sendJSON({"success": true, "mail_box": dataJSON["mail_box"]});
+            return;
+        }
+
+        // At this point it must have something to do with files
         let fileName = dataJSON["file_name"];
         let path = "data/" + fileName;
-        let action = dataJSON["action"];
         if (action == "load"){
             if (!fs.existsSync(path)){
                 this.sendJSON({"success": false, "mail_box": dataJSON["mail_box"], "reason": "File not found."});
@@ -45,6 +53,7 @@ class Client {
             this.sendJSON({"success": true, "mail_box": dataJSON["mail_box"], "data": fs.readFileSync(path, {"encoding": "utf8", "flag": "r"})});
         }else if (action == "save"){
             fs.writeFileSync(path, JSON.stringify(dataJSON["data"]));
+            console.log("Saving", path)
             this.sendJSON({"success": true, "mail_box": dataJSON["mail_box"]});
         }else{
             console.log("Unknown action:", action);
@@ -62,4 +71,4 @@ class Client {
 }
 
 // Start Up
-const SERVER = new WW2PGServer(SERVER_DATA["server_data"]["server_port"]);
+const SERVER = new Server(RETRO_GAME_DATA["game_maker"]["server_port"]);

@@ -1,1 +1,2 @@
 python3 compile_levels.py
+pause

@@ -135,4 +135,37 @@ class ComponentGroup extends Component {
     getComponents(){
         return this.components;
     }
+
+    covers(x, y){
+        console.log("Check y", y, "myY", this.getY())
+        return x >= this.getX() && x <= this.getX() + this.getWidth() && y <= this.getY() && y >= this.getY() - RETRO_GAME_DATA["ui"]["game_maker"]["bottom_bar_height"];
+    }
+
+    /*
+        Method Name: clicked
+        Method Parameters:
+            instance:
+                The menu responsible for the click
+            TODO
+        Method Description: Handles what occurs when clicked on
+        Method Return: void
+    */
+    clicked(instance, x=undefined, y=undefined){
+        for (let component of this.components){
+            if (component.covers(x,y)){
+                component.clicked(x,y);
+                return;
+            }
+        }
+    }
+
+    covers(x, y){
+        console.log("Checkckckckc")
+        for (let component of this.components){
+            if (component.covers(x,y)){
+                return true;
+            }
+        }
+        return false;
+    }
 }

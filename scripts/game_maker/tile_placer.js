@@ -1,6 +1,6 @@
 class TilePlacer extends Entity {
-    constructor(){
-        super();
+    constructor(gamemode){
+        super(gamemode);
         this.readyToPlaceLock = new Lock();
         this.readyToPlaceLock.unlock();
         this.tileX = 0;
@@ -9,16 +9,28 @@ class TilePlacer extends Entity {
         this.placerTileY = 0;
         this.moveUDCD = new CooldownLock(100);
         this.moveLRCD = new CooldownLock(100);
-        this.currentMaterial = null;
+        this.currentVisualMaterial = null;
+        this.currentPhysicalMaterial = null;
+        this.isUsingPhysicalLayer = false;
+        this.gamemode.getScene().setFocusedEntity(this);
     }
 
-    setMaterial(material){
+    setVisualMaterial(visualMaterial){
         this.readyToPlaceLock.unlock();
-        this.currentMaterial = material;
+        this.currentVisualMaterial = visualMaterial;
     }
 
-    hasMaterial(){
-        return this.currentMaterial != null;
+    setPhysicalMaterial(physicalMaterial){
+        this.readyToPlaceLock.unlock();
+        this.currentPhysicalMaterial = physicalMaterial;
+    }
+
+    hasVisualMaterial(){
+        return this.currentVisualMaterial != null;
+    }
+
+    hasPhysicalMaterial(){
+        return this.currentPhysicalMaterial != null;
     }
 
     getInterpolatedCenterX(){
@@ -46,7 +58,9 @@ class TilePlacer extends Entity {
         MY_HUD.updateElement("Center Tile Y", this.tileY);
         MY_HUD.updateElement("Placer Tile X", this.placerTileX);
         MY_HUD.updateElement("Placer Tile Y", this.placerTileY);
-        noStrokeRectangle(new Colour(252, 240, 63, 20), x, y, RETRO_GAME_DATA["general"]["tile_size"]);
+        MY_HUD.updateElement("Placer x", this.placerX);
+        MY_HUD.updateElement("Placer y", this.placerY);
+        noStrokeRectangle(new Colour(252, 240, 63, 20), x, y, RETRO_GAME_DATA["general"]["tile_size"], RETRO_GAME_DATA["general"]["tile_size"]);
     }
 
     tick(){
@@ -61,6 +75,8 @@ class TilePlacer extends Entity {
         if (this.placerTileX != newPlacerTileX || this.placerTileY != newPlacerTileY){
             this.readyToPlaceLock.unlock();
         }
+        this.placerX = engineX;
+        this.placerY = engineY;
         this.placerTileX = newPlacerTileX;
         this.placerTileY = newPlacerTileY;
         this.checkMove();
@@ -69,8 +85,8 @@ class TilePlacer extends Entity {
     }
 
     checkMove(){
-        let moveUp = keyIsDown(87);
-        let moveDown = keyIsDown(83);
+        let moveUp = USER_INPUT_MANAGER.isActivated("move_up");
+        let moveDown = USER_INPUT_MANAGER.isActivated("move_down");
         if (moveUp && this.moveUDCD.isReady()){
             this.tileY += 1;
             this.moveUDCD.lock();
@@ -80,8 +96,8 @@ class TilePlacer extends Entity {
             this.moveUDCD.lock();
             this.readyToPlaceLock.unlock();
         }
-        let moveLeft = keyIsDown(65);
-        let moveRight = keyIsDown(68);
+        let moveLeft = USER_INPUT_MANAGER.isActivated("move_left");
+        let moveRight = USER_INPUT_MANAGER.isActivated("move_right");
         if (moveLeft && this.moveLRCD.isReady()){
             this.tileX -= 1;
             this.moveLRCD.lock();
@@ -91,11 +107,12 @@ class TilePlacer extends Entity {
             this.moveLRCD.lock();
             this.readyToPlaceLock.unlock();
         }
+        //console.log(this.tileX, this.tileY)
     }
 
     checkPlace(){
-        if (!this.hasMaterial()){ return; }
-        let tryingToPlace = USER_INPUT_MANAGER.isActivated("click") && USER_INPUT_MANAGER.notActivated("right_click");
+        if ((this.usingVisualLayer() && !this.hasVisualMaterial()) || (this.usingPhysicalLayer() && !this.hasPhysicalMaterial()) || this.gamemode.getUI().blocksWindowLocation(mouseX, mouseY)){ return; }
+        let tryingToPlace = USER_INPUT_MANAGER.isActivated("left_click") && USER_INPUT_MANAGER.notActivated("right_click");
         if (!tryingToPlace){
             this.readyToPlaceLock.unlock();
             return; 
@@ -103,11 +120,15 @@ class TilePlacer extends Entity {
             return;
         }
         this.readyToPlaceLock.lock();
-        this.getScene().placeMaterial(this.currentMaterial, this.placerTileX, this.placerTileY);
+        if (this.usingPhysicalLayer()){
+            this.getScene().placePhysicalTile(this.currentPhysicalMaterial, this.placerTileX, this.placerTileY);
+        }else{
+            this.getScene().placeVisualTile(this.currentVisualMaterial, this.placerTileX, this.placerTileY);
+        }
     }
 
     checkDelete(){
-        let tryingToDelete = USER_INPUT_MANAGER.isActivated("right_click") && USER_INPUT_MANAGER.notActivated("click");
+        let tryingToDelete = USER_INPUT_MANAGER.isActivated("right_click") && USER_INPUT_MANAGER.notActivated("left_click");
         if (!tryingToDelete){
             this.readyToPlaceLock.unlock();
             return; 
@@ -115,7 +136,27 @@ class TilePlacer extends Entity {
             return;
         }
         this.readyToPlaceLock.lock();
-        this.getScene().deleteMaterial(this.placerTileX, this.placerTileY);
+        if (this.usingPhysicalLayer()){
+            this.getScene().deletePhysicalTile(this.placerTileX, this.placerTileY);
+        }else{
+            this.getScene().deleteVisualTile(this.placerTileX, this.placerTileY);
+        }
+    }
+
+    usingVisualLayer(){
+        return !this.isUsingPhysicalLayer;
+    }
+
+    usingPhysicalLayer(){
+        return this.isUsingPhysicalLayer;
+    }
+
+    usePhysicalLayer(){
+        this.isUsingPhysicalLayer = true;
+    }
+
+    useVisualLayer(){
+        this.isUsingPhysicalLayer = false;
     }
 
 }

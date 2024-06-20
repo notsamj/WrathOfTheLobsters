@@ -25,18 +25,18 @@ class SmokeCloud {
         Method Description: Displays all the circles in the cloud.
         Method Return: void
     */
-    display(lX, rX, bY, tY){
+    display(scene, lX, rX, bY, tY){
         if (!this.touchesRegion(lX, rX, bY, tY)){ return; }
         let currentTime = Date.now();
         for (let circleObject of this.circles){
             if (circleObject["expirey"] < currentTime){ continue; }
             let totalExistenceTime = circleObject["expirey"] - circleObject["spawn_time"];
             let currentExistenceTime = currentTime - circleObject["spawn_time"];
-            let screenX = this.getScene().getDisplayX(circleObject["x"] + currentExistenceTime/1000 * circleObject["x_velocity"], 0, lX);
-            let screenY = this.getScene().getDisplayY(circleObject["y"] + currentExistenceTime/1000 * circleObject["y_velocity"], 0, bY);
+            let screenX = scene.getDisplayX(circleObject["x"] + currentExistenceTime/1000 * circleObject["x_velocity"], 0, lX, false);
+            let screenY = scene.getDisplayY(circleObject["y"] + currentExistenceTime/1000 * circleObject["y_velocity"], 0, bY, false);
             let smokeColour = Colour.fromCode(RETRO_GAME_DATA["smoke_generation"]["smoke_colour"]);
-            smokeColour.setAlpha(Math.floor(RETRO_GAME_DATA["smoke_generation"]["smoke_opacity"]*255 * (1-currentExistenceTime/totalExistenceTime)));
-            noStrokeCircle(smokeColour, screenX, screenY, circleObject["radius"]*2);
+            smokeColour.setAlpha(RETRO_GAME_DATA["smoke_generation"]["smoke_opacity"] * (1-currentExistenceTime/totalExistenceTime));
+            noStrokeCircle(smokeColour, screenX, screenY, circleObject["radius"]*2*gameZoom);
         }
     }
 

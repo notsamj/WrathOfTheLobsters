@@ -59,17 +59,23 @@ class Tile extends VisualItem {
     }
 
     display(lX, rX, bY, tY){
+        //console.log("Displaying2", this)
         // Note: Since we are just flooring x anyway to display use a floor of lX
         lX = Math.floor(lX);
+        bY = Math.floor(bY); // This works too?
         if (!this.touchesRegion(lX, rX, bY, tY)){ return; }
         let x = this.scene.getDisplayXFromTileX(lX, this.tileX);
         let y = this.scene.getDisplayYFromTileY(bY, this.tileY);
         let floorX = Math.floor(x);
-        let floorX1 = Math.floor(this.scene.getDisplayXFromTileX(lX, this.tileX+1));
-        if (floorX1 - floorX != 64){
-            console.log(x, lX, floorX, floorX1);
-        }
-        drawingContext.drawImage(this.getImage(), Math.floor(x), Math.floor(y));
+        let floorY = Math.floor(y);
+        //console.log("Displaying @", x, y, this.getImage())
+        translate(floorX, floorY);
+        // Game zoom
+        scale(gameZoom, gameZoom);
+        drawingContext.drawImage(this.getImage(), 0, 0);
+        // Game zoom
+        scale(1 / gameZoom, 1 / gameZoom);
+        translate(-1 * floorX, -1 * floorY);
     }
 
     covers(tileX, tileY){
@@ -93,7 +99,31 @@ class Tile extends VisualItem {
         }
     }
 
+    // Abstract delete
+}
+
+class VisualTile extends Tile {
     delete(){
-        this.chunk.delete(this);
+        this.chunk.deleteVisualTile(this);
+    }
+}
+
+class PhysicalTile extends Tile {
+    delete(){
+        this.chunk.deletePhysicalTile(this);
+    }
+
+    hasAttribute(attribute){
+        for (let physicalTile of RETRO_GAME_DATA["physical_tiles"]){
+            if (physicalTile["name"] == this.getMaterialName()){
+                for (let foundAttribute of physicalTile["attributes"]){
+                    if (foundAttribute == attribute){
+                        return true;
+                    }
+                }
+                return false;
+            }
+        }
+        return false;
     }
 }

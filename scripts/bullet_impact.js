@@ -25,16 +25,16 @@ class BulletImpact {
         Method Description: Displays all the squares in the cloud.
         Method Return: void
     */
-    display(lX, rX, bY, tY){
+    display(scene, lX, rX, bY, tY){
         if (!this.touchesRegion(lX, rX, bY, tY)){ return; }
         let currentTime = Date.now();
         for (let squareObject of this.squares){
             if (squareObject["expirey"] < currentTime){ continue; }
             let totalExistenceTime = squareObject["expirey"] - squareObject["spawn_time"];
             let currentExistenceTime = currentTime - squareObject["spawn_time"];
-            let screenX = this.getScene().getDisplayX(squareObject["x"] + currentExistenceTime/1000 * squareObject["x_velocity"], 0, lX);
-            let screenY = this.getScene().getDisplayY(squareObject["y"] + currentExistenceTime/1000 * squareObject["y_velocity"], 0, bY);
-            noStrokeRectangle(Colour.fromCode(RETRO_GAME_DATA["bullet_impact_generation"]["dirt_colour"]), screenX, screenY, squareObject["size"]);
+            let screenX = scene.getDisplayX(squareObject["x"] + currentExistenceTime/1000 * squareObject["x_velocity"], 0, lX);
+            let screenY = scene.getDisplayY(squareObject["y"] + currentExistenceTime/1000 * squareObject["y_velocity"], 0, bY);
+            noStrokeRectangle(Colour.fromCode(RETRO_GAME_DATA["bullet_impact_generation"]["dirt_colour"]), screenX, screenY, squareObject["size"], squareObject["size"]);
         }
     }
 

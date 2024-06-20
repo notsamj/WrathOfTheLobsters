@@ -1,0 +1,3 @@
+class SkirmishBot extends SkirmishCharacter {
+    
+}

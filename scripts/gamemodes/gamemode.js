@@ -24,6 +24,7 @@ class Gamemode {
     // Abstract
     tick(){}
     end(){}
+    isDisplayingPhysicalLayer(){}
 }
 // If using NodeJS then export the class
 if (typeof window === "undefined"){

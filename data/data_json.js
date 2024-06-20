@@ -8,6 +8,68 @@ const RETRO_GAME_DATA = {
         }
     },
 
+    "skirmish": {
+        "area_size": 50
+    },
+
+    "controls": {
+        "approximate_zoom_peek_time_ms": 500
+    },
+
+    "settings": {
+        "game_zoom": 1
+    },
+
+    "physical_tiles": [
+        {
+            "name": "full_block",
+            "file_link": "images/physical_tiles/full_block.png",
+            "attributes": [
+                "no_walk",
+                "solid"
+            ]
+        },
+        {
+            "name": "unwalkable",
+            "file_link": "images/physical_tiles/unwalkable.png",
+            "attributes": [
+                "no_walk"
+            ]
+        },
+        {
+            "name": "single_cover",
+            "file_link": "images/physical_tiles/single_cover.png",
+            "attributes": [
+                "single_cover"
+            ]
+        },
+        {
+            "name": "multi_cover",
+            "file_link": "images/physical_tiles/multi_cover.png",
+            "attributes": [
+                "multi_cover"
+            ]
+        }
+    ],
+
+    "team_aliases": [
+        {
+            "noun": "America",
+            "proper_adjective": "American",
+            "proper_adjective_plural": "Americans"
+        },
+        {
+            "noun": "Britain",
+            "proper_adjective": "British",
+            "proper_adjective_plural": "British"
+        }
+    ],
+
+    "team_to_colour": {
+        "British": "#8c130a",
+        "American": "#0a0c8c"
+    },
+
     "menu": {
         "option_slider": {
             "slider_width_px": 20,
@@ -16,21 +78,9 @@ const RETRO_GAME_DATA = {
         "text_box_padding_proportion": 0.1
     },
 
-    "tile_attributes": {
-        "grass": [
-            "walkable"
-        ],
-        "dirt": [
-            "walkable"
-        ],
-        "house": [
-            "walkable"
-        ]
-    },
-
     "gun_data": {
         "brown_bess": {
-            "range": 150*64,
+            "range": 25*64,
             "display": {
                 "left": {
                     "x_offset": 2-32,
@@ -45,7 +95,20 @@ const RETRO_GAME_DATA = {
     },
 
     "ui": {
-        "font_family": "arial"
+        "font_family": "arial",
+
+        "game_maker": {
+            "scroll_button_width": 100,
+            "bottom_bar_height": 100,
+            "purple_code": "#c532e3",
+            "red_code": "#6b100a",
+            "yellow_code": "#fce26d",
+            "green_code": "#33f54d",
+            "image_width": 100,
+            "image_height": 100,
+            "top_bar_height": 100,
+            "bottom_bar_height": 100
+        }
     },
 
     "smoke_generation": {
@@ -88,7 +151,8 @@ const RETRO_GAME_DATA = {
         "animation_frame_time": 100,
         "chunk_size": 16,
         "expected_canvas_width": 1920,
-        "expected_canvas_height": 1080
+        "expected_canvas_height": 1080,
+        "entity_render_distance": 30
     },
 
     "extra_settings": [],
@@ -194,4 +258,7 @@ const RETRO_GAME_DATA = {
             }
         }
     }
+}
+if (typeof window === "undefined"){
+    module.exports=RETRO_GAME_DATA;
 }

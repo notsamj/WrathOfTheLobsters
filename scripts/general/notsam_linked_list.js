@@ -189,7 +189,7 @@ class NotSamLinkedList{
         let i = 0;
         // Loop through the list and print each value
         while (current != null){
-            console.error(`${i}: ${current.value}:`);
+            console.log(`${i}: ${current.value}:`);
             i++;
             current = current.next;
         }

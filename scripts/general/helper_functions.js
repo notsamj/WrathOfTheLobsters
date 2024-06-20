@@ -3,6 +3,71 @@ if (typeof window === "undefined"){
     RETRO_GAME_DATA = require("../../data/data_json.js");
 }
 
+function getNoun(teamName){
+    return getTeamJSON(teamName)["noun"];
+}
+
+function getProperAdjective(teamName){
+    return getTeamJSON(teamName)["proper_adjective"];
+}
+
+function getProperAdjectivePlural(teamName){
+    return getTeamJSON(teamName)["proper_adjective_plural"];
+}
+
+function getTeamJSON(teamName){
+    let searchableName = teamName.toLowerCase();
+    for (let team of RETRO_GAME_DATA["team_aliases"]){
+        if (team["noun"].toLowerCase() == searchableName || team["proper_adjective"].toLowerCase() == searchableName || team["proper_adjective_plural"].toLowerCase() == searchableName){
+            return team;
+        }
+    }
+    throw new Error("Team not found.");
+}
+
+function getPhysicalTileDetails(physicalTileName){
+    for (let physicalTileDetails of RETRO_GAME_DATA["physical_tiles"]){
+        if (physicalTileDetails["name"] == physicalTileName){
+            return physicalTileDetails;
+        }
+    }
+    return null;
+}
+
+async function ensureImageIsLoadedFromDetails(imageDetails){
+    await ensureImageIsLoaded(imageDetails["name"], imageDetails["file_link"])
+}
+
+async function ensureImageIsLoaded(imageName, fileLink){
+    if (!objectHasKey(IMAGES, imageName)){
+        await loadTileToImages(imageName, fileLink);
+    }
+}
+
+async function loadTileToImages(imageName, fileLink){
+    IMAGES[imageName] = await loadLocalImage(fileLink);
+}
+
+async function loadLocalImage(url){
+    let newImage = null;
+    let wait = new Promise(function(resolve, reject){
+        newImage = new Image();
+        newImage.onload = function(){
+            resolve();
+        }
+        newImage.onerror = function(){
+            reject();
+        }
+        newImage.src = url;
+    });
+    await wait;
+    return newImage;
+}
+
+async function loadToImages(imageName, folderPrefix="", type=".png"){
+    IMAGES[imageName] = await loadLocalImage("images/" + folderPrefix + imageName + type);
+}
+
 // TODO: Comments
 function listHasElement(list, element){
     for (let listElement of list){

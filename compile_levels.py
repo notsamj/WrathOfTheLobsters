@@ -10,7 +10,7 @@ def readFile(fileName):
 
 data = {}
 dataKeys = []
-serverLevelFolderPathStr = "./Game Maker/server/data/level/"
+serverLevelFolderPathStr = "./server/data/level/"
 localLevelFolderPathStr = "./data/"
 # Read all json files and put in data dict
 for fileName in os.listdir(serverLevelFolderPathStr):

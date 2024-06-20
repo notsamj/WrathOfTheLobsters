@@ -33,8 +33,15 @@ class MainMenu extends Menu {
             MENU_MANAGER.switchTo("game");
         }));
 
+        // Turn Based Game
+        let turnBasedGamedBottomY = (innerHeight) => { return gameBottonY(innerHeight) - buttonSizeY - gapSize; }
+        this.components.push(new RectangleButton("Turn Based Game", "#3bc44b", "#e6f5f4", buttonX, turnBasedGamedBottomY, buttonSizeX, buttonSizeY, (menuInstance) => {
+            GAMEMODE_MANAGER.setActiveGamemode(new TurnBasedSkirmish())
+            MENU_MANAGER.switchTo("game");
+        }));
+
         // Game Maker
-        let gameMakerButtonY = (innerHeight) => { return gameBottonY(innerHeight) - buttonSizeY - gapSize; }
+        let gameMakerButtonY = (innerHeight) => { return turnBasedGamedBottomY(innerHeight) - buttonSizeY - gapSize; }
         this.components.push(new RectangleButton("Game Maker", "#3bc44b", "#e6f5f4", buttonX, gameMakerButtonY, buttonSizeX, buttonSizeY, (menuInstance) => {
             startGameMaker();
             MENU_MANAGER.switchTo("game_maker");

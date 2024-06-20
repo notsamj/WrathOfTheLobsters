@@ -6,7 +6,8 @@
     etc. smh I'm dying
 */
 class MailService {
-    constructor(socket){
+    constructor(serverConnection){
+        this.serverConnection = serverConnection;
         this.mailboxes = new NotSamLinkedList();
     }
 
@@ -30,7 +31,7 @@ class MailService {
             this.mailboxes.add(new Mailbox(mailboxName));
         }
         let mailbox = this.getMailbox(mailboxName);
-        return await mailbox.sendJSON(messageJSON, timeout);
+        return await mailbox.sendJSON(this.serverConnection, messageJSON, timeout);
     }
 
     deliver(message){
@@ -57,13 +58,13 @@ class Mailbox {
         this.responder = null;
     }
 
-    async sendJSON(messageJSON, timeout=1000){
+    async sendJSON(serverConnection, messageJSON, timeout=1000){
         if (this.awaiting){
             throw new Error("Mail sent with return address before previous response has returned: " + this.getName());
         }
         this.awaiting = true;
         messageJSON["mail_box"] = this.getName();
-        return await MessageResponse.sendAndReceiveJSON(this, messageJSON, timeout);
+        return await MessageResponse.sendAndReceiveJSON(serverConnection, this, messageJSON, timeout);
     }
 
     addResponder(responder){
@@ -122,12 +123,12 @@ class MessageResponse {
         return this.result;
     }
 
-    static async sendAndReceiveJSON(mailBox, messageJSON, timeout){
-        return JSON.parse(await MessageResponse.sendAndReceive(mailBox, JSON.stringify(messageJSON), timeout));
+    static async sendAndReceiveJSON(serverConnection, mailBox, messageJSON, timeout){
+        return JSON.parse(await MessageResponse.sendAndReceive(serverConnection, mailBox, JSON.stringify(messageJSON), timeout));
     }
 
-    static async sendAndReceive(mailBox, message, timeout){
-        SERVER_CONNECTION.send(message);
+    static async sendAndReceive(serverConnection, mailBox, message, timeout){
+        serverConnection.send(message);
         let messageResponse = new MessageResponse(mailBox, timeout);
         let response = await messageResponse.awaitResponse();
         return response;

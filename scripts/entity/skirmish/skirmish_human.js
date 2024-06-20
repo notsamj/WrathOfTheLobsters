@@ -1,0 +1,3 @@
+class SkirmishHuman extends SkirmishCharacter {
+    
+}

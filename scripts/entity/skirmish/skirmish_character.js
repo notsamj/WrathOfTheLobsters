@@ -17,6 +17,10 @@ class SkirmishCharacter extends Character {
     isVisibleTo(observer){
         return observer.isOnSameTeam(this) || this.gamemode.visibleToTeam(observer.getTeam(), this.getTeam(), this.getID());
     }
+
+    isVisibleToSuper(observer){
+        return super.isVisibleTo(observer);
+    }
     
     isMakingAMove(){
         return this.makingMove;

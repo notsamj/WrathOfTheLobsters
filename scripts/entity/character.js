@@ -15,6 +15,118 @@ class Character extends Entity {
         }
         this.movementDetails = null;
         this.inventory = new Inventory();
+        this.decisions = {
+            "up": false,
+            "down": false,
+            "left": false,
+            "right": false,
+            "sprint": false
+        }
+    }
+
+    resetDecisions(){
+        this.decisions["up"] = false;
+        this.decisions["down"] = false;
+        this.decisions["left"] = false;
+        this.decisions["right"] = false;
+        this.decisions["sprint"] = false;
+    }
+
+    updateMovement(){
+        // Nothing to do if between tiles
+        if (this.betweenTiles()){ return; }
+        let wantsToMoveUp = this.decisions["up"];
+        let wantsToMoveDown = this.decisions["down"];
+        let wantsToMoveLeft = this.decisions["left"];
+        let wantsToMoveRight = this.decisions["right"];
+        let wantsToSprint = this.decisions["sprint"];
+        let movementKeysPressed = 0;
+        movementKeysPressed += wantsToMoveUp ? 1 : 0;
+        movementKeysPressed += wantsToMoveDown ? 1 : 0;
+        movementKeysPressed += wantsToMoveLeft ? 1 : 0;
+        movementKeysPressed += wantsToMoveRight ? 1 : 0;
+
+        let numTicks = TICK_SCHEDULER.getNumTicks();
+        if (movementKeysPressed != 1){
+            if (this.isMoving()){
+                this.movementDetails = null;
+            }
+            return; 
+        }
+        // 1 Movement key is being pressed
+        let direction;
+        let newTileX = this.tileX;
+        let newTileY = this.tileY;
+
+        if (wantsToMoveDown){
+            direction = "down";
+            newTileY -= 1;
+        }else if (wantsToMoveLeft){
+            direction = "left";
+            newTileX -= 1;
+        }else if (wantsToMoveRight){
+            direction = "right";
+            newTileX += 1;
+        }else{
+            direction = "up";
+            newTileY += 1;
+        }
+
+        // Turn in direction if not moving
+        if (!this.isMoving()){
+            if (this.animationManager.getAlternativeDirection() != direction){
+                this.animationManager.setDirectionFromAlternate(direction);
+                this.lookingDetails["direction"] = direction;
+                this.lookingDetails["look_lock"].lock();
+                return;
+            }else if (this.lookingDetails["look_lock"].notReady()){
+                return;
+            }
+        }
+
+        // Check if the tile is walkable before moving
+        if (this.getScene().tileAtLocationHasAttribute(newTileX, newTileY, "no_walk")){
+            if (this.isMoving()){
+                this.movementDetails = null;
+            }
+            return; 
+        }
+
+        //console.log("Moving again", this.tileX, this.lastX/64)
+        // TODO: Check if there is a tile that I'm walking to
+        let desiredMoveSpeed = RETRO_GAME_DATA["general"]["walk_speed"];
+        desiredMoveSpeed *= (wantsToSprint ? RETRO_GAME_DATA["general"]["sprint_multiplier"] : 1);
+        let tickProgressFromPrevious = 0;
+        // If say at tileX 1.5 and moving right then keep that 0.5 as progress for the next move
+        let lastLocationX = this.tileX;
+        let lastLocationY = this.tileY;
+        // Handle tick progress from previous
+        if (this.isMoving() && direction == this.movementDetails["direction"]){
+            tickProgressFromPrevious = Math.ceil(this.movementDetails["reached_destination_tick"]) - this.movementDetails["reached_destination_tick"];
+            let distanceProgressFromPrevious = tickProgressFromPrevious * this.movementDetails["speed"] / 1000 * RETRO_GAME_DATA["general"]["ms_between_ticks"];
+            if (direction == "down"){
+                lastLocationY -= distanceProgressFromPrevious / RETRO_GAME_DATA["general"]["tile_size"];
+            }else if (direction == "left"){
+                lastLocationX -= distanceProgressFromPrevious / RETRO_GAME_DATA["general"]["tile_size"];
+            }else if (direction == "right"){
+                lastLocationX += distanceProgressFromPrevious / RETRO_GAME_DATA["general"]["tile_size"];
+            }else{ // Up
+                lastLocationY += distanceProgressFromPrevious / RETRO_GAME_DATA["general"]["tile_size"];
+            }
+        }
+        this.movementDetails = {
+            "direction": direction,
+            "speed": desiredMoveSpeed,
+            "last_frame_time": FRAME_COUNTER.getLastFrameTime(),
+            "last_tick_number": TICK_SCHEDULER.getNumTicks(),
+            "last_location_x": lastLocationX,
+            "last_location_y": lastLocationY,
+            "last_location_tick": numTicks,
+            "reached_destination_tick": numTicks + RETRO_GAME_DATA["general"]["tile_size"] / desiredMoveSpeed * 1000 / RETRO_GAME_DATA["general"]["ms_between_ticks"] - tickProgressFromPrevious
+        }
+        this.tileX = newTileX;
+        this.tileY = newTileY;
+        
     }
 
     setTileX(tileX){
@@ -117,12 +229,12 @@ class Character extends Entity {
     }
 
     makeDecisions(){
-        this.updateMovement();
+        this.resetDecisions();
     }
 
     // TODO
     actOnDecisions(){
-        
+        this.updateMovement();
     }
 
     getImage(){
@@ -203,9 +315,6 @@ class Character extends Entity {
         }
         return Math.ceil(this.movementDetails["reached_destination_tick"]) != TICK_SCHEDULER.getNumTicks();
     }
-
-    // Abstract
-    updateMovement(){}
 
     getXVelocity(){
         if (!this.isMoving()){ return 0; }

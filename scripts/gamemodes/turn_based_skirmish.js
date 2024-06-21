@@ -44,7 +44,7 @@ class TurnBasedSkirmish extends Gamemode {
         for (let observedTroop of observedRoster){
             let included = false;
             for (let observerTroop of observerRoster){
-                if (observedTroop.isVisibleTo(observerTroop)){
+                if (observedTroop.isVisibleToSuper(observerTroop)){
                     included = true;
                     break;
                 }
@@ -99,19 +99,19 @@ class TurnBasedSkirmish extends Gamemode {
         }
 
         // Now the currently moving troop is selected
-        if (!troop.isMakingAMove()){
-            troop.indicateTurn();
+        if (!currentlyMovingCharacter.isMakingAMove()){
+            currentlyMovingCharacter.indicateTurn();
             return;
         }
 
-        // Troop is making a move
+        // currentlyMovingCharacter is making a move
 
-        // If troop is still making the move do nothing
-        if (!troop.isMoveDone()){
+        // If currentlyMovingCharacter is still making the move do nothing
+        if (!currentlyMovingCharacter.isMoveDone()){
             return;
         }
 
-        // If troop is done their move
+        // If currentlyMovingCharacter is done their move
 
         // Go to next index
         this.gameState["troop_to_move_index"][currentTeamName] = (currentlyMovingCharacterIndex + 1) % livingCount;
@@ -129,6 +129,10 @@ class TurnBasedSkirmish extends Gamemode {
     initializeGameState(){
         this.gameState = {
             "turn": "British",
+            "operation_type": {
+                "British": "human",
+                "American": "human" // or "bot"
+            },
             "troop_to_move_index": {
                 "British": 0,
                 "American": 0
@@ -199,6 +203,7 @@ class TurnBasedSkirmish extends Gamemode {
 
         let enemy = new SkirmishHuman(this, "usa_pvt", "American");
         enemy.setID("npc1");
+        console.log(this.americanSpawn)
         enemy.setTileX(this.americanSpawn["x"]);
         enemy.setTileY(this.americanSpawn["y"]);
         this.scene.addEntity(enemy);
@@ -503,8 +508,8 @@ class TurnBasedSkirmish extends Gamemode {
         let britishSpawnNumber = random.getIntInRangeInclusive(0,3);
         let britishSpawn = spawns[britishSpawnNumber];
         
-        // Move around spawns[3] and remove allySpawnNumber
-        spawns[allySpawnNumber] = spawns[3];
+        // Move around spawns[3] and remove britishSpawnNumber
+        spawns[britishSpawnNumber] = spawns[3];
         spawns.pop();
 
         // Set american spawn

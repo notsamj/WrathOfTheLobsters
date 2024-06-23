@@ -65,6 +65,7 @@ class TurnBasedSkirmish extends Gamemode {
     }
 
     gameTick(){
+        if (this.isOver()){ return; }
         this.makeMove();
     }
 
@@ -97,10 +98,10 @@ class TurnBasedSkirmish extends Gamemode {
                 characterIndex++;
             }
         }
-
         // Now the currently moving troop is selected
-        if (!currentlyMovingCharacter.isMakingAMove()){
+        if (!currentlyMovingCharacter.isMakingAMove() && !currentlyMovingCharacter.isMoveDone()){
             currentlyMovingCharacter.indicateTurn();
+            this.scene.setFocusedEntity(currentlyMovingCharacter);
             return;
         }
 
@@ -112,6 +113,7 @@ class TurnBasedSkirmish extends Gamemode {
         }
 
         // If currentlyMovingCharacter is done their move
+        currentlyMovingCharacter.acceptMoveDone();
 
         // Go to next index
         this.gameState["troop_to_move_index"][currentTeamName] = (currentlyMovingCharacterIndex + 1) % livingCount;
@@ -121,6 +123,10 @@ class TurnBasedSkirmish extends Gamemode {
 
         // Increase turn counter (used for simplifying some operations)
         this.gameState["turn_counter"] += 1;
+
+        // Check if over
+        this.checkWin();
+        if (this.isOver()){ return; }
 
         // Call again (state changed so its not an infinite loop)
         this.makeMove();
@@ -208,9 +214,9 @@ class TurnBasedSkirmish extends Gamemode {
         enemy.setTileY(this.americanSpawn["y"]);
         this.scene.addEntity(enemy);
         this.americanTroops.push(enemy);
-        /*enemy.getInventory().add(new HumanSkirmishMusket("brown_bess", {
+        enemy.getInventory().add(new HumanSkirmishMusket("brown_bess", {
             "player": enemy
-        }));*/
+        }));
     }
 
 
@@ -280,6 +286,7 @@ class TurnBasedSkirmish extends Gamemode {
         let bigBushes = 5;
 
         let seed = randomNumberInclusive(0,1000);
+        seed = 447; // temp
         let random = new SeededRandomizer(seed);
         console.log("seed", seed)
 
@@ -493,16 +500,6 @@ class TurnBasedSkirmish extends Gamemode {
             makeRiver(riverAngleRAD, riverStartX, riverStartY, currentWidth, riverType, minRiverWidth, maxRiverWidth);
         }
 
-        // TEMP
-        for (let tempX = 45; tempX <= 49; tempX++){
-            for (let tempY = 0; tempY < 5; tempY++){
-                if (tempX == 49 && tempY == 0){ continue; }
-                scene.placeVisualTile(waterDetails, tempX, tempY);
-                scene.placePhysicalTile(noWalkDetails, tempX, tempY);
-            }
-        }
-
-
         let spawns = [[0,0], [0,size-1], [size-1,0], [size-1,size-1]];
         // Set british spawn
         let britishSpawnNumber = random.getIntInRangeInclusive(0,3);
@@ -658,10 +655,9 @@ class TurnBasedSkirmish extends Gamemode {
 
     display(){
         if (this.startUpLock.isLocked()){ return; }
+        this.scene.display();
         if (this.isOver()){
             this.stats.display();
-        }else{
-            this.scene.display();
         }
     }
 

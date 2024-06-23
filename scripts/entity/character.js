@@ -222,6 +222,7 @@ class Character extends Entity {
 
     tick(){
         this.lookingDetails["look_lock"].tick();
+        this.inventory.tick();
         this.inventory.tickSelectedItem();
 
         this.makeDecisions();

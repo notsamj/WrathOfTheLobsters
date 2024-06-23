@@ -65,20 +65,31 @@ async function setup() {
 
     USER_INPUT_MANAGER.register("p_ticked", "keydown", (event) => { return event.keyCode==80; }, true, {"ticked": true, "ticked_activation": false});
 
-    USER_INPUT_MANAGER.register("1/8zoomhold", "keydown", (event) => { return event.keyCode == 49; }, true);
-    USER_INPUT_MANAGER.register("1/8zoomhold", "keyup", (event) => { return event.keyCode == 49; }, false);
+    USER_INPUT_MANAGER.register("1/8zoomhold", "keydown", (event) => { return event.keyCode == 100; }, true);
+    USER_INPUT_MANAGER.register("1/8zoomhold", "keyup", (event) => { return event.keyCode == 100; }, false);
 
-    USER_INPUT_MANAGER.register("1/4zoomhold", "keydown", (event) => { return event.keyCode == 50; }, true);
-    USER_INPUT_MANAGER.register("1/4zoomhold", "keyup", (event) => { return event.keyCode == 50; }, false);
+    USER_INPUT_MANAGER.register("1/4zoomhold", "keydown", (event) => { return event.keyCode == 101; }, true);
+    USER_INPUT_MANAGER.register("1/4zoomhold", "keyup", (event) => { return event.keyCode == 101; }, false);
 
-    USER_INPUT_MANAGER.register("1/2zoomhold", "keydown", (event) => { return event.keyCode == 51; }, true);;
-    USER_INPUT_MANAGER.register("1/2zoomhold", "keyup", (event) => { return event.keyCode == 51; }, false);
+    USER_INPUT_MANAGER.register("1/2zoomhold", "keydown", (event) => { return event.keyCode == 102; }, true);;
+    USER_INPUT_MANAGER.register("1/2zoomhold", "keyup", (event) => { return event.keyCode == 102; }, false);
 
-    USER_INPUT_MANAGER.register("1zoomhold", "keydown", (event) => { return event.keyCode == 52; }, true);
-    USER_INPUT_MANAGER.register("1zoomhold", "keyup", (event) => { return event.keyCode == 52; }, false);
+    USER_INPUT_MANAGER.register("1zoomhold", "keydown", (event) => { return event.keyCode == 98; }, true);
+    USER_INPUT_MANAGER.register("1zoomhold", "keyup", (event) => { return event.keyCode == 98; }, false);
 
-    USER_INPUT_MANAGER.register("2zoomhold", "keydown", (event) => { return event.keyCode == 53; }, true);
-    USER_INPUT_MANAGER.register("2zoomhold", "keyup", (event) => { return event.keyCode == 53; }, false);
+    USER_INPUT_MANAGER.register("2zoomhold", "keydown", (event) => { return event.keyCode == 99; }, true);
+    USER_INPUT_MANAGER.register("2zoomhold", "keyup", (event) => { return event.keyCode == 99; }, false);
+
+    USER_INPUT_MANAGER.register("1_ticked", "keydown", (event) => { return event.keyCode==49; }, true, {"ticked": true, "ticked_activation": false});
+    USER_INPUT_MANAGER.register("2_ticked", "keydown", (event) => { return event.keyCode==50; }, true, {"ticked": true, "ticked_activation": false});
+    USER_INPUT_MANAGER.register("3_ticked", "keydown", (event) => { return event.keyCode==51; }, true, {"ticked": true, "ticked_activation": false});
+    USER_INPUT_MANAGER.register("4_ticked", "keydown", (event) => { return event.keyCode==52; }, true, {"ticked": true, "ticked_activation": false});
+    USER_INPUT_MANAGER.register("5_ticked", "keydown", (event) => { return event.keyCode==53; }, true, {"ticked": true, "ticked_activation": false});
+    USER_INPUT_MANAGER.register("6_ticked", "keydown", (event) => { return event.keyCode==54; }, true, {"ticked": true, "ticked_activation": false});
+    USER_INPUT_MANAGER.register("7_ticked", "keydown", (event) => { return event.keyCode==55; }, true, {"ticked": true, "ticked_activation": false});
+    USER_INPUT_MANAGER.register("8_ticked", "keydown", (event) => { return event.keyCode==56; }, true, {"ticked": true, "ticked_activation": false});
+    USER_INPUT_MANAGER.register("9_ticked", "keydown", (event) => { return event.keyCode==57; }, true, {"ticked": true, "ticked_activation": false});
+    USER_INPUT_MANAGER.register("0_ticked", "keydown", (event) => { return event.keyCode==48; }, true, {"ticked": true, "ticked_activation": false});
 
     // Disable context menu
     document.getElementById("main_area").addEventListener("contextmenu", (event) => {event.preventDefault()});

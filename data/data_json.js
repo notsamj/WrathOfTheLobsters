@@ -9,7 +9,7 @@ const RETRO_GAME_DATA = {
     },
 
     "skirmish": {
-        "area_size": 50
+        "area_size": 20 // 50
     },
 
     "controls": {
@@ -157,8 +157,13 @@ const RETRO_GAME_DATA = {
 
     "extra_settings": [],
 
-    "character": {
+    "inventory": {
         "hotbar_size": 10,
+        "harbar_outline_colour": "#7f838f",
+        "hotbar_selected_item_outline_colour": "#fccf5b",
+        "slot_size": 64,
+        "hotbar_y_offset_from_bottom": 64,
+        "text_size": 20
     },
 
     "tile_types": [

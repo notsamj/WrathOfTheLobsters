@@ -6,6 +6,25 @@ class Musket {
         this.reloaded = true;
     }
 
+    displayItemSlot(providedX, providedY){
+        let image = IMAGES[this.model + "_right_64"];
+        let displayScale = RETRO_GAME_DATA["inventory"]["slot_size"] / image.width;
+        let scaleX = providedX + image.width / 2 * displayScale;
+        let scaleY = providedY + image.height / 2 * displayScale;
+
+        translate(scaleX, scaleY);
+
+        scale(displayScale, displayScale);
+
+        drawingContext.drawImage(image, 0 - image.width / 2, 0 - image.height / 2);
+
+        scale(1 / displayScale, 1 / displayScale);
+
+        translate(-1 * scaleX, -1 * scaleY);
+
+        // TODO: Different when reloading?
+    }
+
     getModel(){
         return this.model;
     }

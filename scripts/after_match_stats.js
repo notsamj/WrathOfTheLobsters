@@ -53,7 +53,7 @@ class AfterMatchStats {
         Method Return: String
     */
     getWinnerColour(){
-        return AfterMatchStats.getTeamColour(this.winner);
+        return AfterMatchStats.getTeamColour(getProperAdjective(this.winner));
     }
 
     /*
@@ -92,7 +92,6 @@ class AfterMatchStats {
 
         // Find kills on this team
         for (let killerClass of Object.keys(this.classKillCounts)){
-            if (planeModelToAlliance(killerClass) != team){ continue; }
             ranking.push({"name": killerClass, "kills": this.classKillCounts[killerClass]});
         }
 
@@ -120,8 +119,8 @@ class AfterMatchStats {
         let americanText = this.makeTeamText("Americans");
         // Make winner text
         Menu.makeText(winnerText, this.getWinnerColour(), Math.floor(getScreenWidth()/2), Math.floor(getScreenHeight() * 0.9), Math.floor(getScreenWidth()*0.70), Math.floor(getScreenHeight()/4), "center", "hanging");
-        Menu.makeText(britishText, AfterMatchStats.getTeamColour("British"), 0, Math.floor(getScreenHeight()*2/3), Math.floor(getScreenWidth()/2), Math.floor(getScreenHeight()*2/3), "left", "middle");
-        Menu.makeText(americanText, AfterMatchStats.getTeamColour("Americans"), Math.floor(getScreenWidth()/2), Math.floor(getScreenHeight()*2/3), Math.floor(getScreenWidth()/2), Math.floor(getScreenHeight()*2/3), "left", "middle");
+        Menu.makeText(britishText, AfterMatchStats.getTeamColour(getProperAdjective("British")), 0, Math.floor(getScreenHeight()*2/3), Math.floor(getScreenWidth()/2), Math.floor(getScreenHeight()*2/3), "left", "middle");
+        Menu.makeText(americanText, AfterMatchStats.getTeamColour(getProperAdjective("Americans")), Math.floor(getScreenWidth()/2), Math.floor(getScreenHeight()*2/3), Math.floor(getScreenWidth()/2), Math.floor(getScreenHeight()*2/3), "left", "middle");
     }
 
     /*

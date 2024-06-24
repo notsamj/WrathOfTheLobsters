@@ -10,26 +10,39 @@ class Inventory {
     }
 
     checkChangeSelectedSlot(){
+        let newSlot = this.selectedSlot;
         if (USER_INPUT_MANAGER.isActivated("1_ticked")){
-            this.selectedSlot = 0;
+            newSlot = 0;
         }else if (USER_INPUT_MANAGER.isActivated("2_ticked")){
-            this.selectedSlot = 1;
+            newSlot = 1;
         }else if (USER_INPUT_MANAGER.isActivated("3_ticked")){
-            this.selectedSlot = 2;
+            newSlot = 2;
         }else if (USER_INPUT_MANAGER.isActivated("4_ticked")){
-            this.selectedSlot = 3;
+            newSlot = 3;
         }else if (USER_INPUT_MANAGER.isActivated("5_ticked")){
-            this.selectedSlot = 4;
+            newSlot = 4;
         }else if (USER_INPUT_MANAGER.isActivated("6_ticked")){
-            this.selectedSlot = 5;
+            newSlot = 5;
         }else if (USER_INPUT_MANAGER.isActivated("7_ticked")){
-            this.selectedSlot = 6;
+            newSlot = 6;
         }else if (USER_INPUT_MANAGER.isActivated("8_ticked")){
-            this.selectedSlot = 7;
+            newSlot = 7;
         }else if (USER_INPUT_MANAGER.isActivated("9_ticked")){
-            this.selectedSlot = 8;
+            newSlot = 8;
         }else if (USER_INPUT_MANAGER.isActivated("0_ticked")){
-            this.selectedSlot = 9;
+            newSlot = 9;
+        }
+
+        if (newSlot == this.selectedSlot){
+            return;
+        }
+
+        if (this.hasSelectedItem()){
+            this.getItemAtSelectedSlot().deselect();
+        }
+        this.selectedSlot = newSlot;
+        if (this.hasSelectedItem()){
+            this.getItemAtSelectedSlot().select();
         }
     }
 
@@ -116,3 +129,8 @@ class Inventory {
         this.getItemAtSelectedSlot().tick();
     }
 }
+/*
+    Item required methods:
+        - select
+        - deselect
+*/

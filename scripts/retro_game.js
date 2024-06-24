@@ -91,6 +91,10 @@ async function setup() {
     USER_INPUT_MANAGER.register("9_ticked", "keydown", (event) => { return event.keyCode==57; }, true, {"ticked": true, "ticked_activation": false});
     USER_INPUT_MANAGER.register("0_ticked", "keydown", (event) => { return event.keyCode==48; }, true, {"ticked": true, "ticked_activation": false});
 
+    USER_INPUT_MANAGER.register("b_ticked", "keydown", (event) => { return event.keyCode==66; }, true, {"ticked": true, "ticked_activation": false});
+
+    USER_INPUT_MANAGER.register("r_ticked", "keydown", (event) => { return event.keyCode==82; }, true, {"ticked": true, "ticked_activation": false});
+
     // Disable context menu
     document.getElementById("main_area").addEventListener("contextmenu", (event) => {event.preventDefault()});
 

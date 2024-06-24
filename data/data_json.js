@@ -80,6 +80,7 @@ const RETRO_GAME_DATA = {
 
     "gun_data": {
         "brown_bess": {
+            "reload_time_ms": 5000,
             "range": 25*64,
             "display": {
                 "left": {
@@ -162,7 +163,7 @@ const RETRO_GAME_DATA = {
         "harbar_outline_colour": "#7f838f",
         "hotbar_selected_item_outline_colour": "#fccf5b",
         "slot_size": 64,
-        "hotbar_y_offset_from_bottom": 64,
+        "hotbar_y_offset_from_bottom": 2,
         "text_size": 20
     },
 

@@ -15,6 +15,18 @@ function getProperAdjectivePlural(teamName){
     return getTeamJSON(teamName)["proper_adjective_plural"];
 }
 
+/*
+    Method Name: toFixedRadians
+    Method Parameters:
+        angle:
+            An angle to "fix"
+    Method Description: Converts to degrees and fixes an angle to the range [0,2*PI)
+    Method Return: float
+*/
+function toFixedRadians(angleDEG){
+    return fixRadians(toRadians(angleDEG));
+}
+
 function getTeamJSON(teamName){
     let searchableName = teamName.toLowerCase();
     for (let team of RETRO_GAME_DATA["team_aliases"]){
@@ -616,6 +628,34 @@ function calculateAngleDiffDEGCW(angle1, angle2){
 */
 function rotateCWDEG(angle, amount){
     return fixDegrees(angle - amount);
+}
+
+/*
+    Method Name: rotateCWRAD
+    Method Parameters:
+        angle:
+            Angle to rotate
+        amount:
+            Amount to rotate by
+    Method Description: Rotates an angle clockwise by an amount
+    Method Return: int
+*/
+function rotateCWRAD(angle, amount){
+    return fixRadians(angle - amount);
+}
+
+/*
+    Method Name: rotateCCWRAD
+    Method Parameters:
+        angle:
+            Angle to rotate
+        amount:
+            Amount to rotate by
+    Method Description: Rotates an angle counter clockwise by an amount
+    Method Return: int
+*/
+function rotateCCWRAD(angle, amount){
+    return fixRadians(angle + amount);
 }
 
 /*

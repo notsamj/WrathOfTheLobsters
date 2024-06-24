@@ -3,16 +3,58 @@ class Musket {
         this.model = model;
         this.tryingToAim = false;
         this.player = objectHasKey(details, "player") ? details["player"] : null;
-        this.reloaded = true;
+        this.loaded = true;
+        this.bayonetOn = false;
+        this.reloading = false;
+        this.reloadStartTick = 0;
+        this.reloadLock = new TickLock(RETRO_GAME_DATA["gun_data"][this.model]["reload_time_ms"] / RETRO_GAME_DATA["general"]["ms_between_ticks"]);
+    }
+
+    reload(){
+        this.reloading = true;
+        this.reloadStartTick = TICK_SCHEDULER.getNumTicks();
+        this.reloadLock.resetLock();
+    }
+
+    isReloading(){
+        return this.reloading;
+    }
+
+    cancelReload(){
+        this.reloadLock.reset();
+        this.reloading = false;
+    }
+
+    select(){}
+    deselect(){
+        if (this.isReloading()){
+            this.cancelReload();
+        }
+    }
+
+    equipBayonet(){
+        this.bayonetOn = true;
+    }
+
+    unequipBayonet(){
+        this.bayonetOn = false;
+    }
+
+    hasBayonetEquipped(){
+        return this.bayonetOn;
     }
 
     displayItemSlot(providedX, providedY){
-        let image = IMAGES[this.model + "_right_64"];
+        let image = IMAGES[this.model + "_right" + (this.hasBayonetEquipped() ? "_bayonet" : "")];
         let displayScale = RETRO_GAME_DATA["inventory"]["slot_size"] / image.width;
         let scaleX = providedX + image.width / 2 * displayScale;
         let scaleY = providedY + image.height / 2 * displayScale;
 
         translate(scaleX, scaleY);
+
+        if (!this.isLoaded()){
+            rotate(toRadians(-90));
+        }
 
         scale(displayScale, displayScale);
 
@@ -20,9 +62,25 @@ class Musket {
 
         scale(1 / displayScale, 1 / displayScale);
 
+        if (!this.isLoaded()){
+            rotate(toFixedRadians(90));
+        }
+
         translate(-1 * scaleX, -1 * scaleY);
 
-        // TODO: Different when reloading?
+        if (this.isReloading()){
+            let timePassedTick = (TICK_SCHEDULER.getNumTicks() - this.reloadStartTick) * RETRO_GAME_DATA["general"]["ms_between_ticks"];
+            let timePassedNonTick = FRAME_COUNTER.getLastFrameTime() - TICK_SCHEDULER.getLastTickTime();
+            let totalTimePassedMS = timePassedTick + timePassedNonTick;
+            let proportion = totalTimePassedMS / RETRO_GAME_DATA["gun_data"][this.model]["reload_time_ms"];
+            proportion = Math.min(1, Math.max(0, proportion));
+            let height = Math.round(RETRO_GAME_DATA["inventory"]["slot_size"] * proportion);
+            let colour = Colour.fromCode(RETRO_GAME_DATA["inventory"]["hotbar_selected_item_outline_colour"]);
+            colour.setAlpha(0.5);
+            let slotSize = RETRO_GAME_DATA["inventory"]["slot_size"];
+            let y = providedY + slotSize - height;
+            noStrokeRectangle(colour, providedX, y, slotSize, height);
+        }
     }
 
     getModel(){
@@ -41,8 +99,19 @@ class Musket {
         return this.player.getScene();
     }
 
-    // Abstract
-    tick(){}
+    tick(){
+        if (this.isReloading()){
+            if (this.player.isMoving()){
+                this.cancelReload();
+            }else{
+                this.reloadLock.tick();
+                if (this.reloadLock.isUnlocked()){
+                    this.reloading = false;
+                    this.loaded = true;
+                }
+            }
+        }
+    }
 
     getEndOfGunX(){
         // Get tile x of player (player not moving)
@@ -125,7 +194,6 @@ class Musket {
         let range = this.getBulletRange();
         let myID = this.player.getID();
         let collision = this.getScene().findInstantCollisionForProjectile(this.getEndOfGunX(), this.getEndOfGunY(), angleRAD, range, (enemy) => { return enemy.getID() == myID; });
-        //console.log(collision)
         // If it hits an entity
         if (collision["collision_type"] == "entity"){
             collision["entity"].getShot(this.getModel());
@@ -135,11 +203,11 @@ class Musket {
             // If the shot didn't hit anything alive then show particles when it hit
             this.getScene().addExpiringVisual(BulletImpact.create(collision["x"], collision["y"]));
         }
-
+        this.loaded = false;
     }
 
-    isReloaded(){
-        return this.reloaded;
+    isLoaded(){
+        return this.loaded;
     }
 
     isAiming(){
@@ -164,7 +232,6 @@ class Musket {
     display(lX, bY){
         let x = this.getImageX(lX);
         let y = this.getImageY(bY);
-        //console.log(x - 32, "displaygunmiddlex")
         let playerDirection = this.player.getFacingDirection();
         let isAiming = this.isAiming();
 
@@ -175,25 +242,33 @@ class Musket {
         let atTheReady = RETRO_GAME_DATA["model_positions"]["at_the_ready_rotation"];
         if (isAiming){
             if (playerDirection == "front"){
-                image = playerAimingAngleDEG > 270 ? IMAGES[this.model + "_right_64"] : IMAGES[this.model + "_left_64"];
+                image = playerAimingAngleDEG > 270 ? IMAGES[this.model + "_right" + (this.hasBayonetEquipped() ? "_bayonet" : "")] : IMAGES[this.model + "_left" + (this.hasBayonetEquipped() ? "_bayonet" : "")];
                 displayRotateAngleRAD = playerAimingAngleRAD + (playerAimingAngleDEG > 270 ? 0 : Math.PI);
             }else if (playerDirection == "left"){
-                image = IMAGES[this.model + "_left_64"];
+                image = IMAGES[this.model + "_left" + (this.hasBayonetEquipped() ? "_bayonet" : "")];
                 displayRotateAngleRAD = playerAimingAngleRAD + Math.PI;
             }else if (playerDirection == "right"){
-                image = IMAGES[this.model + "_right_64"];
+                image = IMAGES[this.model + "_right" + (this.hasBayonetEquipped() ? "_bayonet" : "")];
                 displayRotateAngleRAD = playerAimingAngleRAD;
             }else if (playerDirection == "back"){
-                image = playerAimingAngleDEG < 90 ? IMAGES[this.model + "_right_64"] : IMAGES[this.model + "_left_64"];
+                image = playerAimingAngleDEG < 90 ? IMAGES[this.model + "_right" + (this.hasBayonetEquipped() ? "_bayonet" : "")] : IMAGES[this.model + "_left" + (this.hasBayonetEquipped() ? "_bayonet" : "")];
                 displayRotateAngleRAD = playerAimingAngleRAD + (playerAimingAngleDEG < 90 ? 0 : Math.PI);
             }
         }else{
             if (playerDirection == "front" || playerDirection == "right"){
-                image = IMAGES[this.model + "_right_64"];
-                displayRotateAngleRAD = toRadians(atTheReady);
+                image = IMAGES[this.model + "_right" + (this.hasBayonetEquipped() ? "_bayonet" : "")];
+                if (this.isReloading()){
+                    displayRotateAngleRAD = toFixedRadians(90);
+                }else{
+                    displayRotateAngleRAD = toRadians(atTheReady);
+                }
             }else if (playerDirection == "back" || playerDirection == "left"){
-                image = IMAGES[this.model + "_left_64"];
-                displayRotateAngleRAD = toRadians(-1 * atTheReady);
+                image = IMAGES[this.model + "_left" + (this.hasBayonetEquipped() ? "_bayonet" : "")];
+                if (this.isReloading()){
+                    displayRotateAngleRAD = toFixedRadians(-90);
+                }else{
+                    displayRotateAngleRAD = toRadians(-1 * atTheReady);
+                }
             }
         }
 
@@ -233,8 +308,10 @@ class Musket {
 
     static async loadAllImages(model){
         // Do not load if already exists
-        if (objectHasKey(IMAGES, model + "_left_64")){ return; }
-        await loadToImages(model + "_left" + "_64", model + "/");
-        await loadToImages(model + "_right" + "_64", model + "/");
+        if (objectHasKey(IMAGES, model + "_left")){ return; }
+        await loadToImages(model + "_left", model + "/");
+        await loadToImages(model + "_left" + "_bayonet", model + "/");
+        await loadToImages(model + "_right", model + "/");
+        await loadToImages(model + "_right" + "_bayonet", model + "/");
     }
 }

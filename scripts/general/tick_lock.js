@@ -80,6 +80,15 @@ class TickLock extends Lock{
         this.ticksLeft = ticksLeft;
     }
 
+    // TODO: Comments
+    reset(){
+        this.ticksLeft = this.getCooldown();
+    }
+
+    resetLock(){
+        this.reset();
+    }
+
     /*
         Method Name: getCooldown
         Method Parameters: None

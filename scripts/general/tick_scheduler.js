@@ -8,6 +8,7 @@ class TickScheduler {
         this.paused = false;
         this.pauseStartTime = null;
         this.timeDebt = 0;
+        this.lastTickTime = Date.now();
     }
 
     pause(){
@@ -46,5 +47,10 @@ class TickScheduler {
 
     countTick(){
         this.numTicks++;
+        this.lastTickTime = Date.now();
+    }
+
+    getLastTickTime(){
+        return this.lastTickTime;
     }
 }

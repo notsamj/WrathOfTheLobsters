@@ -4,10 +4,24 @@ class HumanMusket extends Musket {
     }
 
     tick(){
+        super.tick();
         this.tryingToAim = USER_INPUT_MANAGER.isActivated("right_click");
         let tryingToShoot = USER_INPUT_MANAGER.isActivated("left_click_ticked");
-        if (this.isAiming() && tryingToShoot && this.isReloaded()){
+        if (this.isAiming() && tryingToShoot && this.isLoaded()){
             this.shoot();
+        }
+
+        let togglingBayonetEquip = USER_INPUT_MANAGER.isActivated("b_ticked");
+        if (!this.isAiming() && togglingBayonetEquip && !this.player.isMoving()){
+            if (this.hasBayonetEquipped()){
+                this.unequipBayonet();
+            }else{
+                this.equipBayonet();
+            }
+        }
+        let tryingToReload = USER_INPUT_MANAGER.isActivated("r_ticked");
+        if (tryingToReload && !this.isLoaded() && !this.player.isMoving()){
+            this.reload();
         }
     }
 

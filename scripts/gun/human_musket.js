@@ -7,21 +7,27 @@ class HumanMusket extends Musket {
         super.tick();
         this.tryingToAim = USER_INPUT_MANAGER.isActivated("right_click");
         let tryingToShoot = USER_INPUT_MANAGER.isActivated("left_click_ticked");
-        if (this.isAiming() && tryingToShoot && this.isLoaded()){
+        if (this.isAiming() && tryingToShoot && this.isLoaded() && !this.isStabbing()){
             this.shoot();
         }
 
         let togglingBayonetEquip = USER_INPUT_MANAGER.isActivated("b_ticked");
-        if (!this.isAiming() && togglingBayonetEquip && !this.player.isMoving()){
+        if (!this.isAiming() && togglingBayonetEquip && !this.player.isMoving() && !this.isReloading() && !this.isStabbing()){
             if (this.hasBayonetEquipped()){
                 this.unequipBayonet();
             }else{
                 this.equipBayonet();
             }
         }
+
         let tryingToReload = USER_INPUT_MANAGER.isActivated("r_ticked");
-        if (tryingToReload && !this.isLoaded() && !this.player.isMoving()){
+        if (tryingToReload && !this.isLoaded() && !this.player.isMoving() && !this.isStabbing() && !this.isReloading()){
             this.reload();
+        }
+
+        let tryingToStab = USER_INPUT_MANAGER.isActivated("middle_click");
+        if (this.isAiming() && tryingToStab && !this.isReloading() && this.hasBayonetEquipped() && !this.player.isMoving() && !this.isStabbing()){
+            this.startStab();
         }
     }
 

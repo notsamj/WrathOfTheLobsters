@@ -5,6 +5,7 @@
 class Character extends Entity {
     constructor(gamemode, model){
         super(gamemode);
+        this.health = 1;
         this.model = model;
         this.animationManager = new CharacterAnimationManager();
         this.tileX = 0;
@@ -22,6 +23,17 @@ class Character extends Entity {
             "right": false,
             "sprint": false
         }
+    }
+
+    damage(amount){
+        this.health -= amount;
+        if (this.health <= 0){
+            this.die();
+        }
+    }
+
+    getStabbed(model){
+        this.damage(0.75);
     }
 
     resetDecisions(){
@@ -181,7 +193,7 @@ class Character extends Entity {
     }
 
     getShot(model){
-        this.die();
+        this.damage(1);
     }
 
     getWidth(){

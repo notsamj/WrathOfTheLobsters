@@ -85,7 +85,7 @@ class TickLock extends Lock{
         this.ticksLeft = this.getCooldown();
     }
 
-    resetLock(){
+    resetAndLock(){
         this.reset();
     }
 

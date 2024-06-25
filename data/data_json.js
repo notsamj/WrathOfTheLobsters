@@ -81,6 +81,8 @@ const RETRO_GAME_DATA = {
     "gun_data": {
         "brown_bess": {
             "reload_time_ms": 5000,
+            "stab_time_ms": 600,
+            "stab_range": 1.2*64,
             "range": 25*64,
             "display": {
                 "left": {

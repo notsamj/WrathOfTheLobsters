@@ -5,23 +5,57 @@ class Musket {
         this.player = objectHasKey(details, "player") ? details["player"] : null;
         this.loaded = true;
         this.bayonetOn = false;
+        
         this.reloading = false;
-        this.reloadStartTick = 0;
         this.reloadLock = new TickLock(RETRO_GAME_DATA["gun_data"][this.model]["reload_time_ms"] / RETRO_GAME_DATA["general"]["ms_between_ticks"]);
+        
+        this.stabbing = false;
+        this.stabLock = new TickLock(RETRO_GAME_DATA["gun_data"][this.model]["stab_time_ms"] / RETRO_GAME_DATA["general"]["ms_between_ticks"]);
+        this.stabAngle = null; // value doesn't matter
+        this.stabFacing = null;
+    }
+
+    startStab(){
+        this.stabbing = true;
+        this.stabAngle = this.getAngleRAD();
+        this.stabFacing = this.player.getFacingDirection();
+        this.stabLock.resetAndLock();
+    }
+
+    finishStab(){
+        this.stabbing = false;
+        // Calculate what it hit
+        let myID = this.player.getID();
+        let collision = this.getScene().findInstantCollisionForProjectile(this.getEndOfGunX(), this.getEndOfGunY(), this.stabAngle, RETRO_GAME_DATA["gun_data"][this.model]["stab_range"], (enemy) => { return enemy.getID() == myID; });
+        // If it hits an entity
+        if (collision["collision_type"] == "entity"){
+            collision["entity"].getStabbed(this.getModel());
+        }
+        // If it hits a physical tile or nothing then create bullet collision particle
+        else if (collision["collision_type"] == null || collision["collision_type"] == "physical_tile"){
+            // If the shot didn't hit anything alive then show particles when it hit
+            this.getScene().addExpiringVisual(BulletImpact.create(collision["x"], collision["y"]));
+        }
     }
 
     reload(){
         this.reloading = true;
-        this.reloadStartTick = TICK_SCHEDULER.getNumTicks();
-        this.reloadLock.resetLock();
+        this.reloadLock.resetAndLock();
     }
 
     isReloading(){
         return this.reloading;
     }
 
+    isStabbing(){
+        return this.stabbing;
+    }
+
+    cancelStab(){
+        this.stabbing = false;
+    }
+
     cancelReload(){
-        this.reloadLock.reset();
         this.reloading = false;
     }
 
@@ -29,6 +63,8 @@ class Musket {
     deselect(){
         if (this.isReloading()){
             this.cancelReload();
+        }else if (this.isStabbing()){
+            this.cancelStab();
         }
     }
 
@@ -69,7 +105,7 @@ class Musket {
         translate(-1 * scaleX, -1 * scaleY);
 
         if (this.isReloading()){
-            let timePassedTick = (TICK_SCHEDULER.getNumTicks() - this.reloadStartTick) * RETRO_GAME_DATA["general"]["ms_between_ticks"];
+            let timePassedTick = (this.reloadLock.getCooldown() - this.reloadLock.getTicksLeft()) * RETRO_GAME_DATA["general"]["ms_between_ticks"];
             let timePassedNonTick = FRAME_COUNTER.getLastFrameTime() - TICK_SCHEDULER.getLastTickTime();
             let totalTimePassedMS = timePassedTick + timePassedNonTick;
             let proportion = totalTimePassedMS / RETRO_GAME_DATA["gun_data"][this.model]["reload_time_ms"];
@@ -108,6 +144,15 @@ class Musket {
                 if (this.reloadLock.isUnlocked()){
                     this.reloading = false;
                     this.loaded = true;
+                }
+            }
+        }else if (this.isStabbing()){
+            if (this.player.isMoving() || this.player.getFacingDirection() != this.stabFacing){
+                this.cancelStab();
+            }else{
+                this.stabLock.tick();
+                if (this.stabLock.isUnlocked()){
+                    this.finishStab();   
                 }
             }
         }
@@ -211,7 +256,7 @@ class Musket {
     }
 
     isAiming(){
-        return this.tryingToAim && this.directionToAimIsOk() && !this.player.isMoving();
+        return this.tryingToAim && this.directionToAimIsOk() && !this.player.isMoving() && !this.isReloading() && !this.isStabbing();
     }
 
     directionToAimIsOk(){
@@ -240,6 +285,8 @@ class Musket {
         let playerAimingAngleRAD = this.getAngleRAD();
         let playerAimingAngleDEG = toFixedDegrees(playerAimingAngleRAD);
         let atTheReady = RETRO_GAME_DATA["model_positions"]["at_the_ready_rotation"];
+
+        // Based on player action
         if (isAiming){
             if (playerDirection == "front"){
                 image = playerAimingAngleDEG > 270 ? IMAGES[this.model + "_right" + (this.hasBayonetEquipped() ? "_bayonet" : "")] : IMAGES[this.model + "_left" + (this.hasBayonetEquipped() ? "_bayonet" : "")];
@@ -254,7 +301,35 @@ class Musket {
                 image = playerAimingAngleDEG < 90 ? IMAGES[this.model + "_right" + (this.hasBayonetEquipped() ? "_bayonet" : "")] : IMAGES[this.model + "_left" + (this.hasBayonetEquipped() ? "_bayonet" : "")];
                 displayRotateAngleRAD = playerAimingAngleRAD + (playerAimingAngleDEG < 90 ? 0 : Math.PI);
             }
-        }else{
+        }else if (this.isStabbing()){ // Stabbing
+            let stabAngleDEG = toDegrees(this.stabAngle);
+
+            if (playerDirection == "front"){
+                image = stabAngleDEG > 270 ? IMAGES[this.model + "_right" + (this.hasBayonetEquipped() ? "_bayonet" : "")] : IMAGES[this.model + "_left" + (this.hasBayonetEquipped() ? "_bayonet" : "")];
+                displayRotateAngleRAD = this.stabAngle + (stabAngleDEG > 270 ? 0 : Math.PI);
+            }else if (playerDirection == "left"){
+                image = IMAGES[this.model + "_left" + (this.hasBayonetEquipped() ? "_bayonet" : "")];
+                displayRotateAngleRAD = this.stabAngle + Math.PI;
+            }else if (playerDirection == "right"){
+                image = IMAGES[this.model + "_right" + (this.hasBayonetEquipped() ? "_bayonet" : "")];
+                displayRotateAngleRAD = this.stabAngle;
+            }else if (playerDirection == "back"){
+                image = stabAngleDEG < 90 ? IMAGES[this.model + "_right" + (this.hasBayonetEquipped() ? "_bayonet" : "")] : IMAGES[this.model + "_left" + (this.hasBayonetEquipped() ? "_bayonet" : "")];
+                displayRotateAngleRAD = this.stabAngle + (stabAngleDEG < 90 ? 0 : Math.PI);
+            }
+
+            let timePassedTick = (this.stabLock.getCooldown() - this.stabLock.getTicksLeft()) * RETRO_GAME_DATA["general"]["ms_between_ticks"];
+            let timePassedNonTick = FRAME_COUNTER.getLastFrameTime() - TICK_SCHEDULER.getLastTickTime();
+            let totalTimePassedMS = timePassedTick + timePassedNonTick;
+            let proportion = totalTimePassedMS / RETRO_GAME_DATA["gun_data"][this.model]["stab_time_ms"];
+            proportion = Math.min(1, Math.max(0, proportion));
+            let hypotenuse = RETRO_GAME_DATA["gun_data"][this.model]["stab_range"] * proportion;
+            let stabXDisplacement = Math.cos(this.stabAngle) * hypotenuse;
+            let stabYDisplacement = Math.sin(this.stabAngle) * hypotenuse;
+
+            x += stabXDisplacement;
+            y -= stabYDisplacement; // Not using game coordinates, using display
+        }else{ // Normal
             if (playerDirection == "front" || playerDirection == "right"){
                 image = IMAGES[this.model + "_right" + (this.hasBayonetEquipped() ? "_bayonet" : "")];
                 if (this.isReloading()){

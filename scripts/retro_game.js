@@ -59,6 +59,9 @@ async function setup() {
     USER_INPUT_MANAGER.register("right_click", "mousedown", (event) => { return event.which==3; });
     USER_INPUT_MANAGER.register("right_click", "mouseup", (event) => { return event.which==3; }, false);
 
+    USER_INPUT_MANAGER.register("middle_click", "mousedown", (event) => { return event.which==2; });
+    USER_INPUT_MANAGER.register("middle_click", "mouseup", (event) => { return event.which==2; }, false);
+
     USER_INPUT_MANAGER.register("left_click_ticked", "click", (event) => { return event.which==1; }, true, {"ticked": true, "ticked_activation": false});
 
     USER_INPUT_MANAGER.register("h_ticked", "keydown", (event) => { return event.keyCode==72; }, true, {"ticked": true, "ticked_activation": false});

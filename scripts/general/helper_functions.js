@@ -3,6 +3,62 @@ if (typeof window === "undefined"){
     RETRO_GAME_DATA = require("../../data/data_json.js");
 }
 
+/*
+    Method Name: angleBetweenCCWDEG
+    Method Parameters:
+        angle:
+            An angle in degrees
+        eAngle1:
+            An angle on one edge of a range
+        eAngle2:
+            An angle on the other edge of a range
+    Method Description: Determines if angle is between eAngle1 and eAngle2 in the counter clockwise direction (inclusive)
+    Method Return: boolean, true -> angle is between, false -> angle is not between
+*/
+function angleBetweenCCWDEG(angle, eAngle1, eAngle2){
+    angle = fixDegrees(Math.floor(angle));
+    eAngle1 = fixDegrees(Math.floor(eAngle1));
+    eAngle2 = fixDegrees(Math.floor(eAngle2));
+    let tAngle = eAngle1;
+    if (tAngle == eAngle2){
+        return true;
+    }
+    while (tAngle != eAngle2){
+        if (tAngle == angle){
+            return true;
+        }
+        tAngle += 1;
+        if (tAngle == 360){
+            tAngle = 0;
+        }
+    }
+    return false;
+}
+
+/*
+    Method Name: angleBetweenCWRAD
+    Method Parameters:
+        angle:
+            An angle in radians
+        eAngle1:
+            An angle on one edge of a range (radians)
+        eAngle2:
+            An angle on the other edge of a range (radians)
+    Method Description: Determines if angle is between eAngle1 and eAngle2 in the clockwise direction
+    Method Return: boolean, true -> angle is between, false -> angle is not between
+*/
+function angleBetweenCWRAD(angle, eAngle1, eAngle2){
+    if (angle > eAngle1){
+        angle -= 2 * Math.PI;
+    }
+    if (eAngle2 > eAngle1){
+        eAngle2 -= 2 * Math.PI;
+    }
+    let distanceFromEAngle1ToAngleCW = (angle - eAngle1) / -1;
+    let distanceFromEAngle1ToEAngle2CW = (eAngle2 - eAngle1) / -1;
+    return distanceFromEAngle1ToAngleCW <= distanceFromEAngle1ToEAngle2CW;
+}
+
 function getNoun(teamName){
     return getTeamJSON(teamName)["noun"];
 }
@@ -471,11 +527,11 @@ function fixRadians(angle){
     Method Return: int
 */
 function displacementToDegrees(dX, dY){
-    return fixDegrees(toDegrees(displacmentToRadians(dX, dY)));
+    return fixDegrees(toDegrees(displacementToRadians(dX, dY)));
 }
 
 /*
-    Method Name: displacmentToRadians
+    Method Name: displacementToRadians
     Method Parameters:
         dX:
             The displacement in x
@@ -484,7 +540,7 @@ function displacementToDegrees(dX, dY){
     Method Description: Converts displacement in x, y to an angle in radians
     Method Return: float
 */
-function displacmentToRadians(dX, dY){
+function displacementToRadians(dX, dY){
     // Handle incredibly small displacements
     if (Math.abs(dY) < 1){
         return (dX >= 0) ? toRadians(0) : toRadians(180);
@@ -863,7 +919,7 @@ if (typeof window === "undefined"){
         fixDegrees,
         fixRadians,
         displacementToDegrees,
-        displacmentToRadians,
+        displacementToRadians,
         randomNumberInclusive,
         randomNumber,
         onSameTeam,

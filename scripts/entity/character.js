@@ -25,6 +25,10 @@ class Character extends Entity {
         }
     }
 
+    getUpdatedHitbox(){
+        return new RectangleHitbox(this.getWidth(), this.getHeight(), this.getInterpolatedTickCenterX(), this.getInterpolatedTickCenterY());
+    }
+
     damage(amount){
         this.health -= amount;
         if (this.health <= 0){
@@ -346,7 +350,7 @@ class Character extends Entity {
         let x = this.getDisplayX(lX);
         let y = this.getDisplayY(bY);
         if (!pointInRectangle(x, y, 0, getScreenWidth(), 0, getScreenHeight())){ return; }
-        if (this.animationManager.getDirection() == "back"){
+        if (this.animationManager.getDirection() == "back" || this.animationManager.getDirection() == "left"){
             this.inventory.displaySelectedItem(lX, bY);
         }
         
@@ -362,7 +366,7 @@ class Character extends Entity {
 
         translate(-1 * x, -1 * y);
 
-        if (this.animationManager.getDirection() != "back"){
+        if (!(this.animationManager.getDirection() == "back" || this.animationManager.getDirection() == "left")){
             this.inventory.displaySelectedItem(lX, bY);
         }
         this.inventory.display();

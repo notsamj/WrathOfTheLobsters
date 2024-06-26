@@ -1,5 +1,6 @@
-class Musket {
+class Musket extends Item {
     constructor(model, details){
+        super();
         this.model = model;
         this.tryingToAim = false;
         this.player = objectHasKey(details, "player") ? details["player"] : null;

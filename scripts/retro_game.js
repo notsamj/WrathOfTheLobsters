@@ -23,6 +23,7 @@ async function setup() {
     await CharacterAnimationManager.loadAllImages("british_pvt_g");
     await CharacterAnimationManager.loadAllImages("usa_pvt");
     await Musket.loadAllImages("brown_bess");
+    await Sword.loadAllImages("clever");
 
     // Make sure all physical tiles are loaded
     for (let tileDetails of RETRO_GAME_DATA["physical_tiles"]){
@@ -68,20 +69,20 @@ async function setup() {
 
     USER_INPUT_MANAGER.register("p_ticked", "keydown", (event) => { return event.keyCode==80; }, true, {"ticked": true, "ticked_activation": false});
 
-    USER_INPUT_MANAGER.register("1/8zoomhold", "keydown", (event) => { return event.keyCode == 100; }, true);
-    USER_INPUT_MANAGER.register("1/8zoomhold", "keyup", (event) => { return event.keyCode == 100; }, false);
+    USER_INPUT_MANAGER.register("1/8zoomhold", "keydown", (event) => { return event.keyCode == 101; }, true);
+    USER_INPUT_MANAGER.register("1/8zoomhold", "keyup", (event) => { return event.keyCode == 101; }, false);
 
-    USER_INPUT_MANAGER.register("1/4zoomhold", "keydown", (event) => { return event.keyCode == 101; }, true);
-    USER_INPUT_MANAGER.register("1/4zoomhold", "keyup", (event) => { return event.keyCode == 101; }, false);
+    USER_INPUT_MANAGER.register("1/4zoomhold", "keydown", (event) => { return event.keyCode == 100; }, true);
+    USER_INPUT_MANAGER.register("1/4zoomhold", "keyup", (event) => { return event.keyCode == 100; }, false);
 
-    USER_INPUT_MANAGER.register("1/2zoomhold", "keydown", (event) => { return event.keyCode == 102; }, true);;
-    USER_INPUT_MANAGER.register("1/2zoomhold", "keyup", (event) => { return event.keyCode == 102; }, false);
+    USER_INPUT_MANAGER.register("1/2zoomhold", "keydown", (event) => { return event.keyCode == 99; }, true);;
+    USER_INPUT_MANAGER.register("1/2zoomhold", "keyup", (event) => { return event.keyCode == 99; }, false);
 
     USER_INPUT_MANAGER.register("1zoomhold", "keydown", (event) => { return event.keyCode == 98; }, true);
     USER_INPUT_MANAGER.register("1zoomhold", "keyup", (event) => { return event.keyCode == 98; }, false);
 
-    USER_INPUT_MANAGER.register("2zoomhold", "keydown", (event) => { return event.keyCode == 99; }, true);
-    USER_INPUT_MANAGER.register("2zoomhold", "keyup", (event) => { return event.keyCode == 99; }, false);
+    USER_INPUT_MANAGER.register("2zoomhold", "keydown", (event) => { return event.keyCode == 97; }, true);
+    USER_INPUT_MANAGER.register("2zoomhold", "keyup", (event) => { return event.keyCode == 97; }, false);
 
     USER_INPUT_MANAGER.register("1_ticked", "keydown", (event) => { return event.keyCode==49; }, true, {"ticked": true, "ticked_activation": false});
     USER_INPUT_MANAGER.register("2_ticked", "keydown", (event) => { return event.keyCode==50; }, true, {"ticked": true, "ticked_activation": false});
@@ -280,6 +281,9 @@ class RetroGame extends Gamemode {
         let samuel = new HumanCharacter(this, "british_pvt_g");
         samuel.setID("samuel");
         samuel.getInventory().add(new HumanMusket("brown_bess", {
+            "player": samuel
+        }));
+        samuel.getInventory().add(new HumanSword("clever", {
             "player": samuel
         }));
         this.scene.addEntity(samuel);

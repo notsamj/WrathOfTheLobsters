@@ -8,6 +8,19 @@ const RETRO_GAME_DATA = {
         }
     },
 
+    "sword_data": {
+        "arm_length": 32,
+        "clever": {
+            "swing_time_ms": 200, // 200
+            "swing_angle_range_deg": 120,
+            "swing_damage": 0.2,
+            "image_width": 512,
+            "image_height": 512,
+            "image_scale": 1/16,
+            "blade_length": 286/16
+        }
+    },
+
     "skirmish": {
         "area_size": 20 // 50
     },
@@ -220,6 +233,44 @@ const RETRO_GAME_DATA = {
                     "back": {
                         "x_offset": 1,
                         "y_offset": 0
+                    }
+                }
+            },
+            "clever": {
+                "swinging": {
+                    "front": {
+                        "x_offset": 32,
+                        "y_offset": 0 // 0
+                    },
+                    "left": {
+                        "x_offset": 25,
+                        "y_offset": 30
+                    },
+                    "right": {
+                        "x_offset": 7,
+                        "y_offset": 0
+                    },
+                    "back": {
+                        "x_offset": 0,
+                        "y_offset": 26 // 26
+                    },
+                },
+                "not_swinging": {
+                    "front": {
+                        "x_offset": -17,
+                        "y_offset": 28
+                    },
+                    "left": {
+                        "x_offset": 25,
+                        "y_offset": 28
+                    },
+                    "right": {
+                        "x_offset": 7,
+                        "y_offset": 28
+                    },
+                    "back": {
+                        "x_offset": 50,
+                        "y_offset": 28
                     }
                 }
             }

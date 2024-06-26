@@ -8,6 +8,10 @@ class RetroGameScene {
         this.displayingPhyiscalLayer = false;
     }
 
+    getEntities(){
+        return this.entities;
+    }
+
     findInstantCollisionForProjectile(startX, startY, angleRAD, range=Number.MAX_SAFE_INTEGER, entityExceptionFunction=(entity) => { return false; }){
         let startingTileX = RetroGameScene.getTileXAt(startX);
         let startingTileY = RetroGameScene.getTileYAt(startY);

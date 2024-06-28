@@ -17,7 +17,7 @@ const RETRO_GAME_DATA = {
             "image_width": 512,
             "image_height": 512,
             "image_scale": 1/16,
-            "blade_length": 286/16
+            "blade_length": 286/16 // = 17.875
         }
     },
 
@@ -240,37 +240,37 @@ const RETRO_GAME_DATA = {
                 "swinging": {
                     "front": {
                         "x_offset": 32,
-                        "y_offset": 0 // 0
+                        "y_offset": 32
                     },
                     "left": {
-                        "x_offset": 25,
-                        "y_offset": 30
+                        "x_offset": 32,
+                        "y_offset": 32
                     },
                     "right": {
-                        "x_offset": 7,
-                        "y_offset": 0
+                        "x_offset": 32,
+                        "y_offset": 32
                     },
                     "back": {
-                        "x_offset": 0,
-                        "y_offset": 26 // 26
+                        "x_offset": 32,
+                        "y_offset": 32
                     },
                 },
                 "not_swinging": {
                     "front": {
-                        "x_offset": -17,
-                        "y_offset": 28
+                        "x_offset": 20, // -17
+                        "y_offset": 28+16 // 28
                     },
                     "left": {
-                        "x_offset": 25,
-                        "y_offset": 28
+                        "x_offset": 21,
+                        "y_offset": 28+16
                     },
                     "right": {
-                        "x_offset": 7,
-                        "y_offset": 28
+                        "x_offset": 42,
+                        "y_offset": 28+16
                     },
                     "back": {
-                        "x_offset": 50,
-                        "y_offset": 28
+                        "x_offset": 46,
+                        "y_offset": 28+16
                     }
                 }
             }

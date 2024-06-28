@@ -42,11 +42,10 @@ class Sword extends Item {
         let characters = this.getScene().getEntities();
         let hitCharacter = null;
         for (let [character, charID] of characters){
-            if (character.getID() == this.player.getID()){ continue; }
+            if (character.getID() == this.player.getID() || character.isDead()){ continue; }
             let characterHitbox = character.getUpdatedHitbox();
 
             // If no collision ignore
-            console.log(characterHitbox.collidesWith(swingHitbox), characterHitbox, swingHitbox)
             if (!characterHitbox.collidesWith(swingHitbox)){
                 continue;
             }
@@ -154,13 +153,11 @@ class Sword extends Item {
             // Check center of swing range
             let hitMiddleX = Math.cos(swingAngle) * swingRange + hitCenterX;
             let hitMiddleY = Math.sin(swingAngle) * swingRange + hitCenterY;
-            console.log("Checking at least")
             if (hitMiddleX >= characterHitbox.getLeftX() && hitMiddleX <= characterHitbox.getRightX() && hitMiddleY >= characterHitbox.getBottomY() && hitMiddleY <= characterHitbox.getTopY()){
                 hitCharacter = character;
                 break;
             }
         }
-        console.log(hitCharacter, hitCenterX, hitCenterY)
         if (hitCharacter == null){ return; }
         // Else hit a character
         hitCharacter.damage(RETRO_GAME_DATA["sword_data"][this.model]["swing_damage"]);
@@ -233,8 +230,8 @@ class Sword extends Item {
     }
 
     display(lX, bY){
-        let x = this.getImageX(lX);
-        let y = this.getImageY(bY);
+        let x = this.getImageX(lX); // player top left + offsetX
+        let y = this.getImageY(bY); // player top left + offsetY
         let playerDirection = this.player.getFacingDirection();
 
         let image = IMAGES[this.model];
@@ -273,9 +270,10 @@ class Sword extends Item {
             let currentSwingAngle = rotateCWRAD(startAngle, rangeRAD * proportion);
             let swingXDisplacement = Math.cos(currentSwingAngle) * hypotenuse;
             let swingYDisplacement = Math.sin(currentSwingAngle) * hypotenuse;
-            console.log(y, hypotenuse, swingYDisplacement, this.getScene().getDisplayYFromTileY(bY, this.player.getTileY()));
-            x += swingXDisplacement;
-            y -= swingYDisplacement; // Not using game coordinates, using display
+
+        
+            x += swingXDisplacement*gameZoom;
+            y -= swingYDisplacement*gameZoom; // Not using game coordinates, using display
         }else{ // Normal
             if (playerDirection == "front" || playerDirection == "right"){
                 displayRotateAngleRAD = toRadians(atTheReady);
@@ -284,10 +282,8 @@ class Sword extends Item {
                 displayRotateAngleRAD = toRadians(-1 * atTheReady);
             }
         }
-
-        //let rotateX = x + imageWidth / 2 * gameZoom;
-        //let rotateY = y + imageHeight / 2 * gameZoom;
-
+        let imageScale = RETRO_GAME_DATA["sword_data"][this.model]["image_scale"];
+        let effectiveScale = gameZoom * imageScale;
         let rotateX = x;
         let rotateY = y;
 
@@ -297,10 +293,9 @@ class Sword extends Item {
         scale(flipDirection, 1);
 
         // Game zoom
-        let effectiveScale = gameZoom * RETRO_GAME_DATA["sword_data"][this.model]["image_scale"];
         scale(effectiveScale, effectiveScale);
 
-        drawingContext.drawImage(image, 0 - imageWidth / 2, 0 - imageHeight / 2);
+        drawingContext.drawImage(image, 0 - imageWidth / 2 / imageScale, 0 - imageHeight / 2 / imageScale);
 
         // Game zoom
         scale(1 / effectiveScale, 1 / effectiveScale);

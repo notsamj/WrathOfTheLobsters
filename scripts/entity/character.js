@@ -279,7 +279,7 @@ class Character extends Entity {
         // Else moving l/r
         let dir = this.movementDetails["direction"] == "left" ? -1 : 1;
         let x = this.gamemode.getScene().getXOfTile(this.movementDetails["last_location_x"]);
-        return x + this.movementDetails["speed"] * dir * (TICK_SCHEDULER.getNumTicks() - this.movementDetails["last_tick_number"]) * RETRO_GAME_DATA["ms_between_ticks"] / 1000;
+        return x + this.movementDetails["speed"] * dir * (TICK_SCHEDULER.getNumTicks() - this.movementDetails["last_tick_number"]) * RETRO_GAME_DATA["general"]["ms_between_ticks"] / 1000;
     }
 
     getInterpolatedX(){
@@ -319,7 +319,7 @@ class Character extends Entity {
         // Else moving l/r
         let dir = this.movementDetails["direction"] == "down" ? -1 : 1;
         let y = this.gamemode.getScene().getYOfTile(this.movementDetails["last_location_y"]);
-        return y + this.movementDetails["speed"] * dir * (TICK_SCHEDULER.getNumTicks() - this.movementDetails["last_tick_number"]) * RETRO_GAME_DATA["ms_between_ticks"] / 1000;
+        return y + this.movementDetails["speed"] * dir * (TICK_SCHEDULER.getNumTicks() - this.movementDetails["last_tick_number"]) * RETRO_GAME_DATA["general"]["ms_between_ticks"] / 1000;
     }
 
     getDisplayY(bY){

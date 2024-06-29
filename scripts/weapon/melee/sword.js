@@ -38,7 +38,7 @@ class Sword extends Item {
         let rangeRAD = toFixedRadians(RETRO_GAME_DATA["sword_data"][this.getModel()]["swing_angle_range_deg"]);
         let startAngle = rotateCCWRAD(swingAngle, rangeRAD/2);
         let endAngle = rotateCWRAD(swingAngle, rangeRAD/2);
-
+        //console.log(hitCenterX, hitCenterY, this.player.getInterpolatedTickX(), this.player.getInterpolatedTickY())
         let characters = this.getScene().getEntities();
         let hitCharacter = null;
         for (let [character, charID] of characters){

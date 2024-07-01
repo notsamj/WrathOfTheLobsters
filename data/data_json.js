@@ -13,11 +13,26 @@ const RETRO_GAME_DATA = {
         "clever": {
             "swing_time_ms": 200, // 200
             "swing_angle_range_deg": 120,
+            "handle_offset_x": 0,
+            "handle_offset_y": 0,
+            "sword_rotation_deg": 30,
             "swing_damage": 0.2,
             "image_width": 512,
             "image_height": 512,
             "image_scale": 1/16,
             "blade_length": 286/16 // = 17.875
+        },
+        "cavalry_sword": {
+            "swing_time_ms": 250, // 250
+            "swing_angle_range_deg": 160, // 160
+            "handle_offset_x": 55-512/2,
+            "handle_offset_y": 512/2-344,
+            "sword_rotation_deg": 120,
+            "swing_damage": 0.7,
+            "image_width": 512,
+            "image_height": 512,
+            "image_scale": 1/8,
+            "blade_length": 414/8
         }
     },
 
@@ -271,6 +286,44 @@ const RETRO_GAME_DATA = {
                     "back": {
                         "x_offset": 46,
                         "y_offset": 28+16
+                    }
+                }
+            },
+            "cavalry_sword": {
+                "swinging": {
+                    "front": {
+                        "x_offset": 32, // 32
+                        "y_offset": 48 // 48
+                    },
+                    "left": {
+                        "x_offset": 32-16,
+                        "y_offset": 32+16
+                    },
+                    "right": {
+                        "x_offset": 32+16,
+                        "y_offset": 32+16
+                    },
+                    "back": {
+                        "x_offset": 32,
+                        "y_offset": 32-16
+                    },
+                },
+                "not_swinging": {
+                    "front": {
+                        "x_offset": 7,
+                        "y_offset": 49
+                    },
+                    "left": {
+                        "x_offset": 32,
+                        "y_offset": 49
+                    },
+                    "right": {
+                        "x_offset": 32,
+                        "y_offset": 49
+                    },
+                    "back": {
+                        "x_offset": 57,
+                        "y_offset": 49
                     }
                 }
             }

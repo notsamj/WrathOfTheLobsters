@@ -158,6 +158,7 @@ class Sword extends Item {
                 break;
             }
         }
+        console.log(hitCharacter)
         if (hitCharacter == null){ return; }
         // Else hit a character
         hitCharacter.damage(RETRO_GAME_DATA["sword_data"][this.model]["swing_damage"]);
@@ -237,8 +238,6 @@ class Sword extends Item {
         let image = IMAGES[this.model];
         let displayRotateAngleRAD;
         let atTheReady = RETRO_GAME_DATA["model_positions"]["at_the_ready_rotation"];
-        let imageWidth = this.getWidth();
-        let imageHeight = this.getHeight();
         let flipDirection = 1;
 
         // Based on player action
@@ -268,10 +267,21 @@ class Sword extends Item {
             proportion = Math.min(1, Math.max(0, proportion));
             let hypotenuse = RETRO_GAME_DATA["sword_data"]["arm_length"] + RETRO_GAME_DATA["sword_data"][this.model]["image_width"] * RETRO_GAME_DATA["sword_data"][this.model]["image_scale"] / 2 - RETRO_GAME_DATA["sword_data"][this.model]["blade_length"];
             let currentSwingAngle = rotateCWRAD(startAngle, rangeRAD * proportion);
+
+            let displayRotationAngleRange = toFixedRadians(RETRO_GAME_DATA["sword_data"][this.getModel()]["sword_rotation_deg"]);
+            let displayRotationStartAngle = rotateCCWRAD(displayRotateAngleRAD, displayRotationAngleRange/2);
+            displayRotateAngleRAD = rotateCWRAD(displayRotationStartAngle, displayRotationAngleRange*proportion);
+
             let swingXDisplacement = Math.cos(currentSwingAngle) * hypotenuse;
             let swingYDisplacement = Math.sin(currentSwingAngle) * hypotenuse;
 
-        
+            // Test
+            /*let swingRange = RETRO_GAME_DATA["sword_data"]["arm_length"] + RETRO_GAME_DATA["sword_data"][this.model]["blade_length"];
+            let hitCenterX = this.player.getInterpolatedTickX() + RETRO_GAME_DATA["model_positions"][this.player.getModel()][this.model]["swinging"][this.player.getFacingDirection()]["x_offset"];
+            let hitCenterY = this.player.getInterpolatedTickY() - RETRO_GAME_DATA["model_positions"][this.player.getModel()][this.model]["swinging"][this.player.getFacingDirection()]["y_offset"];
+            noStrokeCircle(Colour.fromCode("#ff0000"), hitCenterX - lX, this.getScene().changeToScreenY(hitCenterY - bY), swingRange*2);
+            */
+
             x += swingXDisplacement*gameZoom;
             y -= swingYDisplacement*gameZoom; // Not using game coordinates, using display
         }else{ // Normal
@@ -284,8 +294,16 @@ class Sword extends Item {
         }
         let imageScale = RETRO_GAME_DATA["sword_data"][this.model]["image_scale"];
         let effectiveScale = gameZoom * imageScale;
-        let rotateX = x;
-        let rotateY = y;
+        let flipped = flipDirection < 0;
+        let realImageWidth = RETRO_GAME_DATA["sword_data"][this.model]["image_width"];
+        let realImageHeight = RETRO_GAME_DATA["sword_data"][this.model]["image_height"];
+        // So right now x,y is the position of the character's hand
+
+        let handleOffsetX = Math.cos(displayRotateAngleRAD) * (RETRO_GAME_DATA["sword_data"][this.model]["handle_offset_x"] * (flipped ? -1 : 1)) - Math.sin(displayRotateAngleRAD) * RETRO_GAME_DATA["sword_data"][this.model]["handle_offset_y"];
+        let handleOffsetY = Math.sin(displayRotateAngleRAD) * (RETRO_GAME_DATA["sword_data"][this.model]["handle_offset_x"] * (flipped ? -1 : 1)) + Math.cos(displayRotateAngleRAD) * RETRO_GAME_DATA["sword_data"][this.model]["handle_offset_y"];
+        
+        let rotateX = x - handleOffsetX * effectiveScale;
+        let rotateY = y + handleOffsetY * effectiveScale;
 
         // Display Sword
         translate(rotateX, rotateY);
@@ -295,7 +313,8 @@ class Sword extends Item {
         // Game zoom
         scale(effectiveScale, effectiveScale);
 
-        drawingContext.drawImage(image, 0 - imageWidth / 2 / imageScale, 0 - imageHeight / 2 / imageScale);
+        // Display
+        drawingContext.drawImage(image, 0 - realImageWidth / 2, 0 - realImageHeight / 2);
 
         // Game zoom
         scale(1 / effectiveScale, 1 / effectiveScale);

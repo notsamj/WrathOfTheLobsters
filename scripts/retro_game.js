@@ -24,6 +24,7 @@ async function setup() {
     await CharacterAnimationManager.loadAllImages("usa_pvt");
     await Musket.loadAllImages("brown_bess");
     await Sword.loadAllImages("clever");
+    await Sword.loadAllImages("cavalry_sword");
 
     // Make sure all physical tiles are loaded
     for (let tileDetails of RETRO_GAME_DATA["physical_tiles"]){
@@ -284,6 +285,9 @@ class RetroGame extends Gamemode {
             "player": samuel
         }));
         samuel.getInventory().add(new HumanSword("clever", {
+            "player": samuel
+        }));
+        samuel.getInventory().add(new HumanSword("cavalry_sword", {
             "player": samuel
         }));
         this.scene.addEntity(samuel);

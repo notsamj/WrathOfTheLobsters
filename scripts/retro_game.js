@@ -25,6 +25,7 @@ async function setup() {
     await Musket.loadAllImages("brown_bess");
     await Sword.loadAllImages("clever");
     await Sword.loadAllImages("cavalry_sword");
+    await Pistol.loadAllImages("flintlock");
 
     // Make sure all physical tiles are loaded
     for (let tileDetails of RETRO_GAME_DATA["physical_tiles"]){
@@ -288,6 +289,9 @@ class RetroGame extends Gamemode {
             "player": samuel
         }));
         samuel.getInventory().add(new HumanSword("cavalry_sword", {
+            "player": samuel
+        }));
+        samuel.getInventory().add(new HumanPistol("flintlock", {
             "player": samuel
         }));
         this.scene.addEntity(samuel);

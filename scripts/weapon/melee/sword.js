@@ -275,13 +275,6 @@ class Sword extends Item {
             let swingXDisplacement = Math.cos(currentSwingAngle) * hypotenuse;
             let swingYDisplacement = Math.sin(currentSwingAngle) * hypotenuse;
 
-            // Test
-            /*let swingRange = RETRO_GAME_DATA["sword_data"]["arm_length"] + RETRO_GAME_DATA["sword_data"][this.model]["blade_length"];
-            let hitCenterX = this.player.getInterpolatedTickX() + RETRO_GAME_DATA["model_positions"][this.player.getModel()][this.model]["swinging"][this.player.getFacingDirection()]["x_offset"];
-            let hitCenterY = this.player.getInterpolatedTickY() - RETRO_GAME_DATA["model_positions"][this.player.getModel()][this.model]["swinging"][this.player.getFacingDirection()]["y_offset"];
-            noStrokeCircle(Colour.fromCode("#ff0000"), hitCenterX - lX, this.getScene().changeToScreenY(hitCenterY - bY), swingRange*2);
-            */
-
             x += swingXDisplacement*gameZoom;
             y -= swingYDisplacement*gameZoom; // Not using game coordinates, using display
         }else{ // Normal

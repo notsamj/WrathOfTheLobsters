@@ -91,10 +91,12 @@ class SmokeCloud {
         return new SmokeCloud(circles);
     }
 
-    /*static create(x, y){
+    /*
+    static create(x, y){
         let circles = [];
         let spawnTime = Date.now();
-        circles.push({"x": x, "y": y, "radius": 3, "spawn_time": spawnTime, "expirey": spawnTime + 1000, "x_velocity": 0, "y_velocity": 0});
+        circles.push({"x": x, "y": y, "radius": 5, "spawn_time": spawnTime, "expirey": spawnTime + 10000, "x_velocity": 0, "y_velocity": 0});
         return new SmokeCloud(circles);
-    }*/
+    }
+    */
 }

@@ -122,6 +122,19 @@ const RETRO_GAME_DATA = {
                     "y_offset": 32-28 // 32-28
                 }
             }
+        },
+        "flintlock": {
+            "reload_time_ms": 20, // 2500
+            "range": 12*64,
+            "image_width": 512,
+            "image_height": 512,
+            "image_scale": 1/16,
+            "end_of_barrel_offset": {
+                "x_offset": 497-256,
+                "y_offset": 256-230
+            },
+            "handle_offset_x": 70-512/2,
+            "handle_offset_y": 512/2-369
         }
     },
 
@@ -325,6 +338,24 @@ const RETRO_GAME_DATA = {
                         "x_offset": 57,
                         "y_offset": 49
                     }
+                }
+            },
+            "flintlock": {
+                "front": {
+                        "x_offset": 7,
+                        "y_offset": 49
+                },
+                "left": {
+                    "x_offset": 32,
+                    "y_offset": 49
+                },
+                "right": {
+                    "x_offset": 32,
+                    "y_offset": 49
+                },
+                "back": {
+                    "x_offset": 57,
+                    "y_offset": 49
                 }
             }
         },

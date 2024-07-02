@@ -511,7 +511,7 @@ function fixRadians(angle){
         angle += 2 * Math.PI;
     }
     while (angle >= 2 * Math.PI){
-        angle -= Math.PI;
+        angle -= 2 * Math.PI;
     }
     return angle;
 }

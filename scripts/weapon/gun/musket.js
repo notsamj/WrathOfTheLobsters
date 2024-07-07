@@ -275,8 +275,7 @@ class Musket extends Gun {
                 }
             }
         }
-
-        debugger;
+        
         let rotateX = x + image.width / 2 * gameZoom;
         let rotateY = y + image.height / 2 * gameZoom;
 

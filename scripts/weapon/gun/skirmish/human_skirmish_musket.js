@@ -12,7 +12,7 @@ class HumanSkirmishMusket extends SkirmishMusket {
         }
         this.tryingToAim = USER_INPUT_MANAGER.isActivated("right_click");
         let tryingToShoot = USER_INPUT_MANAGER.isActivated("left_click_ticked");
-        if (this.isAiming() && tryingToShoot && this.isReloaded()){
+        if (this.isAiming() && tryingToShoot && this.isLoaded()){
             this.shoot();
         }
     }

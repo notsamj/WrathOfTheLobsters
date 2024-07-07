@@ -98,6 +98,13 @@ const RETRO_GAME_DATA = {
         "American": "#0a0c8c"
     },
 
+    "character_class_to_team": {
+        "british_pvt_g": "Britain",
+        "british_officer": "Britain",
+        "usa_pvt": "America",
+        "usa_officer": "America"
+    },
+
     "menu": {
         "option_slider": {
             "slider_width_px": 20,

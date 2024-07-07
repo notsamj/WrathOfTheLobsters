@@ -15,6 +15,11 @@ class Gamemode {
     */    
     constructor(){
         this.scene = new RetroGameScene();
+        this.eventHandler = new NSEventHandler();
+    }
+
+    getEventHandler(){
+        return this.eventHandler;
     }
 
     getScene(){

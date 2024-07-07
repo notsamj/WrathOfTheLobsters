@@ -92,7 +92,9 @@ class AfterMatchStats {
 
         // Find kills on this team
         for (let killerClass of Object.keys(this.classKillCounts)){
-            ranking.push({"name": killerClass, "kills": this.classKillCounts[killerClass]});
+            if (getProperAdjective(RETRO_GAME_DATA["character_class_to_team"][killerClass]) == getProperAdjective(team)){
+                ranking.push({"name": killerClass, "kills": this.classKillCounts[killerClass]});
+            }
         }
 
         // Sort high to low

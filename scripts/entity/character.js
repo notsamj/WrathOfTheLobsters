@@ -198,6 +198,14 @@ class Character extends Entity {
 
     getShot(model){
         this.damage(1);
+        // Assumes not dead prior to damage
+        if (this.isDead()){
+            this.gamemode.getEventHandler().emit({
+                "victim_class": this.getModel(),
+                "killer_class": model,
+                "name": "kill"
+            });
+        }
     }
 
     getWidth(){

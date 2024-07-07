@@ -3,6 +3,10 @@ if (typeof window === "undefined"){
     RETRO_GAME_DATA = require("../../data/data_json.js");
 }
 
+function getTeamFromClass(characterClass){
+    return RETRO_GAME_DATA["character_class_to_team"][characterClass];
+}
+
 /*
     Method Name: angleBetweenCCWDEG
     Method Parameters:

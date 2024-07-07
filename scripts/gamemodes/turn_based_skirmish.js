@@ -5,6 +5,14 @@ class TurnBasedSkirmish extends Gamemode {
         this.britishTroops = [];
         this.americanTroops = [];
         this.stats = new AfterMatchStats();
+        this.eventHandler.addHandler("kill", (killObject) => {
+            let victimClass = killObject["victim_class"];
+            let killerClass = killObject["killer_class"];
+            if (getTeamFromClass(victimClass) == getTeamFromClass(killerClass)){
+                killerClass = "friendly_fire";
+            }
+            this.stats.addKill(killerClass);
+        });
         this.gameOver = false;
         this.britishSpawn = null;
         this.americanSpawn = null;

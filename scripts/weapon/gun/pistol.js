@@ -83,7 +83,7 @@ class Pistol extends Gun {
             playerAimingAngleRAD -= Math.PI;
         }
         let flipped = gunDirection == "left";
-        let xOfHand = this.player.getInterpolatedTickX() + RETRO_GAME_DATA["model_positions"][this.player.getModel()][this.model][this.player.getFacingDirection()]["x_offset"];
+        let xOfHand = this.player.getInterpolatedTickX() + RETRO_GAME_DATA["model_positions"][this.player.getModelCategory()][this.model][this.player.getFacingDirection()]["x_offset"];
         let imageScale = RETRO_GAME_DATA["gun_data"][this.model]["image_scale"];
         let xOffsetFromHandToCenter = -1 * RETRO_GAME_DATA["gun_data"][this.model]["handle_offset_x"];
         let yOffsetFromHandToCenter = RETRO_GAME_DATA["gun_data"][this.model]["handle_offset_y"];
@@ -117,7 +117,7 @@ class Pistol extends Gun {
         }
 
         let flipped = gunDirection == "left";
-        let yOfHand = this.player.getInterpolatedTickY() - RETRO_GAME_DATA["model_positions"][this.player.getModel()][this.model][this.player.getFacingDirection()]["y_offset"];
+        let yOfHand = this.player.getInterpolatedTickY() - RETRO_GAME_DATA["model_positions"][this.player.getModelCategory()][this.model][this.player.getFacingDirection()]["y_offset"];
         let imageScale = RETRO_GAME_DATA["gun_data"][this.model]["image_scale"];
         let xOffsetFromHandToCenter = -1 * RETRO_GAME_DATA["gun_data"][this.model]["handle_offset_x"];
         let yOffsetFromHandToCenter = -1 * RETRO_GAME_DATA["gun_data"][this.model]["handle_offset_y"];
@@ -211,17 +211,24 @@ class Pistol extends Gun {
 
     getImageX(lX){
         let x = this.player.getDisplayX(lX);
-        return x + RETRO_GAME_DATA["model_positions"][this.player.getModel()][this.model][this.player.getFacingDirection()]["x_offset"] * gameZoom - this.player.getWidth()/2 * gameZoom;
+        return x + RETRO_GAME_DATA["model_positions"][this.player.getModelCategory()][this.model][this.player.getFacingDirection()]["x_offset"] * gameZoom - this.player.getWidth()/2 * gameZoom;
     }
 
     getImageY(bY){
         let y = this.player.getDisplayY(bY);
-        return y + RETRO_GAME_DATA["model_positions"][this.player.getModel()][this.model][this.player.getFacingDirection()]["y_offset"] * gameZoom - this.player.getHeight()/2 * gameZoom;
+        return y + RETRO_GAME_DATA["model_positions"][this.player.getModelCategory()][this.model][this.player.getFacingDirection()]["y_offset"] * gameZoom - this.player.getHeight()/2 * gameZoom;
     }
 
-    static async loadAllImages(model){
+    static async loadAllImagesOfModel(model){
         // Do not load if already exists
         if (objectHasKey(IMAGES, model)){ return; }
         await loadToImages(model, model + "/");
+    }
+
+    static async loadAllImages(){
+        for (let gunModel of Object.keys(RETRO_GAME_DATA["gun_data"])){
+            if (RETRO_GAME_DATA["gun_data"][gunModel]["type"] != "pistol"){ continue; }
+            await Pistol.loadAllImagesOfModel(gunModel);
+        }
     }
 }

@@ -108,6 +108,7 @@ const RETRO_GAME_DATA = {
 
     "gun_data": {
         "brown_bess": {
+            "type": "musket",
             "reload_time_ms": 5000,
             "stab_time_ms": 600,
             "stab_range": 1.2*64,
@@ -124,7 +125,8 @@ const RETRO_GAME_DATA = {
             }
         },
         "flintlock": {
-            "reload_time_ms": 20, // 2500
+            "type": "pistol",
+            "reload_time_ms": 2500, // 2500
             "range": 12*64,
             "image_width": 512,
             "image_height": 512,
@@ -222,9 +224,16 @@ const RETRO_GAME_DATA = {
         "value_colour": "#0066ff"
     },
 
+    "model_to_model_category": {
+        "british_pvt_g": "category_1",
+        "british_officer": "category_1",
+        "usa_pvt": "category_1",
+        "usa_officer": "category_1"
+    },
+
     "model_positions": {
         "at_the_ready_rotation": 40,
-        "british_pvt_g": {
+        "category_1": {
             "brown_bess": {
                 "aiming": {
                     "front": {
@@ -356,47 +365,6 @@ const RETRO_GAME_DATA = {
                 "back": {
                     "x_offset": 57,
                     "y_offset": 49
-                }
-            }
-        },
-        "usa_pvt": {
-            "brown_bess": {
-                "aiming": {
-                    "front": {
-                        "x_offset": -1,
-                        "y_offset": 5
-                    },
-                    "left": {
-                        "x_offset": -5,
-                        "y_offset": 5
-                    },
-                    "right": {
-                        "x_offset": 5,
-                        "y_offset": 5
-                    },
-                    "back": {
-                        "x_offset": 0,
-                        "y_offset": -20
-                    }
-                },
-
-                "not_aiming": {
-                    "front": {
-                        "x_offset": -1,
-                        "y_offset": 0
-                    },
-                    "left": {
-                        "x_offset": -5,
-                        "y_offset": 5
-                    },
-                    "right": {
-                        "x_offset": 5,
-                        "y_offset": 5
-                    },
-                    "back": {
-                        "x_offset": 1,
-                        "y_offset": 0
-                    }
                 }
             }
         }

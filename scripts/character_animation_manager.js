@@ -87,7 +87,7 @@ class CharacterAnimationManager extends AnimationManager {
         }
     }
 
-    static async loadAllImages(model){
+    static async loadAllImagesOfModel(model){
         // Do not load if already exists
         if (objectHasKey(IMAGES, model + "_64")){ return; }
         
@@ -104,5 +104,11 @@ class CharacterAnimationManager extends AnimationManager {
 
         await loadToImages(model + "_64" + "_left", model + "/");
         await loadToImages(model + "_64" + "_left_step1", model + "/");
+    }
+
+    static async loadAllImages(){
+        for (let characterModel of Object.keys(RETRO_GAME_DATA["model_to_model_category"])){
+            await CharacterAnimationManager.loadAllImagesOfModel(characterModel);
+        }
     }
 }

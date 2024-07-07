@@ -19,13 +19,10 @@ var programOver = false;
 async function setup() {
     await loadToImages("page_background");
     await loadToImages("crosshair");
-    // TODO: Better way of doing this?
-    await CharacterAnimationManager.loadAllImages("british_pvt_g");
-    await CharacterAnimationManager.loadAllImages("usa_pvt");
-    await Musket.loadAllImages("brown_bess");
-    await Sword.loadAllImages("clever");
-    await Sword.loadAllImages("cavalry_sword");
-    await Pistol.loadAllImages("flintlock");
+    await CharacterAnimationManager.loadAllImages();
+    await Musket.loadAllImages();
+    await Sword.loadAllImages();
+    await Pistol.loadAllImages();
 
     // Make sure all physical tiles are loaded
     for (let tileDetails of RETRO_GAME_DATA["physical_tiles"]){
@@ -280,7 +277,7 @@ class RetroGame extends Gamemode {
 
     async startUp(){
         await this.scene.loadTilesFromJSON(LEVEL_DATA["default.json"]);
-        let samuel = new HumanCharacter(this, "british_pvt_g");
+        let samuel = new HumanCharacter(this, "usa_officer");
         samuel.setID("samuel");
         samuel.getInventory().add(new HumanMusket("brown_bess", {
             "player": samuel

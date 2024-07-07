@@ -140,7 +140,7 @@ class Musket extends Gun {
          // From top left to center of the player model
         x += RETRO_GAME_DATA["general"]["tile_size"] / 2;
         // Add gun y offset, y is now center of the gun
-        x += RETRO_GAME_DATA["model_positions"][this.player.getModel()][this.model]["aiming"][this.player.getFacingDirection()]["x_offset"];
+        x += RETRO_GAME_DATA["model_positions"][this.player.getModelCategory()][this.model]["aiming"][this.player.getFacingDirection()]["x_offset"];
 
         let playerDirection = this.player.getFacingDirection();
         let playerAimingAngleRAD = this.getAngleRAD();
@@ -174,7 +174,7 @@ class Musket extends Gun {
         // From top left to center of the player model
         y -= RETRO_GAME_DATA["general"]["tile_size"] / 2;
         // Add gun y offset, y is now center of the gun
-        y += RETRO_GAME_DATA["model_positions"][this.player.getModel()][this.model]["aiming"][this.player.getFacingDirection()]["y_offset"] * -1
+        y += RETRO_GAME_DATA["model_positions"][this.player.getModelCategory()][this.model]["aiming"][this.player.getFacingDirection()]["y_offset"] * -1
         
         let playerDirection = this.player.getFacingDirection();
         let playerAimingAngleRAD = this.getAngleRAD();
@@ -276,6 +276,7 @@ class Musket extends Gun {
             }
         }
 
+        debugger;
         let rotateX = x + image.width / 2 * gameZoom;
         let rotateY = y + image.height / 2 * gameZoom;
 
@@ -285,7 +286,6 @@ class Musket extends Gun {
 
         // Game zoom
         scale(gameZoom, gameZoom);
-
         drawingContext.drawImage(image, 0 - image.width / 2, 0 - image.height / 2);
 
         // Game zoom
@@ -302,20 +302,27 @@ class Musket extends Gun {
 
     getImageX(lX){
         let x = this.player.getDisplayX(lX);
-        return x + RETRO_GAME_DATA["model_positions"][this.player.getModel()][this.model][this.isAiming() ? "aiming" : "not_aiming"][this.player.getFacingDirection()]["x_offset"] * gameZoom - this.player.getWidth()/2 * gameZoom;
+        return x + RETRO_GAME_DATA["model_positions"][this.player.getModelCategory()][this.model][this.isAiming() ? "aiming" : "not_aiming"][this.player.getFacingDirection()]["x_offset"] * gameZoom - this.player.getWidth()/2 * gameZoom;
     }
 
     getImageY(bY){
         let y = this.player.getDisplayY(bY);
-        return y + RETRO_GAME_DATA["model_positions"][this.player.getModel()][this.model][this.isAiming() ? "aiming" : "not_aiming"][this.player.getFacingDirection()]["y_offset"] * gameZoom - this.player.getHeight()/2 * gameZoom;
+        return y + RETRO_GAME_DATA["model_positions"][this.player.getModelCategory()][this.model][this.isAiming() ? "aiming" : "not_aiming"][this.player.getFacingDirection()]["y_offset"] * gameZoom - this.player.getHeight()/2 * gameZoom;
     }
 
-    static async loadAllImages(model){
+    static async loadAllImagesOfModel(model){
         // Do not load if already exists
         if (objectHasKey(IMAGES, model + "_left")){ return; }
         await loadToImages(model + "_left", model + "/");
         await loadToImages(model + "_left" + "_bayonet", model + "/");
         await loadToImages(model + "_right", model + "/");
         await loadToImages(model + "_right" + "_bayonet", model + "/");
+    }
+
+    static async loadAllImages(){
+        for (let gunModel of Object.keys(RETRO_GAME_DATA["gun_data"])){
+            if (RETRO_GAME_DATA["gun_data"][gunModel]["type"] != "musket"){ continue; }
+            await Musket.loadAllImagesOfModel(gunModel);
+        }
     }
 }

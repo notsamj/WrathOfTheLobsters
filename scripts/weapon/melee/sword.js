@@ -20,8 +20,8 @@ class Sword extends Item {
         // Calculate what it hit
         let swingRange = RETRO_GAME_DATA["sword_data"]["arm_length"] + RETRO_GAME_DATA["sword_data"][this.model]["blade_length"];
         let swingHitbox = new CircleHitbox(swingRange);
-        let hitCenterX = this.player.getInterpolatedTickX() + RETRO_GAME_DATA["model_positions"][this.player.getModel()][this.model]["swinging"][this.player.getFacingDirection()]["x_offset"];
-        let hitCenterY = this.player.getInterpolatedTickY() - RETRO_GAME_DATA["model_positions"][this.player.getModel()][this.model]["swinging"][this.player.getFacingDirection()]["y_offset"];
+        let hitCenterX = this.player.getInterpolatedTickX() + RETRO_GAME_DATA["model_positions"][this.player.getModelCategory()][this.model]["swinging"][this.player.getFacingDirection()]["x_offset"];
+        let hitCenterY = this.player.getInterpolatedTickY() - RETRO_GAME_DATA["model_positions"][this.player.getModelCategory()][this.model]["swinging"][this.player.getFacingDirection()]["y_offset"];
         swingHitbox.update(hitCenterX, hitCenterY);
 
         let swingAngle;
@@ -319,17 +319,25 @@ class Sword extends Item {
 
     getImageX(lX){
         let x = this.player.getDisplayX(lX);
-        return x + RETRO_GAME_DATA["model_positions"][this.player.getModel()][this.model][this.isSwinging() ? "swinging" : "not_swinging"][this.player.getFacingDirection()]["x_offset"] * gameZoom - this.player.getWidth()/2 * gameZoom;
+        return x + RETRO_GAME_DATA["model_positions"][this.player.getModelCategory()][this.model][this.isSwinging() ? "swinging" : "not_swinging"][this.player.getFacingDirection()]["x_offset"] * gameZoom - this.player.getWidth()/2 * gameZoom;
     }
 
     getImageY(bY){
         let y = this.player.getDisplayY(bY);
-        return y + RETRO_GAME_DATA["model_positions"][this.player.getModel()][this.model][this.isSwinging() ? "swinging" : "not_swinging"][this.player.getFacingDirection()]["y_offset"] * gameZoom - this.player.getHeight()/2 * gameZoom;
+        return y + RETRO_GAME_DATA["model_positions"][this.player.getModelCategory()][this.model][this.isSwinging() ? "swinging" : "not_swinging"][this.player.getFacingDirection()]["y_offset"] * gameZoom - this.player.getHeight()/2 * gameZoom;
     }
 
-    static async loadAllImages(model){
+    static async loadAllImagesOfModel(model){
         // Do not load if already exists
         if (objectHasKey(IMAGES, model)){ return; }
         await loadToImages(model, model + "/");
+    }
+
+    static async loadAllImages(){
+        for (let swordModel of Object.keys(RETRO_GAME_DATA["sword_data"])){
+            // Ignore
+            if (swordModel == "arm_length"){ continue; }
+            await Sword.loadAllImagesOfModel(swordModel);
+        }
     }
 }

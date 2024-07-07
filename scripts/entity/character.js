@@ -220,6 +220,10 @@ class Character extends Entity {
         return this.model;
     }
 
+    getModelCategory(){
+        return RETRO_GAME_DATA["model_to_model_category"][this.getModel()];
+    }
+
     getInterpolatedCenterX(){
         return this.getInterpolatedX() + this.getImage().width / 2;
     }

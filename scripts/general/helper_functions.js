@@ -68,6 +68,9 @@ function getNoun(teamName){
 }
 
 function getProperAdjective(teamName){
+    if (teamName === undefined){
+        debugger;
+    }
     return getTeamJSON(teamName)["proper_adjective"];
 }
 

@@ -1,7 +1,7 @@
 class HumanCharacter extends Character {
     constructor(gamemode, model){
         super(gamemode, model);
-        this.inventory = new HumanInventory();
+        this.inventory = new HumanInventory(); // FAKE-INTERFACE HumanPlayer
     }
 
     makeDecisions(){

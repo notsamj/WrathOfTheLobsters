@@ -292,7 +292,6 @@ class RetroGameScene {
                     break;
                 }
             }
-            //console.log("Checking", currentTile)
             // If can't find a tile then
             if (currentTile == null){ break; }
 

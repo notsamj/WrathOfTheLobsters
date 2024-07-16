@@ -28,6 +28,9 @@ class SkirmishCharacter extends Character {
     }
 
     updateMovement(){
+        if (!this.isMakingAMove()){
+            return;
+        }
         super.updateMovement();
         let distanceToNewTile = Math.sqrt(Math.pow(this.tileX - this.tileXOnTurnStart, 2) + Math.pow(this.tileY - this.tileYOnTurnStart, 2));
         let maxDistance = this.walkingBar.getMaxValue();
@@ -64,6 +67,14 @@ class SkirmishCharacter extends Character {
         this.makingMove = true;
         this.tileXOnTurnStart = this.tileX;
         this.tileYOnTurnStart = this.tileY;
+
+        // Reload all guns
+        for (let item of this.inventory.getItems()){
+            if (item instanceof Gun){
+                let gun = item;
+                gun.forceReload();
+            }
+        }
     }
 
     isMoveDone(){
@@ -84,6 +95,7 @@ class SkirmishCharacter extends Character {
         this.inventory.tick();
         this.resetDecisions();
         this.makeMovementDecisions();
+        this.inventory.makeDecisionsForSelectedItem();
     }
 
     makeMovementDecisions(){}

@@ -26,24 +26,25 @@ class AfterMatchStats {
     */
     reset(){
         this.winner = "None";
-        this.classKillCounts = {};
+        this.kills = [];
+        this.britishText = null;
+        this.americanText = null;
     }
 
     /*
         Method Name: addKill
         Method Parameters:
+            TODO
             killerClass:
                 A string representing the class of the killer
         Method Description: Updates the number of kills of the given killer type
         Method Return: void
     */
-    addKill(killerClass){
-        // If the number of kills for this plane class has not previously been updated then initialize it to zero
-        if (!Object.keys(this.classKillCounts).includes(killerClass)){
-            this.classKillCounts[killerClass] = 0;
-        }
-        // Increase the "kill count" by 1
-        this.classKillCounts[killerClass] = this.classKillCounts[killerClass] + 1;
+    addKill(victimClass, killerClass){
+        this.kills.push({
+            "victim_class": victimClass,
+            "killer_class": killerClass
+        });
     }
 
     /*
@@ -66,6 +67,8 @@ class AfterMatchStats {
     */
     setWinner(winner){
         this.winner = winner;
+        this.britishText = this.makeTeamText("British");
+        this.americanText = this.makeTeamText("Americans");
     }
 
     /*
@@ -90,11 +93,23 @@ class AfterMatchStats {
         let text = team + " Total Kills:";
         let ranking = [];
 
-        // Find kills on this team
-        for (let killerClass of Object.keys(this.classKillCounts)){
-            if (getProperAdjective(RETRO_GAME_DATA["character_class_to_team"][killerClass]) == getProperAdjective(team)){
-                ranking.push({"name": killerClass, "kills": this.classKillCounts[killerClass]});
+        // Create class kill counts
+        let classKillCounts = {};
+        for (let kill of this.kills){
+            // If victim on team B then its a kill for team A. This helps with cases like friendly-fire
+            if (getProperAdjective(RETRO_GAME_DATA["character_class_to_team"][kill["victim_class"]]) != getProperAdjective(team)){
+                let killerClass = kill["killer_class"];
+                if (!objectHasKey(classKillCounts, killerClass)){
+                    classKillCounts[killerClass] = 1;
+                }else{
+                    classKillCounts[killerClass] += 1;
+                }
             }
+        }
+
+        // Find kills on this team
+        for (let killerClass of Object.keys(classKillCounts)){
+            ranking.push({"name": killerClass, "kills": classKillCounts[killerClass]});
         }
 
         // Sort high to low
@@ -117,12 +132,10 @@ class AfterMatchStats {
     */
     display(){
         let winnerText = "Winner: " + this.winner;
-        let britishText = this.makeTeamText("British");
-        let americanText = this.makeTeamText("Americans");
         // Make winner text
         Menu.makeText(winnerText, this.getWinnerColour(), Math.floor(getScreenWidth()/2), Math.floor(getScreenHeight() * 0.9), Math.floor(getScreenWidth()*0.70), Math.floor(getScreenHeight()/4), "center", "hanging");
-        Menu.makeText(britishText, AfterMatchStats.getTeamColour(getProperAdjective("British")), 0, Math.floor(getScreenHeight()*2/3), Math.floor(getScreenWidth()/2), Math.floor(getScreenHeight()*2/3), "left", "middle");
-        Menu.makeText(americanText, AfterMatchStats.getTeamColour(getProperAdjective("Americans")), Math.floor(getScreenWidth()/2), Math.floor(getScreenHeight()*2/3), Math.floor(getScreenWidth()/2), Math.floor(getScreenHeight()*2/3), "left", "middle");
+        Menu.makeText(this.britishText, AfterMatchStats.getTeamColour(getProperAdjective("British")), 0, Math.floor(getScreenHeight()*2/3), Math.floor(getScreenWidth()/2), Math.floor(getScreenHeight()*2/3), "left", "middle");
+        Menu.makeText(this.americanText, AfterMatchStats.getTeamColour(getProperAdjective("Americans")), Math.floor(getScreenWidth()/2), Math.floor(getScreenHeight()*2/3), Math.floor(getScreenWidth()/2), Math.floor(getScreenHeight()*2/3), "left", "middle");
     }
 
     /*
@@ -146,7 +159,7 @@ class AfterMatchStats {
     toJSON(){
         return {
             "winner": this.winner,
-            "kills_by_class": this.classKillCounts
+            "kills": kills
         }
     }
 
@@ -160,7 +173,11 @@ class AfterMatchStats {
     */
     fromJSON(statsObject){
         this.winner = statsObject["winner"];
-        this.classKillCounts = statsObject["kills_by_class"];
+        this.kills = statsObject["kills"];
+        if (this.winner != null){
+            this.britishText = this.makeTeamText("British");
+            this.americanText = this.makeTeamText("Americans");
+        }
     }
 }
 

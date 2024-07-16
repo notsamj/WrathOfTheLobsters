@@ -3,6 +3,11 @@ class SkirmishMusket extends Musket {
         super(model, details);
     }
 
+    // FAKE-INTERFACE: SkirmishGun
+    isAiming(){
+        return super.isAiming() && this.player.isMakingAMove();
+    }
+
     shoot(){
         super.shoot();
         this.reloaded = true;

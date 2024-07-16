@@ -11,6 +11,12 @@ class Gun extends Item {
         this.resetDecisions();
     }
 
+    forceReload(){
+        this.reloading = false;
+        this.reloadLock.reset();
+        this.loaded = true;
+    }
+
     // Abstract
     resetDecisions(){}
 

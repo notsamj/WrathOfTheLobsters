@@ -11,7 +11,7 @@ class TurnBasedSkirmish extends Gamemode {
             if (getTeamFromClass(victimClass) == getTeamFromClass(killerClass)){
                 killerClass = "friendly_fire";
             }
-            this.stats.addKill(killerClass);
+            this.stats.addKill(victimClass, killerClass);
         });
         this.gameOver = false;
         this.britishSpawn = null;
@@ -82,7 +82,7 @@ class TurnBasedSkirmish extends Gamemode {
         let currentTeamName = this.gameState["turn"];
         let teamRoster = currentTeamName == "British" ? this.britishTroops : this.americanTroops;
 
-        let currentlyMovingCharacter;
+        let currentlyMovingCharacter = null;
         let currentlyMovingCharacterIndex = this.gameState["troop_to_move_index"][currentTeamName];
         let livingCount = 0;
         for (let troop of teamRoster){
@@ -92,7 +92,7 @@ class TurnBasedSkirmish extends Gamemode {
         }
 
         // Adjust the index of the currently moving character based on how many are alive on the team
-        if (currentlyMovingCharacterIndex > livingCount){
+        if (currentlyMovingCharacterIndex >= livingCount){
             currentlyMovingCharacterIndex = 0;
         }
 
@@ -106,10 +106,12 @@ class TurnBasedSkirmish extends Gamemode {
                 characterIndex++;
             }
         }
+        if (currentlyMovingCharacter == null){
+            debugger;
+        }
         // Now the currently moving troop is selected
         if (!currentlyMovingCharacter.isMakingAMove() && !currentlyMovingCharacter.isMoveDone()){
             currentlyMovingCharacter.indicateTurn();
-            console.log("Switch")
             this.scene.setFocusedEntity(currentlyMovingCharacter);
             return;
         }
@@ -132,7 +134,6 @@ class TurnBasedSkirmish extends Gamemode {
 
         // Increase turn counter (used for simplifying some operations)
         this.gameState["turn_counter"] += 1;
-        console.log("Turn counter")
 
         // Check if over
         this.checkWin();

@@ -5,12 +5,20 @@ class Inventory {
         this.selectedSlot = 0;
     }
 
+    getItems(){
+        let itemList = [];
+        for (let [item, itemIndex] of this.hotbar){
+            itemList.push(item);
+        }
+        return itemList;
+    }
+
     tick(){
         this.checkChangeSelectedSlot();
     }
 
     // Abstract
-    checkChangeSelectedSlot(){}
+    checkChangeSelectedSlot(){ }
 
     hasFreeSlots(){
         return this.hotbar.has(null);

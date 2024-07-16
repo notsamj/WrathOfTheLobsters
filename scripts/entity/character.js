@@ -135,6 +135,8 @@ class Character extends Entity {
             "speed": desiredMoveSpeed,
             "last_frame_time": FRAME_COUNTER.getLastFrameTime(),
             "last_tick_number": TICK_SCHEDULER.getNumTicks(),
+            "last_stood_tile_x": this.tileX,
+            "last_stood_tile_y": this.tileY,
             "last_location_x": lastLocationX,
             "last_location_y": lastLocationY,
             "last_location_tick": numTicks,
@@ -259,11 +261,16 @@ class Character extends Entity {
 
     makeDecisions(){
         this.resetDecisions();
+        this.inventory.makeDecisionsForSelectedItem();
     }
 
-    // TODO
     actOnDecisions(){
         this.updateMovement();
+        this.inventory.actOnDecisionsForSelectedItem();
+    }
+
+    displayWhenFocused(){
+        this.inventory.display();
     }
 
     getImage(){
@@ -381,6 +388,5 @@ class Character extends Entity {
         if (!(this.animationManager.getDirection() == "back" || this.animationManager.getDirection() == "left")){
             this.inventory.displaySelectedItem(lX, bY);
         }
-        this.inventory.display();
     }
 }

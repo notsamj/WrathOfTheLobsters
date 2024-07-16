@@ -1,4 +1,4 @@
-class HumanSword extends Sword {
+class HumanSkirmishSword extends SkirmishSword {
     constructor(model, details){
         super(model, details);
     }

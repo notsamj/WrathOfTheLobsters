@@ -1,18 +1,43 @@
 class SkirmishCharacter extends Character {
-    constructor(gamemode, model, team){
+    constructor(gamemode, model, rank, team){
         super(gamemode, model);
         this.makingMove = false;
         this.moveDone = false;
         this.team = team;
+        this.tileXOnTurnStart = null;
+        this.tileYOnTurnStart = null;
+        this.characterClass = rank;
+        this.walkingBar = new ProgressBar(RETRO_GAME_DATA["skirmish"]["distance_per_turn"][this.characterClass]);
     }
 
     tick(){
         this.lookingDetails["look_lock"].tick();
         this.inventory.tickSelectedItem();
 
-        if (!this.isMakingAMove()){ return; }
         this.makeDecisions();
         this.actOnDecisions();
+    }
+
+    displayWhenFocused(){
+        super.displayWhenFocused();
+        this.displayWalkingBar();
+    }
+
+    displayWalkingBar(){
+        return this.walkingBar.display();
+    }
+
+    updateMovement(){
+        super.updateMovement();
+        let distanceToNewTile = Math.sqrt(Math.pow(this.tileX - this.tileXOnTurnStart, 2) + Math.pow(this.tileY - this.tileYOnTurnStart, 2));
+        let maxDistance = this.walkingBar.getMaxValue();
+        // If the new tile is too far away, for them back
+        if (distanceToNewTile > maxDistance){
+            this.tileX = this.movementDetails["last_stood_tile_x"];
+            this.tileY = this.movementDetails["last_stood_tile_y"];
+            this.movementDetails = null;
+        }
+        this.walkingBar.setValue(Math.sqrt(Math.pow(this.tileX - this.tileXOnTurnStart, 2) + Math.pow(this.tileY - this.tileYOnTurnStart, 2)));
     }
 
     getTeam(){
@@ -37,13 +62,15 @@ class SkirmishCharacter extends Character {
 
     indicateTurn(){
         this.makingMove = true;
+        this.tileXOnTurnStart = this.tileX;
+        this.tileYOnTurnStart = this.tileY;
     }
 
     isMoveDone(){
         return this.moveDone;
     }
 
-    indicateHasShot(){
+    indicateMoveDone(){
         this.moveDone = true;
         this.makingMove = false;
     }
@@ -53,15 +80,11 @@ class SkirmishCharacter extends Character {
     }
 
     makeDecisions(){
+        if (!this.isMakingAMove()){ return; }
+        this.inventory.tick();
         this.resetDecisions();
         this.makeMovementDecisions();
     }
 
-    makeMovementDecisions(){
-        this.decisions["up"] = USER_INPUT_MANAGER.isActivated("move_up");
-        this.decisions["down"] = USER_INPUT_MANAGER.isActivated("move_down");
-        this.decisions["left"] = USER_INPUT_MANAGER.isActivated("move_left");
-        this.decisions["right"] = USER_INPUT_MANAGER.isActivated("move_right");
-        this.decisions["sprint"] = USER_INPUT_MANAGER.isActivated("sprint");
-    }
+    makeMovementDecisions(){}
 }

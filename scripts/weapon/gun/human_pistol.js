@@ -3,17 +3,14 @@ class HumanPistol extends Pistol {
         super(model, details);
     }
 
-    tick(){
-        super.tick();
-        this.tryingToAim = USER_INPUT_MANAGER.isActivated("right_click");
+    makeDecisions(){
+        let tryingToAim = USER_INPUT_MANAGER.isActivated("right_click");
         let tryingToShoot = USER_INPUT_MANAGER.isActivated("left_click_ticked");
-        if (this.isAiming() && tryingToShoot && this.isLoaded()){
-            this.shoot();
-        }
-
         let tryingToReload = USER_INPUT_MANAGER.isActivated("r_ticked");
-        if (tryingToReload && !this.isLoaded() && !this.player.isMoving() && !this.isReloading()){
-            this.reload();
+        this.decisions = {
+            "trying_to_aim": tryingToAim,
+            "trying_to_shoot": tryingToShoot,
+            "trying_to_reload": tryingToReload
         }
     }
 

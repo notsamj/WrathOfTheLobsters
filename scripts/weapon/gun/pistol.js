@@ -3,6 +3,26 @@ class Pistol extends Gun {
         super(model, details);
     }
 
+    resetDecisions(){
+        this.decisions = {
+            "trying_to_aim": false,
+            "trying_to_shoot": false,
+            "trying_to_reload": false
+        }
+    }
+
+    actOnDecisions(){
+        let tryingToShoot = this.decisions["trying_to_shoot"];
+        if (this.isAiming() && tryingToShoot && this.isLoaded()){
+            this.shoot();
+        }
+
+        let tryingToReload = this.decisions["trying_to_reload"];
+        if (tryingToReload && !this.isLoaded() && !this.player.isMoving() && !this.isReloading()){
+            this.reload();
+        }
+    }
+
     deselect(){
         if (this.isReloading()){
             this.cancelReload();

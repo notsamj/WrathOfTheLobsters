@@ -747,6 +747,7 @@ class RetroGameScene {
         // Display focused entity
         if (this.hasEntityFocused()){
             this.getFocusedEntity().display(lX, rX, bY, tY);
+            this.getFocusedEntity().displayWhenFocused();
         }
     }
 

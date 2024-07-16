@@ -3,4 +3,6 @@ class Item {
     deselect(){}
     displayItemSlot(providedX, providedY){}
     display(lX, bY){}
+    makeDecisions(){}
+    actionOnDecisions(){}
 }

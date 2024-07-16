@@ -449,9 +449,6 @@ function circleWithRectangle(circleHitbox, rectangleHitbox){
     if (bottomWithinY && withinX){
         return true;
     }
-    if (rectangleHitbox.getX1() == 256){
-        debugger;
-    }
     return false;
 }
 

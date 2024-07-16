@@ -109,6 +109,7 @@ class TurnBasedSkirmish extends Gamemode {
         // Now the currently moving troop is selected
         if (!currentlyMovingCharacter.isMakingAMove() && !currentlyMovingCharacter.isMoveDone()){
             currentlyMovingCharacter.indicateTurn();
+            console.log("Switch")
             this.scene.setFocusedEntity(currentlyMovingCharacter);
             return;
         }
@@ -131,6 +132,7 @@ class TurnBasedSkirmish extends Gamemode {
 
         // Increase turn counter (used for simplifying some operations)
         this.gameState["turn_counter"] += 1;
+        console.log("Turn counter")
 
         // Check if over
         this.checkWin();
@@ -204,27 +206,79 @@ class TurnBasedSkirmish extends Gamemode {
     }
 
     spawnTroops(){
-        let samuel = new SkirmishHuman(this, "british_pvt_g", "British");
-        samuel.setID("samuel");
-        samuel.getInventory().add(new HumanSkirmishMusket("brown_bess", {
-            "player": samuel
-        }));
-        samuel.setTileX(this.britishSpawn["x"]);
-        samuel.setTileY(this.britishSpawn["y"]);
-        this.scene.addEntity(samuel);
-        this.scene.setFocusedEntity(samuel);
-        this.britishTroops.push(samuel);
 
-        let enemy = new SkirmishHuman(this, "usa_pvt", "American");
-        enemy.setID("npc1");
-        console.log(this.americanSpawn)
-        enemy.setTileX(this.americanSpawn["x"]);
-        enemy.setTileY(this.americanSpawn["y"]);
-        this.scene.addEntity(enemy);
-        this.americanTroops.push(enemy);
-        enemy.getInventory().add(new HumanSkirmishMusket("brown_bess", {
-            "player": enemy
-        }));
+        let officers = [];
+        let privates = [];
+
+        // Create officers
+        for (let i = 0; i < RETRO_GAME_DATA["skirmish"]["game_play"]["officer_count"]; i++){
+            let britishOfficer = new SkirmishHuman(this, "british_officer", "officer", "British");
+            britishOfficer.setID("british_officer_" + i.toString());
+            this.britishTroops.push(britishOfficer);
+            officers.push(britishOfficer);
+
+            let americanOfficer = new SkirmishHuman(this, "usa_officer", "officer", "American");
+            americanOfficer.setID("american_officer_" + i.toString());
+            this.americanTroops.push(americanOfficer);
+            officers.push(americanOfficer);
+        }
+
+        // Equip officers
+        for (let officer of officers){
+            officer.getInventory().add(new HumanSkirmishPistol("flintlock", {
+                "player": officer
+            }));
+
+            officer.getInventory().add(new HumanSkirmishSword("cavalry_sword", {
+                "player": officer
+            }));
+        }
+
+        // Create privates
+        for (let i = 0; i < RETRO_GAME_DATA["skirmish"]["game_play"]["private_count"]; i++){
+            let britishPrivate = new SkirmishHuman(this, "british_pvt_g", "private", "British");
+            britishPrivate.setID("british_private_" + i.toString());
+            this.britishTroops.push(britishPrivate);
+            privates.push(britishPrivate);
+
+            let americanPrivate = new SkirmishHuman(this, "usa_pvt", "private", "American");
+            americanPrivate.setID("american_private_" + i.toString());
+            this.americanTroops.push(americanPrivate);
+            privates.push(americanPrivate);
+        } 
+
+        // Equip privates
+        for (let privateTroop of privates){
+            privateTroop.getInventory().add(new HumanSkirmishMusket("brown_bess", {
+                "player": privateTroop
+            }));
+
+            privateTroop.getInventory().add(new HumanSkirmishSword("clever", {
+                "player": privateTroop
+            }));
+        }
+
+        let allTroops = appendLists(officers, privates);
+
+        // Equip all troops
+        for (let troop of allTroops){
+            troop.getInventory().add(new HumanSkirmishSword("white_flag", {
+                "player": troop
+            }));
+            this.scene.addEntity(troop);
+        }
+
+        // Spawn British troops
+        for (let troop of this.britishTroops){
+            troop.setTileX(this.britishSpawn["x"]);
+            troop.setTileY(this.britishSpawn["y"]);
+        }
+
+        // Spawn American troops
+        for (let troop of this.americanTroops){
+            troop.setTileX(this.americanSpawn["x"]);
+            troop.setTileY(this.americanSpawn["y"]);
+        }
     }
 
 

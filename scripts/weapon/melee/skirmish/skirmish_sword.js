@@ -1,10 +1,10 @@
-class SkirmishPistol extends Pistol {
+class SkirmishSword extends Sword {
     constructor(model, details){
         super(model, details);
     }
-    shoot(){
-        super.shoot();
-        this.reloaded = true;
+
+    finishSwing(){
+        super.finishSwing();
         this.player.indicateMoveDone();
     }
 }

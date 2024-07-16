@@ -1,11 +1,13 @@
 class HumanCharacter extends Character {
     constructor(gamemode, model){
         super(gamemode, model);
+        this.inventory = new HumanInventory();
     }
 
     makeDecisions(){
         this.resetDecisions();
         this.makeMovementDecisions();
+        this.inventory.makeDecisionsForSelectedItem();
     }
 
     makeMovementDecisions(){

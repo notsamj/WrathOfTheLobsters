@@ -35,4 +35,6 @@ class Entity extends VisualItem {
     hasVisionRestrictions(){
         return false;
     }
+
+    displayWhenFocused(){}
 }

@@ -3,31 +3,18 @@ class HumanMusket extends Musket {
         super(model, details);
     }
 
-    tick(){
-        super.tick();
-        this.tryingToAim = USER_INPUT_MANAGER.isActivated("right_click");
+    makeDecisions(){
+        let tryingToAim = USER_INPUT_MANAGER.isActivated("right_click");
         let tryingToShoot = USER_INPUT_MANAGER.isActivated("left_click_ticked");
-        if (this.isAiming() && tryingToShoot && this.isLoaded() && !this.isStabbing()){
-            this.shoot();
-        }
-
         let togglingBayonetEquip = USER_INPUT_MANAGER.isActivated("b_ticked");
-        if (!this.isAiming() && togglingBayonetEquip && !this.player.isMoving() && !this.isReloading() && !this.isStabbing()){
-            if (this.hasBayonetEquipped()){
-                this.unequipBayonet();
-            }else{
-                this.equipBayonet();
-            }
-        }
-
         let tryingToReload = USER_INPUT_MANAGER.isActivated("r_ticked");
-        if (tryingToReload && !this.isLoaded() && !this.player.isMoving() && !this.isStabbing() && !this.isReloading()){
-            this.reload();
-        }
-
         let tryingToStab = USER_INPUT_MANAGER.isActivated("middle_click");
-        if (this.isAiming() && tryingToStab && !this.isReloading() && this.hasBayonetEquipped() && !this.player.isMoving() && !this.isStabbing()){
-            this.startStab();
+        this.decisions = {
+            "trying_to_aim": tryingToAim,
+            "trying_to_shoot": tryingToShoot,
+            "toggling_bayonet_equip": togglingBayonetEquip,
+            "trying_to_reload": tryingToReload,
+            "trying_to_stab": tryingToStab
         }
     }
 

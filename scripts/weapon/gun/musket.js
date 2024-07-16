@@ -9,6 +9,42 @@ class Musket extends Gun {
         this.stabFacing = null;
     }
 
+    resetDecisions(){
+        this.decisions = {
+            "trying_to_aim": false,
+            "trying_to_shoot": false,
+            "toggling_bayonet_equip": false,
+            "trying_to_reload": false,
+            "trying_to_stab": false
+        }
+    }
+
+    actOnDecisions(){
+        let tryingToShoot = this.decisions["trying_to_shoot"];
+        if (this.isAiming() && tryingToShoot && this.isLoaded() && !this.isStabbing()){
+            this.shoot();
+        }
+
+        let togglingBayonetEquip = this.decisions["toggling_bayonet_equip"];
+        if (!this.isAiming() && togglingBayonetEquip && !this.player.isMoving() && !this.isReloading() && !this.isStabbing()){
+            if (this.hasBayonetEquipped()){
+                this.unequipBayonet();
+            }else{
+                this.equipBayonet();
+            }
+        }
+
+        let tryingToReload = this.decisions["trying_to_reload"];
+        if (tryingToReload && !this.isLoaded() && !this.player.isMoving() && !this.isStabbing() && !this.isReloading()){
+            this.reload();
+        }
+
+        let tryingToStab = this.decisions["trying_to_stab"];
+        if (this.isAiming() && tryingToStab && !this.isReloading() && this.hasBayonetEquipped() && !this.player.isMoving() && !this.isStabbing()){
+            this.startStab();
+        }
+    }
+
     startStab(){
         this.stabbing = true;
         this.stabAngle = this.getAngleRAD();

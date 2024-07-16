@@ -3,17 +3,18 @@ class HumanSkirmishMusket extends SkirmishMusket {
         super(model, details);
     }
 
-    tick(){
-        if (!this.player.isMakingAMove()){
-            if (this.tryingToAim){
-                this.tryingToAim = false;
-            }
-            return;
-        }
-        this.tryingToAim = USER_INPUT_MANAGER.isActivated("right_click");
+    makeDecisions(){
+        let tryingToAim = USER_INPUT_MANAGER.isActivated("right_click") && this.player.isMakingAMove();
         let tryingToShoot = USER_INPUT_MANAGER.isActivated("left_click_ticked");
-        if (this.isAiming() && tryingToShoot && this.isLoaded()){
-            this.shoot();
+        let togglingBayonetEquip = USER_INPUT_MANAGER.isActivated("b_ticked");
+        let tryingToReload = USER_INPUT_MANAGER.isActivated("r_ticked");
+        let tryingToStab = USER_INPUT_MANAGER.isActivated("middle_click");
+        this.decisions = {
+            "trying_to_aim": tryingToAim,
+            "trying_to_shoot": tryingToShoot,
+            "toggling_bayonet_equip": togglingBayonetEquip,
+            "trying_to_reload": tryingToReload,
+            "trying_to_stab": tryingToStab
         }
     }
 
@@ -36,10 +37,5 @@ class HumanSkirmishMusket extends SkirmishMusket {
             angleRAD -= Math.PI;
         }
         return fixRadians(angleRAD);
-    }
-
-    shoot(){
-        super.shoot();
-        this.player.indicateHasShot();
     }
 }

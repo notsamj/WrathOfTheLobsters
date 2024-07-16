@@ -8,6 +8,20 @@ const RETRO_GAME_DATA = {
         }
     },
 
+    "progress_bar": {
+        "width": 120,
+        "height": 40,
+        "border_colour": "#000000",
+        "border_thickness": 1,
+        "threshold_4": 0.99,
+        "threshold_3": 0.8,
+        "threshold_2": 0.55,
+        "threshold_4_colour": "#4b006e",
+        "threshold_3_colour": "#ff1212",
+        "threshold_2_colour": "#ff7512",
+        "threshold_1_colour": "#12ff12",
+    },
+
     "sword_data": {
         "arm_length": 32,
         "clever": {
@@ -17,6 +31,18 @@ const RETRO_GAME_DATA = {
             "handle_offset_y": 0,
             "sword_rotation_deg": 30,
             "swing_damage": 0.2,
+            "image_width": 512,
+            "image_height": 512,
+            "image_scale": 1/16,
+            "blade_length": 286/16 // = 17.875
+        },
+        "white_flag": {
+            "swing_time_ms": 200, // 200
+            "swing_angle_range_deg": 120,
+            "handle_offset_x": 0,
+            "handle_offset_y": 0,
+            "sword_rotation_deg": 30,
+            "swing_damage": 0.0,
             "image_width": 512,
             "image_height": 512,
             "image_scale": 1/16,
@@ -37,7 +63,15 @@ const RETRO_GAME_DATA = {
     },
 
     "skirmish": {
-        "area_size": 20 // 50
+        "area_size": 20, // 50,
+        "distance_per_turn": {
+            "private": 5,
+            "officer": 10
+        },
+        "game_play": {
+            "officer_count": 1,
+            "private_count": 1
+        }
     },
 
     "controls": {
@@ -281,6 +315,44 @@ const RETRO_GAME_DATA = {
                 }
             },
             "clever": {
+                "swinging": {
+                    "front": {
+                        "x_offset": 32,
+                        "y_offset": 32
+                    },
+                    "left": {
+                        "x_offset": 32,
+                        "y_offset": 32
+                    },
+                    "right": {
+                        "x_offset": 32,
+                        "y_offset": 32
+                    },
+                    "back": {
+                        "x_offset": 32,
+                        "y_offset": 32
+                    },
+                },
+                "not_swinging": {
+                    "front": {
+                        "x_offset": 20, // -17
+                        "y_offset": 28+16 // 28
+                    },
+                    "left": {
+                        "x_offset": 21,
+                        "y_offset": 28+16
+                    },
+                    "right": {
+                        "x_offset": 42,
+                        "y_offset": 28+16
+                    },
+                    "back": {
+                        "x_offset": 46,
+                        "y_offset": 28+16
+                    }
+                }
+            },
+            "white_flag": {
                 "swinging": {
                     "front": {
                         "x_offset": 32,

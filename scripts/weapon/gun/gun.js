@@ -2,13 +2,20 @@ class Gun extends Item {
     constructor(model, details){
         super();
         this.model = model;
-        this.tryingToAim = false;
         this.player = objectHasKey(details, "player") ? details["player"] : null;
         this.loaded = true;
 
         this.reloading = false;
         this.reloadLock = new TickLock(RETRO_GAME_DATA["gun_data"][this.model]["reload_time_ms"] / RETRO_GAME_DATA["general"]["ms_between_ticks"]);
+
+        this.resetDecisions();
     }
+
+    // Abstract
+    resetDecisions(){}
+
+    // Abstract
+    makeDecisions(){}
 
     getScene(){
         return this.player.getScene();
@@ -64,7 +71,7 @@ class Gun extends Item {
     }
 
     isAiming(){
-        return this.tryingToAim && this.directionToAimIsOk() && !this.player.isMoving() && !this.isReloading();
+        return this.decisions["trying_to_aim"] && this.directionToAimIsOk() && !this.player.isMoving() && !this.isReloading();
     }
 
     directionToAimIsOk(){

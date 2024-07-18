@@ -8,8 +8,4 @@ class SkirmishPistol extends Pistol {
         this.reloaded = true;
         this.player.indicateMoveDone();
     }
-    // FAKE-INTERFACE: SkirmishGun
-    isAiming(){
-        return super.isAiming() && this.player.isMakingAMove();
-    }
 }

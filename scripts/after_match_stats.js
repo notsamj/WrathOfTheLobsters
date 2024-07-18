@@ -75,7 +75,7 @@ class AfterMatchStats {
         Method Name: getWinner
         Method Parameters: None
         Method Description: Getter
-        Method Return: String
+        Method Return: String  
     */
     getWinner(){
         return this.winner;

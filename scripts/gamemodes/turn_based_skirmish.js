@@ -107,6 +107,7 @@ class TurnBasedSkirmish extends Gamemode {
             }
         }
         if (currentlyMovingCharacter == null){
+            // TODO: Remove
             debugger;
         }
         // Now the currently moving troop is selected

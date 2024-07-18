@@ -69,6 +69,7 @@ class Pistol extends Gun {
     }
 
     tick(){
+        this.resetDecisions();
         if (this.isReloading()){
             if (this.player.isMoving()){
                 this.cancelReload();

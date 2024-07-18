@@ -91,9 +91,9 @@ class SkirmishCharacter extends Character {
     }
 
     makeDecisions(){
+        this.resetDecisions();
         if (!this.isMakingAMove()){ return; }
         this.inventory.tick();
-        this.resetDecisions();
         this.makeMovementDecisions();
         this.inventory.makeDecisionsForSelectedItem();
     }

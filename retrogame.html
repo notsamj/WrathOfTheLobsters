@@ -40,30 +40,22 @@
     <script src="scripts/smoke_cloud.js"></script>
     <script src="scripts/bullet_impact.js"></script>
     <script src="scripts/after_match_stats.js"></script>
-    <script src="scripts/item.js"></script>
 
     <!-- Inventory -->
     <script src="scripts/inventory/inventory.js"></script>
     <script src="scripts/inventory/human_inventory.js"></script>
     <script src="scripts/inventory/bot_inventory.js"></script>
-
-    <!-- Melee Weapons -->
-    <script src="scripts/weapon/melee/sword.js"></script>
-    <script src="scripts/weapon/melee/human_sword.js"></script>
-    <script src="scripts/weapon/melee/skirmish/skirmish_sword.js"></script>
-    <script src="scripts/weapon/melee/skirmish/human_skirmish_sword.js"></script>
-
-    <!-- Guns -->
-    <script src="scripts/weapon/gun/gun.js"></script>
-    <script src="scripts/weapon/gun/pistol.js"></script>
-    <script src="scripts/weapon/gun/human_pistol.js"></script>
-    <script src="scripts/weapon/gun/musket.js"></script>
-    <script src="scripts/weapon/gun/human_musket.js"></script>
-    <script src="scripts/weapon/gun/skirmish/skirmish_musket.js"></script>
-    <script src="scripts/weapon/gun/skirmish/bot_skirmish_musket.js"></script>
-    <script src="scripts/weapon/gun/skirmish/human_skirmish_musket.js"></script>
-    <script src="scripts/weapon/gun/skirmish/skirmish_pistol.js"></script>
-    <script src="scripts/weapon/gun/skirmish/human_skirmish_pistol.js"></script>
+        <!-- Item -->
+        <script src="scripts/inventory/item/item.js"></script>
+            <!-- Melee Weapon -->
+                <script src="scripts/inventory/item/weapon/melee/sword.js"></script>
+                <script src="scripts/inventory/item/weapon/melee/human_sword.js"></script>
+            <!-- Guns -->
+                <script src="scripts/inventory/item/weapon/gun/gun.js"></script>
+                <script src="scripts/inventory/item/weapon/gun/pistol.js"></script>
+                <script src="scripts/inventory/item/weapon/gun/human_pistol.js"></script>
+                <script src="scripts/inventory/item/weapon/gun/musket.js"></script>
+                <script src="scripts/inventory/item/weapon/gun/human_musket.js"></script>
 
     <!-- Entities -->
     <script src="scripts/entity/entity.js"></script>
@@ -93,10 +85,22 @@
     <script src="scripts/gamemodes/gamemode_manager.js"></script>
 
     <!-- Skirmish -->
-    <script src="scripts/gamemodes/turn_based_skirmish.js"></script>
-    <script src="scripts/entity/skirmish/skirmish_character.js"></script>
-    <script src="scripts/entity/skirmish/skirmish_human.js"></script>
-    <script src="scripts/entity/skirmish/skirmish_bot.js"></script>
+    <script src="scripts/gamemodes/skirmish/turn_based_skirmish.js"></script>
+        <!-- Skirmish Entity -->
+        <script src="scripts/gamemodes/skirmish/entity/skirmish_character.js"></script>
+        <script src="scripts/gamemodes/skirmish/entity/skirmish_human.js"></script>
+        <script src="scripts/gamemodes/skirmish/entity/skirmish_bot.js"></script>
+
+        <!-- Skirmish Weapon -->
+            <!-- Skirmish Melee Weapon -->
+                <script src="scripts/gamemodes/skirmish/weapon/melee/skirmish_sword.js"></script>
+                <script src="scripts/gamemodes/skirmish/weapon/melee/human_skirmish_sword.js"></script>
+            <!-- Skirmish Gun -->
+                <script src="scripts/gamemodes/skirmish/weapon/gun/skirmish_musket.js"></script>
+                <script src="scripts/gamemodes/skirmish/weapon/gun/bot_skirmish_musket.js"></script>
+                <script src="scripts/gamemodes/skirmish/weapon/gun/human_skirmish_musket.js"></script>
+                <script src="scripts/gamemodes/skirmish/weapon/gun/skirmish_pistol.js"></script>
+                <script src="scripts/gamemodes/skirmish/weapon/gun/human_skirmish_pistol.js"></script>
 
     <!-- Unique to Game Maker -->
     <script src="scripts/game_maker/game_maker.js"></script>
@@ -104,7 +108,7 @@
     <script src="scripts/game_maker/game_maker_ui.js"></script>
 
     <!-- Main Script --> 
-    <script src="scripts/retro_game.js"></script>
+    <script src="scripts/gamemodes/retro_game.js"></script>
 
     <!-- 2d Canvas Helper --> 
     <script src="scripts/general/simple_2d_canvas_helper.js"></script>

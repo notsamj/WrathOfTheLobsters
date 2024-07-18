@@ -1,0 +1,3 @@
+class PointToShoot extends Item {
+	
+}

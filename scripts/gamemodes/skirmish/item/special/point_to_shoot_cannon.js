@@ -1,0 +1,3 @@
+class PointToShootCannon extends Item {
+	
+}

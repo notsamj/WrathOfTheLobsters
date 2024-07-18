@@ -1,0 +1,3 @@
+class PointToMove extends Item {
+	
+}

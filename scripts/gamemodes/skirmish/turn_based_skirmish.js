@@ -264,7 +264,7 @@ class TurnBasedSkirmish extends Gamemode {
 
         // Equip all troops
         for (let troop of allTroops){
-            troop.getInventory().add(new HumanSkirmishSword("white_flag", {
+            troop.getInventory().add(new HumanWhiteFlag("white_flag", {
                 "player": troop
             }));
             this.scene.addEntity(troop);

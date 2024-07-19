@@ -3,6 +3,7 @@ class SkirmishCharacter extends Character {
         super(gamemode, model);
         this.makingMove = false;
         this.moveDone = false;
+        this.commitedToAction = false;
         this.team = team;
         this.tileXOnTurnStart = null;
         this.tileYOnTurnStart = null;
@@ -63,8 +64,17 @@ class SkirmishCharacter extends Character {
         return this.makingMove;
     }
 
+    hasCommitedToAction(){
+        return this.commitedToAction;
+    }
+
+    commitToAction(){
+        this.commitedToAction = true;
+    }
+
     indicateTurn(){
         this.makingMove = true;
+        this.commitedToAction = false;
         this.tileXOnTurnStart = this.tileX;
         this.tileYOnTurnStart = this.tileY;
 

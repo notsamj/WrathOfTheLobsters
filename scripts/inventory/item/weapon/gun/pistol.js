@@ -243,7 +243,12 @@ class Pistol extends Gun {
     static async loadAllImagesOfModel(model){
         // Do not load if already exists
         if (objectHasKey(IMAGES, model)){ return; }
-        await loadToImages(model, model + "/");
+        let folderURL = "item/weapon/gun/pistol/";
+        if (objectHasKey(RETRO_GAME_DATA["gun_data"][model], "alternate_url")){
+            folderURL = RETRO_GAME_DATA["gun_data"][model]["alternate_url"];
+        }
+        folderURL += model + "/";
+        await loadToImages(model, folderURL);
     }
 
     static async loadAllImages(){

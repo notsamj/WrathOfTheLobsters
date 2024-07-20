@@ -344,7 +344,11 @@ class Sword extends Item {
     static async loadAllImagesOfModel(model){
         // Do not load if already exists
         if (objectHasKey(IMAGES, model)){ return; }
-        await loadToImages(model, model + "/");
+        if (!objectHasKey(RETRO_GAME_DATA["sword_data"][model], "alternate_url")){
+            await loadToImages(model, "item/weapon/sword/" + model + "/");
+        }else{
+            await loadToImages(model, RETRO_GAME_DATA["sword_data"][model]["alternate_url"] + model + "/");
+        }
     }
 
     static async loadAllImages(){

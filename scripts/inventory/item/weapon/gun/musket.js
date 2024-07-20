@@ -349,10 +349,15 @@ class Musket extends Gun {
     static async loadAllImagesOfModel(model){
         // Do not load if already exists
         if (objectHasKey(IMAGES, model + "_left")){ return; }
-        await loadToImages(model + "_left", model + "/");
-        await loadToImages(model + "_left" + "_bayonet", model + "/");
-        await loadToImages(model + "_right", model + "/");
-        await loadToImages(model + "_right" + "_bayonet", model + "/");
+        let folderURL = "item/weapon/gun/musket/";
+        if (objectHasKey(RETRO_GAME_DATA["gun_data"][model], "alternate_url")){
+            folderURL = RETRO_GAME_DATA["gun_data"][model]["alternate_url"];
+        }
+        folderURL += model + "/";
+        await loadToImages(model + "_left", folderURL);
+        await loadToImages(model + "_left" + "_bayonet", folderURL);
+        await loadToImages(model + "_right", folderURL);
+        await loadToImages(model + "_right" + "_bayonet", folderURL);
     }
 
     static async loadAllImages(){

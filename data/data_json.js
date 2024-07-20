@@ -46,7 +46,8 @@ const RETRO_GAME_DATA = {
             "image_width": 512,
             "image_height": 512,
             "image_scale": 1/16,
-            "blade_length": 286/16 // = 17.875
+            "blade_length": 286/16, // = 17.875
+            "alternate_url": "skirmish/item/special/"
         },
         "cavalry_sword": {
             "swing_time_ms": 250, // 250

@@ -730,4 +730,8 @@ class TurnBasedSkirmish extends Gamemode {
         this.gameTick();
         this.scene.tick();
     }
+
+    async static loadImages(){
+        // TODO
+    }
 }

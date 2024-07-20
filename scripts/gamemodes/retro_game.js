@@ -23,6 +23,7 @@ async function setup() {
     await Musket.loadAllImages();
     await Sword.loadAllImages();
     await Pistol.loadAllImages();
+    await TurnBasedSkirmish.loadImages();
 
     // Make sure all physical tiles are loaded
     for (let tileDetails of RETRO_GAME_DATA["physical_tiles"]){

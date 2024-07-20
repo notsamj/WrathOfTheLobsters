@@ -29,10 +29,10 @@ class SkirmishCharacter extends Character {
     }
 
     updateMovement(){
+        super.updateMovement();
         if (!this.isMakingAMove()){
             return;
         }
-        super.updateMovement();
         let distanceToNewTile = Math.sqrt(Math.pow(this.tileX - this.tileXOnTurnStart, 2) + Math.pow(this.tileY - this.tileYOnTurnStart, 2));
         let maxDistance = this.walkingBar.getMaxValue();
         // If the new tile is too far away, for them back

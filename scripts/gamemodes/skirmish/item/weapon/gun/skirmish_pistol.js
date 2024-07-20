@@ -4,7 +4,7 @@ class SkirmishPistol extends Pistol {
     }
     
     isAiming(){
-        return this.isAiming() && !this.player.hasCommitedToAction();
+        return super.isAiming() && !this.player.hasCommitedToAction();
     }
 
     shoot(){

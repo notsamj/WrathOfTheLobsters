@@ -87,7 +87,6 @@ class Character extends Entity {
             direction = "up";
             newTileY += 1;
         }
-
         // Turn in direction if not moving
         if (!this.isMoving()){
             if (this.animationManager.getAlternativeDirection() != direction){
@@ -108,7 +107,6 @@ class Character extends Entity {
             return; 
         }
 
-        //console.log("Moving again", this.tileX, this.lastX/64)
         // TODO: Check if there is a tile that I'm walking to
         let desiredMoveSpeed = RETRO_GAME_DATA["general"]["walk_speed"];
         desiredMoveSpeed *= (wantsToSprint ? RETRO_GAME_DATA["general"]["sprint_multiplier"] : 1);
@@ -144,7 +142,6 @@ class Character extends Entity {
         }
         this.tileX = newTileX;
         this.tileY = newTileY;
-        
     }
 
     setTileX(tileX){

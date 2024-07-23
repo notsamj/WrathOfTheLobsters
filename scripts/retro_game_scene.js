@@ -661,6 +661,14 @@ class RetroGameScene {
         return displayX;
     }
 
+    getDisplayXOfPoint(x, lX, round=false){
+        return this.getDisplayX(x, 0, lX, round);
+    }
+
+    getDisplayYOfPoint(y, bY, round=false){
+        return this.getDisplayY(y, 0, bY, round);
+    }
+
     /*
         Method Name: getDisplayY
         Method Parameters:

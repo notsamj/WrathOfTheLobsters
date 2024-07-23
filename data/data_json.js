@@ -78,7 +78,9 @@ const RETRO_GAME_DATA = {
             "point_to_move",
             "point_to_move_crosshair",
             "point_to_shoot",
-            "point_to_shoot_cannon"
+            "point_to_shoot_crosshair",
+            "point_to_shoot_cannon",
+            "point_to_shoot_cannon_crosshair"
         ]
     },
 

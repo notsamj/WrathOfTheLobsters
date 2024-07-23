@@ -1,6 +1,6 @@
 class HumanWhiteFlag extends WhiteFlag {
-    constructor(model, details){
-        super(model, details);
+    constructor(details){
+        super("white_flag", details);
     }
 
     makeDecisions(){

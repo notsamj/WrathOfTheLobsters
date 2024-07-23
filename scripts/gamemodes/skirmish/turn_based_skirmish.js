@@ -234,6 +234,18 @@ class TurnBasedSkirmish extends Gamemode {
             officer.getInventory().add(new HumanSkirmishSword("cavalry_sword", {
                 "player": officer
             }));
+
+            officer.getInventory().add(new HumanPointToMove({
+                "player": officer
+            }));
+
+            officer.getInventory().add(new HumanPointToShoot({
+                "player": officer
+            }));
+
+            officer.getInventory().add(new HumanPointToShootCannon({
+                "player": officer
+            }));
         }
 
         // Create privates
@@ -264,7 +276,7 @@ class TurnBasedSkirmish extends Gamemode {
 
         // Equip all troops
         for (let troop of allTroops){
-            troop.getInventory().add(new HumanWhiteFlag("white_flag", {
+            troop.getInventory().add(new HumanWhiteFlag({
                 "player": troop
             }));
             this.scene.addEntity(troop);
@@ -731,7 +743,12 @@ class TurnBasedSkirmish extends Gamemode {
         this.scene.tick();
     }
 
-    async static loadImages(){
-        // TODO
+    static async loadImages(){
+        let folderURL = "skirmish/item/special/";
+        for (let specialItemName of RETRO_GAME_DATA["skirmish"]["special_item_names"]){
+            // Do not load if already exists
+            if (objectHasKey(IMAGES, specialItemName)){ continue; }
+            await loadToImages(specialItemName, folderURL + specialItemName + "/");
+        }
     }
 }

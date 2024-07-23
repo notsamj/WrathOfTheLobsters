@@ -76,6 +76,7 @@ const RETRO_GAME_DATA = {
         "special_item_names": [
             "white_flag",
             "point_to_move",
+            "point_to_move_crosshair",
             "point_to_shoot",
             "point_to_shoot_cannon"
         ]

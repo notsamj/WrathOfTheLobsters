@@ -67,6 +67,7 @@ const RETRO_GAME_DATA = {
         "area_size": 20, // 50,
         "troop_selection_distance": 6,
         "selection_colour": "#f2d633",
+        "selection_border_width": 3,
         "distance_per_turn": {
             "private": 5,
             "officer": 10

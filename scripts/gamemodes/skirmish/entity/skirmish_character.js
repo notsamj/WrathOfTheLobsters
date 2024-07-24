@@ -130,18 +130,17 @@ class SkirmishCharacter extends Character {
             let myWidth = this.getWidth();
             let myHeight = this.getHeight();
             let selectionColour = Colour.fromCode(RETRO_GAME_DATA["skirmish"]["selection_colour"]);
+            let selectionBorderWidth = RETRO_GAME_DATA["skirmish"]["selection_border_width"];
             selectionColour.setAlpha(0.75);
             
             // Top
-            //noStrokeRectangle(this.backgroundBarColour, this.getX(), screenYForRects, this.width, this.height);
-            console.log(selectionColour, displayX, displayY, myWidth, 1)
-            noStrokeRectangle(selectionColour, displayX, displayY, myWidth, 1);
+            noStrokeRectangle(selectionColour, displayX, displayY, myWidth, selectionBorderWidth);
             // Bottom
-            noStrokeRectangle(selectionColour, displayX, displayY+myHeight-1, myWidth, 1);
+            noStrokeRectangle(selectionColour, displayX, displayY+myHeight-selectionBorderWidth, myWidth, selectionBorderWidth);
             // Left
-            noStrokeRectangle(selectionColour, displayX, displayY, 1, myHeight);
+            noStrokeRectangle(selectionColour, displayX, displayY, selectionBorderWidth, myHeight);
             // Right
-            noStrokeRectangle(selectionColour, displayX+myWidth-1, displayY, 1, myHeight);
+            noStrokeRectangle(selectionColour, displayX+myWidth-selectionBorderWidth, displayY, selectionBorderWidth, myHeight);
         }
     }
 }

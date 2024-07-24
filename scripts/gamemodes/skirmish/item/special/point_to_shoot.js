@@ -4,7 +4,15 @@ class PointToShoot extends Item {
         this.player = objectHasKey(details, "player") ? details["player"] : null;
         this.crosshairCenterX = 0;
         this.crosshairCenterY = 0;
+
+        this.selectionlastUpdatedTurn = -1;
+        this.selectedTroops = [];
+        
         this.resetDecisions();
+    }
+
+    getSelectedTroops(){
+        return this.selectedTroops;
     }
 
     actOnDecisions(){

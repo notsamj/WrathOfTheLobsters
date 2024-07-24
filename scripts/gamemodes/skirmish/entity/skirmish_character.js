@@ -1,14 +1,18 @@
 class SkirmishCharacter extends Character {
-    constructor(gamemode, model, rank, team){
+    constructor(gamemode, model, rankName, team){
         super(gamemode, model);
         this.makingMove = false;
         this.moveDone = false;
         this.commitedToAction = false;
-        this.team = team;
+        this.teamName = team;
         this.tileXOnTurnStart = null;
         this.tileYOnTurnStart = null;
-        this.characterClass = rank;
-        this.walkingBar = new ProgressBar(RETRO_GAME_DATA["skirmish"]["distance_per_turn"][this.characterClass]);
+        this.rankName = rankName;
+        this.walkingBar = new ProgressBar(RETRO_GAME_DATA["skirmish"]["distance_per_turn"][this.rankName]);
+    }
+
+    getRankName(){
+        return this.rankName;
     }
 
     tick(){
@@ -44,16 +48,16 @@ class SkirmishCharacter extends Character {
         this.walkingBar.setValue(Math.sqrt(Math.pow(this.tileX - this.tileXOnTurnStart, 2) + Math.pow(this.tileY - this.tileYOnTurnStart, 2)));
     }
 
-    getTeam(){
-        return this.team;
+    getTeamName(){
+        return this.teamName;
     }
 
     isOnSameTeam(otherCharacter){
-        return this.getTeam() == otherCharacter.getTeam();
+        return this.getTeamName() == otherCharacter.getTeamName();
     }
 
     isVisibleTo(observer){
-        return observer.isOnSameTeam(this) || this.gamemode.visibleToTeam(observer.getTeam(), this.getTeam(), this.getID());
+        return observer.isOnSameTeam(this) || this.gamemode.visibleToTeam(observer.getTeamName(), this.getTeamName(), this.getID());
     }
 
     isVisibleToSuper(observer){
@@ -109,4 +113,35 @@ class SkirmishCharacter extends Character {
     }
 
     makeMovementDecisions(){}
+
+    isSelected(){
+        return this.gamemode.isTroopSelected(this);
+    }
+
+    display(lX, rX, bY, tY){
+        if (this.isDead()){ return; }
+        super.display(lX, rX, bY, tY);
+
+        if (this.isSelected()){
+            let leftX = this.getInterpolatedTickX();
+            let topY = this.getInterpolatedTickY();
+            let displayX = this.getScene().getDisplayXOfPoint(leftX, lX);
+            let displayY = this.getScene().getDisplayYOfPoint(topY, bY);
+            let myWidth = this.getWidth();
+            let myHeight = this.getHeight();
+            let selectionColour = Colour.fromCode(RETRO_GAME_DATA["skirmish"]["selection_colour"]);
+            selectionColour.setAlpha(0.75);
+            
+            // Top
+            //noStrokeRectangle(this.backgroundBarColour, this.getX(), screenYForRects, this.width, this.height);
+            console.log(selectionColour, displayX, displayY, myWidth, 1)
+            noStrokeRectangle(selectionColour, displayX, displayY, myWidth, 1);
+            // Bottom
+            noStrokeRectangle(selectionColour, displayX, displayY+myHeight-1, myWidth, 1);
+            // Left
+            noStrokeRectangle(selectionColour, displayX, displayY, 1, myHeight);
+            // Right
+            noStrokeRectangle(selectionColour, displayX+myWidth-1, displayY, 1, myHeight);
+        }
+    }
 }

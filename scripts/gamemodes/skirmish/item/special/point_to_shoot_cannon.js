@@ -72,7 +72,6 @@ class PointToShootCannon extends Item {
     display(lX, bY){
         let x = this.getScene().getDisplayXOfPoint(this.crosshairCenterX, lX);
         let y = this.getScene().getDisplayYOfPoint(this.crosshairCenterY, bY);
-        console.log(x, y, lX, bY, this.crosshairCenterX, this.crosshairCenterY)
         let image = IMAGES["point_to_shoot_cannon_crosshair"];
         drawingContext.drawImage(image, x - image.width/2, y - image.height/2);
     }

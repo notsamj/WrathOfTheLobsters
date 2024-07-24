@@ -89,6 +89,10 @@ class Inventory {
         return this.hotbar.get(this.selectedSlot);
     }
 
+    getSelectedItem(){
+        return this.getItemAtSelectedSlot();
+    }
+
     hasSelectedItem(){
         return this.getItemAtSelectedSlot() != null;
     }

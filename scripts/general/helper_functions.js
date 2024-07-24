@@ -3,8 +3,8 @@ if (typeof window === "undefined"){
     RETRO_GAME_DATA = require("../../data/data_json.js");
 }
 
-function getTeamFromClass(characterClass){
-    return RETRO_GAME_DATA["character_class_to_team"][characterClass];
+function getTeamNameFromClass(characterClass){
+    return RETRO_GAME_DATA["characharacter_class_to_team_name"][characterClass];
 }
 
 /*
@@ -64,18 +64,18 @@ function angleBetweenCWRAD(angle, eAngle1, eAngle2){
 }
 
 function getNoun(teamName){
-    return getTeamJSON(teamName)["noun"];
+    return getTeamNameJSON(teamName)["noun"];
 }
 
 function getProperAdjective(teamName){
     if (teamName === undefined){
         debugger;
     }
-    return getTeamJSON(teamName)["proper_adjective"];
+    return getTeamNameJSON(teamName)["proper_adjective"];
 }
 
 function getProperAdjectivePlural(teamName){
-    return getTeamJSON(teamName)["proper_adjective_plural"];
+    return getTeamNameJSON(teamName)["proper_adjective_plural"];
 }
 
 /*
@@ -90,7 +90,7 @@ function toFixedRadians(angleDEG){
     return fixRadians(toRadians(angleDEG));
 }
 
-function getTeamJSON(teamName){
+function getTeamNameJSON(teamName){
     let searchableName = teamName.toLowerCase();
     for (let team of RETRO_GAME_DATA["team_aliases"]){
         if (team["noun"].toLowerCase() == searchableName || team["proper_adjective"].toLowerCase() == searchableName || team["proper_adjective_plural"].toLowerCase() == searchableName){

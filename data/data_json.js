@@ -65,6 +65,8 @@ const RETRO_GAME_DATA = {
 
     "skirmish": {
         "area_size": 20, // 50,
+        "troop_selection_distance": 6,
+        "selection_colour": "#f2d633",
         "distance_per_turn": {
             "private": 5,
             "officer": 10
@@ -142,7 +144,7 @@ const RETRO_GAME_DATA = {
         "American": "#0a0c8c"
     },
 
-    "character_class_to_team": {
+    "characharacter_class_to_team_name": {
         "british_pvt_g": "Britain",
         "british_officer": "Britain",
         "usa_pvt": "America",

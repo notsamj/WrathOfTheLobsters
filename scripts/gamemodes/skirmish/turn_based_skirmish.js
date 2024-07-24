@@ -8,7 +8,7 @@ class TurnBasedSkirmish extends Gamemode {
         this.eventHandler.addHandler("kill", (killObject) => {
             let victimClass = killObject["victim_class"];
             let killerClass = killObject["killer_class"];
-            if (getTeamFromClass(victimClass) == getTeamFromClass(killerClass)){
+            if (getTeamNameFromClass(victimClass) == getTeamNameFromClass(killerClass)){
                 killerClass = "friendly_fire";
             }
             this.stats.addKill(victimClass, killerClass);
@@ -23,6 +23,46 @@ class TurnBasedSkirmish extends Gamemode {
         this.startUpLock = new Lock();
         this.startUpLock.lock();
         this.startUp();
+    }
+
+    isTroopSelected(troop){
+        let teamRoster = this.getLivingTeamRosterFromName(troop.getTeamName());
+        // Since one officer per team, an officer cannot be selected
+        if (troop.getRankName() == "officer"){
+            return;
+        }
+        // Loop through all the troops on this troop's team to find the officer
+        for (let otherTroop of teamRoster){
+            // Skip yourself Note: May not be needed
+            if (otherTroop.is(troop)){ continue; }
+            // Note: Assuming only 1 officer
+            if (otherTroop.getRankName() == "officer"){
+
+                let selectedItem = otherTroop.getSelectedItem();
+                // If the officer is holding something
+                if (selectedItem != null){ 
+                    // If the officer is holding a point to move or point to shoot tool
+                    if (selectedItem instanceof PointToMove || selectedItem instanceof PointToShoot){
+                        let selectedTroops = selectedItem.getSelectedTroops();
+                        //console.log(selectedTroops.length)
+                        // Check all of the officer's selected troops to see if 'troop' is on the list
+                        for (let selectedTroop of selectedTroops){
+                            //console.log(selectedTroop.is(troop))
+                            if (selectedTroop.is(troop)){
+                                return true;
+                            }
+                        }
+                    }
+                }
+                // The officer hasn't selected this troop
+                return false;
+            }
+        }
+        return false;
+    }
+
+    getTurnCounter(){
+        return this.gameState["turn_counter"];
     }
 
     visibleToTeam(observerTeamName, observedTeamName, characterID){
@@ -46,8 +86,8 @@ class TurnBasedSkirmish extends Gamemode {
 
     calculateVisibility(observerTeamName, observedTeamName){
         let teamVisibilityJSON = this.gameState["visible_characters"][observerTeamName];
-        let observerRoster = this.getTeamRosterFromName(observerTeamName);
-        let observedRoster = this.getTeamRosterFromName(observedTeamName);
+        let observerRoster = this.getTeamNameRosterFromName(observerTeamName);
+        let observedRoster = this.getTeamNameRosterFromName(observedTeamName);
         let ids = [];
         for (let observedTroop of observedRoster){
             let included = false;
@@ -64,12 +104,23 @@ class TurnBasedSkirmish extends Gamemode {
         teamVisibilityJSON["character_ids"] = ids;
     }
 
-    getTeamRosterFromName(teamName){
+    getTeamNameRosterFromName(teamName){
         let teamProperAdjective = getProperAdjective(teamName);
         if (teamProperAdjective == "British"){
             return this.britishTroops;
         }
         return this.americanTroops;
+    }
+
+    getLivingTeamRosterFromName(teamName){
+        let roster = this.getTeamNameRosterFromName(teamName);
+        let livingRoster = [];
+        for (let troop of roster){
+            if (troop.isAlive()){
+                livingRoster.push(troop);
+            }
+        }
+        return roster;
     }
 
     gameTick(){

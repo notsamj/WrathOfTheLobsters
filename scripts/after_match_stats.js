@@ -54,7 +54,7 @@ class AfterMatchStats {
         Method Return: String
     */
     getWinnerColour(){
-        return AfterMatchStats.getTeamColour(getProperAdjective(this.winner));
+        return AfterMatchStats.getTeamNameColour(getProperAdjective(this.winner));
     }
 
     /*
@@ -97,7 +97,7 @@ class AfterMatchStats {
         let classKillCounts = {};
         for (let kill of this.kills){
             // If victim on team B then its a kill for team A. This helps with cases like friendly-fire
-            if (getProperAdjective(RETRO_GAME_DATA["character_class_to_team"][kill["victim_class"]]) != getProperAdjective(team)){
+            if (getProperAdjective(RETRO_GAME_DATA["characharacter_class_to_team_name"][kill["victim_class"]]) != getProperAdjective(team)){
                 let killerClass = kill["killer_class"];
                 if (!objectHasKey(classKillCounts, killerClass)){
                     classKillCounts[killerClass] = 1;
@@ -134,19 +134,19 @@ class AfterMatchStats {
         let winnerText = "Winner: " + this.winner;
         // Make winner text
         Menu.makeText(winnerText, this.getWinnerColour(), Math.floor(getScreenWidth()/2), Math.floor(getScreenHeight() * 0.9), Math.floor(getScreenWidth()*0.70), Math.floor(getScreenHeight()/4), "center", "hanging");
-        Menu.makeText(this.britishText, AfterMatchStats.getTeamColour(getProperAdjective("British")), 0, Math.floor(getScreenHeight()*2/3), Math.floor(getScreenWidth()/2), Math.floor(getScreenHeight()*2/3), "left", "middle");
-        Menu.makeText(this.americanText, AfterMatchStats.getTeamColour(getProperAdjective("Americans")), Math.floor(getScreenWidth()/2), Math.floor(getScreenHeight()*2/3), Math.floor(getScreenWidth()/2), Math.floor(getScreenHeight()*2/3), "left", "middle");
+        Menu.makeText(this.britishText, AfterMatchStats.getTeamNameColour(getProperAdjective("British")), 0, Math.floor(getScreenHeight()*2/3), Math.floor(getScreenWidth()/2), Math.floor(getScreenHeight()*2/3), "left", "middle");
+        Menu.makeText(this.americanText, AfterMatchStats.getTeamNameColour(getProperAdjective("Americans")), Math.floor(getScreenWidth()/2), Math.floor(getScreenHeight()*2/3), Math.floor(getScreenWidth()/2), Math.floor(getScreenHeight()*2/3), "left", "middle");
     }
 
     /*
-        Method Name: getTeamColour
+        Method Name: getTeamNameColour
         Method Parameters:
             team:
                 String representing the name of an alliance
         Method Description: Determines string the colour assigned to a given alliance
         Method Return: String
     */
-    static getTeamColour(team){
+    static getTeamNameColour(team){
         return RETRO_GAME_DATA["team_to_colour"][team];
     }
 

@@ -37,4 +37,8 @@ class Entity extends VisualItem {
     }
 
     displayWhenFocused(){}
+
+    getGamemode(){
+        return this.gamemode;
+    }
 }

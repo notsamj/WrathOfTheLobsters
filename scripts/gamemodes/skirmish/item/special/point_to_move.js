@@ -6,7 +6,14 @@ class PointToMove extends Item {
         this.moveTileX = this.player.getTileX();
     	this.moveTileY = this.player.getTileY();
 
+        this.selectionlastUpdatedTurn = -1;
+        this.selectedTroops = [];
+
         this.resetDecisions();
+    }
+
+    getSelectedTroops(){
+        return this.selectedTroops;
     }
 
     actOnDecisions(){
@@ -14,8 +21,9 @@ class PointToMove extends Item {
         	this.moveTileX = this.decisions["move_tile_x"];
         	this.moveTileY = this.decisions["move_tile_y"];
     	}
-    	if (this.decisions["trying_to_move_troops"]){
-    		// TODO
+    	if (this.decisions["trying_to_move_troops"] && !this.player.hasCommitedToAction() && this.selectedTroops.length > 0){
+            this.player.commitToAction();
+            // TODO
     	}
     }
 
@@ -50,9 +58,39 @@ class PointToMove extends Item {
     }
 
     select(){
+        let newTurn = this.player.getGamemode().getTurnCounter();
+        if (newTurn == this.selectionlastUpdatedTurn){
+            return;
+        }
+        this.selectionlastUpdatedTurn = newTurn;
     	this.moveTileX = this.player.getTileX();
     	this.moveTileY = this.player.getTileY();
+        this.selectedTroops = this.generateSelectedTroops();
     }
+
+    getGamemode(){
+        return this.player.getGamemode();
+    }
+
+    generateSelectedTroops(){
+        let allTroopsOnMyTeam = this.getGamemode().getLivingTeamRosterFromName(this.player.getTeamName());
+        let myPlayerTileX = this.player.getTileX();
+        let myPlayerTileY = this.player.getTileY();
+        let selectedTroops = [];
+        for (let otherTroop of allTroopsOnMyTeam){
+            // Ignore me
+            if (otherTroop.is(this.player)){ continue; }
+
+            let otherTroopTileX = otherTroop.getTileX();
+            let otherTroopTileY = otherTroop.getTileY();
+            let distance = Math.sqrt(Math.pow(myPlayerTileX - otherTroopTileX, 2) + Math.pow(myPlayerTileY - otherTroopTileY, 2));
+            if (distance < RETRO_GAME_DATA["skirmish"]["troop_selection_distance"]){
+                selectedTroops.push(otherTroop);
+            }
+        }
+        return selectedTroops;
+    }
+
     deselect(){
     }
 

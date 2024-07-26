@@ -6,6 +6,8 @@ class PointToShoot extends Item {
         this.crosshairCenterY = 0;
 
         this.selectionlastUpdatedTurn = -1;
+        this.selectionMadeAtX = 0;
+        this.selectionMadeAtY = 0;
         this.selectedTroops = [];
         
         this.resetDecisions();
@@ -23,6 +25,25 @@ class PointToShoot extends Item {
         if (this.decisions["trying_to_shoot"]){
             // TODO
         }
+    }
+
+    generateSelectedTroops(){
+        let allTroopsOnMyTeam = this.getGamemode().getLivingTeamRosterFromName(this.player.getTeamName());
+        let myPlayerTileX = this.player.getTileX();
+        let myPlayerTileY = this.player.getTileY();
+        let selectedTroops = [];
+        for (let otherTroop of allTroopsOnMyTeam){
+            // Ignore me
+            if (otherTroop.is(this.player)){ continue; }
+
+            let otherTroopTileX = otherTroop.getTileX();
+            let otherTroopTileY = otherTroop.getTileY();
+            let distance = Math.sqrt(Math.pow(myPlayerTileX - otherTroopTileX, 2) + Math.pow(myPlayerTileY - otherTroopTileY, 2));
+            if (distance < RETRO_GAME_DATA["skirmish"]["troop_selection_distance"]){
+                selectedTroops.push(otherTroop);
+            }
+        }
+        return selectedTroops;
     }
 
     getScene(){
@@ -53,7 +74,26 @@ class PointToShoot extends Item {
         }
     }
 
-    select(){}
+    getGamemode(){
+        return this.player.getGamemode();
+    }
+
+    select(){
+        let newTurn = this.player.getGamemode().getTurnCounter();
+        let playerStandingX = this.player.getTileX();
+        let playerStandingY = this.player.getTileY();
+        // Don't update selected trops UNLESS new turn OR player has moved
+        if (newTurn == this.selectionlastUpdatedTurn && this.selectionMadeAtX == playerStandingX && this.selectionMadeAtY == playerStandingY){
+            return;
+        }
+        this.selectionlastUpdatedTurn = newTurn;
+        this.moveTileX = playerStandingX; // Placeholder
+        this.moveTileY = playerStandingY; // Placeholder
+        this.selectionMadeAtX = playerStandingX;
+        this.selectionMadeAtY = playerStandingY;
+        this.selectedTroops = this.generateSelectedTroops();
+    }
+
     deselect(){
     }
 

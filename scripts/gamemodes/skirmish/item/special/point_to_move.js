@@ -7,6 +7,8 @@ class PointToMove extends Item {
     	this.moveTileY = this.player.getTileY();
 
         this.selectionlastUpdatedTurn = -1;
+        this.selectionMadeAtX = 0;
+        this.selectionMadeAtY = 0;
         this.selectedTroops = [];
 
         this.resetDecisions();
@@ -59,12 +61,17 @@ class PointToMove extends Item {
 
     select(){
         let newTurn = this.player.getGamemode().getTurnCounter();
-        if (newTurn == this.selectionlastUpdatedTurn){
+        let playerStandingX = this.player.getTileX();
+        let playerStandingY = this.player.getTileY();
+        // Don't update selected trops UNLESS new turn OR player has moved
+        if (newTurn == this.selectionlastUpdatedTurn && this.selectionMadeAtX == playerStandingX && this.selectionMadeAtY == playerStandingY){
             return;
         }
         this.selectionlastUpdatedTurn = newTurn;
-    	this.moveTileX = this.player.getTileX();
-    	this.moveTileY = this.player.getTileY();
+    	this.moveTileX = playerStandingX; // Placeholder
+    	this.moveTileY = playerStandingY; // Placeholder
+        this.selectionMadeAtX = playerStandingX;
+        this.selectionMadeAtY = playerStandingY;
         this.selectedTroops = this.generateSelectedTroops();
     }
 

@@ -25,11 +25,31 @@ class TurnBasedSkirmish extends Gamemode {
         this.startUp();
     }
 
-    isTroopSelected(troop){
+    getOfficerCommand(troop){
+        let officer = this.getTroopOfficer(troop);
+
+        // No officer for this troop
+        if (officer == null){ return null; }
+
+        let selectedItem = otherTroop.getSelectedItem();
+
+        // If the officer is holding something
+        if (selectedItem != null){ 
+            // If the officer is holding a point to move or point to shoot tool
+            if (selectedItem instanceof PointToMove || selectedItem instanceof PointToShoot){
+                return selectedItem.getCommandForTroop(troop);
+            }
+        }
+
+        // Otherwise, no command
+        return null;
+    }
+
+    getTroopOfficer(troop){
         let teamRoster = this.getLivingTeamRosterFromName(troop.getTeamName());
         // Since one officer per team, an officer cannot be selected
         if (troop.getRankName() == "officer"){
-            return;
+            return null;
         }
         // Loop through all the troops on this troop's team to find the officer
         for (let otherTroop of teamRoster){
@@ -37,27 +57,36 @@ class TurnBasedSkirmish extends Gamemode {
             if (otherTroop.is(troop)){ continue; }
             // Note: Assuming only 1 officer
             if (otherTroop.getRankName() == "officer"){
-
-                let selectedItem = otherTroop.getSelectedItem();
-                // If the officer is holding something
-                if (selectedItem != null){ 
-                    // If the officer is holding a point to move or point to shoot tool
-                    if (selectedItem instanceof PointToMove || selectedItem instanceof PointToShoot){
-                        let selectedTroops = selectedItem.getSelectedTroops();
-                        //console.log(selectedTroops.length)
-                        // Check all of the officer's selected troops to see if 'troop' is on the list
-                        for (let selectedTroop of selectedTroops){
-                            //console.log(selectedTroop.is(troop))
-                            if (selectedTroop.is(troop)){
-                                return true;
-                            }
-                        }
-                    }
-                }
-                // The officer hasn't selected this troop
-                return false;
+                return otherTroop;
             }
         }
+        // Officer not found
+        return null;
+    }
+
+    isTroopSelected(troop){
+        let officer = this.getTroopOfficer(troop):
+
+        // If no officer found then return false, not selected
+        if (officer == null){ return false; }
+
+        let selectedItem = otherTroop.getSelectedItem();
+
+        // If the officer is holding something
+        if (selectedItem != null){ 
+            // If the officer is holding a point to move or point to shoot tool
+            if (selectedItem instanceof PointToMove || selectedItem instanceof PointToShoot){
+                let selectedTroops = selectedItem.getSelectedTroops();
+                // Check all of the officer's selected troops to see if 'troop' is on the list
+                for (let selectedTroop of selectedTroops){
+                    if (selectedTroop.is(troop)){
+                        return true;
+                    }
+                }
+            }
+        }
+
+        // Troop isn't selected
         return false;
     }
 

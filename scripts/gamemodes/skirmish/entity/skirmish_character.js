@@ -11,6 +11,10 @@ class SkirmishCharacter extends Character {
         this.walkingBar = new ProgressBar(RETRO_GAME_DATA["skirmish"]["distance_per_turn"][this.rankName]);
     }
 
+    getWalkingBar(){
+        return this.walkingBar;
+    }
+
     getRankName(){
         return this.rankName;
     }
@@ -106,10 +110,28 @@ class SkirmishCharacter extends Character {
 
     makeDecisions(){
         this.resetDecisions();
-        if (!this.isMakingAMove()){ return; }
-        this.inventory.tick();
-        this.makeMovementDecisions();
-        this.inventory.makeDecisionsForSelectedItem();
+        if (this.isMakingAMove()){ 
+            this.inventory.tick();
+            this.makeMovementDecisions();
+            this.inventory.makeDecisionsForSelectedItem();
+        }
+        this.checkForOfficerCommand();
+    }
+
+    checkForOfficerCommand(){
+        if (!this.isSelected()){
+            return;
+        }
+        // Only have commands if selected
+        let officerCommand = this.gamemode.getOfficerCommand(this);
+        
+        // if no command then return
+        if (officerCommand == null){ return; }
+
+        // Execute officer command
+        for (let decisionType of Object.keys(officerCommand)){
+            this.decisions[decisionType] = officerCommand[decisionType];
+        }
     }
 
     makeMovementDecisions(){}

@@ -11,7 +11,48 @@ class PointToMove extends Item {
         this.selectionMadeAtY = 0;
         this.selectedTroops = [];
 
+        this.troopMovementDetails = {};
+
         this.resetDecisions();
+    }
+
+    getCommandForTroop(troop){
+        if (!objectHasKey(this.troopMovementDetails, troop.getID())){
+            return null;
+        }
+        let route = this.troopMovementDetails[troop.getID()];
+        let troopX = troop.getTileX();
+        let troopY = troop.getTileY();
+        let decision = route.getDecisionAt(troopX, troopY);
+        let troopXAfter = troopX;
+        let troopYAfter = troopY;
+
+        // determine after position
+        if (objectHasKey(decision, "up")){
+            troopYAfter += 1;
+        }else if (objectHasKey(decision, "down")){
+            troopYAfter -= 1;
+        }else if (objectHasKey(decision, "left")){
+            troopXAfter -= 1;
+        }else if (objectHasKey(decision, "right")){
+            troopXAfter += 1;
+        }
+        let startTile = route.getStartTile();
+        let startOfRouteX = startTile["x_tile"];
+        let startOfRouteY = startTile["y_tile"];
+        let distanceFromStart = Math.sqrt(Math.pow(troopXAfter - startOfRouteX, 2) + Math.pow(troopYAfter - startOfRouteY, 2));
+        // Don't let troop keep moving if the troop has moved far enough
+        if (distanceFromStart > troop.getWalkingBar().getMaxValue()){
+            return null;
+        }
+        // TODO: Check start of the route and compare to troop current location for troop movement limits
+        return route.getDecisionAt(troop.getTileX(), troop.getTileY());
+    }
+
+    generateTroopMovementDetails(){
+        for (let troop of this.selectedTroops){
+            this.troopMovementDetails[troop.getID()] = troop.generateShortestRouteToPoint(this.moveTileX, this.moveTileY);
+        }
     }
 
     getSelectedTroops(){
@@ -19,13 +60,13 @@ class PointToMove extends Item {
     }
 
     actOnDecisions(){
-    	if (this.decisions["new_move_tile"]){
+    	if (this.decisions["new_move_tile"] && !this.player.hasCommitedToAction()){
         	this.moveTileX = this.decisions["move_tile_x"];
         	this.moveTileY = this.decisions["move_tile_y"];
     	}
     	if (this.decisions["trying_to_move_troops"] && !this.player.hasCommitedToAction() && this.selectedTroops.length > 0){
             this.player.commitToAction();
-            // TODO
+            this.generateTroopMovementDetails();
     	}
     }
 
@@ -119,6 +160,7 @@ class PointToMove extends Item {
     }
 
     tick(){
+        // TODO Check if all troops are in position (if making a move) then when in position say that move is over and delete troopmovementdetails
     }
 
     display(lX, bY){

@@ -25,6 +25,10 @@ class Character extends Entity {
         }
     }
 
+    generateShortestRouteToPoint(tileX, tileY){
+        
+    }
+
     getSelectedItem(){
         return this.inventory.getSelectedItem();
     }

@@ -25,8 +25,94 @@ class Character extends Entity {
         }
     }
 
-    generateShortestRouteToPoint(tileX, tileY){
-        
+    generateShortestRouteToPoint(endTileX, endTileY){
+        let startTileX = this.tileX;
+        let startTileY = this.tileY;
+
+        let tiles = [];
+
+        let addAdjacentTilesAsUnchecked = (tileX, tileY, pathToTile) => {
+            tryToAddTile(tileX+1, tileY, pathToTile);
+            tryToAddTile(tileX-1, tileY, pathToTile);
+            tryToAddTile(tileX, tileY+1, pathToTile);
+            tryToAddTile(tileX, tileY-1, pathToTile);
+        }
+
+        let getTileIndex = (tileX, tileY) => {
+            for (let i = 0; i < tiles.length; i++){
+                if (tiles[i]["tile_x"] == tileX && tile[i]["tile_y"] == tileY){
+                    return i;
+                }
+            }
+            return -1;
+        }
+
+        let tileAlreadyChecked = (tileX, tileY) => {
+            let tileIndex = getTileIndex(tileX, tileY);
+            if (tileIndex == -1){ return false; }
+            return tiles[tileIndex]["checked"];
+        }
+
+        let tryToAddTile = (tileX, tileY, pathToTile) => {
+            if (tileAlreadyChecked(tileX, tileY)){ return; }
+            let tileIndex = getTileIndex(tileX, tileY);
+            let newPath = appendLists(pathToTile, {"tile_x": tileX, "tile_y": tileY});
+            if (tileIndex == -1){
+                tiles.push({
+                    "tile_x": tileX,
+                    "tile_y": tileY
+                    "checked": false,
+                    "shortest_path": newPath
+                });
+            }else{
+                let tileObj = tiles[tileIndex];
+                if (tileObj["shortest_path"].length < newPath.length){
+                    tileObj["shortest_path"] = newPath;
+                }
+            }
+        }
+
+        let hasUncheckedTiles = () => {
+            for (let tile of tiles){
+                if (!tile["checked"]){
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        let hasFoundTheBestPossiblePath = () => {
+            /*
+                Note: This will return true when:
+                    An optimal path is found
+                    OR
+                    A path has found that has a length where all paths with optimal distance to end are <= that path's length (so like say 15 but then theres a tile that is 13 to reach but optimally 3 away from the end it can AT BEST be 16 if followed)
+            */
+            let optimalPathLength = Math.abs(endTileX - startTileX) + Math.abs(endTileY - startTileY);
+            for (let tile of tiles){
+                if (tile["tile_x"] == endTileX && tile["tileY"] == )
+            }
+        }
+
+        let pickBestTile = () => {
+            // TODO: Use a heuristic to find the tile that is both the shortest and the closest to the end
+            return tiles[0];
+        }
+
+        // Add first tile
+        tryToAddTile(startTileX, startTileY);
+
+        while (hasUncheckedTiles() && !hasFoundAnOptimalPath()){
+            let currentTile = pickBestTile();
+            currentTile["checked"] = true;
+            addAdjacentTilesAsUnchecked(currentTile["tile_x"], currentTile["tile_y"]);
+        }
+
+        if (hasFoundAPath()){
+            return Route.fromPath(getBestPath());
+        }else{
+            return null; // TODO: Is null what is expected if not found?
+        }
     }
 
     getSelectedItem(){

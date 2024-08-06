@@ -46,4 +46,12 @@ class Route {
         // Else go down
         return {"down": true}
     }
+
+    static fromPath(path){
+        let route = new Route();
+        for (let tile of path){
+            route.addTile(tile["tile_x"], tile["tile_y"]);
+        }
+        return route;
+    }
 }

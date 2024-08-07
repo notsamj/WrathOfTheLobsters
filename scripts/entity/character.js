@@ -31,11 +31,11 @@ class Character extends Entity {
 
         let tiles = [];
 
-        let addAdjacentTilesAsUnchecked = (tileX, tileY, pathToTile) => {
-            tryToAddTile(tileX+1, tileY, pathToTile);
-            tryToAddTile(tileX-1, tileY, pathToTile);
-            tryToAddTile(tileX, tileY+1, pathToTile);
-            tryToAddTile(tileX, tileY-1, pathToTile);
+        let addAdjacentTilesAsUnchecked = (tileX, tileY, pathToTile, startToEnd) => {
+            tryToAddTile(tileX+1, tileY, pathToTile, startToEnd);
+            tryToAddTile(tileX-1, tileY, pathToTile, startToEnd);
+            tryToAddTile(tileX, tileY+1, pathToTile, startToEnd);
+            tryToAddTile(tileX, tileY-1, pathToTile, startToEnd);
         }
 
         let getTileIndex = (tileX, tileY) => {
@@ -47,34 +47,50 @@ class Character extends Entity {
             return -1;
         }
 
-        let tileAlreadyChecked = (tileX, tileY) => {
+        let tileAlreadyChecked = (tileX, tileY, startToEnd) => {
             let tileIndex = getTileIndex(tileX, tileY);
             if (tileIndex == -1){ return false; }
-            return tiles[tileIndex]["checked"];
+            return tiles[tileIndex]["checked"][startToEnd];
         }
 
-        let tryToAddTile = (tileX, tileY, pathToTile) => {
-            if (tileAlreadyChecked(tileX, tileY)){ return; }
+        let tryToAddTile = (tileX, tileY, pathToTile, startToEnd=true) => {
+            if (!tileCanBeWalkedOn(tileX, tileY)){ return; }
+            if (tileAlreadyChecked(tileX, tileY, startToEnd)){ return; }
             let tileIndex = getTileIndex(tileX, tileY);
-            let newPath = appendLists(pathToTile, {"tile_x": tileX, "tile_y": tileY});
+            let newPath;
+            if (startToEnd){
+                newPath = appendLists(pathToTile, [{"tile_x": tileX, "tile_y": tileY}]);
+            }else{
+                newPath = appendLists([{"tile_x": tileX, "tile_y": tileY}], pathToTile);
+            }
+            // If the tile has not been found then add
             if (tileIndex == -1){
                 tiles.push({
                     "tile_x": tileX,
                     "tile_y": tileY
-                    "checked": false,
+                    "checked": {
+                        startToEnd: false,
+                        !startToEnd: false
+                    },
+                    "path_direction": startToEnd,
                     "shortest_path": newPath
                 });
             }else{
+                // Merge
                 let tileObj = tiles[tileIndex];
-                if (tileObj["shortest_path"].length < newPath.length){
+                if (tileObj["path_direction"] != startToEnd){
+                    tileObj["checked"][startToEnd] = true;
+                }
+                if (tileObj["shortest_path"].length > newPath.length){
                     tileObj["shortest_path"] = newPath;
+                    tileObj["path_direction"] = startToEnd;
                 }
             }
         }
 
         let hasUncheckedTiles = () => {
             for (let tile of tiles){
-                if (!tile["checked"]){
+                if (!tile["checked"][true] && !tile["checked"][false]){
                     return true;
                 }
             }
@@ -93,8 +109,14 @@ class Character extends Entity {
             let bestPossibleUndiscoveredPathLength = Number.MAX_SAFE_INTEGER;
 
             for (let tile of tiles){
+                let effectiveEndX = endTileX;
+                let effectiveEndY = endTileY;
+                if (!tile["path_direction"]){
+                    effectiveEndX = startTileX;
+                    effectiveEndY = startTileY;
+                }
                 // If found the a path
-                let tileDistanceToEnd = Math.abs(endTileX - tile["tile_x"]) + Math.abs(endTileY - tile["tile_y"]);
+                let tileDistanceToEnd = Math.abs(effectiveEndX - tile["tile_x"]) + Math.abs(effectiveEndY - tile["tile_y"]);
                 if (tileDistanceToEnd == 0){
                     let lengthOfPath = tile["shortest_path"].length;
                     // If optimal, return true
@@ -123,13 +145,26 @@ class Character extends Entity {
             return tiles[0];
         }
 
-        // Add first tile
-        tryToAddTile(startTileX, startTileY);
+        let getBestPath = () => {
+            // TODO: if path direction is backwards then reverse the list!
+        }
 
-        while (hasUncheckedTiles() && !hasFoundTheBestPossiblePath()){
+        let hasPathsInBothDirections = () => {
+            // TODO: If one direction has zero active paths then its stuck and the answer will never be found!
+        }
+
+        let hasFoundAPath = () => {
+            // TODO: Find if there is a single path going to completion
+        }
+
+        // Add first tile
+        tryToAddTile(startTileX, startTileY, []);
+        tryToAddTile(endTileX, endTileY, [], false);
+
+        while (hasUncheckedTiles() && !hasFoundTheBestPossiblePath() && !hasPathsInBothDirection()){
             let currentTile = pickBestTile();
-            currentTile["checked"] = true;
-            addAdjacentTilesAsUnchecked(currentTile["tile_x"], currentTile["tile_y"]);
+            currentTile["checked"][currentTile["path_direction"]] = true;
+            addAdjacentTilesAsUnchecked(currentTile["tile_x"], currentTile["tile_y"], currentTile["path_direction"]);
         }
 
         if (hasFoundAPath()){

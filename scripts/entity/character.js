@@ -89,9 +89,33 @@ class Character extends Entity {
                     A path has found that has a length where all paths with optimal distance to end are <= that path's length (so like say 15 but then theres a tile that is 13 to reach but optimally 3 away from the end it can AT BEST be 16 if followed)
             */
             let optimalPathLength = Math.abs(endTileX - startTileX) + Math.abs(endTileY - startTileY);
+            let bestFoundPathLength = Number.MAX_SAFE_INTEGER;
+            let bestPossibleUndiscoveredPathLength = Number.MAX_SAFE_INTEGER;
+
             for (let tile of tiles){
-                if (tile["tile_x"] == endTileX && tile["tileY"] == )
+                // If found the a path
+                let tileDistanceToEnd = Math.abs(endTileX - tile["tile_x"]) + Math.abs(endTileY - tile["tile_y"]);
+                if (tileDistanceToEnd == 0){
+                    let lengthOfPath = tile["shortest_path"].length;
+                    // If optimal, return true
+                    if (lengthOfPath == optimalPathLength){
+                        return true;
+                    }
+                    // Record length if shorter than the record
+                    if (bestFoundPathLength > lengthOfPath){
+                        bestFoundPathLength = lengthOfPath;
+                    }
+                }
+                // If this tile hasn't been explored from, check the best possible path length that could result from this path
+                if (!tile["checked"]){
+                    bestPossibleUndiscoveredPathLengthFromThisTile = tile["shortest_path"].length + tileDistanceToEnd;
+                    // Update record, if better
+                    bestPossibleUndiscoveredPathLength = Math.min(bestPossibleUndiscoveredPathLengthFromThisTile, bestPossibleUndiscoveredPathLength);
+                }
             }
+
+            // If the best possible undiscovered path *would be* worse or the same as the best found one then return that the best one has been found
+            return bestPossibleUndiscoveredPathLength >= bestFoundPathLength;
         }
 
         let pickBestTile = () => {
@@ -102,7 +126,7 @@ class Character extends Entity {
         // Add first tile
         tryToAddTile(startTileX, startTileY);
 
-        while (hasUncheckedTiles() && !hasFoundAnOptimalPath()){
+        while (hasUncheckedTiles() && !hasFoundTheBestPossiblePath()){
             let currentTile = pickBestTile();
             currentTile["checked"] = true;
             addAdjacentTilesAsUnchecked(currentTile["tile_x"], currentTile["tile_y"]);

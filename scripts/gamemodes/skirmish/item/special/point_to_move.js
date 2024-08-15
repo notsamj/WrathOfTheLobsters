@@ -21,6 +21,10 @@ class PointToMove extends Item {
             return null;
         }
         let route = this.troopMovementDetails[troop.getID()];
+        // If no route, there is no command
+        if (route == null){
+            return;
+        }
         let troopX = troop.getTileX();
         let troopY = troop.getTileY();
         let decision = route.getDecisionAt(troopX, troopY);

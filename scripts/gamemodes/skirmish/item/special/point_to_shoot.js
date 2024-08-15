@@ -13,6 +13,11 @@ class PointToShoot extends Item {
         this.resetDecisions();
     }
 
+    getCommandForTroop(){
+        // TODO
+        return null;
+    }
+
     getSelectedTroops(){
         return this.selectedTroops;
     }

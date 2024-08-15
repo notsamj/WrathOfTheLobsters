@@ -367,6 +367,14 @@ function getDegreesFromDisplacement(dX, dY){
     }
 }
 
+function reverseList(myList){
+    let newList = [];
+    for (let i = myList.length - 1; i >= 0; i--){
+        newList.push(myList[i]);
+    }
+    return newList;
+}
+
 /*
     Method Name: planeModelToType
     Method Parameters:

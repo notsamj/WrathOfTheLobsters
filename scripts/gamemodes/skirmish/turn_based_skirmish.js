@@ -31,7 +31,7 @@ class TurnBasedSkirmish extends Gamemode {
         // No officer for this troop
         if (officer == null){ return null; }
 
-        let selectedItem = otherTroop.getSelectedItem();
+        let selectedItem = officer.getSelectedItem();
 
         // If the officer is holding something
         if (selectedItem != null){ 
@@ -65,12 +65,12 @@ class TurnBasedSkirmish extends Gamemode {
     }
 
     isTroopSelected(troop){
-        let officer = this.getTroopOfficer(troop):
+        let officer = this.getTroopOfficer(troop);
 
         // If no officer found then return false, not selected
         if (officer == null){ return false; }
 
-        let selectedItem = otherTroop.getSelectedItem();
+        let selectedItem = officer.getSelectedItem();
 
         // If the officer is holding something
         if (selectedItem != null){ 

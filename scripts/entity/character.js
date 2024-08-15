@@ -26,10 +26,9 @@ class Character extends Entity {
     }
 
     generateShortestRouteToPoint(endTileX, endTileY){
+        let tiles = [];
         let startTileX = this.tileX;
         let startTileY = this.tileY;
-
-        let tiles = [];
 
         let addAdjacentTilesAsUnchecked = (tileX, tileY, pathToTile, startToEnd) => {
             tryToAddTile(tileX+1, tileY, pathToTile, startToEnd);
@@ -40,7 +39,7 @@ class Character extends Entity {
 
         let getTileIndex = (tileX, tileY) => {
             for (let i = 0; i < tiles.length; i++){
-                if (tiles[i]["tile_x"] == tileX && tile[i]["tile_y"] == tileY){
+                if (tiles[i]["tile_x"] == tileX && tiles[i]["tile_y"] == tileY){
                     return i;
                 }
             }
@@ -50,7 +49,11 @@ class Character extends Entity {
         let tileAlreadyChecked = (tileX, tileY, startToEnd) => {
             let tileIndex = getTileIndex(tileX, tileY);
             if (tileIndex == -1){ return false; }
-            return tiles[tileIndex]["checked"][startToEnd];
+            return tiles[tileIndex]["checked"][startToEnd.toString()];
+        }
+
+        let tileCanBeWalkedOn = (tileX, tileY) => {
+            return !this.getScene().tileAtLocationHasAttribute(tileX, tileY, "no_walk");
         }
 
         let tryToAddTile = (tileX, tileY, pathToTile, startToEnd=true) => {
@@ -67,20 +70,46 @@ class Character extends Entity {
             if (tileIndex == -1){
                 tiles.push({
                     "tile_x": tileX,
-                    "tile_y": tileY
+                    "tile_y": tileY,
                     "checked": {
-                        startToEnd: false,
-                        !startToEnd: false
+                        "true": false,
+                        "false": false
                     },
                     "path_direction": startToEnd,
                     "shortest_path": newPath
                 });
             }else{
-                // Merge
                 let tileObj = tiles[tileIndex];
                 if (tileObj["path_direction"] != startToEnd){
-                    tileObj["checked"][startToEnd] = true;
+                    tileObj["checked"][startToEnd.toString()] = true;
+                    let forwardPath;
+                    let backwardPath;
+                    // If function called on a forward path
+                    if (startToEnd){
+                        forwardPath = copyArray(newPath);
+                        backwardPath = copyArray(tileObj["shortest_path"]);
+                    }else{
+                        forwardPath = copyArray(tileObj["shortest_path"]);
+                        backwardPath = copyArray(newPath);
+                    }
+
+                    // Shift the first element out from backward path to avoid having the same tile twice
+                    backwardPath.shift();
+
+                    let combinedPath = appendLists(forwardPath, backwardPath);
+                    let bestPath = getBestPath();
+                    let newLength = combinedPath.length;
+                    console.log("merging", bestPath, newLength, combinedPath)
+                    if (bestPath == null || bestPath.length > newLength){
+                        // Set start tile path
+                        startTile["path_direction"] = false; 
+                        startTile["shortest_path"] = combinedPath;
+                        // Set end tile path
+                        endTile["path_direction"] = true; 
+                        endTile["shortest_path"] = combinedPath;
+                    }
                 }
+                // see if the path is worth replacing
                 if (tileObj["shortest_path"].length > newPath.length){
                     tileObj["shortest_path"] = newPath;
                     tileObj["path_direction"] = startToEnd;
@@ -90,7 +119,8 @@ class Character extends Entity {
 
         let hasUncheckedTiles = () => {
             for (let tile of tiles){
-                if (!tile["checked"][true] && !tile["checked"][false]){
+                // if tile hasn't been checked in its current direction
+                if (!tile["checked"][tile["path_direction"].toString()]){
                     return true;
                 }
             }
@@ -104,10 +134,28 @@ class Character extends Entity {
                     OR
                     A path has found that has a length where all paths with optimal distance to end are <= that path's length (so like say 15 but then theres a tile that is 13 to reach but optimally 3 away from the end it can AT BEST be 16 if followed)
             */
-            let optimalPathLength = Math.abs(endTileX - startTileX) + Math.abs(endTileY - startTileY);
+            let optimalPathLength = Math.abs(endTileX - startTileX) + Math.abs(endTileY - startTileY) + 1; // + 1 because say start 00 end 01 it would be 2 length not 1 but abs(dx) + abs(dy) = 1
             let bestFoundPathLength = Number.MAX_SAFE_INTEGER;
             let bestPossibleUndiscoveredPathLength = Number.MAX_SAFE_INTEGER;
 
+            let pathOfStartTile = startTile["shortest_path"];
+            let pathOfEndTile = endTile["shortest_path"];
+            
+            let lastTileOnStartPath = pathOfStartTile[pathOfStartTile.length-1];
+            let startTileHasCompletedPath = lastTileOnStartPath["tile_x"] == endTile["tile_x"] && lastTileOnStartPath["tile_y"] == endTile["tile_y"];
+            
+            let firstTileOnEndPath = pathOfEndTile[0];
+            let endTileHasCompletedPath = firstTileOnEndPath["tile_x"] == startTile["tile_x"] && firstTileOnEndPath["tile_y"] == startTile["tile_y"];
+
+            // Check for known paths
+            if (startTileHasCompletedPath){
+                bestFoundPathLength = pathOfStartTile.length;
+            }
+            if (endTileHasCompletedPath){
+                bestFoundPathLength = Math.min(bestFoundPathLength, pathOfEndTile.length);
+            }
+
+            // Check for undiscovered potential paths
             for (let tile of tiles){
                 let effectiveEndX = endTileX;
                 let effectiveEndY = endTileY;
@@ -117,20 +165,9 @@ class Character extends Entity {
                 }
                 // If found the a path
                 let tileDistanceToEnd = Math.abs(effectiveEndX - tile["tile_x"]) + Math.abs(effectiveEndY - tile["tile_y"]);
-                if (tileDistanceToEnd == 0){
-                    let lengthOfPath = tile["shortest_path"].length;
-                    // If optimal, return true
-                    if (lengthOfPath == optimalPathLength){
-                        return true;
-                    }
-                    // Record length if shorter than the record
-                    if (bestFoundPathLength > lengthOfPath){
-                        bestFoundPathLength = lengthOfPath;
-                    }
-                }
-                // If this tile hasn't been explored from, check the best possible path length that could result from this path
-                if (!tile["checked"]){
-                    bestPossibleUndiscoveredPathLengthFromThisTile = tile["shortest_path"].length + tileDistanceToEnd;
+                // If this tile hasn't been explored from this direction, check the best possible path length that could result from this path
+                if (!tile["checked"][tile["path_direction"].toString()]){
+                    let bestPossibleUndiscoveredPathLengthFromThisTile = tile["shortest_path"].length + tileDistanceToEnd;
                     // Update record, if better
                     bestPossibleUndiscoveredPathLength = Math.min(bestPossibleUndiscoveredPathLengthFromThisTile, bestPossibleUndiscoveredPathLength);
                 }
@@ -142,35 +179,95 @@ class Character extends Entity {
 
         let pickBestTile = () => {
             // TODO: Use a heuristic to find the tile that is both the shortest and the closest to the end
-            return tiles[0];
+            let chosenTile = null;
+            for (let tile of tiles){
+                if (!tile["checked"][tile["path_direction"].toString()]){
+                    chosenTile = tile;
+                    break;
+                }
+            }
+            return chosenTile;
         }
 
         let getBestPath = () => {
-            // TODO: if path direction is backwards then reverse the list!
+            let pathOfStartTile = startTile["shortest_path"];
+            let pathOfEndTile = endTile["shortest_path"];
+            
+            let lastTileOnStartPath = pathOfStartTile[pathOfStartTile.length-1];
+            let startTileHasCompletedPath = lastTileOnStartPath["tile_x"] == endTile["tile_x"] && lastTileOnStartPath["tile_y"] == endTile["tile_y"];
+            
+            let firstTileOnEndPath = pathOfEndTile[0];
+            let endTileHasCompletedPath = firstTileOnEndPath["tile_x"] == startTile["tile_x"] && firstTileOnEndPath["tile_y"] == startTile["tile_y"];
+
+            // If both have full paths
+            if (startTileHasCompletedPath && endTileHasCompletedPath){
+                if (pathOfStartTile.length < pathOfEndTile.length){
+                    return pathOfStartTile;
+                }else{
+                    return pathOfEndTile;
+                }
+            }
+            // If only start tile has a full path
+            else if (startTileHasCompletedPath){
+                return pathOfStartTile;
+            }
+            // Else only end tile has a full path
+            else if (endTileHasCompletedPath){
+                return pathOfEndTile;
+            }
+            // Else neither have completed return null
+            else{
+                return null;
+            } 
         }
 
         let hasPathsInBothDirections = () => {
             // TODO: If one direction has zero active paths then its stuck and the answer will never be found!
+            // Check if it has paths forward
+            let pathsForward = false;
+            let pathsBackwards = false;
+            for (let tile of tiles){
+                if (tile["path_direction"] && !tile["checked"]["true"]){
+                    pathsForward = true;
+                }else if (!tile["path_direction"] && !tile["checked"]["false"]){
+                    pathsBackwards = true;
+                }
+                if (pathsForward && pathsBackwards){
+                    return true;
+                }
+            }
+            return false;
         }
 
         let hasFoundAPath = () => {
-            // TODO: Find if there is a single path going to completion
+            let pathOfStartTile = startTile["shortest_path"];
+            let pathOfEndTile = endTile["shortest_path"];
+            
+            let lastTileOnStartPath = pathOfStartTile[pathOfStartTile.length-1];
+            let startTileHasCompletedPath = lastTileOnStartPath["tile_x"] === endTile["tile_x"] && lastTileOnStartPath["tile_y"] ===endTile["tile_y"];
+            if (startTileHasCompletedPath){ return true;}
+
+            let firstTileOnEndPath = pathOfEndTile[0];
+            let endTileHasCompletedPath = firstTileOnEndPath["tile_x"] === startTile["tile_x"] && firstTileOnEndPath["tile_y"] === startTile["tile_y"];
+            if (endTileHasCompletedPath){ return true;}
+            return false;
         }
 
         // Add first tile
         tryToAddTile(startTileX, startTileY, []);
         tryToAddTile(endTileX, endTileY, [], false);
-
-        while (hasUncheckedTiles() && !hasFoundTheBestPossiblePath() && !hasPathsInBothDirection()){
+        let startTile = tiles[0];
+        let endTile = tiles[1];
+        while (hasUncheckedTiles() && !hasFoundTheBestPossiblePath() && hasPathsInBothDirections()){
             let currentTile = pickBestTile();
-            currentTile["checked"][currentTile["path_direction"]] = true;
-            addAdjacentTilesAsUnchecked(currentTile["tile_x"], currentTile["tile_y"], currentTile["path_direction"]);
+            currentTile["checked"][currentTile["path_direction"].toString()] = true;
+            addAdjacentTilesAsUnchecked(currentTile["tile_x"], currentTile["tile_y"], currentTile["shortest_path"], currentTile["path_direction"]);
         }
 
         if (hasFoundAPath()){
             return Route.fromPath(getBestPath());
         }else{
-            return null; // TODO: Is null what is expected if not found?
+            return null;
         }
     }
 

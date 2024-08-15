@@ -16,7 +16,7 @@ class Route {
         let position = -1;
 
         // Find the position of the entity sequence
-        for (let i = 0; i < tileSequence.length; i++){
+        for (let i = 0; i < this.tileSequence.length; i++){
             if (this.tileSequence[i]["tile_x"] == tileX && this.tileSequence[i]["tile_y"] == tileY){
                 position = i;
                 break;
@@ -29,7 +29,7 @@ class Route {
         }
 
         // If at the end then no decision
-        if (position == this.tileSequence.length){
+        if (position == this.tileSequence.length - 1){
             return null;
         }
 
@@ -45,6 +45,57 @@ class Route {
         }
         // Else go down
         return {"down": true}
+    }
+
+    printToConsole(){
+        console.log("Start @", this.tileSequence[0]["tile_x"], this.tileSequence[0]["tile_y"]);
+        for (let tile of this.tileSequence){
+            let direction = this.getDecisionAt(tile["tile_x"], tile["tile_y"]);
+            if (direction != null){
+                let reachX = tile["tile_x"];
+                let reachY = tile["tile_y"];
+                let directionStr;
+                if (objectHasKey(direction, "up")){
+                    directionStr = "up";
+                    reachY += 1;
+                }else if (objectHasKey(direction, "left")){
+                    directionStr = "left";
+                    reachX -= 1;
+                }else if (objectHasKey(direction, "right")){
+                    directionStr = "right";
+                    reachX += 1;
+                }else{
+                    directionStr = "down";
+                    reachY -= 1;
+                }
+                console.log("Move " + directionStr + " to reach", reachX, reachY);
+            }else{
+                console.log("Arrive @", tile["tile_x"], tile["tile_y"]);
+            }
+        }
+    }
+
+    printToConsoleAsBoard(boardSize){
+        let board = [];
+        for (let i = 0; i < boardSize; i++){
+            board.push([]);
+            for (let j = 0; j < boardSize; j++){
+                board[i].push(0);
+            }
+        }
+        for (let tile of this.tileSequence){
+            board[boardSize-1-tile["tile_y"]][tile["tile_x"]] = "i";
+        }
+        let boardStr = "";
+        for (let i = 0; i < boardSize; i++){
+            for (let j = 0; j < boardSize; j++){
+                boardStr += board[i][j];
+            }
+            if (i < boardSize - 1){
+                boardStr += '\n';
+            }
+        }
+        console.log(boardStr);
     }
 
     static fromPath(path){

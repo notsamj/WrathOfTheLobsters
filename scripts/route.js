@@ -25,12 +25,12 @@ class Route {
 
         // If we can't find where the entity is in the sequence
         if (position == -1){
-            return null;
+            return {};
         }
 
         // If at the end then no decision
         if (position == this.tileSequence.length - 1){
-            return null;
+            return {};
         }
 
         let nextPosition = position+1;

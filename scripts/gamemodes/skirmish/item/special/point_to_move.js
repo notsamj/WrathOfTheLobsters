@@ -12,8 +12,29 @@ class PointToMove extends Item {
         this.selectedTroops = [];
 
         this.troopMovementDetails = {};
+        this.troopMovementInProgress = false;
 
         this.resetDecisions();
+    }
+
+    isMovingTroops(){
+        return this.troopMovementInProgress;
+    }
+
+    checkIfMovementFinished(){
+        if (!this.isMovingTroops()){ return; }
+        for (let troop of this.selectedTroops){
+            let commandForTroop = this.getCommandForTroop(troop);
+            // If troop is moving or has a valid command to move
+            if (troop.isMoving() || (commandForTroop != null && getNumKeys(commandForTroop) > 0)){
+                return;
+            }
+        }
+        //return;
+        // Troop movement is over
+        this.troopMovementInProgress = false;
+        this.troopMovementDetails = {};
+        this.player.indicateMoveDone();
     }
 
     getCommandForTroop(troop){
@@ -23,7 +44,7 @@ class PointToMove extends Item {
         let route = this.troopMovementDetails[troop.getID()];
         // If no route, there is no command
         if (route == null){
-            return;
+            return null;
         }
         let troopX = troop.getTileX();
         let troopY = troop.getTileY();
@@ -70,8 +91,10 @@ class PointToMove extends Item {
     	}
     	if (this.decisions["trying_to_move_troops"] && !this.player.hasCommitedToAction() && this.selectedTroops.length > 0){
             this.player.commitToAction();
+            this.troopMovementInProgress = true;
             this.generateTroopMovementDetails();
     	}
+        this.checkIfMovementFinished();
     }
 
     resetDecisions(){
@@ -164,7 +187,7 @@ class PointToMove extends Item {
     }
 
     tick(){
-        // TODO Check if all troops are in position (if making a move) then when in position say that move is over and delete troopmovementdetails
+        // Moved this.checkIfMovementFinished();
     }
 
     display(lX, bY){

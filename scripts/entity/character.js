@@ -99,7 +99,6 @@ class Character extends Entity {
                     let combinedPath = appendLists(forwardPath, backwardPath);
                     let bestPath = getBestPath();
                     let newLength = combinedPath.length;
-                    console.log("merging", bestPath, newLength, combinedPath)
                     if (bestPath == null || bestPath.length > newLength){
                         // Set start tile path
                         startTile["path_direction"] = false; 

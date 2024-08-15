@@ -7,6 +7,14 @@ function getTeamNameFromClass(characterClass){
     return RETRO_GAME_DATA["characharacter_class_to_team_name"][characterClass];
 }
 
+function getNumKeys(obj){
+    let count = 0;
+    for (let objKey of Object.keys(obj)){
+        count++;
+    }
+    return count;
+}
+
 /*
     Method Name: angleBetweenCCWDEG
     Method Parameters:

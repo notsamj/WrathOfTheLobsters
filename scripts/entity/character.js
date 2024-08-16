@@ -616,9 +616,10 @@ class Character extends Entity {
 
     display(lX, rX, bY, tY){
         if (this.isDead()){ return; }
-        let x = this.getDisplayX(lX);
-        let y = this.getDisplayY(bY);
-        if (!pointInRectangle(x, y, 0, getScreenWidth(), 0, getScreenHeight())){ return; }
+        let x = this.getDisplayX(lX); // center of character
+        let y = this.getDisplayY(bY); // center of character
+        let onScreen = pointInRectangle(x, y, 0, getScreenWidth(), 0, getScreenHeight()) || pointInRectangle(x-this.getWidth()/2, y-this.getHeight()/2, 0, getScreenWidth(), 0, getScreenHeight()) || pointInRectangle(x+this.getWidth()/2, y-this.getHeight()/2, 0, getScreenWidth(), 0, getScreenHeight()) || pointInRectangle(x-this.getWidth()/2, y+this.getHeight()/2, 0, getScreenWidth(), 0, getScreenHeight()) || pointInRectangle(x+this.getWidth()/2, y+this.getHeight()/2, 0, getScreenWidth(), 0, getScreenHeight());
+        if (!onScreen){ return; }
         if (this.animationManager.getDirection() == "back" || this.animationManager.getDirection() == "left"){
             this.inventory.displaySelectedItem(lX, bY);
         }

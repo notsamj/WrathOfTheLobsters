@@ -70,6 +70,9 @@ class TurnBasedSkirmish extends Gamemode {
         // If no officer found then return false, not selected
         if (officer == null){ return false; }
 
+        // If officer is not making a move then return false
+        if (!officer.isMakingAMove()){ return false; }
+
         let selectedItem = officer.getSelectedItem();
 
         // If the officer is holding something

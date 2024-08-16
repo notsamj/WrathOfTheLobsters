@@ -191,6 +191,8 @@ class PointToMove extends Item {
     }
 
     display(lX, bY){
+        if (!this.player.isMakingAMove()){ return; }
+        
     	let x = this.getScene().getDisplayXFromTileX(lX, this.moveTileX);
         let y = this.getScene().getDisplayYFromTileY(bY, this.moveTileY);
         drawingContext.drawImage(IMAGES["point_to_move_crosshair"], x, y);

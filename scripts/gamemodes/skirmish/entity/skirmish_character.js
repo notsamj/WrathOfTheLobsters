@@ -145,24 +145,33 @@ class SkirmishCharacter extends Character {
         super.display(lX, rX, bY, tY);
 
         if (this.isSelected()){
-            let leftX = this.getInterpolatedTickX();
-            let topY = this.getInterpolatedTickY();
-            let displayX = this.getScene().getDisplayXOfPoint(leftX, lX);
-            let displayY = this.getScene().getDisplayYOfPoint(topY, bY);
+            //let leftX = this.getInterpolatedTickX();
+            //let topY = this.getInterpolatedTickY();
+            //let displayX = this.getScene().getDisplayXOfPoint(leftX, lX);
+            //let displayY = this.getScene().getDisplayYOfPoint(topY, bY);
             let myWidth = this.getWidth();
             let myHeight = this.getHeight();
+            let displayX = this.getDisplayX(lX) - myWidth/2;
+            let displayY = this.getDisplayY(bY) - myHeight/2;
+            let onScreen = pointInRectangle(displayX, displayY, 0, getScreenWidth(), 0, getScreenHeight()) || pointInRectangle(displayX+this.getWidth(), displayY, 0, getScreenWidth(), 0, getScreenHeight()) || pointInRectangle(displayX+this.getWidth(), displayY+this.getHeight(), 0, getScreenWidth(), 0, getScreenHeight()) || pointInRectangle(displayX, displayY+this.getHeight(), 0, getScreenWidth(), 0, getScreenHeight());
+            if (!onScreen){ return; }
             let selectionColour = Colour.fromCode(RETRO_GAME_DATA["skirmish"]["selection_colour"]);
             let selectionBorderWidth = RETRO_GAME_DATA["skirmish"]["selection_border_width"];
             selectionColour.setAlpha(0.75);
             
+            translate(displayX, displayY);
+            scale(gameZoom, gameZoom);
             // Top
-            noStrokeRectangle(selectionColour, displayX, displayY, myWidth, selectionBorderWidth);
+            noStrokeRectangle(selectionColour, 0, 0, myWidth, selectionBorderWidth);
             // Bottom
-            noStrokeRectangle(selectionColour, displayX, displayY+myHeight-selectionBorderWidth, myWidth, selectionBorderWidth);
+            noStrokeRectangle(selectionColour, 0, 0+myHeight-selectionBorderWidth, myWidth, selectionBorderWidth);
             // Left
-            noStrokeRectangle(selectionColour, displayX, displayY, selectionBorderWidth, myHeight);
+            noStrokeRectangle(selectionColour, 0, 0, selectionBorderWidth, myHeight);
             // Right
-            noStrokeRectangle(selectionColour, displayX+myWidth-selectionBorderWidth, displayY, selectionBorderWidth, myHeight);
+            noStrokeRectangle(selectionColour, 0+myWidth-selectionBorderWidth, 0, selectionBorderWidth, myHeight);
+
+            scale(1 / gameZoom, 1 / gameZoom);
+            translate(-1 * displayX, -1 * displayY);
         }
     }
 }

@@ -185,9 +185,12 @@ function setGameZoom(){
 }
 
 function drawCrosshair(){
+    drawCustomCrosshair(IMAGES["crosshair"]);
+}
+
+function drawCustomCrosshair(crosshairImage){
     let x = window.mouseX;
     let y = window.mouseY;
-    let crosshairImage = IMAGES["crosshair"];
     let crosshairWidth = crosshairImage.width;
     let crosshairHeight = crosshairImage.height;
     let displayX = x - crosshairWidth/2;

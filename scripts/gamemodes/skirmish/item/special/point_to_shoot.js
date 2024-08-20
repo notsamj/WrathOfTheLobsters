@@ -69,8 +69,8 @@ class PointToShoot extends Item {
         let canvasX = mouseX;
         let canvasY = this.getScene().changeFromScreenY(mouseY);
         if (canvasX < 0 || canvasX >= this.getScene().getWidth() || canvasY < 0 || canvasY >= this.getScene().getHeight()){ return; }
-        let engineX = canvasX + this.getScene().getLX();
-        let engineY = canvasY + this.getScene().getBY();
+        let engineX = canvasX / gameZoom + this.getScene().getLX();
+        let engineY = canvasY / gameZoom + this.getScene().getBY();
         this.decisions = {
             "crosshair_center_x": engineX,
             "crosshair_center_y": engineY,
@@ -125,7 +125,19 @@ class PointToShoot extends Item {
     display(lX, bY){
         let x = this.getScene().getDisplayXOfPoint(this.crosshairCenterX, lX);
         let y = this.getScene().getDisplayYOfPoint(this.crosshairCenterY, bY);
-        let image = IMAGES["point_to_shoot_crosshair"];
-        drawingContext.drawImage(image, x - image.width/2, y - image.height/2);
+        let crosshairImage = IMAGES["point_to_shoot_crosshair"];
+        let crosshairWidth = crosshairImage.width;
+        let crosshairHeight = crosshairImage.height;
+        translate(x, y);
+
+        // Game zoom
+        scale(gameZoom, gameZoom);
+
+        drawingContext.drawImage(crosshairImage, -1 * crosshairWidth / 2, -1 * crosshairHeight / 2);
+
+        // Game zoom
+        scale(1 / gameZoom, 1 / gameZoom);
+
+        translate(-1 * x, -1 * y);
     }
 }

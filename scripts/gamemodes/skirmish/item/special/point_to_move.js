@@ -115,8 +115,8 @@ class PointToMove extends Item {
     	let canvasX = mouseX;
         let canvasY = this.getScene().changeFromScreenY(mouseY);
         if (canvasX < 0 || canvasX >= this.getScene().getWidth() || canvasY < 0 || canvasY >= this.getScene().getHeight()){ return; }
-        let engineX = canvasX + this.getScene().getLX();
-        let engineY = canvasY + this.getScene().getBY();
+        let engineX = canvasX / gameZoom + this.getScene().getLX();
+        let engineY = canvasY / gameZoom + this.getScene().getBY();
         let newPlacerTileX = RetroGameScene.getTileXAt(engineX);
         let newPlacerTileY = RetroGameScene.getTileYAt(engineY);
         this.decisions = {
@@ -195,6 +195,19 @@ class PointToMove extends Item {
         
     	let x = this.getScene().getDisplayXFromTileX(lX, this.moveTileX);
         let y = this.getScene().getDisplayYFromTileY(bY, this.moveTileY);
-        drawingContext.drawImage(IMAGES["point_to_move_crosshair"], x, y);
+        let crosshairImage = IMAGES["point_to_move_crosshair"];
+        let crosshairWidth = crosshairImage.width;
+        let crosshairHeight = crosshairImage.height;
+        translate(x, y);
+
+        // Game zoom
+        scale(gameZoom, gameZoom);
+
+        drawingContext.drawImage(crosshairImage, 0, 0);
+
+        // Game zoom
+        scale(1 / gameZoom, 1 / gameZoom);
+
+        translate(-1 * x, -1 * y);
     }
 }

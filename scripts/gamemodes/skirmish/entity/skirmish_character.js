@@ -149,10 +149,10 @@ class SkirmishCharacter extends Character {
             //let topY = this.getInterpolatedTickY();
             //let displayX = this.getScene().getDisplayXOfPoint(leftX, lX);
             //let displayY = this.getScene().getDisplayYOfPoint(topY, bY);
+            let displayX = this.getDisplayX(lX);
+            let displayY = this.getDisplayY(bY);
             let myWidth = this.getWidth();
             let myHeight = this.getHeight();
-            let displayX = this.getDisplayX(lX) - myWidth/2;
-            let displayY = this.getDisplayY(bY) - myHeight/2;
             let onScreen = pointInRectangle(displayX, displayY, 0, getScreenWidth(), 0, getScreenHeight()) || pointInRectangle(displayX+this.getWidth(), displayY, 0, getScreenWidth(), 0, getScreenHeight()) || pointInRectangle(displayX+this.getWidth(), displayY+this.getHeight(), 0, getScreenWidth(), 0, getScreenHeight()) || pointInRectangle(displayX, displayY+this.getHeight(), 0, getScreenWidth(), 0, getScreenHeight());
             if (!onScreen){ return; }
             let selectionColour = Colour.fromCode(RETRO_GAME_DATA["skirmish"]["selection_colour"]);
@@ -161,14 +161,17 @@ class SkirmishCharacter extends Character {
             
             translate(displayX, displayY);
             scale(gameZoom, gameZoom);
+            let xOffset = -1 * this.getWidth() / 2;
+            let yOffset = -1 * this.getHeight() / 2;
             // Top
-            noStrokeRectangle(selectionColour, 0, 0, myWidth, selectionBorderWidth);
+            noStrokeRectangle(selectionColour, xOffset, yOffset, myWidth, selectionBorderWidth);
             // Bottom
-            noStrokeRectangle(selectionColour, 0, 0+myHeight-selectionBorderWidth, myWidth, selectionBorderWidth);
+            noStrokeRectangle(selectionColour, xOffset, yOffset+myHeight-selectionBorderWidth, myWidth, selectionBorderWidth);
             // Left
-            noStrokeRectangle(selectionColour, 0, 0, selectionBorderWidth, myHeight);
+            noStrokeRectangle(selectionColour, xOffset, yOffset, selectionBorderWidth, myHeight);
             // Right
-            noStrokeRectangle(selectionColour, 0+myWidth-selectionBorderWidth, 0, selectionBorderWidth, myHeight);
+            noStrokeRectangle(selectionColour, xOffset+myWidth-selectionBorderWidth, yOffset, selectionBorderWidth, myHeight);
+
 
             scale(1 / gameZoom, 1 / gameZoom);
             translate(-1 * displayX, -1 * displayY);

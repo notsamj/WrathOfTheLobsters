@@ -48,6 +48,30 @@ function angleBetweenCCWDEG(angle, eAngle1, eAngle2){
 }
 
 /*
+    Method Name: angleBetweenCCWRAD
+    Method Parameters:
+        angle:
+            An angle in radians
+        eAngle1:
+            An angle on one edge of a range (radians)
+        eAngle2:
+            An angle on the other edge of a range (radians)
+    Method Description: Determines if angle is between eAngle1 and eAngle2 in the counter clockwise direction
+    Method Return: boolean, true -> angle is between, false -> angle is not between
+*/
+function angleBetweenCCWRAD(angle, eAngle1, eAngle2){
+    if (angle < eAngle1){
+        angle += 2 * Math.PI;
+    }
+    if (eAngle2 < eAngle1){
+        eAngle2 += 2 * Math.PI;
+    }
+    let distanceFromEAngle1ToAngleCCW = angle - eAngle1;
+    let distanceFromEAngle1ToEAngle2CCW = eAngle2 - eAngle1;
+    return distanceFromEAngle1ToAngleCCW <= distanceFromEAngle1ToEAngle2CCW;
+}
+
+/*
     Method Name: angleBetweenCWRAD
     Method Parameters:
         angle:

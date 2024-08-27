@@ -12,10 +12,67 @@ class PointToShoot extends Item {
         
         this.resetDecisions();
     }
+    getCommandForTroop(troop){
+        // Note: We know this troop is selected because it would otherwise not be asking for a command
+        let command = {};
 
-    getCommandForTroop(){
-        // TODO
-        return null;
+        // Make sure troop is facing the proper direction
+        let troopCenterX = troop.getInterpolatedTickCenterX();
+        let troopCenterY = troop.getInterpolatedTickCenterY();
+        let angleToCrosshairRAD = displacementToRadians(this.crosshairCenterX - troopCenterX, this.crosshairCenterY - troopCenterY);
+        let directionToFace;
+        // If to the right
+        if (angleBetweenCCWRAD(toRadians(315), toRadians(45))){
+            directionToFace = "right";
+        }
+        // If up
+        else if (angleBetweenCCWRAD(toRadians(45), toRadians(135))){
+            directionToFace = "up";
+        }
+        // If to the left
+        else if (angleBetweenCCWRAD(toRadians(135), toRadians(180))){
+            directionToFace = "right";
+        }
+        // Else it must be down
+        else{
+            directionToFace = "down";
+        }
+
+        let currentFacingDirection = troop.getFacingUDLRDirection();
+        let facingCorrectDirection = currentFacingDirection == directionToFace;
+        
+        // If troop is facing the wrong direction, make it face face the correct direction
+        if (!facingCorrectDirection){
+            command[directionToFace] = true;
+        }
+
+        // Make troop equip gun
+        let troopInventory = troop.getInventory();
+        let selectedItem = troopInventory.getSelectedItem();
+        // If they don't have their gun selected
+        if (!selectedItem instanceof Gun){
+            let items = troopInventory.getItems();
+            // Find gun and select it
+            for (let i = 0; i < items.length; i++){
+                if (item instanceof Gun){
+                    troopInventory.setSelectedSlot(i);
+                    break;
+                }
+            }
+        }
+
+        // If not ready to start aiming then return current command
+        if (!facingCorrectDirection){
+            return command;
+        }
+
+        // Now we know they are holding a gun
+        let gun = troopInventory.getSelectedItem();
+        
+        // Make troop start aiming in correct direction
+        
+        // TODO: If troop is aiming at the correct place and officer wants to shoot, tell the troop to shoot
+        return command;
     }
 
     getSelectedTroops(){

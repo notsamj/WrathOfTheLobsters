@@ -14,7 +14,8 @@ class HumanSkirmishMusket extends SkirmishMusket {
             "trying_to_shoot": tryingToShoot,
             "toggling_bayonet_equip": togglingBayonetEquip,
             "trying_to_reload": tryingToReload,
-            "trying_to_stab": tryingToStab
+            "trying_to_stab": tryingToStab,
+            "aiming_angle_rad": this.determineNewAngleRAD()
         }
     }
 

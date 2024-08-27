@@ -116,6 +116,10 @@ class Inventory {
         if (!this.hasSelectedItem()){ return; }
         this.getItemAtSelectedSlot().actOnDecisions();
     }
+
+    setSelectedSlot(newSlotIndex){
+        this.selectedSlot = newSlotIndex;
+    }
 }
 /*
     Item required methods:

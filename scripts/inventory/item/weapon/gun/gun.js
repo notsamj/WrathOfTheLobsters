@@ -17,6 +17,10 @@ class Gun extends Item {
         this.loaded = true;
     }
 
+    getDecidedAngleRAD(){
+        return this.decisions["aiming_angle_rad"];
+    }
+
     // Abstract
     resetDecisions(){}
 
@@ -56,7 +60,7 @@ class Gun extends Item {
         // Add smoke where gun is shot
         this.getScene().addExpiringVisual(SmokeCloud.create(this.getEndOfGunX(), this.getEndOfGunY()));
         // Try to kill whenever is there
-        let angleRAD = this.getAngleRAD();
+        let angleRAD = this.getDecidedAngleRAD();
         let range = this.getBulletRange();
         let myID = this.player.getID();
         let collision = this.getScene().findInstantCollisionForProjectile(this.getEndOfGunX(), this.getEndOfGunY(), angleRAD, range, (enemy) => { return enemy.getID() == myID; });
@@ -81,7 +85,7 @@ class Gun extends Item {
     }
 
     directionToAimIsOk(){
-        let angleTryingToAimAtDEG = toFixedDegrees(this.getAngleRAD());
+        let angleTryingToAimAtDEG = toFixedDegrees(this.getDecidedAngleRAD());
         let playerDirection = this.player.getFacingDirection();
         if (playerDirection == "front"){
             return angleTryingToAimAtDEG > 180 && angleTryingToAimAtDEG <= 359;

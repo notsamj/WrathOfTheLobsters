@@ -85,7 +85,7 @@ class Pistol extends Gun {
 
     getEndOfGunX(){
         let playerDirection = this.player.getFacingDirection();
-        let playerAimingAngleRAD = this.getAngleRAD();
+        let playerAimingAngleRAD = this.getDecidedAngleRAD();
         let gunDirection;
 
         // Determine if using the right gun image or left gun image
@@ -118,7 +118,7 @@ class Pistol extends Gun {
 
     getEndOfGunY(){
         let playerDirection = this.player.getFacingDirection();
-        let playerAimingAngleRAD = this.getAngleRAD();
+        let playerAimingAngleRAD = this.getDecidedAngleRAD();
         let gunDirection;
 
         // Determine if using the right gun image or left gun image
@@ -157,7 +157,7 @@ class Pistol extends Gun {
 
         let image = IMAGES[this.model];
         let displayRotateAngleRAD;
-        let playerAimingAngleRAD = this.getAngleRAD();
+        let playerAimingAngleRAD = this.getDecidedAngleRAD();
         let playerAimingAngleDEG = toFixedDegrees(playerAimingAngleRAD);
         let atTheReady = RETRO_GAME_DATA["model_positions"]["at_the_ready_rotation"];
         let flipDirection = 1;

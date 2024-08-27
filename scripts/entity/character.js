@@ -476,6 +476,10 @@ class Character extends Entity {
         return this.animationManager.getDirection();
     }
 
+    getFacingUDLRDirection(){
+        return this.animationManager.getAlternativeDirection();
+    }
+
     getModel(){
         return this.model;
     }

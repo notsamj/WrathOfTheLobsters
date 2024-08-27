@@ -70,7 +70,6 @@ class PointToMove extends Item {
         if (distanceFromStart > troop.getWalkingBar().getMaxValue()){
             return null;
         }
-        // TODO: Check start of the route and compare to troop current location for troop movement limits
         return route.getDecisionAt(troop.getTileX(), troop.getTileY());
     }
 

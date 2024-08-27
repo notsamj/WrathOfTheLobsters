@@ -10,7 +10,8 @@ class HumanSkirmishPistol extends SkirmishPistol {
         this.decisions = {
             "trying_to_aim": tryingToAim,
             "trying_to_shoot": tryingToShoot,
-            "trying_to_reload": tryingToReload
+            "trying_to_reload": tryingToReload,
+            "aiming_angle_rad": this.determineNewAngleRAD()
         }
     }
 

@@ -47,7 +47,7 @@ class Musket extends Gun {
 
     startStab(){
         this.stabbing = true;
-        this.stabAngle = this.getAngleRAD();
+        this.stabAngle = this.getDecidedAngleRAD();
         this.stabFacing = this.player.getFacingDirection();
         this.stabLock.resetAndLock();
     }
@@ -180,7 +180,7 @@ class Musket extends Gun {
         x += RETRO_GAME_DATA["model_positions"][this.player.getModelCategory()][this.model]["aiming"][this.player.getFacingDirection()]["x_offset"];
 
         let playerDirection = this.player.getFacingDirection();
-        let playerAimingAngleRAD = this.getAngleRAD();
+        let playerAimingAngleRAD = this.getDecidedAngleRAD();
         let gunDirection;
 
         // Determine if using the right gun image or left gun image
@@ -214,7 +214,7 @@ class Musket extends Gun {
         y += RETRO_GAME_DATA["model_positions"][this.player.getModelCategory()][this.model]["aiming"][this.player.getFacingDirection()]["y_offset"] * -1
         
         let playerDirection = this.player.getFacingDirection();
-        let playerAimingAngleRAD = this.getAngleRAD();
+        let playerAimingAngleRAD = this.getDecidedAngleRAD();
         let playerAimingAngleDEG = toFixedDegrees(playerAimingAngleRAD);
         let gunDirection;
 
@@ -248,7 +248,7 @@ class Musket extends Gun {
 
         let image = null;
         let displayRotateAngleRAD;
-        let playerAimingAngleRAD = this.getAngleRAD();
+        let playerAimingAngleRAD = this.getDecidedAngleRAD();
         let playerAimingAngleDEG = toFixedDegrees(playerAimingAngleRAD);
         let atTheReady = RETRO_GAME_DATA["model_positions"]["at_the_ready_rotation"];
 

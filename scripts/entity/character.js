@@ -520,6 +520,7 @@ class Character extends Entity {
 
     actOnDecisions(){
         this.updateMovement();
+        this.inventory.actOnDecisions();
         this.inventory.actOnDecisionsForSelectedItem();
     }
 

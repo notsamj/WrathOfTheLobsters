@@ -15,7 +15,8 @@ class Musket extends Gun {
             "trying_to_shoot": false,
             "toggling_bayonet_equip": false,
             "trying_to_reload": false,
-            "trying_to_stab": false
+            "trying_to_stab": false,
+            "aiming_angle_rad": null
         }
     }
 

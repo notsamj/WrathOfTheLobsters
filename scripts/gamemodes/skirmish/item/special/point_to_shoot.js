@@ -9,9 +9,16 @@ class PointToShoot extends Item {
         this.selectionMadeAtX = 0;
         this.selectionMadeAtY = 0;
         this.selectedTroops = [];
+
+        this.beingUsedForAction = false;
         
         this.resetDecisions();
     }
+
+    isBeingUsedForAction(){
+        return this.beingUsedForAction;
+    }
+
     getCommandForTroop(troop){
         // Note: We know this troop is selected because it would otherwise not be asking for a command
         let command = {};
@@ -22,16 +29,16 @@ class PointToShoot extends Item {
         let angleToCrosshairRAD = displacementToRadians(this.crosshairCenterX - troopCenterX, this.crosshairCenterY - troopCenterY);
         let directionToFace;
         // If to the right
-        if (angleBetweenCCWRAD(toRadians(315), toRadians(45))){
+        if (angleBetweenCCWRAD(angleToCrosshairRAD, toRadians(315), toRadians(45))){
             directionToFace = "right";
         }
         // If up
-        else if (angleBetweenCCWRAD(toRadians(45), toRadians(135))){
+        else if (angleBetweenCCWRAD(angleToCrosshairRAD, toRadians(45), toRadians(135))){
             directionToFace = "up";
         }
         // If to the left
-        else if (angleBetweenCCWRAD(toRadians(135), toRadians(180))){
-            directionToFace = "right";
+        else if (angleBetweenCCWRAD(angleToCrosshairRAD, toRadians(135), toRadians(180))){
+            directionToFace = "left";
         }
         // Else it must be down
         else{
@@ -40,7 +47,6 @@ class PointToShoot extends Item {
 
         let currentFacingDirection = troop.getFacingUDLRDirection();
         let facingCorrectDirection = currentFacingDirection == directionToFace;
-        
         // If troop is facing the wrong direction, make it face face the correct direction
         if (!facingCorrectDirection){
             command[directionToFace] = true;
@@ -55,7 +61,7 @@ class PointToShoot extends Item {
             // Find gun and select it
             for (let i = 0; i < items.length; i++){
                 if (item instanceof Gun){
-                    troopInventory.setSelectedSlot(i);
+                    command["select_slot"] = i;
                     break;
                 }
             }
@@ -65,13 +71,11 @@ class PointToShoot extends Item {
         if (!facingCorrectDirection){
             return command;
         }
-
-        // Now we know they are holding a gun
-        let gun = troopInventory.getSelectedItem();
         
         // Make troop start aiming in correct direction
-        
-        // TODO: If troop is aiming at the correct place and officer wants to shoot, tell the troop to shoot
+        command["aiming_angle_rad"] = angleToCrosshairRAD;
+        command["trying_to_aim"] = true;
+        command["trying_to_shoot"] = this.decisions["trying_to_shoot"];
         return command;
     }
 
@@ -80,12 +84,24 @@ class PointToShoot extends Item {
     }
 
     actOnDecisions(){
+        // Tick 2 after trying to shot
+        if (this.player.hasCommitedToAction() && this.isBeingUsedForAction()){
+            this.beingUsedForAction = false;
+            this.player.indicateMoveDone();
+        }
         if (this.decisions["new_crosshair_center"]){
             this.crosshairCenterX = this.decisions["crosshair_center_x"];
             this.crosshairCenterY = this.decisions["crosshair_center_y"];
         }
+
+        // If trying to shoot, all troops (that have made preparations and are thus able) will shoot then the turn will end
         if (this.decisions["trying_to_shoot"]){
-            // TODO
+            // This will take 2 ticks, 1 to make the decision, second to wait for it to execute
+            // Tick 1
+            if (!this.player.hasCommitedToAction()){
+                this.player.commitToAction();
+                this.beingUsedForMove = true;
+            }
         }
     }
 
@@ -121,20 +137,7 @@ class PointToShoot extends Item {
         }
     }
 
-    makeDecisions(){
-        this.resetDecisions();
-        let canvasX = mouseX;
-        let canvasY = this.getScene().changeFromScreenY(mouseY);
-        if (canvasX < 0 || canvasX >= this.getScene().getWidth() || canvasY < 0 || canvasY >= this.getScene().getHeight()){ return; }
-        let engineX = canvasX / gameZoom + this.getScene().getLX();
-        let engineY = canvasY / gameZoom + this.getScene().getBY();
-        this.decisions = {
-            "crosshair_center_x": engineX,
-            "crosshair_center_y": engineY,
-            "trying_to_shoot": USER_INPUT_MANAGER.isActivated("left_click_ticked"),
-            "new_crosshair_center": true
-        }
-    }
+    makeDecisions(){}
 
     getGamemode(){
         return this.player.getGamemode();

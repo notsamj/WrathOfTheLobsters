@@ -7,7 +7,8 @@ class Pistol extends Gun {
         this.decisions = {
             "trying_to_aim": false,
             "trying_to_shoot": false,
-            "trying_to_reload": false
+            "trying_to_reload": false,
+            "aiming_angle_rad": null
         }
     }
 

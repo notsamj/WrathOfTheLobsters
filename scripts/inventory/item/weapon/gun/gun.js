@@ -27,6 +27,11 @@ class Gun extends Item {
     // Abstract
     makeDecisions(){}
 
+    // Note: Assumes this instance of Gun has decisions
+    getDecisions(){
+        return this.decisions;
+    }
+
     getScene(){
         return this.player.getScene();
     }

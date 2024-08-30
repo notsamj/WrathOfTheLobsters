@@ -5,4 +5,5 @@ class Item {
     display(lX, bY){}
     makeDecisions(){}
     actionOnDecisions(){}
+    getDecisions(){ return null; }
 }

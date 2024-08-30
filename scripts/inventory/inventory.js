@@ -3,6 +3,7 @@ class Inventory {
         this.hotbar = new NotSamArrayList(null, RETRO_GAME_DATA["inventory"]["hotbar_size"]);
         this.hotbar.fillWithPlaceholder(null);
         this.selectedSlot = 0;
+        this.resetDecisions();
     }
 
     getItems(){
@@ -13,8 +14,29 @@ class Inventory {
         return itemList;
     }
 
-    tick(){
-        this.checkChangeSelectedSlot();
+    resetDecisions(){
+        this.decisions = {
+            "select_slot": -1
+        }
+    }
+
+    getDecisions(){
+        return this.decisions;
+    }
+
+    makeDecisions(){}
+
+    actOnDecisions(){
+        let newSlot = this.decisions["select_slot"];
+        if (newSlot == -1 || newSlot == this.selectedSlot){ return; }
+
+        if (this.hasSelectedItem()){
+            this.getItemAtSelectedSlot().deselect();
+        }
+        this.selectedSlot = newSlot;
+        if (this.hasSelectedItem()){
+            this.getItemAtSelectedSlot().select();
+        }
     }
 
     // Abstract

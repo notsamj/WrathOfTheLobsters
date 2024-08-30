@@ -1,5 +1,6 @@
 class HumanInventory extends Inventory {
-    checkChangeSelectedSlot(){
+    makeDecisions(){
+        this.resetDecisions();
         let newSlot = this.selectedSlot;
         if (USER_INPUT_MANAGER.isActivated("1_ticked")){
             newSlot = 0;
@@ -22,17 +23,7 @@ class HumanInventory extends Inventory {
         }else if (USER_INPUT_MANAGER.isActivated("0_ticked")){
             newSlot = 9;
         }
-
-        if (newSlot == this.selectedSlot){
-            return;
-        }
-
-        if (this.hasSelectedItem()){
-            this.getItemAtSelectedSlot().deselect();
-        }
-        this.selectedSlot = newSlot;
-        if (this.hasSelectedItem()){
-            this.getItemAtSelectedSlot().select();
-        }
+        if (newSlot == this.selectedSlot){ return; }
+        this.decisions["select_slot"] = newSlot;
     }
 }

@@ -15,7 +15,7 @@ class HumanSkirmishPistol extends SkirmishPistol {
         }
     }
 
-    getAngleRAD(){
+    determineNewAngleRAD(){
         let x = mouseX;
         let y = this.getScene().changeFromScreenY(mouseY);
         let xOffset = x - getScreenWidth() / 2;

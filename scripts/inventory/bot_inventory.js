@@ -1,19 +1,8 @@
 class BotInventory extends Inventory {
-    checkChangeSelectedSlot(){
+    makeDecisions(){
+        this.resetDecisions();
         let newSlot = this.selectedSlot;
 
         // TODO
-
-        if (newSlot == this.selectedSlot){
-            return;
-        }
-
-        if (this.hasSelectedItem()){
-            this.getItemAtSelectedSlot().deselect();
-        }
-        this.selectedSlot = newSlot;
-        if (this.hasSelectedItem()){
-            this.getItemAtSelectedSlot().select();
-        }
     }
 }

@@ -111,7 +111,7 @@ class SkirmishCharacter extends Character {
     makeDecisions(){
         this.resetDecisions();
         if (this.isMakingAMove()){ 
-            this.inventory.tick();
+            this.inventory.makeDecisions();
             this.makeMovementDecisions();
             this.inventory.makeDecisionsForSelectedItem();
         }
@@ -129,8 +129,25 @@ class SkirmishCharacter extends Character {
         if (officerCommand == null){ return; }
 
         // Execute officer command
+        let inventory = this.getInventory();
+        let selectedItem = null;
+        let hasSelectedItem = inventory.hasSelectedItem();
+        if (hasSelectedItem){
+            selectedItem = inventory.getSelectedItem();
+        }
         for (let decisionType of Object.keys(officerCommand)){
-            this.decisions[decisionType] = officerCommand[decisionType];
+            // If this is a command for the troop, rather than for their item
+            if (objectHasKey(this.decisions, decisionType)){
+                this.decisions[decisionType] = officerCommand[decisionType];
+            }
+            // Else if this is a command for the selected item rather
+            else if (hasSelectedItem && selectedItem.getDecisions() != null && objectHasKey(selectedItem.getDecisions(), decisionType)){
+                selectedItem.getDecisions()[decisionType] = officerCommand[decisionType];
+            }
+            // Else if this is a command for the inventory
+            else if (objectHasKey(inventory.getDecisions(), decisionType)){
+                inventory.getDecisions()[decisionType] = officerCommand[decisionType];
+            }
         }
     }
 

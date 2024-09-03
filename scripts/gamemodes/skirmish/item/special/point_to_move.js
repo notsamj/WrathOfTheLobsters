@@ -89,9 +89,12 @@ class PointToMove extends Item {
         	this.moveTileY = this.decisions["move_tile_y"];
     	}
     	if (this.decisions["trying_to_move_troops"] && !this.player.hasCommitedToAction() && this.selectedTroops.length > 0){
-            this.player.commitToAction();
-            this.troopMovementInProgress = true;
-            this.generateTroopMovementDetails();
+            let canWalkOnTile = !this.getScene().tileAtLocationHasAttribute(this.moveTileX, this.moveTileY, "no_walk");
+            if (canWalkOnTile){
+                this.player.commitToAction();
+                this.troopMovementInProgress = true;
+                this.generateTroopMovementDetails();
+            }
     	}
         this.checkIfMovementFinished();
     }

@@ -75,7 +75,7 @@ class PointToShoot extends Item {
         // Make troop start aiming in correct direction
         command["aiming_angle_rad"] = angleToCrosshairRAD;
         command["trying_to_aim"] = true;
-        command["trying_to_shoot"] = this.decisions["trying_to_shoot"];
+        command["trying_to_shoot"] = this.isBeingUsedForAction();
         return command;
     }
 
@@ -100,7 +100,7 @@ class PointToShoot extends Item {
             // Tick 1
             if (!this.player.hasCommitedToAction()){
                 this.player.commitToAction();
-                this.beingUsedForMove = true;
+                this.beingUsedForAction = true;
             }
         }
     }

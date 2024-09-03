@@ -183,6 +183,7 @@ class PointToShoot extends Item {
     }
 
     display(lX, bY){
+        if (!this.player.isMakingAMove()){ return; }
         let x = this.getScene().getDisplayXOfPoint(this.crosshairCenterX, lX);
         let y = this.getScene().getDisplayYOfPoint(this.crosshairCenterY, bY);
         let crosshairImage = IMAGES["point_to_shoot_crosshair"];

@@ -33,14 +33,16 @@ class VisualEnvironmentHealthBar {
     display(displayLeftX, displayTopY){
         if (this.getValue() == this.getMaxValue()){ return; }
         let barWidth = RETRO_GAME_DATA["health_bar"]["width"];
-        displayLeftX = displayLeftX + (64 - barWidth) / 2;
         let barHeight = RETRO_GAME_DATA["health_bar"]["height"];
         let barBorderColour = RETRO_GAME_DATA["health_bar"]["border_colour"];
         let borderThickness = RETRO_GAME_DATA["health_bar"]["border_thickness"];
         let barColour;
         let progressProportion = this.value/this.maxValue;
         let threshold = this.getThreshold();
-
+        // Now that the threshold has been determined, inverse the "progress" for the actual health
+        progressProportion = 1 - progressProportion;
+        let centerXOffset = (64 - barWidth) / 2 - 32;
+        let centerYOffset = -32;
         // Determine bar colour
         if (threshold == "threshold_4"){
             barColour = RETRO_GAME_DATA["health_bar"]["threshold_4_colour"];
@@ -55,21 +57,27 @@ class VisualEnvironmentHealthBar {
         // Change from code to colour object
         barColour = Colour.fromCode(barColour);
 
-        let bottomY = displayTopY + borderThickness * 2 + barHeight;
+        let bottomY = displayTopY;
+        centerYOffset += borderThickness * 2 + barHeight;
 
         // Display borders
         let borderColour = Colour.fromCode(RETRO_GAME_DATA["health_bar"]["border_colour"]);
 
+        translate(displayLeftX, bottomY);
+        scale(gameZoom, gameZoom);
+
         // Top Border
-        noStrokeRectangle(borderColour, displayLeftX, bottomY - 1 - barHeight - borderThickness * 2 + 1, barWidth + 2 * borderThickness, borderThickness);
+        noStrokeRectangle(borderColour, centerXOffset, centerYOffset - 1 - barHeight - borderThickness * 2 + 1, barWidth + 2 * borderThickness, borderThickness);
         // Bottom Border
-        noStrokeRectangle(borderColour, displayLeftX, bottomY - 1 - borderThickness + 1, barWidth + 2 * borderThickness, borderThickness);
+        noStrokeRectangle(borderColour, centerXOffset, centerYOffset - 1 - borderThickness + 1, barWidth + 2 * borderThickness, borderThickness);
         // Left Border
-        noStrokeRectangle(borderColour, displayLeftX, bottomY - 1 - barHeight - borderThickness * 2 + 1, borderThickness, barHeight + 2 * borderThickness);
+        noStrokeRectangle(borderColour, centerXOffset, centerYOffset - 1 - barHeight - borderThickness * 2 + 1, borderThickness, barHeight + 2 * borderThickness);
         // Right Border
-        noStrokeRectangle(borderColour, displayLeftX + barWidth + 2 * borderThickness - 1, bottomY - 1 - barHeight - borderThickness * 2 + 1, borderThickness, barHeight + 2 * borderThickness);
+        noStrokeRectangle(borderColour, centerXOffset + barWidth + 2 * borderThickness - 1, centerYOffset - 1 - barHeight - borderThickness * 2 + 1, borderThickness, barHeight + 2 * borderThickness);
         
         // Display Health
-        noStrokeRectangle(barColour, displayLeftX + borderThickness, bottomY - barHeight - borderThickness, barWidth*progressProportion, barHeight);
+        noStrokeRectangle(barColour, centerXOffset + borderThickness, centerYOffset - barHeight - borderThickness, barWidth*progressProportion, barHeight);
+        scale(1/gameZoom, 1/gameZoom);
+        translate(-1*displayLeftX, -1*bottomY);
     }
 }

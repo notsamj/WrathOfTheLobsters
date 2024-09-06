@@ -283,10 +283,18 @@ class Character extends Entity {
     }
 
     damage(amount){
-        this.health -= amount;
-        if (this.health <= 0){
+        this.setHealth(this.health - amount);
+        if (this.getHealth() <= 0){
             this.die();
         }
+    }
+
+    getHealth(){
+        return this.health;
+    }
+
+    setHealth(amount){
+        this.health = amount;
     }
 
     getStabbed(model){

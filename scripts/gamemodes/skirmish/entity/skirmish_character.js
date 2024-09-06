@@ -9,6 +9,12 @@ class SkirmishCharacter extends Character {
         this.tileYOnTurnStart = null;
         this.rankName = rankName;
         this.walkingBar = new ProgressBar(RETRO_GAME_DATA["skirmish"]["distance_per_turn"][this.rankName]);
+        this.visualEnvironmentHealthBar = new VisualEnvironmentHealthBar(this.health);
+    }
+
+    setHealth(value){
+        super.setHealth(value);
+        this.visualEnvironmentHealthBar.setValue(value);
     }
 
     getWalkingBar(){
@@ -161,13 +167,15 @@ class SkirmishCharacter extends Character {
         if (this.isDead()){ return; }
         super.display(lX, rX, bY, tY);
 
+        let displayX = this.getDisplayX(lX);
+        let displayY = this.getDisplayY(bY);
+
+        // Display selection indicator
         if (this.isSelected()){
             //let leftX = this.getInterpolatedTickX();
             //let topY = this.getInterpolatedTickY();
             //let displayX = this.getScene().getDisplayXOfPoint(leftX, lX);
             //let displayY = this.getScene().getDisplayYOfPoint(topY, bY);
-            let displayX = this.getDisplayX(lX);
-            let displayY = this.getDisplayY(bY);
             let myWidth = this.getWidth();
             let myHeight = this.getHeight();
             let onScreen = pointInRectangle(displayX, displayY, 0, getScreenWidth(), 0, getScreenHeight()) || pointInRectangle(displayX+this.getWidth(), displayY, 0, getScreenWidth(), 0, getScreenHeight()) || pointInRectangle(displayX+this.getWidth(), displayY+this.getHeight(), 0, getScreenWidth(), 0, getScreenHeight()) || pointInRectangle(displayX, displayY+this.getHeight(), 0, getScreenWidth(), 0, getScreenHeight());
@@ -193,5 +201,8 @@ class SkirmishCharacter extends Character {
             scale(1 / gameZoom, 1 / gameZoom);
             translate(-1 * displayX, -1 * displayY);
         }
+
+        // Display health
+        this.visualEnvironmentHealthBar.display(displayX, displayY);
     }
 }

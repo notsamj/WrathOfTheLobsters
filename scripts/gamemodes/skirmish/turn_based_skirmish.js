@@ -20,6 +20,8 @@ class TurnBasedSkirmish extends Gamemode {
         this.gameState = null;
         this.initializeGameState();
 
+        this.rockHitboxes = [];
+
         this.startUpLock = new Lock();
         this.startUpLock.lock();
         this.startUp();
@@ -377,8 +379,6 @@ class TurnBasedSkirmish extends Gamemode {
             troop.setTileY(this.americanSpawn["y"]);
         }
     }
-
-
 
     async generateTiles(){
         let scene = this.getScene();
@@ -810,13 +810,35 @@ class TurnBasedSkirmish extends Gamemode {
             "x": americanSpawn[0],
             "y": americanSpawn[1]
         }
+
+        // Add rock hitboxes
+        for (let y = 0; y < size; y++){
+            for (let x = 0; x < size; x++){
+                let tileAtLocation = this.scene.getVisualTileAtLocation(x, y);
+                if (!tileAtLocation.getMaterial() === "rock_on_grass"){
+                    continue;
+                }
+                this.rockHitboxes.push(new RockHitbox(x,y));
+            }
+        }
     }
 
     display(){
         if (this.startUpLock.isLocked()){ return; }
         this.scene.display();
+        this.displayRockHealthBars();
         if (this.isOver()){
             this.stats.display();
+        }
+    }
+
+    displayRockHealthBars(){
+        let lX = this.scene.getLX();
+        let bY = this.scene.getBY();
+        for (let rock of this.rockHitboxes){
+            let displayX = this.scene.getDisplayXFromTileX(lX, rock.getTileX());
+            let displayY = this.scene.getDisplayYFromTileY(bY, rock.getTileY());
+            rock.display(displayX, displayY);            
         }
     }
 

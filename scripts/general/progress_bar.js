@@ -53,17 +53,15 @@ class ProgressBar {
 
     /*
         Method Name: display
-        Method Parameters:
-            timePassed:
-                The time in milliseconds since the last tick
+        Method Parameters: None
         Method Description: Displays the progress bar on the screen
         Method Return: void
     */
-    display(timePassed){
+    display(){
         let barWidth = RETRO_GAME_DATA["progress_bar"]["width"];
         let barHeight = RETRO_GAME_DATA["progress_bar"]["height"];
         let barBorderColour = RETRO_GAME_DATA["progress_bar"]["border_colour"];
-        let barThickness = RETRO_GAME_DATA["progress_bar"]["border_thickness"];
+        let borderThickness = RETRO_GAME_DATA["progress_bar"]["border_thickness"];
         let barColour;
         let progressProportion = this.value/this.maxValue;
         let threshold = this.getThreshold();
@@ -87,15 +85,15 @@ class ProgressBar {
         // Display borders
         let borderColour = Colour.fromCode(RETRO_GAME_DATA["progress_bar"]["border_colour"]);
         // Top Border
-        noStrokeRectangle(borderColour, 0, screenHeight - 1 - barHeight - barThickness * 2 + 1, barWidth + 2 * barThickness, barThickness);
+        noStrokeRectangle(borderColour, 0, screenHeight - 1 - barHeight - borderThickness * 2 + 1, barWidth + 2 * borderThickness, borderThickness);
         // Bottom Border
-        noStrokeRectangle(borderColour, 0, screenHeight - 1 - barThickness + 1, barWidth + 2 * barThickness, barThickness);
+        noStrokeRectangle(borderColour, 0, screenHeight - 1 - borderThickness + 1, barWidth + 2 * borderThickness, borderThickness);
         // Left Border
-        noStrokeRectangle(borderColour, 0, screenHeight - 1 - barHeight - barThickness * 2 + 1, barThickness, barHeight + 2 * barThickness);
+        noStrokeRectangle(borderColour, 0, screenHeight - 1 - barHeight - borderThickness * 2 + 1, borderThickness, barHeight + 2 * borderThickness);
         // Right Border
-        noStrokeRectangle(borderColour, barWidth + 2 * barThickness - 1, screenHeight - 1 - barHeight - barThickness * 2 + 1, barThickness, barHeight + 2 * barThickness);
+        noStrokeRectangle(borderColour, barWidth + 2 * borderThickness - 1, screenHeight - 1 - barHeight - borderThickness * 2 + 1, borderThickness, barHeight + 2 * borderThickness);
         
         // Display Heat
-        noStrokeRectangle(barColour, barThickness, screenHeight - barHeight - barThickness, barWidth*progressProportion, barHeight);
+        noStrokeRectangle(barColour, borderThickness, screenHeight - barHeight - borderThickness, barWidth*progressProportion, barHeight);
     }
 }

@@ -8,6 +8,20 @@ const RETRO_GAME_DATA = {
         }
     },
 
+    "health_bar": {
+        "width": 32,
+        "height": 8,
+        "border_colour": "#000000",
+        "border_thickness": 1,
+        "threshold_4": 0.99,
+        "threshold_3": 0.8,
+        "threshold_2": 0.55,
+        "threshold_4_colour": "#400303",
+        "threshold_3_colour": "#ff1212",
+        "threshold_2_colour": "#ff7512",
+        "threshold_1_colour": "#12ff12",
+    },
+
     "progress_bar": {
         "width": 120,
         "height": 40,

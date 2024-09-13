@@ -622,6 +622,14 @@ class RetroGameScene {
         return tileX * RETRO_GAME_DATA["general"]["tile_size"];
     }
 
+    getCenterXOfTile(tileX){
+        return this.getXOfTile(tileX) + RETRO_GAME_DATA["general"]["tile_size"]/2;
+    }
+
+    getCenterYOfTile(tileY){
+        return this.getYOfTile(tileY) - RETRO_GAME_DATA["general"]["tile_size"]/2;
+    }
+
     getDisplayYFromTileY(bY, tileY){
         return this.changeToScreenY((this.getYOfTile(tileY) - bY)*gameZoom);
     }

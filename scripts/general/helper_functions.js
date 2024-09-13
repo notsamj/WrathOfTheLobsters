@@ -3,6 +3,31 @@ if (typeof window === "undefined"){
     RETRO_GAME_DATA = require("../../data/data_json.js");
 }
 
+function roundUpToNearestMultipleOf(numberToRound, base){
+    let sign = (numberToRound < 0) ? -1 : 1;
+
+    // Remove sign from numberToRound
+    numberToRound = Math.abs(numberToRound);
+
+    // Make sure base is positive
+    base = Math.abs(base);
+
+    let multipleAmount = Math.ceil(numberToRound / base);
+
+    return sign * multipleAmount * base;
+}
+
+function angleAndHypotenuseToXAndYSides(angleRAD, distance){
+    return {
+        "x": Math.cos(angleRAD) * distance,
+        "y": Math.sin(angleRAD) * distance
+    }
+}
+
+function calculateEuclideanDistance(x1, y1, x2, y2){
+    return Math.sqrt(Math.pow(x1-x2,2) + Math.pow(y1-y2,2));
+}
+
 function getTeamNameFromClass(characterClass){
     return RETRO_GAME_DATA["characharacter_class_to_team_name"][characterClass];
 }

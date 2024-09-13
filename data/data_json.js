@@ -8,6 +8,30 @@ const RETRO_GAME_DATA = {
         }
     },
 
+    "cannon": {
+        // error: let x be # of tiles, let # be # of tiles. Shot will land y tiles off of location where x is the distance to target. Function y = (x^f)/g
+        "error_f": 1.5,
+        "error_g": 100,
+        "aoe_tile_radius": 5, // Corresponds with damage, damage f,g should match such taht damage(5) is approximately 0
+        // damage: let x be # of tiles from center of hit. Damage = 1/((x+1)^(f * gx))
+        "damage_f": 0.5,
+        "damage_g": 1,
+        "human_damage_multiplier": 0.5,
+        "rock_damage_multiplier": 1.2,
+        "smoke": {
+            "smoke_colour": "#292825",
+            "smoke_opacity": 1, // [0,1],
+            "min_circles_per_smoke_cloud": 10,
+            "max_circles_per_smoke_cloud": 30,
+            "center_radius": 128,
+            "min_radius": 20,
+            "max_radius": 30,
+            "min_life_ms": 1500,
+            "max_life_ms": 20000,
+            "max_speed": 3
+        }
+    },
+
     "health_bar": {
         "width": 32,
         "height": 8,

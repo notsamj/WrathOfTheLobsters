@@ -330,11 +330,6 @@ class Musket extends Gun {
 
         rotate(displayRotateAngleRAD);
         translate(-1 * rotateX, -1 * rotateY);
-
-        // Display Crosshair if aiming
-        if (isAiming){
-            drawCrosshair();
-        }
     }
 
     getImageX(lX){

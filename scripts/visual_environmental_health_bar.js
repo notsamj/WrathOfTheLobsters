@@ -5,12 +5,12 @@ class VisualEnvironmentHealthBar {
     }
 
     getThreshold(){
-        let proportion = this.value/this.maxValue;
-        if (proportion > RETRO_GAME_DATA["health_bar"]["threshold_4"]){
+        let progressProportion = (this.maxValue - this.value) / this.maxValue;
+        if (progressProportion > RETRO_GAME_DATA["health_bar"]["threshold_4"]){
             return "threshold_4";
-        }else if (proportion > RETRO_GAME_DATA["health_bar"]["threshold_3"]){
+        }else if (progressProportion > RETRO_GAME_DATA["health_bar"]["threshold_3"]){
             return "threshold_3";
-        }else if (proportion > RETRO_GAME_DATA["health_bar"]["threshold_2"]){
+        }else if (progressProportion > RETRO_GAME_DATA["health_bar"]["threshold_2"]){
             return "threshold_2";
         }else{
             return "threshold_1";
@@ -37,7 +37,7 @@ class VisualEnvironmentHealthBar {
         let barBorderColour = RETRO_GAME_DATA["health_bar"]["border_colour"];
         let borderThickness = RETRO_GAME_DATA["health_bar"]["border_thickness"];
         let barColour;
-        let progressProportion = this.value/this.maxValue;
+        let progressProportion = (this.maxValue - this.value) / this.maxValue;
         let threshold = this.getThreshold();
         // Now that the threshold has been determined, inverse the "progress" for the actual health
         progressProportion = 1 - progressProportion;

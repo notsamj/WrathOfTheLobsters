@@ -27,6 +27,18 @@ class TurnBasedSkirmish extends Gamemode {
         this.startUp();
     }
 
+    getAllTroops(){
+        return appendLists(this.britishTroops, this.americanTroops);
+    }
+
+    getSpawnObjectByName(teamNameString){
+        let teamNameConverted = getProperAdjective(teamNameString);
+        if (teamNameConverted == "American"){
+            return this.americanSpawn;
+        }
+        return this.britishSpawn;
+    }
+
     getOfficerCommand(troop){
         let officer = this.getTroopOfficer(troop);
 
@@ -815,12 +827,16 @@ class TurnBasedSkirmish extends Gamemode {
         for (let y = 0; y < size; y++){
             for (let x = 0; x < size; x++){
                 let tileAtLocation = this.scene.getVisualTileAtLocation(x, y);
-                if (!tileAtLocation.getMaterial() === "rock_on_grass"){
+                if (!(tileAtLocation.getMaterial()["name"] === "rock_on_grass")){
                     continue;
                 }
                 this.rockHitboxes.push(new RockHitbox(x,y));
             }
         }
+    }
+
+    getRockHitboxes(){
+        return this.rockHitboxes;
     }
 
     display(){

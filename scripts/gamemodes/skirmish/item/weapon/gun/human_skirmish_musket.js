@@ -39,4 +39,11 @@ class HumanSkirmishMusket extends SkirmishMusket {
         }
         return fixRadians(angleRAD);
     }
+
+    display(lX, bY){
+        super.display(lX, bY);
+        if (this.isAiming() && this.player.isMakingAMove()){
+            drawCrosshair();
+        }
+    }
 }

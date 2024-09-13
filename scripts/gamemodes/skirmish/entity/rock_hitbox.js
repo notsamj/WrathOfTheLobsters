@@ -2,17 +2,23 @@ class RockHitbox {
     constructor(tileX, tileY){
         this.tileX = tileX;
         this.tileY = tileY;
-        this.health = 1;
         this.healthBar = new VisualEnvironmentHealthBar(1);
     }
 
+    isAlive(){
+        return !this.isDead();
+    }
+
     isDead(){
-        return this.health <= 0;
+        return this.healthBar.getValue() <= 0;
     }
 
     setHealth(value){
-        this.value = Math.min(0, value);
-        this.healthBar.setValue(this.value);
+        this.healthBar.setValue(value);
+    }
+
+    damage(value){
+        this.setHealth(this.healthBar.getValue() - value);
     }
 
     getTileX(){
@@ -24,6 +30,7 @@ class RockHitbox {
     }
 
     display(leftX, topY){
-        this.healthBar.display(leftX, topY);
+        if (this.isDead()){ return; }
+        this.healthBar.display(leftX + RETRO_GAME_DATA["general"]["tile_size"]/2, topY + RETRO_GAME_DATA["general"]["tile_size"]/2);
     }
 }

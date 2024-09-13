@@ -95,7 +95,7 @@ class PointToShoot extends Item {
         }
 
         // If trying to shoot, all troops (that have made preparations and are thus able) will shoot then the turn will end
-        if (this.decisions["trying_to_shoot"]){
+        if (this.decisions["trying_to_shoot"] && this.player.isMakingAMove()){
             // This will take 2 ticks, 1 to make the decision, second to wait for it to execute
             // Tick 1
             if (!this.player.hasCommitedToAction()){

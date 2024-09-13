@@ -3,6 +3,10 @@ if (typeof window === "undefined"){
     RETRO_GAME_DATA = require("../../data/data_json.js");
 }
 
+function calculateMSBetweenTicks(){
+    return 1000 / RETRO_GAME_DATA["general"]["tick_rate"];
+}
+
 function roundUpToNearestMultipleOf(numberToRound, base){
     let sign = (numberToRound < 0) ? -1 : 1;
 

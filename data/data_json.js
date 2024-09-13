@@ -8,6 +8,10 @@ const RETRO_GAME_DATA = {
         }
     },
 
+    "skirmish_camera": {
+        "move_speed": 64
+    },
+
     "cannon": {
         // error: let x be # of tiles, let # be # of tiles. Shot will land y tiles off of location where x is the distance to target. Function y = (x^f)/g
         "error_f": 1.5,

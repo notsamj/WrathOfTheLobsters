@@ -1,6 +1,6 @@
 class PointToMove extends Item {
     constructor(details){
-        super(details);
+        super();
         // Note: if player is null an error will occur I know I'm not handling this perfectly
         this.player = objectHasKey(details, "player") ? details["player"] : null;
         this.moveTileX = this.player.getTileX();

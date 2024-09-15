@@ -1,10 +1,15 @@
 class PointToShootCannon extends Item {
     constructor(details){
-        super(details);
+        super();
         this.player = objectHasKey(details, "player") ? details["player"] : null;
         this.crosshairCenterX = 0;
         this.crosshairCenterY = 0;
+        this.unlocksAtTurnNumber = this.getGamemode().getTurnCounter() + RETRO_GAME_DATA["cannon"]["turn_cooldown"] * 2;
         this.resetDecisions();
+    }
+
+    getGamemode(){
+        return this.player.getGamemode();
     }
 
     actOnDecisions(){
@@ -104,21 +109,9 @@ class PointToShootCannon extends Item {
             let distanceFromHitLocationInTiles = distanceFromHitLocation/RETRO_GAME_DATA["general"]["tile_size"];
             troop.damage(calculateCannonDamage(distanceFromHitLocationInTiles, humanMultiplier));
         }
-    }
 
-    makeDecisions(){
-        this.resetDecisions();
-        let canvasX = mouseX;
-        let canvasY = this.getScene().changeFromScreenY(mouseY);
-        if (canvasX < 0 || canvasX >= this.getScene().getWidth() || canvasY < 0 || canvasY >= this.getScene().getHeight()){ return; }
-        let engineX = canvasX / gameZoom + this.getScene().getLX();
-        let engineY = canvasY / gameZoom + this.getScene().getBY();
-        this.decisions = {
-            "crosshair_center_x": engineX,
-            "crosshair_center_y": engineY,
-            "trying_to_shoot": USER_INPUT_MANAGER.isActivated("left_click_ticked"),
-            "new_crosshair_center": true
-        }
+        // Lock for a number of turns
+        this.unlocksAtTurnNumber = this.getGamemode().getTurnCounter() + RETRO_GAME_DATA["cannon"]["turn_cooldown"] * 2;
     }
 
     resetDecisions(){
@@ -149,12 +142,22 @@ class PointToShootCannon extends Item {
 
         drawingContext.drawImage(image, 0 - image.width / 2, 0 - image.height / 2);
 
+        // Display turn cooldown if applicable
+        if (this.isOnCooldown()){
+            let turns = Math.ceil((this.unlocksAtTurnNumber - this.getGamemode().getTurnCounter())/2);
+            makeText(turns.toString(), 0, 0, RETRO_GAME_DATA["inventory"]["slot_size"], RETRO_GAME_DATA["inventory"]["slot_size"], Colour.fromCode(RETRO_GAME_DATA["cannon"]["cooldown_colour"]), RETRO_GAME_DATA["cannon"]["cooldown_text_size"], "center", "center");
+        }
+
         scale(1 / displayScale, 1 / displayScale);
 
         translate(-1 * scaleX, -1 * scaleY);
     }
 
     tick(){
+    }
+
+    isOnCooldown(){
+        return this.unlocksAtTurnNumber > this.getGamemode().getTurnCounter();
     }
 
     display(lX, bY){

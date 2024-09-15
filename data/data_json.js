@@ -33,7 +33,10 @@ const RETRO_GAME_DATA = {
             "min_life_ms": 1500,
             "max_life_ms": 20000,
             "max_speed": 3
-        }
+        },
+        "turn_cooldown": 5, // 5?
+        "cooldown_colour": "#ff0000",
+        "cooldown_text_size": 40
     },
 
     "health_bar": {

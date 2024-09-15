@@ -13,7 +13,7 @@ class HumanPointToShootCannon extends PointToShootCannon {
         this.decisions = {
             "crosshair_center_x": engineX,
             "crosshair_center_y": engineY,
-            "trying_to_shoot": USER_INPUT_MANAGER.isActivated("left_click_ticked"),
+            "trying_to_shoot": USER_INPUT_MANAGER.isActivated("left_click_ticked") && !this.isOnCooldown(),
             "new_crosshair_center": true
         }
     }

@@ -274,10 +274,6 @@ class Character extends Entity {
         return this.inventory.getSelectedItem();
     }
 
-    is(otherEntity){
-        return this.getID() == otherEntity.getID();
-    }
-
     getUpdatedHitbox(){
         return new RectangleHitbox(this.getWidth(), this.getHeight(), this.getInterpolatedTickCenterX(), this.getInterpolatedTickCenterY());
     }

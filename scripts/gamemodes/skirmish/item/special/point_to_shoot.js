@@ -1,6 +1,6 @@
 class PointToShoot extends Item {
     constructor(details){
-        super(details);
+        super();
         this.player = objectHasKey(details, "player") ? details["player"] : null;
         this.crosshairCenterX = 0;
         this.crosshairCenterY = 0;

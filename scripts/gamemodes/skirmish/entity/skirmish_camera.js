@@ -3,8 +3,9 @@
     Description: A subclass of Entity that acts as a camera, able to fly around.
 */
 class SkirmishCamera extends Entity {
-    constructor(gamemode, x=0, y=0){
+    constructor(gamemode, team, x=0, y=0){
         super(game);
+        this.teamName = team;
         this.x = x;
         this.y = y;
         this.leftRightLock = new TickLock(250 / calculateMSBetweenTicks());
@@ -12,6 +13,15 @@ class SkirmishCamera extends Entity {
         this.yVelocity = 0;
         this.xLock = new TickLock(0);
         this.yLock = new TickLock(0);
+        this.id = this.teamName + "_camera";
+    }
+
+    getTeamName(){
+        return this.teamName;
+    }
+
+    isOnSameTeam(troop){
+        return this.getTeamName() == troop.getTeamName();
     }
 
     /*
@@ -61,29 +71,11 @@ class SkirmishCamera extends Entity {
     }
 
     getInterpolatedX(){
-        return this.interpolatedX;
+        return this.x + this.xVelocity * (FRAME_COUNTER.getLastFrameTime() - TICK_SCHEDULER.getLastTickTime()) / 1000;
     }
 
-    getInterpolatedY(){
-        return this.interpolatedY;
-    }
-
-
-    calculateInterpolatedCoordinates(currentTime){
-        // TODO: Clean this up
-        let currentFrameIndex = FRAME_COUNTER.getFrameIndex();
-        if (GAMEMODE_MANAGER.getActiveGamemode().isPaused() || !GAMEMODE_MANAGER.getActiveGamemode().isRunning() || this.isDead() || this.lastInterpolatedFrame == currentFrameIndex){
-            return;
-        }
-        if (this.isFollowing()){
-            let newPositionValues = this.followingEntity.calculateInterpolatedCoordinates(currentTime);
-            this.interpolatedX = this.followingEntity.getInterpolatedX();
-            this.interpolatedY = this.followingEntity.getInterpolatedY();
-        }else{
-            this.interpolatedX = this.x + this.xVelocity * (currentTime - GAMEMODE_MANAGER.getActiveGamemode().getLastTickTime()) / 1000;
-            this.interpolatedY = this.y + this.yVelocity * (currentTime - GAMEMODE_MANAGER.getActiveGamemode().getLastTickTime()) / 1000;
-        }
-        this.lastInterpolatedFrame = currentFrameIndex;
+    getInterpolatedX(){
+        return this.y + this.yVelocity * (FRAME_COUNTER.getLastFrameTime() - TICK_SCHEDULER.getLastTickTime()) / 1000;
     }
 
     tick(){
@@ -95,5 +87,7 @@ class SkirmishCamera extends Entity {
         this.y += this.yVelocity / RETRO_GAME_DATA["general"]["tick_rate"];
         this.checkMoveX();
         this.checkMoveY();
+        // TODO: Add something to snap on to nearest troop
+        // TODO: Add something to scroll the troops
     }
 }

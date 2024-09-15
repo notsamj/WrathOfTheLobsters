@@ -1,6 +1,6 @@
 class Sword extends Item {
     constructor(model, details){
-        super(details);
+        super();
         this.model = model;
         this.player = objectHasKey(details, "player") ? details["player"] : null;
         

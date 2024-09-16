@@ -4,7 +4,7 @@
 */
 class SkirmishCamera extends Entity {
     constructor(gamemode, team, x=0, y=0){
-        super(game);
+        super(gamemode);
         this.teamName = team;
         this.x = x;
         this.y = y;
@@ -16,12 +16,25 @@ class SkirmishCamera extends Entity {
         this.id = this.teamName + "_camera";
     }
 
+    setPosition(x, y){
+        this.x = x;
+        this.y = y;
+    }
+
+    focusOn(currentlyMovingCharacter){
+        // TODO
+    }
+
     getTeamName(){
         return this.teamName;
     }
 
     isOnSameTeam(troop){
         return this.getTeamName() == troop.getTeamName();
+    }
+
+    hasVisionRestrictions(){
+        return this.getTeamName() != "neutral";
     }
 
     /*
@@ -74,8 +87,16 @@ class SkirmishCamera extends Entity {
         return this.x + this.xVelocity * (FRAME_COUNTER.getLastFrameTime() - TICK_SCHEDULER.getLastTickTime()) / 1000;
     }
 
-    getInterpolatedX(){
+    getInterpolatedY(){
         return this.y + this.yVelocity * (FRAME_COUNTER.getLastFrameTime() - TICK_SCHEDULER.getLastTickTime()) / 1000;
+    }
+
+    getInterpolatedCenterX(){
+        return this.getInterpolatedX();
+    }
+
+    getInterpolatedCenterY(){
+        return this.getInterpolatedY();
     }
 
     tick(){
@@ -90,4 +111,6 @@ class SkirmishCamera extends Entity {
         // TODO: Add something to snap on to nearest troop
         // TODO: Add something to scroll the troops
     }
+
+    display(){}
 }

@@ -9,7 +9,7 @@ const RETRO_GAME_DATA = {
     },
 
     "skirmish_camera": {
-        "move_speed": 64
+        "move_speed": 64*16
     },
 
     "cannon": {

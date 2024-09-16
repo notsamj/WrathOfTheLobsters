@@ -15,6 +15,9 @@ var mouseX = 0;
 var mouseY = 0;
 var programOver = false;
 
+var britishIsHuman = true; // For testing
+var americanIsHuman = false; // For testing
+
 // Functions
 async function setup() {
     await loadToImages("page_background");
@@ -98,6 +101,8 @@ async function setup() {
     USER_INPUT_MANAGER.register("b_ticked", "keydown", (event) => { return event.keyCode==66; }, true, {"ticked": true, "ticked_activation": false});
 
     USER_INPUT_MANAGER.register("r_ticked", "keydown", (event) => { return event.keyCode==82; }, true, {"ticked": true, "ticked_activation": false});
+
+    USER_INPUT_MANAGER.register("ticked_toggle_camera", "keydown", (event) => { return event.keyCode==67; }, true, {"ticked": true, "ticked_activation": false});
 
     // Disable context menu
     document.getElementById("main_area").addEventListener("contextmenu", (event) => {event.preventDefault()});

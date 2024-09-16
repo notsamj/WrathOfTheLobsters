@@ -1,5 +1,5 @@
 class TurnBasedSkirmish extends Gamemode {
-    constructor(){
+    constructor(britishAreHuman=true, americansAreHuman=true){
         super();
 
         this.britishTroops = [];
@@ -13,18 +13,44 @@ class TurnBasedSkirmish extends Gamemode {
             }
             this.stats.addKill(victimClass, killerClass);
         });
+
+        this.britishCamera = new SkirmishCamera(this, getProperAdjective("British"));
+        this.americanCamera = new SkirmishCamera(this, getProperAdjective("American"));
+        this.neutralCamera = new SkirmishCamera(this, "neutral");
+
+        // A camera that needs to be ticked by the game instance
+        this.cameraToTick = null;
+
         this.gameOver = false;
         this.britishSpawn = null;
         this.americanSpawn = null;
 
         this.gameState = null;
-        this.initializeGameState();
+        this.initializeGameState(britishAreHuman, americansAreHuman);
 
         this.rockHitboxes = [];
 
         this.startUpLock = new Lock();
         this.startUpLock.lock();
         this.startUp();
+    }
+
+    getOtherTeam(teamNameString){
+        if (getProperAdjective(teamNameString) == getProperAdjective("American")){
+            return getProperAdjective("British");
+        }
+        return getProperAdjective("American");
+    }
+
+    getTeamCamera(teamNameString){
+        if (getProperAdjective(teamNameString) == getProperAdjective("American")){
+            return this.americanCamera;
+        }
+        return this.britishCamera;
+    }
+
+    isBotGame(){
+        return this.gameState["operation_type"]["British"] === "bot" && this.gameState["operation_type"]["American"] === "bot";
     }
 
     getAllTroops(){
@@ -174,6 +200,26 @@ class TurnBasedSkirmish extends Gamemode {
         this.makeMove();
     }
 
+    updateCameraToNewMover(currentlyMovingCharacter){
+        // If this game is bot vs bot then update the neutral camera
+        if (this.isBotGame()){
+            this.neutralCamera.focusOn(currentlyMovingCharacter);
+            this.cameraToTick = this.neutralCamera;
+        }
+        // Else if the team of the now moving character is human then focus on the character
+        else if (this.gameState["operation_type"][getProperAdjective(currentlyMovingCharacter.getTeamName())] === "human"){
+            this.scene.setFocusedEntity(currentlyMovingCharacter);
+            this.cameraToTick = null;
+        }
+        // Else the team of the now moving character is a bot, the other team must be human, set the focus on the human team's camera
+        else{
+            let camera = this.getTeamCamera(this.getOtherTeam(currentlyMovingCharacter.getTeamName()));
+            this.cameraToTick = camera;
+            this.scene.setFocusedEntity(camera);
+            camera.focusOn(currentlyMovingCharacter);
+        }
+    }
+
     makeMove(){
         // Assuming game still running
         let currentTeamName = this.gameState["turn"];
@@ -203,11 +249,11 @@ class TurnBasedSkirmish extends Gamemode {
                 characterIndex++;
             }
         }
-        
+
         // Now the currently moving troop is selected
         if (!currentlyMovingCharacter.isMakingAMove() && !currentlyMovingCharacter.isMoveDone()){
             currentlyMovingCharacter.indicateTurn();
-            this.scene.setFocusedEntity(currentlyMovingCharacter);
+            this.updateCameraToNewMover(currentlyMovingCharacter);
             return;
         }
 
@@ -238,12 +284,12 @@ class TurnBasedSkirmish extends Gamemode {
         this.makeMove();
     }
 
-    initializeGameState(){
+    initializeGameState(britishAreHuman, americansAreHuman){
         this.gameState = {
             "turn": "British",
             "operation_type": {
-                "British": "human",
-                "American": "human" // or "bot"
+                "British": (britishAreHuman ? "human" : "bot"),
+                "American": (americansAreHuman ? "human" : "bot")
             },
             "troop_to_move_index": {
                 "British": 0,
@@ -267,6 +313,11 @@ class TurnBasedSkirmish extends Gamemode {
         await this.generateTiles();
 
         this.spawnTroops();
+
+        // If this is a bot vs bot game then set up the camera
+        if (this.isBotGame()){
+            this.scene.setFocusedEntity(this.neutralCamera);
+        }
 
         this.startUpLock.unlock();
     }
@@ -308,12 +359,22 @@ class TurnBasedSkirmish extends Gamemode {
 
         // Create officers
         for (let i = 0; i < RETRO_GAME_DATA["skirmish"]["game_play"]["officer_count"]; i++){
-            let britishOfficer = new SkirmishHuman(this, "british_officer", "officer", "British");
+            let britishOfficer;
+            if (this.gameState["operation_type"]["British"] == "human"){
+                britishOfficer = new SkirmishHuman(this, "british_officer", "officer", "British");
+            }else{
+                britishOfficer = new SkirmishBot(this, "british_officer", "officer", "British");
+            }
             britishOfficer.setID("british_officer_" + i.toString());
             this.britishTroops.push(britishOfficer);
             officers.push(britishOfficer);
 
-            let americanOfficer = new SkirmishHuman(this, "usa_officer", "officer", "American");
+            let americanOfficer;
+            if (this.gameState["operation_type"]["American"] == "human"){
+                americanOfficer = new SkirmishHuman(this, "usa_officer", "officer", "American");
+            }else{
+                americanOfficer = new SkirmishBot(this, "usa_officer", "officer", "American");
+            }
             americanOfficer.setID("american_officer_" + i.toString());
             this.americanTroops.push(americanOfficer);
             officers.push(americanOfficer);
@@ -344,12 +405,24 @@ class TurnBasedSkirmish extends Gamemode {
 
         // Create privates
         for (let i = 0; i < RETRO_GAME_DATA["skirmish"]["game_play"]["private_count"]; i++){
-            let britishPrivate = new SkirmishHuman(this, "british_pvt_g", "private", "British");
+            let britishPrivate;
+            if (this.gameState["operation_type"]["British"] == "human"){
+                britishPrivate = new SkirmishHuman(this, "british_pvt_g", "private", "British");
+            }else{
+                britishPrivate = new SkirmishBot(this, "british_pvt_g", "private", "British");
+            }
+
             britishPrivate.setID("british_private_" + i.toString());
             this.britishTroops.push(britishPrivate);
             privates.push(britishPrivate);
 
-            let americanPrivate = new SkirmishHuman(this, "usa_pvt", "private", "American");
+            let americanPrivate;
+            if (this.gameState["operation_type"]["British"] == "human"){
+                americanPrivate = new SkirmishHuman(this, "usa_pvt", "private", "American");
+            }else{
+                americanPrivate = new SkirmishBot(this, "usa_pvt", "private", "American");
+            }
+
             americanPrivate.setID("american_private_" + i.toString());
             this.americanTroops.push(americanPrivate);
             privates.push(americanPrivate);
@@ -858,6 +931,9 @@ class TurnBasedSkirmish extends Gamemode {
     tick(){
         if (this.startUpLock.isLocked()){ return; }
         this.gameTick();
+        if (this.cameraToTick != null){
+            this.cameraToTick.tick();
+        }
         this.scene.tick();
     }
 

@@ -27,6 +27,9 @@ class Gun extends Item {
     // Abstract
     makeDecisions(){}
 
+    // Abstract
+    getSimulatedGunEndPosition(){}
+
     // Note: Assumes this instance of Gun has decisions
     getDecisions(){
         return this.decisions;

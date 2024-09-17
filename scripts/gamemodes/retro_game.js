@@ -16,7 +16,7 @@ var mouseY = 0;
 var programOver = false;
 
 var britishIsHuman = true; // For testing
-var americanIsHuman = false; // For testing
+var americanIsHuman = true; // For testing
 
 // Functions
 async function setup() {

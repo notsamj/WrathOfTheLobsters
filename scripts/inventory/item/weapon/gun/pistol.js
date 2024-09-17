@@ -3,6 +3,44 @@ class Pistol extends Gun {
         super(model, details);
     }
 
+    getSimulatedGunEndPosition(playerLeftX, playerTopY, playerDirection, playerAimingAngleRAD){
+        let result = {};
+        let gunDirection;
+
+        // Determine if using the right gun image or left gun image
+        if (playerDirection == "front"){
+            gunDirection = playerAimingAngleRAD > toRadians(270) ? "right" : "left";
+        }else if (playerDirection == "left"){
+            gunDirection = "left";
+        }else if (playerDirection == "right"){
+            gunDirection = "right";
+        }else if (playerDirection == "back"){
+            gunDirection = playerAimingAngleRAD < toRadians(90) ? "right" : "left";
+        }
+
+        // Change angle if left gun image
+        if (gunDirection == "left"){
+            playerAimingAngleRAD -= Math.PI;
+        }
+        let flipped = gunDirection == "left";
+        let xOfHand = playerLeftX + RETRO_GAME_DATA["model_positions"][this.player.getModelCategory()][this.model][playerDirection]["x_offset"];
+        let imageScale = RETRO_GAME_DATA["gun_data"][this.model]["image_scale"];
+        let xOffsetFromHandToCenter = -1 * RETRO_GAME_DATA["gun_data"][this.model]["handle_offset_x"];
+        let yOffsetFromHandToCenter = RETRO_GAME_DATA["gun_data"][this.model]["handle_offset_y"];
+        
+        let xOfHandToCenterX = Math.cos(playerAimingAngleRAD) * (xOffsetFromHandToCenter * (flipped ? -1 : 1)) + Math.sin(playerAimingAngleRAD) * yOffsetFromHandToCenter;
+        let x = xOfHand + xOfHandToCenterX * imageScale;
+        let endOfBarrelXOffset = RETRO_GAME_DATA["gun_data"][this.model]["end_of_barrel_offset"]["x_offset"] * imageScale;
+        let endOfBarrelYOffset = RETRO_GAME_DATA["gun_data"][this.model]["end_of_barrel_offset"]["y_offset"] * imageScale;
+        result["x"] = Math.cos(playerAimingAngleRAD) * (endOfBarrelXOffset * (flipped ? -1 : 1)) - Math.sin(playerAimingAngleRAD) * endOfBarrelYOffset + x;
+
+        let yOfHand = playerTopY - RETRO_GAME_DATA["model_positions"][this.player.getModelCategory()][this.model][playerDirection]["y_offset"];
+        let yOfHandToCenterY = Math.sin(playerAimingAngleRAD) * (xOffsetFromHandToCenter * (flipped ? -1 : 1)) + Math.cos(playerAimingAngleRAD) * -1 * yOffsetFromHandToCenter;
+        let y = yOfHand + yOfHandToCenterY * imageScale;
+        result["y"] = Math.sin(playerAimingAngleRAD) * (endOfBarrelXOffset * (flipped ? -1 : 1)) + Math.cos(playerAimingAngleRAD) * endOfBarrelYOffset + y;
+        return result;
+    }
+
     resetDecisions(){
         this.decisions = {
             "trying_to_aim": false,

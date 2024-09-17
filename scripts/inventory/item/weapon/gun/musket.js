@@ -172,6 +172,49 @@ class Musket extends Gun {
         }
     }
 
+    getSimulatedGunEndPosition(playerLeftX, playerTopY, playerDirection, playerAimingAngleRAD){
+        let result = {};
+        // Get tile x of player (player not moving)
+        let x = playerLeftX;
+         // From top left to center of the player model
+        x += RETRO_GAME_DATA["general"]["tile_size"] / 2;
+        // Add gun y offset, y is now center of the gun
+        x += RETRO_GAME_DATA["model_positions"][this.player.getModelCategory()][this.model]["aiming"][playerDirection]["x_offset"];
+
+        let gunDirection;
+
+        // Determine if using the right gun image or left gun image
+        if (playerDirection == "front"){
+            gunDirection = playerAimingAngleRAD > toRadians(270) ? "right" : "left";
+        }else if (playerDirection == "left"){
+            gunDirection = "left";
+        }else if (playerDirection == "right"){
+            gunDirection = "right";
+        }else if (playerDirection == "back"){
+            gunDirection = playerAimingAngleRAD < toRadians(90) ? "right" : "left";
+        }
+
+        // Change angle if left gun image
+        if (gunDirection == "left"){
+            playerAimingAngleRAD -= Math.PI;
+        }
+
+        let endOfBarrelXOffset = RETRO_GAME_DATA["gun_data"][this.model]["display"][gunDirection]["x_offset"];
+        let endOfBarrelYOffset = RETRO_GAME_DATA["gun_data"][this.model]["display"][gunDirection]["y_offset"];
+        result["x"] = Math.cos(playerAimingAngleRAD) * endOfBarrelXOffset - Math.sin(playerAimingAngleRAD) * endOfBarrelYOffset + x;
+
+        // Get tile y of player (player not moving)
+        let y = playerTopY;
+        // From top left to center of the player model
+        y -= RETRO_GAME_DATA["general"]["tile_size"] / 2;
+        // Add gun y offset, y is now center of the gun
+        y += RETRO_GAME_DATA["model_positions"][this.player.getModelCategory()][this.model]["aiming"][playerDirection]["y_offset"] * -1
+
+        // This should be the center of the musket image?
+        result["y"] = Math.sin(playerAimingAngleRAD) * endOfBarrelXOffset + Math.cos(playerAimingAngleRAD) * endOfBarrelYOffset + y;
+        return result;
+    }
+
     getEndOfGunX(){
         // Get tile x of player (player not moving)
         let x = this.getScene().getXOfTile(this.player.getTileX());
@@ -216,7 +259,6 @@ class Musket extends Gun {
         
         let playerDirection = this.player.getFacingDirection();
         let playerAimingAngleRAD = this.getDecidedAngleRAD();
-        let playerAimingAngleDEG = toFixedDegrees(playerAimingAngleRAD);
         let gunDirection;
 
         // Determine if using the right gun image or left gun image

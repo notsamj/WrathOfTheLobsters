@@ -25,6 +25,10 @@ class Character extends Entity {
         }
     }
 
+    distance(otherCharacter){
+        return euclidianDistance(this.getInterpolatedTickCenterX(), this.getInterpolatedTickCenterY(), otherCharacter.getInterpolatedTickCenterX(), otherCharacter.getInterpolatedTickCenterY());
+    }
+
     generateShortestRouteToPoint(endTileX, endTileY){
         let tiles = [];
         let startTileX = this.tileX;

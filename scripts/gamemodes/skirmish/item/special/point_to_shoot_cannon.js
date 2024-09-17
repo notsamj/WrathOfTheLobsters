@@ -130,6 +130,10 @@ class PointToShootCannon extends Item {
         return this.player.getScene();
     }
 
+    getDisplayedCooldown(){
+        return Math.ceil((this.unlocksAtTurnNumber - this.getGamemode().getTurnCounter())/2);
+    }
+
     displayItemSlot(providedX, providedY){
         let image = IMAGES["point_to_shoot_cannon"];
         let displayScale = RETRO_GAME_DATA["inventory"]["slot_size"] / image.width;
@@ -144,8 +148,8 @@ class PointToShootCannon extends Item {
 
         // Display turn cooldown if applicable
         if (this.isOnCooldown()){
-            let turns = Math.ceil((this.unlocksAtTurnNumber - this.getGamemode().getTurnCounter())/2);
-            makeText(turns.toString(), 0, 0, RETRO_GAME_DATA["inventory"]["slot_size"], RETRO_GAME_DATA["inventory"]["slot_size"], Colour.fromCode(RETRO_GAME_DATA["cannon"]["cooldown_colour"]), RETRO_GAME_DATA["cannon"]["cooldown_text_size"], "center", "center");
+            let turns = this.getDisplayedCooldown();
+            makeText(turns.toString(), 0, -1 * RETRO_GAME_DATA["inventory"]["slot_size"]/4, RETRO_GAME_DATA["inventory"]["slot_size"], RETRO_GAME_DATA["inventory"]["slot_size"], Colour.fromCode(RETRO_GAME_DATA["cannon"]["cooldown_colour"]), RETRO_GAME_DATA["cannon"]["cooldown_text_size"], "center", "center");
         }
 
         scale(1 / displayScale, 1 / displayScale);

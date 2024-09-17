@@ -30,10 +30,14 @@ class Sword extends Item {
         this.swingLock.resetAndLock();
     }
 
+    getSwingRange(){
+        return RETRO_GAME_DATA["sword_data"]["arm_length"] + RETRO_GAME_DATA["sword_data"][this.model]["blade_length"];
+    }
+
     finishSwing(){
         this.swinging = false;
         // Calculate what it hit
-        let swingRange = RETRO_GAME_DATA["sword_data"]["arm_length"] + RETRO_GAME_DATA["sword_data"][this.model]["blade_length"];
+        let swingRange = this.getSwingRange();
         let swingHitbox = new CircleHitbox(swingRange);
         let hitCenterX = this.player.getInterpolatedTickX() + RETRO_GAME_DATA["model_positions"][this.player.getModelCategory()][this.model]["swinging"][this.player.getFacingDirection()]["x_offset"];
         let hitCenterY = this.player.getInterpolatedTickY() - RETRO_GAME_DATA["model_positions"][this.player.getModelCategory()][this.model]["swinging"][this.player.getFacingDirection()]["y_offset"];

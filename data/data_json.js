@@ -8,6 +8,10 @@ const RETRO_GAME_DATA = {
         }
     },
 
+    "bot": {
+        "rock_health_f_value": 1.5
+    },
+
     "skirmish_camera": {
         "move_speed": 64*16
     },

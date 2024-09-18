@@ -26,7 +26,7 @@ class Character extends Entity {
     }
 
     distance(otherCharacter){
-        return euclidianDistance(this.getInterpolatedTickCenterX(), this.getInterpolatedTickCenterY(), otherCharacter.getInterpolatedTickCenterX(), otherCharacter.getInterpolatedTickCenterY());
+        return calculateEuclideanDistance(this.getInterpolatedTickCenterX(), this.getInterpolatedTickCenterY(), otherCharacter.getInterpolatedTickCenterX(), otherCharacter.getInterpolatedTickCenterY());
     }
 
     generateShortestRouteToPoint(endTileX, endTileY){

@@ -44,7 +44,7 @@ class SkirmishBot extends SkirmishCharacter {
         }
 
         let tileTooFar = (tileX, tileY) => {
-            return euclidianDistance(startTileX, startTileY, tileX, tileY) > this.walkingBar.getMaxValue();
+            return calculateEuclideanDistance(startTileX, startTileY, tileX, tileY) > this.walkingBar.getMaxValue();
         }
 
         let tryToAddTile = (tileX, tileY, pathToTile, startToEnd=true) => {
@@ -147,11 +147,12 @@ class SkirmishBot extends SkirmishCharacter {
         let collectivePlans = [];
 
         // Find tiles where you can go to shoot an enemy
-        let shootOneTiles = this.determineRoughShootOneTiles(possibleEndTiles);
+        let shootStabCalculationResults = this.determineRoughShootAndStabTiles(possibleEndTiles);
+        let shootOneTiles = shootStabCalculationResults["rough_shoot_tiles"];
 
         // Find tiles where you can go to stab an enemy
         // Note: This is a subset of the shootOneTiles unless you had some massive gun, for now assuming d<=1 for stabbing
-        let stabOneTiles = this.determineRoughStabbingTiles(shootOneTiles);
+        let stabOneTiles = shootStabCalculationResults["rough_stab_tiles"];
 
         // Find tiles closer to enemy (from start position) where you can't be immediately shot/stabbed 
         let closerTiles = this.determineCloserTiles(possibleEndTiles, shootOneTiles);
@@ -167,15 +168,24 @@ class SkirmishBot extends SkirmishCharacter {
         if (this.rankName === "officer"){
             // If cannon is ready
             if (this.cannonIsOnCooldown()){
-                // Determine rock spots
+                let rockTargets = this.determineRockTargets();
+
 
                 // Determine troop damage spots
             }
 
             // Determine how many troops you can shoot
             // TODO: Reduce shoot damage, maybe 75%?
-            /* So what you do is find out for each troop you have selected, what angle range (Relative to your crosshair) can they shoot a troop
+            /* 
+                Maybe a different plan?
+                So what you do is find out for each troop you have selected, what angle range (Relative to your crosshair) can they shoot a troop
                Then you find overlaps between them and determine what angle you pointing at gives you how many enemies killed/wounded
+            
+                Another plan
+
+                Create a list of the 9 tiles (no duplicates) around each enemy
+                Try pointing crosshair at the center of each of the 9 tiles,
+                Calculate expected value on each and find the best
             */
 
             // Determine moving your selected troops to a given location
@@ -194,11 +204,76 @@ class SkirmishBot extends SkirmishCharacter {
         this.plan = bestPlan;
     }
 
+    determineRockTargets(){
+        // Determine rock spots
+        let rockTargets = [];
+        let friends = this.getFriends();
+        let enemies = this.getEnemies();
+        let rockHitboxes = this.gamemode.getRockHitboxes();
+
+        // Using formula 1/(x^f)
+        let hitBoxValueByHealth = (hitboxHealth) => {
+            return 1/(Math.pow(hitboxHealth, RETRO_GAME_DATA["bot"]["rock_health_f_value"]));
+        }
+
+        // Loop through each living rock hitbox locations
+        for (let rockHitbox of rockHitboxes){
+            if (rockHitbox.isDead()){ continue; }
+            // Calculate the rock density of the location
+            let tileX = rockHitbox.getTileX();
+            let tileY = rockHitbox.getTileY();
+            let healthScore = 0;
+            let enemyScore = 0;
+            let friendlyScore = 0;
+
+            // Check all rock hitboxes to calculate the score for this location
+            for (let rockHitboxForCalculation of rockHitboxes){
+                // Weigh by making more low health rocks worth more
+                healthScore += hitBoxValueByHealth(rockHitboxForCalculation.getHealth());
+            }
+            // Weigh by enemy distance to rock (use cannon aoe as distance)
+            for (let enemy of enemies){
+                let distanceToEnemyInTile = calculateEuclideanDistance(enemy.getTileX(), enemy.getTileY(), tileX, tileY);
+                if (distanceToEnemyInTile > RETRO_GAME_DATA["cannon"]["aoe_tile_radius"]){
+                    continue;
+                }
+                enemyScore += 1; 
+            }
+
+            // Weigh by friendly distance to rock (use cannon aoe as distance)
+            for (let friend of friends){
+                let distanceToEnemyInTile = calculateEuclideanDistance(friend.getTileX(), friend.getTileY(), tileX, tileY);
+                if (distanceToEnemyInTile > RETRO_GAME_DATA["cannon"]["aoe_tile_radius"]){
+                    continue;
+                }
+                friendlyScore += 1; 
+            }
+            /*
+                Notes on score calculation:
+                We know health score is between 1 and infinity
+                We know enemy score is between 0 and num enemies
+                We know firendly score is between 0 and num friendlies
+                Come up with a reasonable conclusion based on these scores (maybe put a max value on the health score in the hitBoxValueByHealth function)
+                TODO LEAVE OFF HERE
+            */
+            let score = healthScore;
+            rockTargets.push({"tile_x": tileX, "tile_y": tileY, "score": })
+        }
+        return rockTargets;
+    }
+
+    getEnemies(){
+        return this.getGamemode().getLivingTeamRosterFromName(this.getGamemode().getOtherTeam(this.getTeamName()));
+    }
+
+    getFriends(){
+        return this.getGamemode().getLivingTeamRosterFromName(this.getTeamName());
+    }
+
     determineCloserTiles(possibleEndTiles, shootOneTiles){
         let closerTiles = [];
         // Note: Weed out bushes
-        let gamemode = this.getGamemode();
-        let enemies = gamemode.getLivingTeamRosterFromName(gamemode.getOtherTeam(this.getTeamName()));
+        let enemies = this.getEnemies();
         let shortestDistanceToEnemyAtStart = Number.MAX_SAFE_INTEGER;
 
         // Find the shortest distancer to enemy at the start of the turn
@@ -226,7 +301,7 @@ class SkirmishBot extends SkirmishCharacter {
             let shortestDistance = Number.MAX_SAFE_INTEGER;
             // Find the distances to enemies
             for (let enemy of enemies){
-                let distance = euclidianDistance(x, y, enemy.getInterpolatedTickX(), enemy.getInterpolatedTickY());
+                let distance = calculateEuclideanDistance(x, y, enemy.getInterpolatedTickX(), enemy.getInterpolatedTickY());
                 totalDistance += distance;
                 shortestDistance = Math.min(distance, shortestDistance);
             }
@@ -242,78 +317,94 @@ class SkirmishBot extends SkirmishCharacter {
     }
 
     determineSingleBushTiles(possibleEndTiles){
-        let closerTiles = [];
+        let singleBushTiles = [];
         // Note: Weed out multi-bushes
-        return closerTiles;
+        let scene = this.getGamemode().getScene();
+        for (let possibleEndTile of possibleEndTiles){
+            let physicalTile = scene.getPhysicalTileAtLocation(possibleEndTile["tile_x"], possibleEndTile["tile_y"]);
+            if (physicalTile.hasAttribute("single_cover")){
+                singleBushTiles.push(possibleEndTile);
+            }
+        }
+        return singleBushTiles;
     }
 
     determineMultiBushTiles(possibleEndTiles){
-        let closerTiles = [];
+        let multiBushTiles = [];
         // Note: Weed out single-bushes
-        return closerTiles;
+        let scene = this.getGamemode().getScene();
+        for (let possibleEndTile of possibleEndTiles){
+            let physicalTile = scene.getPhysicalTileAtLocation(possibleEndTile["tile_x"], possibleEndTile["tile_y"]);
+            if (physicalTile.hasAttribute("multi_cover")){
+                multiBushTiles.push(possibleEndTile);
+            }
+        }
+        return multiBushTiles;
     }
 
-    determineRoughShootOneTiles(tileSelection){
-        let roughShootOneTiles = [];
+    determineRoughShootAndStabTiles(tileSelection){
+        let roughShootTiles = [];
+        let roughStabTiles = [];
         let scene = this.getGamemode().getScene();
         let angleIntervalDEG = 5;
         let gun = this.getGun();
         let range = gun.getBulletRange();
         let myID = this.getID();
+        let enemies = this.getEnemies();
         // Look at each tile you can stand on to shoot
         for (let tile of tileSelection){
             let playerLeftX = scene.getXOfTile(tile["tile_x"]);
             let playerTopY = scene.getYOfTile(tile["tile_y"]);
-            let x;
-            let y;
-            // Loop through given angles
-            for (let angleDEG = 0; angleDEG < 360; angleDEG += angleIntervalDEG){
-                let playerAimingAngleRAD = toFixedRadians(angleDEG);
+            // Loop through enemies
+            for (let enemy of enemies){
+                let distanceToEnemy = this.distance(enemy);
+                if (tile["distance_to_enemy"] < this.getMeleeWeapon().getSwingRange()){
+                    roughStabTiles.push(tile);
+                    // Ignore possibility of shooting
+                    if (distanceToEnemy < RETRO_GAME_DATA["general"]["tile_size"]){
+                        continue;
+                    }
+                }
+                let angleToEnemy = displacementToRadians(enemy.getInterpolatedTickCenterX() - this.getInterpolatedTickCenterX(), enemy.getInterpolatedTickCenterY() - this.getInterpolatedTickCenterY());
                 let directionToFace;
-                // If to the right
-                if (angleBetweenCCWRAD(playerAimingAngleRAD, toRadians(315), toRadians(45))){
-                    directionToFace = "right";
-                }
-                // If up
-                else if (angleBetweenCCWRAD(playerAimingAngleRAD, toRadians(45), toRadians(135))){
-                    directionToFace = "up";
-                }
-                // If to the left
-                else if (angleBetweenCCWRAD(playerAimingAngleRAD, toRadians(135), toRadians(180))){
-                    directionToFace = "left";
-                }
-                // Else it must be down
-                else{
-                    directionToFace = "down";
-                }
-                // Determine REAL position of gun end at different angles
-                let pos = gun.getSimulatedGunEndPosition(playerLeftX, playerTopY, directionToFace, playerAimingAngleRAD);
-                x = pos["x"];
-                y = pos["y"];
-                let collision = scene.findInstantCollisionForProjectile(x, y, range, (enemy) => { return enemy.getID() == myID; });
-                // If it can shoot an enemy from this tile at this angle then add it
-                if (collision["collision_type"] === "entity"){
-                    if (!collision["entity"].isOnSameTeam(this)){
-                        tile["angle_rad"] = playerAimingAngleRAD;
-                        tile["direction_to_face"] = directionToFace;
-                        tile["distance_to_enemy"] = collision["entity"].distance(this);
-                        roughShootOneTiles.push(tile);
-                        break; // Skip to next tile
+                let offsetAmount = RETRO_GAME_DATA["general"]["tile_size"]/4;
+                let offsetAngleAtRange = Math.atan(offsetAmount/distanceToEnemy);
+
+                let anglesToShootAt = [angleToEnemy, rotateCWRAD(angleToEnemy, offsetAngleAtRange), rotateCCWRAD(angleToEnemy, offsetAngleAtRange)];
+                for (let angleToShootAt of angleToShootAt){
+                    // If to the right
+                    if (angleBetweenCCWRAD(angleToShootAt, toRadians(315), toRadians(45))){
+                        directionToFace = "right";
+                    }
+                    // If up
+                    else if (angleBetweenCCWRAD(angleToShootAt, toRadians(45), toRadians(135))){
+                        directionToFace = "up";
+                    }
+                    // If to the left
+                    else if (angleBetweenCCWRAD(angleToShootAt, toRadians(135), toRadians(180))){
+                        directionToFace = "left";
+                    }
+                    // Else it must be down
+                    else{
+                        directionToFace = "down";
+                    }
+                    let pos = gun.getSimulatedGunEndPosition(playerLeftX, playerTopY, directionToFace, angleToShootAt);
+                    let x = pos["x"];
+                    let y = pos["y"];
+                    // Check shoot directory at enemy
+                    let collision = scene.findInstantCollisionForProjectile(x, y, angleToShootAt, range, (enemy) => { return enemy.getID() == myID; });
+                    if (collision["collision_type"] === "entity"){
+                        if (!collision["entity"].isOnSameTeam(this)){
+                            tile["angle_rad"] = angleToShootAt;
+                            tile["direction_to_face"] = directionToFace;
+                            tile["distance_to_enemy"] = collision["entity"].distance(this);
+                            roughShootTiles.push(tile);
+                        }
                     }
                 }
             }
         }
-        return roughShootOneTiles;
-    }
-
-    determineRoughStabbingTiles(tilesYouCanShootFrom){
-        let stabbingTiles = [];
-        for (let tile of tilesYouCanShootFrom){
-            if (tile["distance_to_enemy"] < this.getMeleeWeapon().getSwingRange()){
-                stabbingTiles.push(tile);
-            }
-        }
-        return stabbingTiles;
+        return {"rough_shoot_tiles": roughShootTiles, "rough_stab_tiles": roughStabTiles};
     }
 
     getGun(){

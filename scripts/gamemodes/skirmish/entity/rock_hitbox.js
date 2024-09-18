@@ -13,6 +13,10 @@ class RockHitbox {
         return this.healthBar.getValue() <= 0;
     }
 
+    getHealth(){
+        return this.healthBar.getValue();
+    }
+
     setHealth(value){
         this.healthBar.setValue(value);
     }

@@ -6,7 +6,6 @@ class Pistol extends Gun {
     getSimulatedGunEndPosition(playerLeftX, playerTopY, playerDirection, playerAimingAngleRAD){
         let result = {};
         let gunDirection;
-
         // Determine if using the right gun image or left gun image
         if (playerDirection == "front"){
             gunDirection = playerAimingAngleRAD > toRadians(270) ? "right" : "left";

@@ -12,6 +12,18 @@ class SkirmishCharacter extends Character {
         this.visualEnvironmentHealthBar = new VisualEnvironmentHealthBar(this.health);
     }
 
+    getShot(model){
+        this.damage(RETRO_GAME_DATA["skirmish"]["shot_damage"]);
+        // Assumes not dead prior to damage
+        if (this.isDead()){
+            this.gamemode.getEventHandler().emit({
+                "victim_class": this.getModel(),
+                "killer_class": model,
+                "name": "kill"
+            });
+        }
+    }
+
     setHealth(value){
         super.setHealth(value);
         this.visualEnvironmentHealthBar.setValue(value);

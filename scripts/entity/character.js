@@ -25,6 +25,11 @@ class Character extends Entity {
         }
     }
 
+    getDecision(decisionName){
+        return this.decisions[decisionName];
+    }
+
+
     distance(otherCharacter){
         return calculateEuclideanDistance(this.getInterpolatedTickCenterX(), this.getInterpolatedTickCenterY(), otherCharacter.getInterpolatedTickCenterX(), otherCharacter.getInterpolatedTickCenterY());
     }

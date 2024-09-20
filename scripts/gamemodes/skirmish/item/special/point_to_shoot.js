@@ -5,7 +5,7 @@ class PointToShoot extends Item {
         this.crosshairCenterX = 0;
         this.crosshairCenterY = 0;
 
-        this.selectionlastUpdatedTurn = -1;
+        this.selectionLastUpdatedTurn = -1;
         this.selectionMadeAtX = 0;
         this.selectionMadeAtY = 0;
         this.selectedTroops = [];
@@ -148,10 +148,10 @@ class PointToShoot extends Item {
         let playerStandingX = this.player.getTileX();
         let playerStandingY = this.player.getTileY();
         // Don't update selected trops UNLESS new turn OR player has moved
-        if (newTurn == this.selectionlastUpdatedTurn && this.selectionMadeAtX == playerStandingX && this.selectionMadeAtY == playerStandingY){
+        if (newTurn == this.selectionLastUpdatedTurn && this.selectionMadeAtX == playerStandingX && this.selectionMadeAtY == playerStandingY){
             return;
         }
-        this.selectionlastUpdatedTurn = newTurn;
+        this.selectionLastUpdatedTurn = newTurn;
         this.moveTileX = playerStandingX; // Placeholder
         this.moveTileY = playerStandingY; // Placeholder
         this.selectionMadeAtX = playerStandingX;

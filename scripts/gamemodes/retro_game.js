@@ -15,7 +15,7 @@ var mouseX = 0;
 var mouseY = 0;
 var programOver = false;
 
-var britishIsHuman = true; // For testing
+var britishIsHuman = false; // For testing
 var americanIsHuman = true; // For testing
 
 // Functions

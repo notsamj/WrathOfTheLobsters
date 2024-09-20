@@ -9,7 +9,24 @@ const RETRO_GAME_DATA = {
     },
 
     "bot": {
-        "rock_health_f_value": 1.5
+        "rock_health_f_value": 1.5,
+        "max_rock_value": 20,
+        "friend_enemy_cannon_ratio": 5,
+        "kill_to_damage_importance_ratio": 3,
+        "plan_choosing_f": 1.2,
+        "plan_choosing_x_start": 0.25,
+        "plan_choosing_x_end": 3,
+        "weights": {
+            "shoot": 1,
+            "stab": 1,
+            "move_closer": 1,
+            "single_bush": 1,
+            "multi_bush": 1,
+            "cannon_rock": 1,
+            "cannon_troops": 1,
+            "order_shoot": 1,
+            "order_move": 1
+        }
     },
 
     "skirmish_camera": {
@@ -133,7 +150,8 @@ const RETRO_GAME_DATA = {
             "point_to_shoot_crosshair",
             "point_to_shoot_cannon",
             "point_to_shoot_cannon_crosshair"
-        ]
+        ],
+        "shot_damage": 0.75
     },
 
     "controls": {

@@ -3,6 +3,25 @@ if (typeof window === "undefined"){
     RETRO_GAME_DATA = require("../../data/data_json.js");
 }
 
+function angleToBestFaceDirection(angleRAD){
+    // If to the right
+    if (angleBetweenCCWRAD(angleRAD, toRadians(315), toRadians(45))){
+        return "right";
+    }
+    // If up
+    else if (angleBetweenCCWRAD(angleRAD, toRadians(45), toRadians(135))){
+        return "back";
+    }
+    // If to the left
+    else if (angleBetweenCCWRAD(angleRAD, toRadians(135), toRadians(180))){
+        return "left";
+    }
+    // Else it must be down
+    else{
+        return "front";
+    }
+}
+
 function calculateMSBetweenTicks(){
     return 1000 / RETRO_GAME_DATA["general"]["tick_rate"];
 }

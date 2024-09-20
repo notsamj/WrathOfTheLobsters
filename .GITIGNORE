@@ -10,3 +10,4 @@ images/not-active/*
 backups/*
 Game Maker/server/node_modules
 images/source/
+/testing

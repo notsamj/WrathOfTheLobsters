@@ -56,7 +56,7 @@ class BotPlan {
                 // Find white flag index
                 for (let i = 0; i < items.length; i++){
                     let item = items[i];
-                    if ((item instanceof Sword) && !(selectedItem instanceof WhiteFlag)){
+                    if ((item instanceof Sword) && !(item instanceof WhiteFlag)){
                         swordIndex = i;
                         break;
                     }
@@ -69,13 +69,35 @@ class BotPlan {
             decisions["trying_to_swing_sword"] = true;
         }
 
+        let equipGun = (decisions) => {
+            let inventory = this.player.getInventory();
+            let items = inventory.getItems();
+            let selectedItem = inventory.getSelectedItem();
+            // If not holding the gun -> equip it
+            if (!(selectedItem instanceof Gun)){
+                let gunIndex = -1;
+                // Find white flag index
+                for (let i = 0; i < items.length; i++){
+                    let item = items[i];
+                    if (item instanceof Gun){
+                        gunIndex = i;
+                        break;
+                    }
+                }
+                decisions["select_slot"] = gunIndex;
+                return false;
+            }
+
+            return true;
+        }
+
         let faceDirection = (decisions) => {
             let isFacingDirectionAlready = true;
 
-            let playerDirection = this.player.getFacingDirection();
+            let playerDirection = getAlternativeDirectionFormatOf(this.player.getFacingDirection());
             if (playerDirection != this.planDetails["direction_to_face"]){
                 isFacingDirectionAlready = false;
-                decisions["direction"] = this.planDetails["direction_to_face"];
+                decisions[this.planDetails["direction_to_face"]] = true;
             }
             return isFacingDirectionAlready;
         }
@@ -145,29 +167,31 @@ class BotPlan {
         }
 
         if (this.planDetails["type"] === "shoot"){
-            let moving = updateFromMoveDecisions(this.route.getDecisionAt(this.getTileX(), this.getTileY()));
+            let moving = updateFromMoveDecisions(this.route.getDecisionAt(this.player.getTileX(), this.player.getTileY())) || this.player.isMoving();
             if (moving){ return; }
             let alreadyFacing = faceDirection(decisions);
             if (!alreadyFacing){ return; }
-            decisions["angle_rad"] = this.planDetails["angle_rad"];
-            decisions["trying_to_aim"] = this.planDetails["trying_to_aim"];
-            decisions["trying_to_shoot"] = this.planDetails["trying_to_shoot"];
+            let gunEquipped = equipGun(decisions);
+            if (!gunEquipped){ return; }
+            decisions["aiming_angle_rad"] = this.planDetails["angle_rad"];
+            decisions["trying_to_aim"] = true;
+            decisions["trying_to_shoot"] = true;
         }else if (this.planDetails["type"] === "stab"){
-            let moving = updateFromMoveDecisions(this.route.getDecisionAt(this.getTileX(), this.getTileY()));
+            let moving = updateFromMoveDecisions(this.route.getDecisionAt(this.player.getTileX(), this.player.getTileY())) || this.player.isMoving();
             if (moving){ return; }
             let alreadyFacing = faceDirection(decisions);
             if (!alreadyFacing){ return; }
             swingSword(decisions);
         }else if (this.planDetails["type"] === "move_closer"){
-            let moving = updateFromMoveDecisions(this.route.getDecisionAt(this.getTileX(), this.getTileY()));
+            let moving = updateFromMoveDecisions(this.route.getDecisionAt(this.player.getTileX(), this.player.getTileY())) || this.player.isMoving();
             if (moving){ return; }
             waveWhiteFlag(decisions);
         }else if (this.planDetails["type"] === "single_bush"){
-            let moving = updateFromMoveDecisions(this.route.getDecisionAt(this.getTileX(), this.getTileY()));
+            let moving = updateFromMoveDecisions(this.route.getDecisionAt(this.player.getTileX(), this.player.getTileY())) || this.player.isMoving();
             if (moving){ return; }
             waveWhiteFlag(decisions);
         }else if (this.planDetails["type"] === "multi_bush"){
-            let moving = updateFromMoveDecisions(this.route.getDecisionAt(this.getTileX(), this.getTileY()));
+            let moving = updateFromMoveDecisions(this.route.getDecisionAt(this.player.getTileX(), this.player.getTileY())) || this.player.isMoving();
             if (moving){ return; }
             waveWhiteFlag(decisions);
         }else if (this.planDetails["type"] === "cannon_rock"){

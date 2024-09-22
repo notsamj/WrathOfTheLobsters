@@ -13,8 +13,15 @@ class PointToMove extends Item {
 
         this.troopMovementDetails = {};
         this.troopMovementInProgress = false;
+    }
 
-        this.resetDecisions();
+    resetDecisions(){
+        this.player.amendDecisions({
+            "move_tile_x": null,
+            "move_tile_y": null,
+            "trying_to_move_troops": false,
+            "new_move_tile": false
+        });
     }
 
     isMovingTroops(){
@@ -63,9 +70,11 @@ class PointToMove extends Item {
             troopXAfter += 1;
         }
         let startTile = route.getStartTile();
-        let startOfRouteX = startTile["x_tile"];
-        let startOfRouteY = startTile["y_tile"];
+        let startOfRouteX = startTile["tile_x"];
+        let startOfRouteY = startTile["tile_y"];
+        //debugger;
         let distanceFromStart = Math.sqrt(Math.pow(troopXAfter - startOfRouteX, 2) + Math.pow(troopYAfter - startOfRouteY, 2));
+        //console.log(distanceFromStart, troop.getWalkingBar().getMaxValue())
         // Don't let troop keep moving if the troop has moved far enough
         if (distanceFromStart > troop.getWalkingBar().getMaxValue()){
             return null;
@@ -84,11 +93,11 @@ class PointToMove extends Item {
     }
 
     actOnDecisions(){
-    	if (this.decisions["new_move_tile"] && !this.player.hasCommitedToAction()){
-        	this.moveTileX = this.decisions["move_tile_x"];
-        	this.moveTileY = this.decisions["move_tile_y"];
+    	if (this.getDecision("new_move_tile") && !this.player.hasCommitedToAction()){
+        	this.moveTileX = this.getDecision("move_tile_x");
+        	this.moveTileY = this.getDecision("move_tile_y");
     	}
-    	if (this.decisions["trying_to_move_troops"] && !this.player.hasCommitedToAction() && this.selectedTroops.length > 0){
+    	if (this.getDecision("trying_to_move_troops") && !this.player.hasCommitedToAction() && this.selectedTroops.length > 0){
             let canWalkOnTile = !this.getScene().tileAtLocationHasAttribute(this.moveTileX, this.moveTileY, "no_walk");
             if (canWalkOnTile){
                 this.player.commitToAction();
@@ -99,34 +108,12 @@ class PointToMove extends Item {
         this.checkIfMovementFinished();
     }
 
-    resetDecisions(){
-        this.decisions = {
-        	"move_tile_x": null,
-        	"move_tile_y": null,
-        	"new_move_tile": false,
-        	"trying_to_move_troops": false
-        }
-    }
-
     getScene(){
     	return this.player.getScene();
     }
 
     makeDecisions(){
-    	this.resetDecisions();
-    	let canvasX = mouseX;
-        let canvasY = this.getScene().changeFromScreenY(mouseY);
-        if (canvasX < 0 || canvasX >= this.getScene().getWidth() || canvasY < 0 || canvasY >= this.getScene().getHeight()){ return; }
-        let engineX = canvasX / gameZoom + this.getScene().getLX();
-        let engineY = canvasY / gameZoom + this.getScene().getBY();
-        let newPlacerTileX = RetroGameScene.getTileXAt(engineX);
-        let newPlacerTileY = RetroGameScene.getTileYAt(engineY);
-        this.decisions = {
-        	"move_tile_x": newPlacerTileX,
-        	"move_tile_y": newPlacerTileY,
-        	"trying_to_move_troops": USER_INPUT_MANAGER.isActivated("left_click_ticked"),
-        	"new_move_tile": true
-        }
+        this.player.makeMovePointerDecisions();
     }
 
     select(){

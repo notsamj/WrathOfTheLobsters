@@ -16,7 +16,7 @@ var mouseY = 0;
 var programOver = false;
 
 var britishIsHuman = false; // For testing
-var americanIsHuman = true; // For testing
+var americanIsHuman = false; // For testing
 
 // Functions
 async function setup() {
@@ -288,16 +288,16 @@ class RetroGame extends Gamemode {
         await this.scene.loadTilesFromJSON(LEVEL_DATA["default.json"]);
         let samuel = new HumanCharacter(this, "usa_officer");
         samuel.setID("samuel");
-        samuel.getInventory().add(new HumanMusket("brown_bess", {
+        samuel.getInventory().add(new Musket("brown_bess", {
             "player": samuel
         }));
-        samuel.getInventory().add(new HumanSword("clever", {
+        samuel.getInventory().add(new Sword("clever", {
             "player": samuel
         }));
-        samuel.getInventory().add(new HumanSword("cavalry_sword", {
+        samuel.getInventory().add(new Sword("cavalry_sword", {
             "player": samuel
         }));
-        samuel.getInventory().add(new HumanPistol("flintlock", {
+        samuel.getInventory().add(new Pistol("flintlock", {
             "player": samuel
         }));
         this.scene.addEntity(samuel);

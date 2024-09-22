@@ -138,6 +138,9 @@ class TurnBasedSkirmish extends Gamemode {
     }
 
     visibleToTeam(observerTeamName, observedTeamName, characterID){
+        if (observerTeamName === "neutral"){
+            return true;
+        }
         // Note: Assumed team1 != team2
         let teamVisibilityJSON = this.gameState["visible_characters"][observerTeamName];
         
@@ -382,23 +385,23 @@ class TurnBasedSkirmish extends Gamemode {
 
         // Equip officers
         for (let officer of officers){
-            officer.getInventory().add(new HumanSkirmishPistol("flintlock", {
+            officer.getInventory().add(new SkirmishPistol("flintlock", {
                 "player": officer
             }));
 
-            officer.getInventory().add(new HumanSkirmishSword("cavalry_sword", {
+            officer.getInventory().add(new SkirmishSword("cavalry_sword", {
                 "player": officer
             }));
 
-            officer.getInventory().add(new HumanPointToMove({
+            officer.getInventory().add(new PointToMove({
                 "player": officer
             }));
 
-            officer.getInventory().add(new HumanPointToShoot({
+            officer.getInventory().add(new PointToShoot({
                 "player": officer
             }));
 
-            officer.getInventory().add(new HumanPointToShootCannon({
+            officer.getInventory().add(new PointToShootCannon({
                 "player": officer
             }));
         }
@@ -417,7 +420,7 @@ class TurnBasedSkirmish extends Gamemode {
             privates.push(britishPrivate);
 
             let americanPrivate;
-            if (this.gameState["operation_type"]["British"] == "human"){
+            if (this.gameState["operation_type"]["American"] == "human"){
                 americanPrivate = new SkirmishHuman(this, "usa_pvt", "private", "American");
             }else{
                 americanPrivate = new SkirmishBot(this, "usa_pvt", "private", "American");
@@ -430,11 +433,11 @@ class TurnBasedSkirmish extends Gamemode {
 
         // Equip privates
         for (let privateTroop of privates){
-            privateTroop.getInventory().add(new HumanSkirmishMusket("brown_bess", {
+            privateTroop.getInventory().add(new SkirmishMusket("brown_bess", {
                 "player": privateTroop
             }));
 
-            privateTroop.getInventory().add(new HumanSkirmishSword("clever", {
+            privateTroop.getInventory().add(new SkirmishSword("clever", {
                 "player": privateTroop
             }));
         }
@@ -443,7 +446,7 @@ class TurnBasedSkirmish extends Gamemode {
 
         // Equip all troops
         for (let troop of allTroops){
-            troop.getInventory().add(new HumanWhiteFlag({
+            troop.getInventory().add(new WhiteFlag({
                 "player": troop
             }));
             this.scene.addEntity(troop);
@@ -527,7 +530,7 @@ class TurnBasedSkirmish extends Gamemode {
         let bigBushes = 5;
 
         let seed = randomNumberInclusive(0,1000);
-        seed = 447; // temp
+        //seed = 447; // temp
         let random = new SeededRandomizer(seed);
         console.log("seed", seed)
 

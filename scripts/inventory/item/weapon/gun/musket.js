@@ -10,23 +10,27 @@ class Musket extends Gun {
     }
 
     resetDecisions(){
-        this.decisions = {
+        this.player.amendDecisions({
             "trying_to_aim": false,
             "trying_to_shoot": false,
-            "toggling_bayonet_equip": false,
             "trying_to_reload": false,
+            "toggling_bayonet_equip": false,
             "trying_to_stab": false,
             "aiming_angle_rad": null
-        }
+        });
+    }
+
+    makeDecisions(){
+        this.player.makeMusketDecisions();
     }
 
     actOnDecisions(){
-        let tryingToShoot = this.decisions["trying_to_shoot"];
+        let tryingToShoot = this.getDecision("trying_to_shoot");
         if (this.isAiming() && tryingToShoot && this.isLoaded() && !this.isStabbing()){
             this.shoot();
         }
 
-        let togglingBayonetEquip = this.decisions["toggling_bayonet_equip"];
+        let togglingBayonetEquip = this.getDecision("toggling_bayonet_equip");
         if (!this.isAiming() && togglingBayonetEquip && !this.player.isMoving() && !this.isReloading() && !this.isStabbing()){
             if (this.hasBayonetEquipped()){
                 this.unequipBayonet();
@@ -35,12 +39,12 @@ class Musket extends Gun {
             }
         }
 
-        let tryingToReload = this.decisions["trying_to_reload"];
+        let tryingToReload = this.getDecision("trying_to_reload");
         if (tryingToReload && !this.isLoaded() && !this.player.isMoving() && !this.isStabbing() && !this.isReloading()){
             this.reload();
         }
 
-        let tryingToStab = this.decisions["trying_to_stab"];
+        let tryingToStab = this.getDecision("trying_to_stab");
         if (this.isAiming() && tryingToStab && !this.isReloading() && this.hasBayonetEquipped() && !this.player.isMoving() && !this.isStabbing()){
             this.startStab();
         }
@@ -149,7 +153,6 @@ class Musket extends Gun {
     }
 
     tick(){
-        this.resetDecisions();
         if (this.isReloading()){
             if (this.player.isMoving()){
                 this.cancelReload();
@@ -372,6 +375,11 @@ class Musket extends Gun {
 
         rotate(displayRotateAngleRAD);
         translate(-1 * rotateX, -1 * rotateY);
+
+        // Display Crosshair if aiming
+        if (isAiming && this.player.isHuman()){
+            drawCrosshair();
+        }
     }
 
     getImageX(lX){

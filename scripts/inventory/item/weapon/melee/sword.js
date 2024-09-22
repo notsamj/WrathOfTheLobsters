@@ -7,20 +7,22 @@ class Sword extends Item {
         this.swinging = false;
         this.swingLock = new TickLock(RETRO_GAME_DATA["sword_data"][this.model]["swing_time_ms"] / RETRO_GAME_DATA["general"]["ms_between_ticks"]);
         this.swingFacing = null;
-
-        this.resetDecisions();
-    }
-
-    actOnDecisions(){
-        let tryingToSwing = this.decisions["trying_to_swing_sword"];
-        if (tryingToSwing && !this.isSwinging()){
-            this.startSwing();
-        }
     }
 
     resetDecisions(){
-        this.decisions = {
+        this.player.amendDecisions({
             "trying_to_swing_sword": false
+        });
+    }
+
+    makeDecisions(){
+        this.player.makeSwordDecisions();
+    }
+
+    actOnDecisions(){
+        let tryingToSwing = this.getDecision("trying_to_swing_sword");
+        if (tryingToSwing && !this.isSwinging()){
+            this.startSwing();
         }
     }
 

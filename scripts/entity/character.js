@@ -15,13 +15,33 @@ class Character extends Entity {
             "look_lock": new TickLock(3)
         }
         this.movementDetails = null;
-        this.inventory = new Inventory();
+        this.inventory = new Inventory(this);
         this.decisions = {
             "up": false,
             "down": false,
             "left": false,
             "right": false,
             "sprint": false
+        }
+    }
+
+
+    resetDecisions(){
+        this.amendDecisions({
+            "up": false,
+            "down": false,
+            "left": false,
+            "right": false,
+            "sprint": false
+        });
+        if (this.inventory.hasSelectedItem()){
+            this.inventory.getSelectedItem().resetDecisions();
+        }
+    }
+
+    amendDecisions(decisionObject){
+        for (let key of Object.keys(decisionObject)){
+            this.decisions[key] = decisionObject[key];
         }
     }
 
@@ -38,6 +58,7 @@ class Character extends Entity {
         let tiles = [];
         let startTileX = this.tileX;
         let startTileY = this.tileY;
+        if (startTileX === endTileX && startTileY === endTileY){ return new Route(); }
 
         let addAdjacentTilesAsUnchecked = (tileX, tileY, pathToTile, startToEnd) => {
             tryToAddTile(tileX+1, tileY, pathToTile, startToEnd);
@@ -198,6 +219,7 @@ class Character extends Entity {
         }
 
         let getBestPath = () => {
+            if (!startAndEndPresent){ return null; }
             let pathOfStartTile = startTile["shortest_path"];
             let pathOfEndTile = endTile["shortest_path"];
             
@@ -262,10 +284,12 @@ class Character extends Entity {
         }
 
         // Add first tile
+        let startAndEndPresent = false;
         tryToAddTile(startTileX, startTileY, []);
         tryToAddTile(endTileX, endTileY, [], false);
         let startTile = tiles[0];
         let endTile = tiles[1];
+        startAndEndPresent = true;
         while (hasUncheckedTiles() && !hasFoundTheBestPossiblePath() && hasPathsInBothDirections()){
             let currentTile = pickBestTile();
             currentTile["checked"][currentTile["path_direction"].toString()] = true;
@@ -304,14 +328,6 @@ class Character extends Entity {
 
     getStabbed(model){
         this.damage(0.75);
-    }
-
-    resetDecisions(){
-        this.decisions["up"] = false;
-        this.decisions["down"] = false;
-        this.decisions["left"] = false;
-        this.decisions["right"] = false;
-        this.decisions["sprint"] = false;
     }
 
     updateMovement(){
@@ -526,9 +542,14 @@ class Character extends Entity {
         this.actOnDecisions();
     }
 
-    makeDecisions(){
-        this.resetDecisions();
-        this.inventory.makeDecisionsForSelectedItem();
+    // Abstract
+    makeDecisions(){}
+
+    makeDecisionsForSelectedItem(){
+        let selectedItem = this.getInventory().getSelectedItem();
+        if (selectedItem != null){
+            selectedItem.makeDecisions();
+        }
     }
 
     actOnDecisions(){

@@ -7,8 +7,10 @@ class Gun extends Item {
 
         this.reloading = false;
         this.reloadLock = new TickLock(RETRO_GAME_DATA["gun_data"][this.model]["reload_time_ms"] / RETRO_GAME_DATA["general"]["ms_between_ticks"]);
+    }
 
-        this.resetDecisions();
+    makeDecisions(){
+        this.player.makeGunDecisions();
     }
 
     forceReload(){
@@ -18,11 +20,8 @@ class Gun extends Item {
     }
 
     getDecidedAngleRAD(){
-        return this.decisions["aiming_angle_rad"];
+        return this.getDecision("aiming_angle_rad");
     }
-
-    // Abstract
-    resetDecisions(){}
 
     // Abstract
     makeDecisions(){}
@@ -89,7 +88,7 @@ class Gun extends Item {
     }
 
     isAiming(){
-        return this.decisions["trying_to_aim"] && this.directionToAimIsOk() && !this.player.isMoving() && !this.isReloading();
+        return this.getDecision("trying_to_aim") && this.directionToAimIsOk() && !this.player.isMoving() && !this.isReloading();
     }
 
     directionToAimIsOk(){

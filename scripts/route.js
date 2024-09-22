@@ -8,12 +8,13 @@ class Route {
     }
 
     getStartTile(){
-        if (this.tileSequence.length == 0){ return null; }
+        if (this.tileSequence.length === 0){ return null; }
         return this.tileSequence[0];
     }
 
     getDecisionAt(tileX, tileY){
         let position = -1;
+
 
         // Find the position of the entity sequence
         for (let i = 0; i < this.tileSequence.length; i++){

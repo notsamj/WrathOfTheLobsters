@@ -3,6 +3,10 @@ class Pistol extends Gun {
         super(model, details);
     }
 
+    makeDecisions(){
+        this.player.makePistolDecisions();
+    }
+
     getSimulatedGunEndPosition(playerLeftX, playerTopY, playerDirection, playerAimingAngleRAD){
         let result = {};
         let gunDirection;
@@ -41,21 +45,21 @@ class Pistol extends Gun {
     }
 
     resetDecisions(){
-        this.decisions = {
+        this.player.amendDecisions({
             "trying_to_aim": false,
             "trying_to_shoot": false,
             "trying_to_reload": false,
             "aiming_angle_rad": null
-        }
+        });
     }
 
     actOnDecisions(){
-        let tryingToShoot = this.decisions["trying_to_shoot"];
+        let tryingToShoot = this.getDecision("trying_to_shoot");
         if (this.isAiming() && tryingToShoot && this.isLoaded()){
             this.shoot();
         }
 
-        let tryingToReload = this.decisions["trying_to_reload"];
+        let tryingToReload = this.getDecision("trying_to_reload");
         if (tryingToReload && !this.isLoaded() && !this.player.isMoving() && !this.isReloading()){
             this.reload();
         }
@@ -263,7 +267,7 @@ class Pistol extends Gun {
         translate(-1 * rotateX, -1 * rotateY);
 
         // Display Crosshair if aiming
-        if (isAiming){
+        if (isAiming && this.player.isHuman()){
             drawCrosshair();
         }
     }

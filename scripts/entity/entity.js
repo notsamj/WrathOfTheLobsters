@@ -6,6 +6,10 @@ class Entity extends VisualItem {
         this.dead = false;
     }
 
+    isHuman(){
+        return false;
+    }
+
     
     is(otherEntity){
         return this.getID() == otherEntity.getID();

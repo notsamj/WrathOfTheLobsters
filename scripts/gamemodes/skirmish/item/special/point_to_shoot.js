@@ -11,8 +11,6 @@ class PointToShoot extends Item {
         this.selectedTroops = [];
 
         this.beingUsedForAction = false;
-        
-        this.resetDecisions();
     }
 
     isBeingUsedForAction(){
@@ -56,16 +54,21 @@ class PointToShoot extends Item {
         let troopInventory = troop.getInventory();
         let selectedItem = troopInventory.getSelectedItem();
         // If they don't have their gun selected
-        if (!selectedItem instanceof Gun){
+        if (!(selectedItem instanceof Gun)){
             let items = troopInventory.getItems();
             // Find gun and select it
             for (let i = 0; i < items.length; i++){
+                let item = items[i];
                 if (item instanceof Gun){
                     command["select_slot"] = i;
                     break;
+                }else{
+                    //console.log(item, "not gun")
                 }
             }
         }
+       // console.log(command["select_slot"])
+       // debugger;
 
         // If not ready to start aiming then return current command
         if (!facingCorrectDirection){
@@ -89,13 +92,13 @@ class PointToShoot extends Item {
             this.beingUsedForAction = false;
             this.player.indicateMoveDone();
         }
-        if (this.decisions["new_crosshair_center"]){
-            this.crosshairCenterX = this.decisions["crosshair_center_x"];
-            this.crosshairCenterY = this.decisions["crosshair_center_y"];
+        if (this.getDecision("new_crosshair_center")){
+            this.crosshairCenterX = this.getDecision("crosshair_center_x");
+            this.crosshairCenterY = this.getDecision("crosshair_center_y");
         }
 
         // If trying to shoot, all troops (that have made preparations and are thus able) will shoot then the turn will end
-        if (this.decisions["trying_to_shoot"] && this.player.isMakingAMove()){
+        if (this.getDecision("trying_to_shoot") && this.player.isMakingAMove()){
             // This will take 2 ticks, 1 to make the decision, second to wait for it to execute
             // Tick 1
             if (!this.player.hasCommitedToAction()){
@@ -129,15 +132,17 @@ class PointToShoot extends Item {
     }
 
     resetDecisions(){
-        this.decisions = {
+        this.player.amendDecisions({
             "crosshair_center_x": null,
             "crosshair_center_y": null,
             "new_crosshair_center": false,
             "trying_to_shoot": false
-        }
+        });
     }
 
-    makeDecisions(){}
+    makeDecisions(){
+        this.player.makeShootPointerDecisions();
+    }
 
     getGamemode(){
         return this.player.getGamemode();

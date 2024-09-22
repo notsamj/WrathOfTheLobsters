@@ -1,6 +1,6 @@
 class WhiteFlag extends Sword {
-    constructor(model, details){
-        super(model, details);
+    constructor(details){
+        super("white_flag", details);
     }
 
     startSwing(){

@@ -17,15 +17,15 @@ const RETRO_GAME_DATA = {
         "plan_choosing_x_start": 0.25,
         "plan_choosing_x_end": 3,
         "weights": {
-            "shoot": 1,
-            "stab": 1,
+            "shoot": 3,
+            "stab": 2,
             "move_closer": 1,
-            "single_bush": 1,
-            "multi_bush": 1,
-            "cannon_rock": 1,
-            "cannon_troops": 1,
-            "order_shoot": 1,
-            "order_move": 1
+            "single_bush": 3,
+            "multi_bush": 4,
+            "cannon_rock": 2,
+            "cannon_troops": 2,
+            "order_shoot": 4,
+            "order_move": 2
         }
     },
 
@@ -140,7 +140,7 @@ const RETRO_GAME_DATA = {
         },
         "game_play": {
             "officer_count": 1,
-            "private_count": 1
+            "private_count": 4
         },
         "special_item_names": [
             "white_flag",

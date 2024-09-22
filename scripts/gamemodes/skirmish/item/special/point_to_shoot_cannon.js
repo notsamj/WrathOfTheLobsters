@@ -5,7 +5,19 @@ class PointToShootCannon extends Item {
         this.crosshairCenterX = 0;
         this.crosshairCenterY = 0;
         this.unlocksAtTurnNumber = this.getGamemode().getTurnCounter() + RETRO_GAME_DATA["cannon"]["turn_cooldown"] * 2;
-        this.resetDecisions();
+    }
+
+    resetDecisions(){
+        this.player.amendDecisions({
+            "crosshair_center_x": null,
+            "crosshair_center_y": null,
+            "new_crosshair_center": false,
+            "trying_to_shoot": false
+        });
+    }
+
+    makeDecisions(){
+        this.player.makeCannonPointerDecisions();
     }
 
     getGamemode(){
@@ -13,11 +25,11 @@ class PointToShootCannon extends Item {
     }
 
     actOnDecisions(){
-        if (this.decisions["new_crosshair_center"]){
-            this.crosshairCenterX = this.decisions["crosshair_center_x"];
-            this.crosshairCenterY = this.decisions["crosshair_center_y"];
+        if (this.getDecision("new_crosshair_center")){
+            this.crosshairCenterX = this.getDecision("crosshair_center_x");
+            this.crosshairCenterY = this.getDecision("crosshair_center_y");
         }
-        if (this.decisions["trying_to_shoot"] && this.player.isMakingAMove() && !this.player.hasCommitedToAction()){
+        if (this.getDecision("trying_to_shoot") && this.player.isMakingAMove() && !this.player.hasCommitedToAction() && !this.isOnCooldown()){
             this.player.commitToAction();
             this.shootCannon();
             this.player.indicateMoveDone();
@@ -112,15 +124,6 @@ class PointToShootCannon extends Item {
 
         // Lock for a number of turns
         this.unlocksAtTurnNumber = this.getGamemode().getTurnCounter() + RETRO_GAME_DATA["cannon"]["turn_cooldown"] * 2;
-    }
-
-    resetDecisions(){
-        this.decisions = {
-            "crosshair_center_x": null,
-            "crosshair_center_y": null,
-            "new_crosshair_center": false,
-            "trying_to_shoot": false
-        }
     }
 
     select(){}

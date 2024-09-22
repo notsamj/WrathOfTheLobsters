@@ -3,6 +3,40 @@ if (typeof window === "undefined"){
     RETRO_GAME_DATA = require("../../data/data_json.js");
 }
 
+function getAlternativeDirectionFormatOf(direction){
+    if (direction === "front"){
+        return "down";
+    }else if (direction === "back"){
+        return "up";
+    }else if (direction === "down"){
+        return "front";
+    }else if (direction === "front"){
+        return "up";
+    }
+    return direction;
+}
+
+function getAngleFromMouseToScreenCenter(scene){
+    let x = mouseX;
+    let y = scene.changeFromScreenY(mouseY);
+    let xOffset = x - getScreenWidth() / 2;
+    let yOffset = y - getScreenHeight() / 2;
+    if (xOffset == 0){
+        if (yOffset > 0){
+            return Math.PI/2;
+        }else if (yOffset < 0){
+            return Math.PI*3/2;
+        }else{
+            return 0;
+        }
+    }
+    let angleRAD = Math.atan(yOffset/xOffset);
+    if (xOffset < 0){
+        angleRAD -= Math.PI;
+    }
+    return fixRadians(angleRAD);
+}
+
 function angleToBestFaceDirection(angleRAD){
     // If to the right
     if (angleBetweenCCWRAD(angleRAD, toRadians(315), toRadians(45))){

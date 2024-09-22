@@ -6,4 +6,7 @@ class Item {
     makeDecisions(){}
     actionOnDecisions(){}
     getDecisions(){ return null; }
+    getDecision(decisionName){
+        return this.player.getDecision(decisionName);
+    }
 }

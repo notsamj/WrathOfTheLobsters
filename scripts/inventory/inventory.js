@@ -1,10 +1,24 @@
 class Inventory {
-    constructor(){
+    constructor(player){
+        this.player = player;
         this.hotbar = new NotSamArrayList(null, RETRO_GAME_DATA["inventory"]["hotbar_size"]);
         this.hotbar.fillWithPlaceholder(null);
         this.selectedSlot = 0;
-        this.resetDecisions();
     }
+
+    makeDecisions(){
+        this.player.makeInventoryDecisions();
+    }
+
+    getSelectedSlot(){
+        return this.selectedSlot;
+    }
+
+    getDecision(decisionName){
+        return this.player.getDecision(decisionName);
+    }
+
+    tick(){}
 
     getItems(){
         let itemList = [];
@@ -14,20 +28,12 @@ class Inventory {
         return itemList;
     }
 
-    resetDecisions(){
-        this.decisions = {
-            "select_slot": -1
-        }
-    }
-
     getDecisions(){
         return this.decisions;
     }
 
-    makeDecisions(){}
-
     actOnDecisions(){
-        let newSlot = this.decisions["select_slot"];
+        let newSlot = this.getDecision("select_slot");
         if (newSlot == -1 || newSlot == this.selectedSlot){ return; }
 
         if (this.hasSelectedItem()){

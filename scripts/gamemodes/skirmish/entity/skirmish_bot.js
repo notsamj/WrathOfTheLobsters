@@ -1,13 +1,12 @@
 class SkirmishBot extends SkirmishCharacter {
-    constructor(gamemode, model, rankName, team){
+    constructor(gamemode, model, rankName, team, sharedBrain){
         super(gamemode, model, rankName, team);
+        this.sharedBrain = sharedBrain;
     }
 
-    // Duds
-    makePointerDecisions(){}
-    makeInventoryDecisions(){}
-    makeSwordDecisions(){}
-    makeGunDecisions(){}
+    getRandom(){
+        return this.getGamemode().getRandom();
+    }
 
     indicateTurn(){
         super.indicateTurn();
@@ -317,8 +316,8 @@ class SkirmishBot extends SkirmishCharacter {
         let endY = func(xEnd);
         let startY = func(xStart);
         let n = collectivePlans.length;
-
-        let pickedX = randomFloatBetween(0,1) * (xEnd - xStart) + xStart;
+        let random = this.getRandom();
+        let pickedX = random.getRandomFloat() * (xEnd - xStart) + xStart;
         let valueAtPickedX = func(pickedX);
         let progressionInY = (startY - valueAtPickedX) / (startY - endY);
         let chosenIndex = Math.floor(n - progressionInY * n);

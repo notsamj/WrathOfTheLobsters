@@ -444,7 +444,7 @@ class Character extends Entity {
             return true;
         }
         let distance = Math.sqrt(Math.pow(observer.getTileX() - this.getTileX(), 2) + Math.pow(observer.getTileY() - this.getTileY(), 2));
-        if (distance > RETRO_GAME_DATA["general"]["entity_render_distance"]){ return false; }
+        if (distance > this.gamemode.getEnemyVisibilityDistance()){ return false; }
         // If in single cover that you can't be seen
         if (this.isInSingleCover()){
             return distance <= 1;

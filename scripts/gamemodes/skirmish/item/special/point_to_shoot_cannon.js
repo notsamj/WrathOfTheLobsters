@@ -152,7 +152,7 @@ class PointToShootCannon extends Item {
         // Display turn cooldown if applicable
         if (this.isOnCooldown()){
             let turns = this.getDisplayedCooldown();
-            makeText(turns.toString(), 0, -1 * RETRO_GAME_DATA["inventory"]["slot_size"]/4, RETRO_GAME_DATA["inventory"]["slot_size"], RETRO_GAME_DATA["inventory"]["slot_size"], Colour.fromCode(RETRO_GAME_DATA["cannon"]["cooldown_colour"]), RETRO_GAME_DATA["cannon"]["cooldown_text_size"], "center", "center");
+            makeText(turns.toString(), 0, -1 * RETRO_GAME_DATA["inventory"]["slot_size"]/4, RETRO_GAME_DATA["inventory"]["slot_size"], RETRO_GAME_DATA["inventory"]["slot_size"], Colour.fromCode(RETRO_GAME_DATA["cannon"]["cooldown_colour"]), RETRO_GAME_DATA["cannon"]["cooldown_text_size"], "center", "alphabetic");
         }
 
         scale(1 / displayScale, 1 / displayScale);

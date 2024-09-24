@@ -29,10 +29,6 @@ const RETRO_GAME_DATA = {
         }
     },
 
-    "skirmish_camera": {
-        "move_speed": 64*16
-    },
-
     "cannon": {
         // error: let x be # of tiles, let # be # of tiles. Shot will land y tiles off of location where x is the distance to target. Function y = (x^f)/g
         "error_f": 1.5,
@@ -130,10 +126,11 @@ const RETRO_GAME_DATA = {
     },
 
     "skirmish": {
-        "area_size": 20, // 50,
+        "area_size": 20, // 50?,
         "troop_selection_distance": 6,
         "selection_colour": "#f2d633",
         "selection_border_width": 3,
+        "enemy_visibility_distance": 12,
         "distance_per_turn": {
             "private": 5,
             "officer": 10
@@ -151,7 +148,11 @@ const RETRO_GAME_DATA = {
             "point_to_shoot_cannon",
             "point_to_shoot_cannon_crosshair"
         ],
-        "shot_damage": 0.75
+        "shot_damage": 0.75,
+        "camera": {
+            "move_speed": 64*16
+        },
+        "seed": 447 // null for random seed, 447 is good (on 20 size)
     },
 
     "controls": {

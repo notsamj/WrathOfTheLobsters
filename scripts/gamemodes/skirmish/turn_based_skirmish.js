@@ -5,6 +5,7 @@ class TurnBasedSkirmish extends Gamemode {
         this.britishTroops = [];
         this.americanTroops = [];
         this.stats = new AfterMatchStats();
+        this.random = null; // Declare
         this.eventHandler.addHandler("kill", (killObject) => {
             let victimClass = killObject["victim_class"];
             let killerClass = killObject["killer_class"];
@@ -33,6 +34,14 @@ class TurnBasedSkirmish extends Gamemode {
         this.startUpLock = new Lock();
         this.startUpLock.lock();
         this.startUp();
+    }
+
+    getEnemyVisibilityDistance(){
+        return RETRO_GAME_DATA["skirmish"]["enemy_visibility_distance"];
+    }
+
+    getRandom(){
+        return this.random;
     }
 
     getOtherTeam(teamNameString){
@@ -356,27 +365,41 @@ class TurnBasedSkirmish extends Gamemode {
     }
 
     spawnTroops(){
-
         let officers = [];
         let privates = [];
+
+        let britishAreHuman = this.gameState["operation_type"]["British"] === "human";
+        let americansAreHuman = this.gameState["operation_type"]["American"] === "human";
+
+        // Create brains if needed
+        let britishBrain;
+        let americanBrain;
+        
+        if (britishAreHuman){
+            britishBrain = new BotSharedBrain(this, "British");
+        }
+
+        if (americansAreHuman){
+            americanBrain = new BotSharedBrain(this, "American");
+        }
 
         // Create officers
         for (let i = 0; i < RETRO_GAME_DATA["skirmish"]["game_play"]["officer_count"]; i++){
             let britishOfficer;
-            if (this.gameState["operation_type"]["British"] == "human"){
+            if (britishAreHuman){
                 britishOfficer = new SkirmishHuman(this, "british_officer", "officer", "British");
             }else{
-                britishOfficer = new SkirmishBot(this, "british_officer", "officer", "British");
+                britishOfficer = new SkirmishBot(this, "british_officer", "officer", "British", britishBrain);
             }
             britishOfficer.setID("british_officer_" + i.toString());
             this.britishTroops.push(britishOfficer);
             officers.push(britishOfficer);
 
             let americanOfficer;
-            if (this.gameState["operation_type"]["American"] == "human"){
+            if (americansAreHuman){
                 americanOfficer = new SkirmishHuman(this, "usa_officer", "officer", "American");
             }else{
-                americanOfficer = new SkirmishBot(this, "usa_officer", "officer", "American");
+                americanOfficer = new SkirmishBot(this, "usa_officer", "officer", "American", americanBrain);
             }
             americanOfficer.setID("american_officer_" + i.toString());
             this.americanTroops.push(americanOfficer);
@@ -409,10 +432,10 @@ class TurnBasedSkirmish extends Gamemode {
         // Create privates
         for (let i = 0; i < RETRO_GAME_DATA["skirmish"]["game_play"]["private_count"]; i++){
             let britishPrivate;
-            if (this.gameState["operation_type"]["British"] == "human"){
+            if (britishAreHuman){
                 britishPrivate = new SkirmishHuman(this, "british_pvt_g", "private", "British");
             }else{
-                britishPrivate = new SkirmishBot(this, "british_pvt_g", "private", "British");
+                britishPrivate = new SkirmishBot(this, "british_pvt_g", "private", "British", britishBrain);
             }
 
             britishPrivate.setID("british_private_" + i.toString());
@@ -420,10 +443,10 @@ class TurnBasedSkirmish extends Gamemode {
             privates.push(britishPrivate);
 
             let americanPrivate;
-            if (this.gameState["operation_type"]["American"] == "human"){
+            if (americansAreHuman){
                 americanPrivate = new SkirmishHuman(this, "usa_pvt", "private", "American");
             }else{
-                americanPrivate = new SkirmishBot(this, "usa_pvt", "private", "American");
+                americanPrivate = new SkirmishBot(this, "usa_pvt", "private", "American", americanBrain);
             }
 
             americanPrivate.setID("american_private_" + i.toString());
@@ -530,8 +553,14 @@ class TurnBasedSkirmish extends Gamemode {
         let bigBushes = 5;
 
         let seed = randomNumberInclusive(0,1000);
-        //seed = 447; // temp
-        let random = new SeededRandomizer(seed);
+
+        let setSeed = RETRO_GAME_DATA["skirmish"]["seed"];
+        let useSetSeed = setSeed != null;
+        if (useSetSeed){
+            seed = setSeed;
+        }
+        this.random = new SeededRandomizer(seed);
+        let random = this.random;
         console.log("seed", seed)
 
         let placeCluster = (visualTileDetails, physicalTileDetails, x, y, clusterSize) => {

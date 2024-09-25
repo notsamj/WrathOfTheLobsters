@@ -15,6 +15,27 @@ class TurnBasedSkirmish extends Gamemode {
             this.stats.addKill(victimClass, killerClass);
         });
 
+        this.eventHandler.addHandler("change_tile", (tileChangeDetailsObject) => {
+            return;
+
+            
+            // Note: Assume troop has already moved (though visibility hasn't been updated yet :)
+
+            let previouslyVisible = false; // TODO if troop is not visible currently to enemy 
+            // update it
+            this.checkAndUpdateTeamVisibility()
+            let nowVisible = false; // TODO: Check if its now visible to the enemy
+
+            // If went from visible -> non-visible
+            if (!nowVisible && previouslyVisible){
+                // TODO: Record last location of this troop in the brain
+            }
+            let troopID = tileChangeDetailsObject["troop_id"];
+            let troopTeam = tileChangeDetailsObject["team"];
+            let oldTileObject = tileChangeDetailsObject["old_tile"];
+            let newTileObject = tileChangeDetailsObject["new_tile"];
+        });
+
         this.britishCamera = new SkirmishCamera(this, getProperAdjective("British"));
         this.americanCamera = new SkirmishCamera(this, getProperAdjective("American"));
         this.neutralCamera = new SkirmishCamera(this, "neutral");
@@ -151,15 +172,10 @@ class TurnBasedSkirmish extends Gamemode {
             return true;
         }
         // Note: Assumed team1 != team2
-        let teamVisibilityJSON = this.gameState["visible_characters"][observerTeamName];
-        
-        // If out of date -> update it
-        if (teamVisibilityJSON["last_updated"] < this.gameState["turn_counter"]){
-            this.calculateVisibility(observerTeamName, observedTeamName);
-        }
+        let teamVisibilityJSONPerspective = this.gameState["team_visibility"][observerTeamName];
 
         // Check all ids
-        let ids = this.gameState["visible_characters"][observerTeamName]["character_ids"];
+        let ids = teamVisibilityJSONPerspective["visible_enemy_character_ids"];
         for (let id of ids){
             if (id == characterID){
                 return true;
@@ -168,24 +184,144 @@ class TurnBasedSkirmish extends Gamemode {
         return false;
     }
 
-    calculateVisibility(observerTeamName, observedTeamName){
-        let teamVisibilityJSON = this.gameState["visible_characters"][observerTeamName];
-        let observerRoster = this.getTeamNameRosterFromName(observerTeamName);
-        let observedRoster = this.getTeamNameRosterFromName(observedTeamName);
-        let ids = [];
-        for (let observedTroop of observedRoster){
-            let included = false;
-            for (let observerTroop of observerRoster){
-                if (observedTroop.isVisibleToSuper(observerTroop)){
-                    included = true;
-                    break;
+    checkAndUpdateTeamVisibility(){
+        let teamVisibilityJSON = this.gameState["team_visibility"];
+        let getLastRecordedPosition = (troop) => {
+            let teamName = troop.getTeamName();
+            let troopID = troop.getID();
+            for (let troopPositionObject of teamVisibilityJSON[teamName]["last_updated_positions"]){
+                if (troopPositionObject["id"] === troopID){
+                    return troopPositionObject;
                 }
             }
-            if (included){
-                ids.push(observedTroop.getID());
+            return null;
+        }
+
+        let updatedTroops = {
+            "American": [],
+            "British": []
+        };
+
+        let updateTroops = (teamName) => {
+            let troops = this.getTeamNameRosterFromName(teamName);
+            for (let troop of this.troops){
+                let positionObject = getLastRecordedPosition(troop);
+                let tileX = troop.getTileX();
+                let tileY = troop.getTileY();
+                let id = troop.getID();
+                let updatePosition = positionObject === null || positionObject["tile_x"] != tileX || positionObject["tile_y"] != tileY;
+                
+                if (!updatePosition){ continue; }
+                
+                if (positionObject === null){
+                    positionObject = {"id": id};
+                    teamVisibilityJSON[teamName]["last_updated_positions"].push(positionObject);
+                }
+                positionObject["tile_x"] = tileX;
+                positionObject["tile_y"] = tileY;
+                updatedTroops[teamName].push(id);
             }
         }
-        teamVisibilityJSON["character_ids"] = ids;
+
+        // Check for changes in the last updated positions
+        updateTroops("British");
+        updateTroops("American");
+        let noUpdates = updatedTroops["British"].length === 0 && updatedTroops["American"].length === 0;
+
+        // Save time by doing nothing if no updates
+        if (noUpdates){ return; }
+
+        let getRecordedSightsForTroop = (troop) => {
+            let teamName = troop.getTeamName();
+            let troopID = troop.getID();
+            for (let troopSightObject of teamVisibilityJSON[teamName]["troop_sightings"]){
+                if (troopSightObject["id"] === troopID){
+                    return troopSightObject;
+                }
+            }
+            return null;
+        }
+        /*
+            For each british troop
+                for each americanTroopUPDATED
+                    if americanTroop in sightList of birtsihTroop and no longer visible to british troop
+                        remove from sight list
+            
+            Same for american troops
+
+            Recomute sight list for each
+
+        */
+
+        let updateSightings = (teamName) => {
+            let troops = this.getTeamNameRosterFromName(teamName);
+            let otherTeam = this.getOtherTeam(teamName);
+            let changesMade = false;
+            if (updatedTroops[otherTeam].length === 0){ return changesMade; }
+            // Update what troops can see what troops
+            for (let troop of this.troops){
+                let sightObject = getRecordedSightsForTroop(troop);
+                let id = britishTroop.getID();
+                if (sightObject === null){
+                    sightObject = {"id": id, "troops_in_sight": []};
+                }
+                // Loop through opposite team updated troops to maybe remove from sight if no longer visible
+                for (let updateObject of updatedTroops[otherTeam]){
+                    let index = getIndexOfElementInArray(sightObject["troops_in_sight"], updateObject["id"]);
+                    // If updated opposite team troop isn't sighted by this friendly troop
+                    if (index === -1){
+                        // Check if it is visible
+                        if (troop.canSeeTileEntityAtTile(updateObject["tile_x"], updateObject["tile_y"])){
+                            sightObject["troops_in_sight"].push(updateObject["id"]);
+                            changesMade = true;
+                        }
+                    }
+                    // Else if it is present
+                    else{
+                        let canBeSeenStill = troop.canSeeTileEntityAtTile(updateObject["tile_x"], updateObject["tile_y"]);
+                        // If it can no longer be seen by this troop, then remove it
+                        if (!canBeSeenStill){
+                            // Swap indices and shift to remove
+                            arraySwap(sightObject["troops_in_sight"], 0, index);
+                            sightObject["troops_in_sight"].shift();
+                            changesMade = true;
+                        }
+                    }
+                }
+            }
+            return changesMade;
+        }
+        let britishSightingsUpdated = updateSightings("British");
+        let americanSightingsUpdated = updateSightings("American");
+
+        // Don't continue if nothing to update
+        if (!britishSightingsUpdated && !americanSightingsUpdated){
+            return;
+        }
+
+        let consolidateVisibility = (teamName) => {
+            let troops = this.getTeamNameRosterFromName(teamName);
+            let newList = [];
+            // Note: Full recalculation
+
+            // Loop through all troops and add added
+            for (let troop of this.troops){
+                let sightObject = getRecordedSightsForTroop(troop);
+                for (let id of sightObject["troops_in_sight"]){
+                    addToArraySet(newList, id);
+                }
+            }
+
+            teamVisibilityJSON[teamName]["visible_enemy_character_ids"] = newList;
+        }
+
+        // Consolidate the data for simple checking
+        if (britishSightingsUpdated){
+            consolidateVisibility("British");
+        }
+        if (americanSightingsUpdated){
+            consolidateVisibility("American");
+        }
     }
 
     getTeamNameRosterFromName(teamName){
@@ -308,15 +444,17 @@ class TurnBasedSkirmish extends Gamemode {
                 "American": 0
             },
             "turn_counter": 0,
-            "visible_characters": {
+            "team_visibility": {
                 "British": {
-                    "character_ids": [],
-                    "last_updated": -1
+                    "visible_enemy_character_ids": [],
+                    "troop_sightings": [],
+                    "last_updated_positions": []
                 },
                 "American": {
-                    "character_ids": [],
-                    "last_updated": -1
-                }
+                    "visible_enemy_character_ids": [],
+                    "troop_sightings": [],
+                    "last_updated_positions": []
+                },
             }
         }
     }
@@ -486,6 +624,9 @@ class TurnBasedSkirmish extends Gamemode {
             troop.setTileX(this.americanSpawn["x"]);
             troop.setTileY(this.americanSpawn["y"]);
         }
+
+        // Check and update team visibility
+        this.checkAndUpdateTeamVisibility();
     }
 
     async generateTiles(){

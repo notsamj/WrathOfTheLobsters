@@ -439,28 +439,41 @@ class Character extends Entity {
     }
 
     isVisibleTo(observer){
-        // If the observer has vision restrictions
-        if (!observer.hasVisionRestrictions()){
+        return observer.canSeeTileEntityAtTile(this.getTileX(), this.getTileY());
+    }
+
+    canSeeTileEntityAtTile(tileX, tileY){
+        // If the observer (this) does not have vision restrictions
+        if (!this.hasVisionRestrictions()){
             return true;
         }
-        let distance = Math.sqrt(Math.pow(observer.getTileX() - this.getTileX(), 2) + Math.pow(observer.getTileY() - this.getTileY(), 2));
+
+        let tileInSingleCover = (tileX, tileY) => {
+            return this.getScene().tileAtLocationHasAttribute(tileX, tileY, "single_cover");
+        }
+
+        let tileInMultiCover = (tileX, tileY) => {
+            return this.getScene().tileAtLocationHasAttribute(tileX, tileY, "multi_cover");
+        }
+
+        let distance = Math.sqrt(Math.pow(this.getTileX() - tileX, 2) + Math.pow(this.getTileY() - tileY, 2));
         if (distance > this.gamemode.getEnemyVisibilityDistance()){ return false; }
         // If in single cover that you can't be seen
-        if (this.isInSingleCover()){
+        if (tileInSingleCover(tileX, tileY)){
             return distance <= 1;
         }
         // If not in single cover and not in multi cover then you are visible
-        if (!this.isInMultipleCover()){
+        if (!tileInMultiCover(tileX, tileY)){
             return true;
         }
 
         // If cover is not in multiple cover and you are then it cannot see you 
-        if (!observer.isInMultipleCover()){
+        if (!this.isInMultipleCover()){
             return distance <= 1;
         }
 
         // So now we know observer is in multicover
-        return distance <= 1 || this.getScene().isInSameMultiCover(this, observer); 
+        return distance <= 1 || this.getScene().tilesInSameMultiCover(tileX, tileY, this.getTileX(), this.getTileY()); 
     }
 
     isInSingleCover(){
@@ -659,7 +672,7 @@ class Character extends Entity {
         let y = this.getDisplayY(bY); // center of character
         let onScreen = pointInRectangle(x, y, 0, getScreenWidth(), 0, getScreenHeight()) || pointInRectangle(x-this.getWidth()/2, y-this.getHeight()/2, 0, getScreenWidth(), 0, getScreenHeight()) || pointInRectangle(x+this.getWidth()/2, y-this.getHeight()/2, 0, getScreenWidth(), 0, getScreenHeight()) || pointInRectangle(x-this.getWidth()/2, y+this.getHeight()/2, 0, getScreenWidth(), 0, getScreenHeight()) || pointInRectangle(x+this.getWidth()/2, y+this.getHeight()/2, 0, getScreenWidth(), 0, getScreenHeight());
         if (!onScreen){ return; }
-        if (this.animationManager.getDirection() == "back" || this.animationManager.getDirection() == "left"){
+        if (this.animationManager.getDirection() === "back" || this.animationManager.getDirection() === "left"){
             this.inventory.displaySelectedItem(lX, bY);
         }
         
@@ -675,7 +688,7 @@ class Character extends Entity {
 
         translate(-1 * x, -1 * y);
 
-        if (!(this.animationManager.getDirection() == "back" || this.animationManager.getDirection() == "left")){
+        if (!(this.animationManager.getDirection() === "back" || this.animationManager.getDirection() === "left")){
             this.inventory.displaySelectedItem(lX, bY);
         }
     }

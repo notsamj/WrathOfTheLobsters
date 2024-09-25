@@ -273,7 +273,10 @@ class RetroGameScene {
 
         let entity1TileY = entity1.getTileY();
         let entity2TileY = entity2.getTileY();
+        return this.tilesInSameMultiCover(entity1TileX, entity1TileY, entity2TileX, entity2TileY);
+    }
 
+    tilesInSameMultiCover(entity1TileX, entity1TileY, entity2TileX, entity2TileY){
         // Note: Function assumes both are in multicover
 
         let tilesToCheck = [{"checked": false, "x": entity1TileX, "y": entity1TileY}];

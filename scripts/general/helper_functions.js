@@ -3,6 +3,27 @@ if (typeof window === "undefined"){
     RETRO_GAME_DATA = require("../../data/data_json.js");
 }
 
+function addToArraySet(array, element){
+    // Don't add if already present
+    if (getIndexOfElementInArray(array, element) != -1){ return; }
+    array.push(element);
+}
+
+function getIndexOfElementInArray(array, element){
+    for (let i = 0; i < array.length; i++){
+        if (array[i] === element){
+            return i;
+        }
+    }
+    return -1;
+}
+
+function arraySwap(array, index1, index2){
+    let temp = array[index1];
+    array[index1] = array[index2];
+    array[index2] = temp;
+}
+
 function getAlternativeDirectionFormatOf(direction){
     if (direction === "front"){
         return "down";

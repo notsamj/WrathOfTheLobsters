@@ -45,8 +45,8 @@ class PointToShootCannon extends Item {
         
         let cannonOriginTileX = playerSpawn["x"];
         let cannonOriginTileY = playerSpawn["y"];
-        let cannonOriginX = scene.getXOfTile(cannonOriginTileX);
-        let cannonOriginY = scene.getYOfTile(cannonOriginTileY);
+        let cannonOriginX = scene.getCenterXOfTile(cannonOriginTileX);
+        let cannonOriginY = scene.getCenterYOfTile(cannonOriginTileY);
 
         let distanceToHitLocation = calculateEuclideanDistance(aimToHitX, aimToHitY, cannonOriginX, cannonOriginY);
         let distanceOffInTiles = distanceToHitLocation/RETRO_GAME_DATA["general"]["tile_size"];

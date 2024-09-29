@@ -6,6 +6,10 @@ class TurnBasedSkirmish extends Gamemode {
         this.americanTroops = [];
         this.stats = new AfterMatchStats();
         this.random = null; // Declare
+        this.brains = {
+            "American": null,
+            "British": null
+        }
         this.eventHandler.addHandler("kill", (killObject) => {
             let victimClass = killObject["victim_class"];
             let killerClass = killObject["killer_class"];
@@ -16,24 +20,27 @@ class TurnBasedSkirmish extends Gamemode {
         });
 
         this.eventHandler.addHandler("change_tile", (tileChangeDetailsObject) => {
-            return;
-
-            
             // Note: Assume troop has already moved (though visibility hasn't been updated yet :)
-
-            let previouslyVisible = false; // TODO if troop is not visible currently to enemy 
-            // update it
-            this.checkAndUpdateTeamVisibility()
-            let nowVisible = false; // TODO: Check if its now visible to the enemy
-
-            // If went from visible -> non-visible
-            if (!nowVisible && previouslyVisible){
-                // TODO: Record last location of this troop in the brain
-            }
-            let troopID = tileChangeDetailsObject["troop_id"];
             let troopTeam = tileChangeDetailsObject["team"];
-            let oldTileObject = tileChangeDetailsObject["old_tile"];
-            let newTileObject = tileChangeDetailsObject["new_tile"];
+            let otherTeam = this.getOtherTeam(troopTeam);
+            let otherTeamIsABotTeam = this.gameState["operation_type"][getProperAdjective(otherTeam)] === "bot";
+            //console.log("Update visiblity!!!")
+            if (otherTeamIsABotTeam){
+                let troopID = tileChangeDetailsObject["troop_id"];
+                let previouslyVisible = this.isVisibleToTeam(otherTeam, troopTeam, troopID);
+
+                // Update visiblity
+                this.checkAndUpdateTeamVisibility()
+
+                let nowVisible = this.isVisibleToTeam(otherTeam, troopTeam, troopID);
+                // If went from visible -> non-visible
+                if (!nowVisible && previouslyVisible){
+                    this.getTeamBrain(otherTeam).troopVanishes(troopID, tileChangeDetailsObject["new_tile_x"], tileChangeDetailsObject["new_tile_y"]);
+                }
+            }else{
+                // Update visiblity
+                this.checkAndUpdateTeamVisibility()
+            }
         });
 
         this.britishCamera = new SkirmishCamera(this, getProperAdjective("British"));
@@ -55,6 +62,20 @@ class TurnBasedSkirmish extends Gamemode {
         this.startUpLock = new Lock();
         this.startUpLock.lock();
         this.startUp();
+    }
+
+    getTroop(teamName, troopID){
+        let roster = this.getTeamNameRosterFromName(teamName);
+        for (let troop of roster){
+            if (troop.getID() == troopID){
+                return troop;
+            }
+        }
+        return null;
+    }
+
+    getTeamBrain(teamName){
+        return this.brains[getProperAdjective(teamName)];
     }
 
     getEnemyVisibilityDistance(){
@@ -118,7 +139,7 @@ class TurnBasedSkirmish extends Gamemode {
     getTroopOfficer(troop){
         let teamRoster = this.getLivingTeamRosterFromName(troop.getTeamName());
         // Since one officer per team, an officer cannot be selected
-        if (troop.getRankName() == "officer"){
+        if (troop.getRankName() === "officer"){
             return null;
         }
         // Loop through all the troops on this troop's team to find the officer
@@ -126,7 +147,7 @@ class TurnBasedSkirmish extends Gamemode {
             // Skip yourself Note: May not be needed
             if (otherTroop.is(troop)){ continue; }
             // Note: Assuming only 1 officer
-            if (otherTroop.getRankName() == "officer"){
+            if (otherTroop.getRankName() === "officer"){
                 return otherTroop;
             }
         }
@@ -138,7 +159,7 @@ class TurnBasedSkirmish extends Gamemode {
         let officer = this.getTroopOfficer(troop);
 
         // If no officer found then return false, not selected
-        if (officer == null){ return false; }
+        if (officer === null){ return false; }
 
         // If officer is not making a move then return false
         if (!officer.isMakingAMove()){ return false; }
@@ -167,7 +188,7 @@ class TurnBasedSkirmish extends Gamemode {
         return this.gameState["turn_counter"];
     }
 
-    visibleToTeam(observerTeamName, observedTeamName, characterID){
+    isVisibleToTeam(observerTeamName, observedTeamName, characterID){
         if (observerTeamName === "neutral"){
             return true;
         }
@@ -202,9 +223,10 @@ class TurnBasedSkirmish extends Gamemode {
             "British": []
         };
 
+        //console.log("New visiblity calculation")
         let updateTroops = (teamName) => {
             let troops = this.getTeamNameRosterFromName(teamName);
-            for (let troop of this.troops){
+            for (let troop of troops){
                 let positionObject = getLastRecordedPosition(troop);
                 let tileX = troop.getTileX();
                 let tileY = troop.getTileY();
@@ -219,7 +241,7 @@ class TurnBasedSkirmish extends Gamemode {
                 }
                 positionObject["tile_x"] = tileX;
                 positionObject["tile_y"] = tileY;
-                updatedTroops[teamName].push(id);
+                updatedTroops[teamName].push(positionObject);
             }
         }
 
@@ -257,38 +279,68 @@ class TurnBasedSkirmish extends Gamemode {
             let troops = this.getTeamNameRosterFromName(teamName);
             let otherTeam = this.getOtherTeam(teamName);
             let changesMade = false;
-            if (updatedTroops[otherTeam].length === 0){ return changesMade; }
-            // Update what troops can see what troops
-            for (let troop of this.troops){
+
+            let updateSight = (troop, sightObject, otherTeamTroopID, otherTroopTileX, otherTroopTileY) => {
+                let index = getIndexOfElementInArray(sightObject["troops_in_sight"], otherTeamTroopID);
+                // If updated opposite team troop isn't sighted by this friendly troop
+                if (index === -1){
+                    // Check if it is visible
+                    if (troop.canSeeTileEntityAtTile(otherTroopTileX, otherTroopTileY)){
+                        sightObject["troops_in_sight"].push(otherTeamTroopID);
+                        return true;
+                    }
+                }
+                // Else if it is present
+                else{
+                    let canBeSeenStill = troop.canSeeTileEntityAtTile(otherTroopTileX, otherTroopTileY);
+                    // If it can no longer be seen by this troop, then remove it
+                    if (!canBeSeenStill){
+                        // Swap indices and shift to remove
+                        arraySwap(sightObject["troops_in_sight"], 0, index);
+                        sightObject["troops_in_sight"].shift();
+                        return true;
+                    }
+                }
+                return false;
+            }
+
+
+            // Update what troops on team A can see UPDATED troops on team B
+            for (let troop of troops){
                 let sightObject = getRecordedSightsForTroop(troop);
-                let id = britishTroop.getID();
+                let id = troop.getID();
                 if (sightObject === null){
                     sightObject = {"id": id, "troops_in_sight": []};
+                    teamVisibilityJSON[teamName]["troop_sightings"].push(sightObject);
                 }
                 // Loop through opposite team updated troops to maybe remove from sight if no longer visible
                 for (let updateObject of updatedTroops[otherTeam]){
-                    let index = getIndexOfElementInArray(sightObject["troops_in_sight"], updateObject["id"]);
-                    // If updated opposite team troop isn't sighted by this friendly troop
-                    if (index === -1){
-                        // Check if it is visible
-                        if (troop.canSeeTileEntityAtTile(updateObject["tile_x"], updateObject["tile_y"])){
-                            sightObject["troops_in_sight"].push(updateObject["id"]);
-                            changesMade = true;
-                        }
-                    }
-                    // Else if it is present
-                    else{
-                        let canBeSeenStill = troop.canSeeTileEntityAtTile(updateObject["tile_x"], updateObject["tile_y"]);
-                        // If it can no longer be seen by this troop, then remove it
-                        if (!canBeSeenStill){
-                            // Swap indices and shift to remove
-                            arraySwap(sightObject["troops_in_sight"], 0, index);
-                            sightObject["troops_in_sight"].shift();
-                            changesMade = true;
-                        }
+                    let newChange = updateSight(troop, sightObject, updateObject["id"], updateObject["tile_x"], updateObject["tile_y"]);
+                    if (newChange){
+                        changesMade = true;
                     }
                 }
             }
+
+            // Loop through updated troops specifically can see what enemy troops they can see now that they've moved
+            let otherTeamRoster = this.getTeamNameRosterFromName(otherTeam);
+            for (let updatedTroop of updatedTroops[teamName]){
+                let troop = this.getTroop(teamName, updatedTroop["id"]);
+                let sightObject = getRecordedSightsForTroop(troop);
+                let id = troop.getID();
+                if (sightObject === null){
+                    sightObject = {"id": id, "troops_in_sight": []};
+                    teamVisibilityJSON[teamName]["troop_sightings"].push(sightObject);
+                }
+                // Loop through opposite team troops to maybe remove from sight if no longer visible
+                for (let enemy of otherTeamRoster){
+                    let newChange = updateSight(troop, sightObject, enemy.getID(), enemy.getTileX(), enemy.getTileY());
+                    if (newChange){
+                        changesMade = true;
+                    }
+                }
+            }
+
             return changesMade;
         }
         let britishSightingsUpdated = updateSightings("British");
@@ -303,15 +355,18 @@ class TurnBasedSkirmish extends Gamemode {
             let troops = this.getTeamNameRosterFromName(teamName);
             let newList = [];
             // Note: Full recalculation
+            //console.log("Start", teamName)
 
             // Loop through all troops and add added
-            for (let troop of this.troops){
+            for (let troop of troops){
                 let sightObject = getRecordedSightsForTroop(troop);
                 for (let id of sightObject["troops_in_sight"]){
+                    //console.log("Adding", id)
                     addToArraySet(newList, id);
                 }
             }
-
+            //console.log("End", teamName)
+            //console.log(newList);
             teamVisibilityJSON[teamName]["visible_enemy_character_ids"] = newList;
         }
 
@@ -510,15 +565,13 @@ class TurnBasedSkirmish extends Gamemode {
         let americansAreHuman = this.gameState["operation_type"]["American"] === "human";
 
         // Create brains if needed
-        let britishBrain;
-        let americanBrain;
         
-        if (britishAreHuman){
-            britishBrain = new BotSharedBrain(this, "British");
+        if (!britishAreHuman){
+            this.brains["British"] = new BotSharedBrain(this, "British");
         }
 
-        if (americansAreHuman){
-            americanBrain = new BotSharedBrain(this, "American");
+        if (!americansAreHuman){
+            this.brains["American"] = new BotSharedBrain(this, "American");
         }
 
         // Create officers
@@ -527,7 +580,7 @@ class TurnBasedSkirmish extends Gamemode {
             if (britishAreHuman){
                 britishOfficer = new SkirmishHuman(this, "british_officer", "officer", "British");
             }else{
-                britishOfficer = new SkirmishBot(this, "british_officer", "officer", "British", britishBrain);
+                britishOfficer = new SkirmishBot(this, "british_officer", "officer", "British");
             }
             britishOfficer.setID("british_officer_" + i.toString());
             this.britishTroops.push(britishOfficer);
@@ -537,7 +590,7 @@ class TurnBasedSkirmish extends Gamemode {
             if (americansAreHuman){
                 americanOfficer = new SkirmishHuman(this, "usa_officer", "officer", "American");
             }else{
-                americanOfficer = new SkirmishBot(this, "usa_officer", "officer", "American", americanBrain);
+                americanOfficer = new SkirmishBot(this, "usa_officer", "officer", "American");
             }
             americanOfficer.setID("american_officer_" + i.toString());
             this.americanTroops.push(americanOfficer);
@@ -573,7 +626,7 @@ class TurnBasedSkirmish extends Gamemode {
             if (britishAreHuman){
                 britishPrivate = new SkirmishHuman(this, "british_pvt_g", "private", "British");
             }else{
-                britishPrivate = new SkirmishBot(this, "british_pvt_g", "private", "British", britishBrain);
+                britishPrivate = new SkirmishBot(this, "british_pvt_g", "private", "British");
             }
 
             britishPrivate.setID("british_private_" + i.toString());
@@ -584,7 +637,7 @@ class TurnBasedSkirmish extends Gamemode {
             if (americansAreHuman){
                 americanPrivate = new SkirmishHuman(this, "usa_pvt", "private", "American");
             }else{
-                americanPrivate = new SkirmishBot(this, "usa_pvt", "private", "American", americanBrain);
+                americanPrivate = new SkirmishBot(this, "usa_pvt", "private", "American");
             }
 
             americanPrivate.setID("american_private_" + i.toString());

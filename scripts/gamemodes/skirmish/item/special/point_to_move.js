@@ -50,7 +50,7 @@ class PointToMove extends Item {
         }
         let route = this.troopMovementDetails[troop.getID()];
         // If no route, there is no command
-        if (route == null){
+        if (route === null || route.isEmpty()){
             return null;
         }
         let troopX = troop.getTileX();

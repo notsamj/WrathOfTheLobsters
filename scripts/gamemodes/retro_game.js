@@ -15,9 +15,6 @@ var mouseX = 0;
 var mouseY = 0;
 var programOver = false;
 
-var britishIsHuman = true; // For testing
-var americanIsHuman = false; // For testing
-
 // Functions
 async function setup() {
     await loadToImages("page_background");

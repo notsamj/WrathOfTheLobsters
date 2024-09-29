@@ -146,6 +146,7 @@ class RetroGameScene {
         // Check all entities for collision
         let hitEntityDetails = null;
         for (let [entity, entityIndex] of this.entities){
+            if (entity.isDead()){ continue; }
             if (entityExceptionFunction(entity)){ continue; }
             let entityX = entity.getInterpolatedTickCenterX();
             let entityY = entity.getInterpolatedTickCenterY();
@@ -347,6 +348,73 @@ class RetroGameScene {
         }
         //stop()
         return false;
+    }
+
+    getMultiCoverTilesConnectedTo(givenTileX, givenTileY){
+        // Note: Function assumes both are in multicover
+
+        let tilesToCheck = [{"checked": false, "x": givenTileX, "y": givenTileY}];
+        let tilesLeftToCheck = true;
+        while (tilesLeftToCheck){
+            tilesLeftToCheck = false;
+            let currentTile = null;
+
+            // Find a tile to start with
+            for (let tile of tilesToCheck){
+                if (!tile["checked"]){
+                    currentTile = tile;
+                    break;
+                }
+            }
+            // If can't find a tile then
+            if (currentTile == null){ break; }
+
+            // Explore tiles around current location
+            let pairs = [[currentTile["x"], currentTile["y"]+1], [currentTile["x"], currentTile["y"]-1], [currentTile["x"]+1, currentTile["y"]], [currentTile["x"]-1, currentTile["y"]]];
+            //console.log("pairs", copyArray(pairs))
+            for (let pair of pairs){
+                let tileX = pair[0];
+                let tileY = pair[1];
+
+                let isMultiCover = this.tileAtLocationHasAttribute(tileX, tileY, "multi_cover");
+                // Disregard if not mutli cover
+                if (!isMultiCover){ continue; }
+
+                let alreadyExists = false;
+                
+                // Check if its already on the todo list
+                for (let tile of tilesToCheck){
+                    if (tile["x"] == tileX && tile["y"] == tileY){
+                        alreadyExists = true;
+                        break;
+                    }
+                }
+                // Found a new tile
+                if (!alreadyExists){
+                    tilesLeftToCheck = true;
+                    tilesToCheck.push({
+                        "checked": false,
+                        "x": tileX,
+                        "y": tileY
+                    });
+                }
+            }
+            currentTile["checked"] = true;
+            // Extra check to see if not done
+            if (!tilesLeftToCheck){
+                for (let tile of tilesToCheck){
+                    if (!tile["checked"]){
+                        tilesLeftToCheck = true;
+                        break;
+                    }
+                }
+            }
+        }
+        return tilesToCheck;
+    }
+
+    calculateMultiCoverSize(givenTileX, givenTileY){
+        return this.getMultiCoverTilesConnectedTo(givenTileX, givenTileY).length;
     }
 
     tileAtLocationHasAttribute(tileX, tileY, attribute){

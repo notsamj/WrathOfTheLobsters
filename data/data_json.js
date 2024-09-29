@@ -8,6 +8,11 @@ const RETRO_GAME_DATA = {
         }
     },
 
+    "run": {
+        "british_are_human": false,
+        "americans_are_human": false
+    },
+
     "bot": {
         "rock_health_f_value": 1.5,
         "max_rock_value": 20,
@@ -16,6 +21,10 @@ const RETRO_GAME_DATA = {
         "plan_choosing_f": 1.2,
         "plan_choosing_x_start": 0.25,
         "plan_choosing_x_end": 3,
+        "unknown_enemy_position_confidence": 0.01, // Confidence that an enemy is at a given position when this enemy's position isn't known
+        "multi_cover_friendly_occupied_weight": 0.1, // [0,1]
+        "multi_cover_empty_weight": 0.5, // [0,1]
+        "multi_cover_enemy_weight": 1, // [0,1]
         "weights": {
             "shoot": 3,
             "stab": 2,
@@ -130,14 +139,14 @@ const RETRO_GAME_DATA = {
         "troop_selection_distance": 6,
         "selection_colour": "#f2d633",
         "selection_border_width": 3,
-        "enemy_visibility_distance": 12,
+        "enemy_visibility_distance": 12, // 12
         "distance_per_turn": {
             "private": 5,
-            "officer": 10
+            "officer": 10 // 10
         },
         "game_play": {
             "officer_count": 1,
-            "private_count": 4
+            "private_count": 2 // 4?
         },
         "special_item_names": [
             "white_flag",

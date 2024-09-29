@@ -1,7 +1,11 @@
 class SkirmishBot extends SkirmishCharacter {
-    constructor(gamemode, model, rankName, team, sharedBrain){
+    constructor(gamemode, model, rankName, team){
         super(gamemode, model, rankName, team);
-        this.sharedBrain = sharedBrain;
+        this.planLock = new Lock();
+    }
+
+    getBrain(){
+        return this.getGamemode().getTeamBrain(this.getTeamName());
     }
 
     getRandom(){
@@ -10,13 +14,17 @@ class SkirmishBot extends SkirmishCharacter {
 
     indicateTurn(){
         super.indicateTurn();
+        // Async call
         this.generatePlan();
     }
 
     makeDecisions(){
         this.resetDecisions();
-        if (this.isMakingAMove() && !this.hasCommitedToAction()){ 
-            this.plan.execute(this.decisions);
+        if (this.isMakingAMove() && !this.hasCommitedToAction()){
+            // The plan has finished its creation and is ready to put into place
+            if (this.planLock.isUnlocked()){
+                this.plan.execute(this.decisions);
+            }
         }else{
             this.checkForOfficerCommand();
         }
@@ -150,8 +158,42 @@ class SkirmishBot extends SkirmishCharacter {
         return tiles;
     }
 
-    generatePlan(){
+    async generatePlan(){
+        // Indicate that the plan is being created
+        this.planLock.lock();
         let possibleEndTiles = this.exploreAvailableTiles();
+
+        let comparisonFunction = (element1, element2) => {
+            if (element1["value"] < element2["value"]){
+                return 1;
+            }else if (element2["value"] < element1["value"]){
+                return -1;
+            }else{
+                return 0;
+            }
+        };
+
+        let random = this.getRandom();
+        /* So basically if it was basic then
+           let array=[5,1,1,1];
+           You would have a 5/8 chance of getting array[0] with normal weighting
+           but you can instead make it so in something like this case you would have a 7.434234/8 chance
+           of getting array[0] because of a particular weighting function
+        */
+
+        let randomlySelectIndex = (n) => {
+            let xStart = RETRO_GAME_DATA["bot"]["plan_choosing_x_start"];
+            let xEnd = RETRO_GAME_DATA["bot"]["plan_choosing_x_end"];
+            let f = RETRO_GAME_DATA["bot"]["plan_choosing_f"];
+            let func = (x) => { return 1/Math.pow(x,f); }
+            let endY = func(xEnd);
+            let startY = func(xStart);
+            let pickedX = random.getRandomFloat() * (xEnd - xStart) + xStart;
+            let valueAtPickedX = func(pickedX);
+            let progressionInY = (startY - valueAtPickedX) / (startY - endY);
+            let chosenIndex = Math.floor(n - progressionInY * n);
+            return chosenIndex;
+        }
 
         // Stores all plans for ranking and selection
         let collectivePlans = [];
@@ -178,6 +220,11 @@ class SkirmishBot extends SkirmishCharacter {
         if (this.rankName === "officer"){
             let squaresAroundEnemies = this.getSquaresAroundEnemies();
             let selectedTroops = this.generateSelectedTroops();
+
+            // Select move location to attach to the order
+            closerTiles.sort(comparisonFunction);
+            let moveLocationToAttach = closerTiles[randomlySelectIndex(closerTiles.length)];
+
             // If cannon is ready
             if (!this.cannonIsOnCooldown()){
                 // Determine targets to destroy rocks
@@ -191,7 +238,7 @@ class SkirmishBot extends SkirmishCharacter {
                     rockTarget["type"] = "cannon_rock";
                     // In this case, rock tiles have values in [-180,180]
                     rockTarget["value"] = (rockTarget["score"] + 180) / (180*2) * RETRO_GAME_DATA["bot"]["weights"]["cannon_rock"];
-                    //console.log(rockTarget["value"])
+                    rockTarget["attached_closer_tile"] = moveLocationToAttach;
                     collectivePlans.push(rockTarget);
                 }
 
@@ -200,7 +247,7 @@ class SkirmishBot extends SkirmishCharacter {
                     troopDamageTarget["type"] = "cannon_troops";
                     // In this case, rock tiles have values in (-4,4)
                     troopDamageTarget["value"] = (troopDamageTarget["score"] + 4) / (4*2) * RETRO_GAME_DATA["bot"]["weights"]["cannon_troops"];
-                    //console.log(troopDamageTarget["value"])
+                    troopDamageTarget["attached_closer_tile"] = moveLocationToAttach;
                     collectivePlans.push(troopDamageTarget);
                 }
             }
@@ -228,7 +275,7 @@ class SkirmishBot extends SkirmishCharacter {
                 orderShootTarget["type"] = "order_shoot";
                 // In this case, rock tiles have values in (-4,4)
                 orderShootTarget["value"] = (orderShootTarget["value"] + 4) / (4*2) * RETRO_GAME_DATA["bot"]["weights"]["order_shoot"];
-                //console.log(orderShootTarget["value"])
+                orderShootTarget["attached_closer_tile"] = moveLocationToAttach;
                 collectivePlans.push(orderShootTarget);
             }
 
@@ -237,7 +284,7 @@ class SkirmishBot extends SkirmishCharacter {
                 orderTroopWalkToLocationTile["type"] = "order_move";
                 // In this case, there is an existing value. It is already between [0,1] so multiply by weight
                 orderTroopWalkToLocationTile["value"] = orderTroopWalkToLocationTile["score"] * RETRO_GAME_DATA["bot"]["weights"]["order_move"];
-                //console.log(orderTroopWalkToLocationTile["value"], RETRO_GAME_DATA["bot"]["weights"]["order_move"], orderTroopWalkToLocationTile["score"])
+                orderTroopWalkToLocationTile["attached_closer_tile"] = moveLocationToAttach;
                 collectivePlans.push(orderTroopWalkToLocationTile);
             }
         }
@@ -247,7 +294,8 @@ class SkirmishBot extends SkirmishCharacter {
             shootOneTile["type"] = "shoot";
             // In this case, there is no existing value so directly assign the weight
             shootOneTile["value"] = RETRO_GAME_DATA["bot"]["weights"]["shoot"];
-            //console.log(shootOneTile["value"])
+            // Apply the confidence
+            shootOneTile["value"] *= shootOneTile["confidence"];
             collectivePlans.push(shootOneTile);
         }
 
@@ -256,7 +304,8 @@ class SkirmishBot extends SkirmishCharacter {
             stabOneTile["type"] = "stab";
             // In this case, there is no existing value so directly assign the weight
             stabOneTile["value"] = RETRO_GAME_DATA["bot"]["weights"]["stab"];
-            //console.log(stabOneTile["value"])
+            // Apply the confidence
+            stabOneTile["value"] *= stabOneTile["confidence"];
             collectivePlans.push(stabOneTile);
         }
 
@@ -281,47 +330,15 @@ class SkirmishBot extends SkirmishCharacter {
         // Add multiBushTiles to collectiveplans
         for (let multiBushTile of multiBushTiles){
             multiBushTile["type"] = "multi_bush";
-            // In this case, there is no existing value so directly assign the weight
-            multiBushTile["value"] = RETRO_GAME_DATA["bot"]["weights"]["multi_bush"];
-            //console.log(multiBushTile["value"])
+            // In this case, score is in [0,1] so multiply by weight
+            multiBushTile["value"] = multiBushTile["score"] * RETRO_GAME_DATA["bot"]["weights"]["multi_bush"];
             collectivePlans.push(multiBushTile);
         }
 
         // Sort collective plans
-        collectivePlans.sort((element1, element2) => {
-            if (element1["value"] < element2["value"]){
-                return 1;
-            }else if (element2["value"] < element1["value"]){
-                return -1;
-            }else{
-                return 0;
-            }
-        });
+        collectivePlans.sort(comparisonFunction);
 
-
-        /* So basically if it was basic then
-           let array=[5,1,1,1];
-           You would have a 5/8 chance of getting array[0] with normal weighting
-           but you can instead make it so in something like this case you would have a 7.434234/8 chance
-           of getting array[0] because of a particular weighting function
-        */
-        let totalValue = 0;
-        for (let plan of collectivePlans){
-            totalValue += plan["value"];
-        }
-        let xStart = RETRO_GAME_DATA["bot"]["plan_choosing_x_start"];
-        let xEnd = RETRO_GAME_DATA["bot"]["plan_choosing_x_end"];
-        let f = RETRO_GAME_DATA["bot"]["plan_choosing_f"];
-        let func = (x) => { return 1/Math.pow(x,f); }
-        let endY = func(xEnd);
-        let startY = func(xStart);
-        let n = collectivePlans.length;
-        let random = this.getRandom();
-        let pickedX = random.getRandomFloat() * (xEnd - xStart) + xStart;
-        let valueAtPickedX = func(pickedX);
-        let progressionInY = (startY - valueAtPickedX) / (startY - endY);
-        let chosenIndex = Math.floor(n - progressionInY * n);
-
+        let chosenIndex = randomlySelectIndex(collectivePlans.length);
         let bestPlan = collectivePlans[chosenIndex];
 
         let selectBestPlanOfTypeForDebugging = (replacementTypes) => {
@@ -348,7 +365,21 @@ class SkirmishBot extends SkirmishCharacter {
         }
         //console.log(this.getID(), " has a plan!")
         //console.log(bestPlan)
+
+        let debugPlanSelection = () => {
+            let n = 10;
+            n = Math.min(n, collectivePlans.length);
+            console.log("top", n, "plans");
+            for (let i = 0; i < n; i++){
+                console.log(collectivePlans[i]);
+            }
+            console.log("Chosen:", bestPlan)
+        }
+
+        debugPlanSelection();
         this.plan = new BotPlan(this, bestPlan);
+        // Indicate that the plan has been created
+        this.planLock.unlock();
     }
 
     determineOrderShootPossibilities(squaresAroundEnemies, selectedTroops){
@@ -357,7 +388,7 @@ class SkirmishBot extends SkirmishCharacter {
         // Loop through all the squares around enemies
         for (let tile of squaresAroundEnemies){
             let tileCenterX = scene.getCenterXOfTile(tile["tile_x"]);
-            let tileCenterY = scene.getCenterYOfTile(tile["tile_x"]);
+            let tileCenterY = scene.getCenterYOfTile(tile["tile_y"]);
             let enemyKills = 0;
             let enemyExtraDamage = 0;
             
@@ -377,7 +408,7 @@ class SkirmishBot extends SkirmishCharacter {
                 let range = gun.getBulletRange();
                 let myID = selectedTroop.getID();
                 // Check shoot directory at enemy
-                let collision = scene.findInstantCollisionForProjectile(x, y, angleToTileCenter, range, (enemy) => { return enemy.getID() == myID; });
+                let collision = scene.findInstantCollisionForProjectile(x, y, angleToTileCenter, range, (entity) => { return entity.getID() == myID; });
                 if (collision["collision_type"] === "entity"){
                     let troop = collision["entity"];
                     let isFriendly = troop.isOnSameTeam(selectedTroop);
@@ -391,10 +422,11 @@ class SkirmishBot extends SkirmishCharacter {
                             friendlyExtraDamage += damage;
                         }
                     }else{
-                        if (damage > troop.getHealth()){
-                            enemyKills++;
+                        let enemyConfidence = this.getBrain().getEnemyConfidence(troop.getID(), troop.getTeamName());
+                        if (damage > this.getBrain().getHealthOfEnemy(troop.getID())){
+                            enemyKills += 1 * enemyConfidence;
                         }else{
-                            enemyExtraDamage += damage;
+                            enemyExtraDamage += damage * enemyConfidence;
                         }
                     }
                 }
@@ -408,7 +440,7 @@ class SkirmishBot extends SkirmishCharacter {
                 We know friendlyKills is between 0 and num friendlies
                 We know friendlyExtraDamage is between 0 and num friendlies
             */
-            let enemies = this.getEnemies();
+            let enemies = this.getEnemyData();
             let friends = this.getFriends();
             let killScore = enemyKills / enemies.length - RETRO_GAME_DATA["bot"]["friend_enemy_cannon_ratio"] * friendlyKills / friends.length;
             let damageScore = enemyExtraDamage / enemies.length - RETRO_GAME_DATA["bot"]["friend_enemy_cannon_ratio"] * friendlyExtraDamage / friends.length;
@@ -424,7 +456,7 @@ class SkirmishBot extends SkirmishCharacter {
     determineTroopCannonDamageSpots(squaresAroundEnemies){
         let cannonTargets = [];
         let scene = this.getScene();
-        let enemies = this.getEnemies();
+        let enemies = this.getEnemyData();
         let friends = this.getFriends();
 
         let humanMultiplier = RETRO_GAME_DATA["cannon"]["human_damage_multiplier"];
@@ -446,18 +478,23 @@ class SkirmishBot extends SkirmishCharacter {
 
             // Calculate enemy damage
             for (let enemy of enemies){
-                let enemyX = enemy.getInterpolatedTickCenterX();
-                let enemyY = enemy.getInterpolatedTickCenterY();
+                // Don't even guess for unknown enemies
+                if (enemy["status"] === "unknown"){ continue; }
+                let enemyTileX = enemy["tile_x"];
+                let enemyTileY = enemy["tile_y"];
+                let enemyX = scene.getCenterXOfTile(enemyTileX);
+                let enemyY = scene.getCenterXOfTile(enemyTileY);
                 let distanceFromHitLocation = calculateEuclideanDistance(tileCenterX, tileCenterY, enemyX, enemyY);
                 if (distanceFromHitLocation > damageRadius){
                     continue;
                 }
                 let distanceFromHitLocationInTiles = distanceFromHitLocation/RETRO_GAME_DATA["general"]["tile_size"];
                 let damage = calculateCannonDamage(distanceFromHitLocationInTiles, humanMultiplier);
-                if (damage > enemy.getHealth()){
-                    enemyKills++;
+                let enemyConfidence = this.getBrain().getEnemyConfidence(enemy["id"], this.gamemode.getOtherTeam(this.getTeamName()));
+                if (damage > this.getBrain().getHealthOfEnemy(enemy["id"])){
+                    enemyKills += 1 * enemyConfidence;
                 }else{
-                    enemyExtraDamage += damage;
+                    enemyExtraDamage += damage * enemyConfidence;
                 }
             }
 
@@ -499,7 +536,7 @@ class SkirmishBot extends SkirmishCharacter {
 
     getSquaresAroundEnemies(){
         let squaresAroundEnemies = [];
-        let enemies = this.getEnemies();
+        let enemyData = this.getEnemyData();
 
         let tryToAddSquare = (tileX, tileY) => {
             // See if present, return if it is 
@@ -532,9 +569,45 @@ class SkirmishBot extends SkirmishCharacter {
             // Bottom right
             tryToAddSquare(tileX+1, tileY-1);
         }
+
+        let tileInSingleCover = (tileX, tileY) => {
+            return this.getScene().tileAtLocationHasAttribute(tileX, tileY, "single_cover");
+        }
+
+        let tileInMultiCover = (tileX, tileY) => {
+            return this.getScene().tileAtLocationHasAttribute(tileX, tileY, "multi_cover");
+        }
+
         // Add squares around each enemy
-        for (let enemy of enemies){
-            addSquaresAroundSpot(enemy.getTileX(), enemy.getTileY());
+        for (let enemyObj of enemyData){
+            let sightingType = enemyObj["status"];
+            if (sightingType === "known"){
+                addSquaresAroundSpot(enemyObj["tile_x"], enemyObj["tile_y"]);
+            }
+            // Else we have the last known location
+            else if (sightingType === "last_known"){
+                // If single cover then add tiles around it
+                if (tileInSingleCover(enemyObj["tile_x"], enemyObj["tile_y"])){
+                    addSquaresAroundSpot(enemyObj["tile_x"], enemyObj["tile_y"]);
+                }
+                // If mutli cover then add all tiles within multi cover
+                else if (tileInMultiCover(enemyObj["tile_x"], enemyObj["tile_y"])){
+                    let multiCoverTiles = this.getScene.getMultiCoverTilesConnectedTo(enemyObj["tile_x"], enemyObj["tile_y"]);
+                    for (let tile of multiCoverTiles){
+                        addSquaresAroundSpot(tile["tile_x"], tile["tile_y"]);
+                    }
+                }
+                // Else just a regular last known then add tiles around it
+                else{
+                    addSquaresAroundSpot(enemyObj["tile_x"], enemyObj["tile_y"]);
+                }
+    
+            }
+            // Else unknown
+            else{
+                // Do nothing
+                continue;
+            }
         }
         return squaresAroundEnemies;
     }
@@ -543,7 +616,7 @@ class SkirmishBot extends SkirmishCharacter {
         // Determine rock spots
         let rockTargets = [];
         let friends = this.getFriends();
-        let enemies = this.getEnemies();
+        let enemies = this.getEnemyData();
         let rockHitboxes = this.gamemode.getRockHitboxes();
         let scene = this.getScene();
 
@@ -569,11 +642,14 @@ class SkirmishBot extends SkirmishCharacter {
             }
             // Weigh by enemy distance to rock (use cannon aoe as distance)
             for (let enemy of enemies){
-                let distanceToEnemyInTile = calculateEuclideanDistance(enemy.getTileX(), enemy.getTileY(), tileX, tileY);
+                // Don't even guess for unknown enemies
+                if (enemy["status"] === "unknown"){ continue; }
+                let distanceToEnemyInTile = calculateEuclideanDistance(enemy["tile_x"], enemy["tile_y"], tileX, tileY);
                 if (distanceToEnemyInTile > RETRO_GAME_DATA["cannon"]["aoe_tile_radius"]){
                     continue;
                 }
-                enemyScore += 1; 
+                let enemyConfidence = this.getBrain().getEnemyConfidence(enemy["id"], this.gamemode.getOtherTeam(this.getTeamName()));
+                enemyScore += 1 * enemyConfidence; 
             }
 
             // Weigh by friendly distance to rock (use cannon aoe as distance)
@@ -601,28 +677,84 @@ class SkirmishBot extends SkirmishCharacter {
         return rockTargets;
     }
 
-    getEnemies(){
-        return this.getGamemode().getLivingTeamRosterFromName(this.getGamemode().getOtherTeam(this.getTeamName()));
+    getEnemyData(){
+        return this.getBrain().getEnemyData();
     }
 
     getFriends(){
         return this.getGamemode().getLivingTeamRosterFromName(this.getTeamName());
     }
 
+    determineFurthestOutTiles(possibleEndTiles){
+        let furtherTiles = [];
+        let friendlies = this.getFriends();
+        let scene = this.getScene();
+
+        // Check tiles
+        let highestFurthestDistance = 0;
+        let highestTotalDistance = 0;
+        for (let tile of possibleEndTiles){
+            let x = scene.getCenterXOfTile(tile["tile_x"]);
+            let y = scene.getCenterYOfTile(tile["tile_y"]);
+            let totalDistance = 0;
+            let furthestDistance = 0;
+            // Find the distances to enemies
+            for (let friend of friendlies){
+                let friendX = scene.getCenterXOfTile(friend.getTileX());
+                let friendY = scene.getCenterXOfTile(friend.getTileY());
+                let distance = calculateEuclideanDistance(x, y, friendX, friendY);
+                if (distance === undefined){
+                    debugger;
+                }
+                totalDistance += distance;
+                furthestDistance = Math.max(distance, furthestDistance);
+            }
+            tile["furthest_distance"] = furthestDistance;
+            tile["total_distance"] = totalDistance;
+            highestFurthestDistance = Math.max(furthestDistance, highestFurthestDistance);
+            highestTotalDistance = Math.max(totalDistance, highestTotalDistance);
+            furtherTiles.push(tile);
+        }
+
+        // Value the tiles with a score of [0,1]
+        for (let tile of furtherTiles){
+            if (tile["furthest_distance"] === 0){
+                tile["score"] = 0.5;
+            }else{
+                tile["score"] = 0.5 * tile["furthest_distance"] / highestFurthestDistance;
+            }
+            if (tile["total_distance"] === 0){
+                tile["score"] += 0.5;
+            }else{
+                tile["score"] += 0.5 * tile["total_distance"] / highestTotalDistance;
+            }
+        }
+        // Score in range [0,1]
+        // Keys: tile_x, tile_y, score
+        return furtherTiles;
+    }
+
     determineCloserTiles(possibleEndTiles, shootOneTiles){
         let closerTiles = [];
         // Note: Weed out bushes
-        let enemies = this.getEnemies();
-        let shortestDistanceToEnemyAtStart = Number.MAX_SAFE_INTEGER;
+        let enemies = this.getEnemyData();
+        let noEnemiesVisible = true;
 
-        // Find the shortest distancer to enemy at the start of the turn
+        // Find the shortest distance to enemy at the start of the turn
         for (let enemy of enemies){
-            shortestDistanceToEnemyAtStart = Math.min(enemy.distance(this), shortestDistanceToEnemyAtStart);
+            if (enemy["status"] === "unknown"){ continue; }
+            noEnemiesVisible = false;
+        }
+
+        // If no enemies are visible then instead choose a new strategy
+        if (noEnemiesVisible){
+            return this.determineFurthestOutTiles(possibleEndTiles);
         }
 
         let isUnsafeTile = (tileX, tileY) => {
             for (let tile of shootOneTiles){
-                if (tile["tile_x"] === tileX && tile["tile_y"] === tileY){
+                // Don't worry about confidence < 1 tiles
+                if (tile["tile_x"] === tileX && tile["tile_y"] === tileY && tile["confidence"] === 1){
                     return true;
                 }
             }
@@ -636,24 +768,29 @@ class SkirmishBot extends SkirmishCharacter {
         for (let tile of possibleEndTiles){
             // Ignore unsafe tiles
             if (isUnsafeTile(tile["tile_x"], tile["tile_y"])){ continue; }
-            let x = scene.getXOfTile(tile["tile_x"]);
-            let y = scene.getYOfTile(tile["tile_y"]);
+            let x = scene.getCenterXOfTile(tile["tile_x"]);
+            let y = scene.getCenterYOfTile(tile["tile_y"]);
             let totalDistance = 0;
             let shortestDistance = Number.MAX_SAFE_INTEGER;
             // Find the distances to enemies
-            for (let enemy of enemies){
-                let distance = calculateEuclideanDistance(x, y, enemy.getInterpolatedTickX(), enemy.getInterpolatedTickY());
+            for (let enemyObj of enemies){
+                if (enemyObj["stauts"] === "unknown"){ continue; }
+                let enemyX = scene.getCenterXOfTile(enemyObj["tile_x"]);
+                let enemyY = scene.getCenterYOfTile(enemyObj["tile_y"]);
+                let distance = calculateEuclideanDistance(x, y, enemyX, enemyY);
                 totalDistance += distance;
                 shortestDistance = Math.min(distance, shortestDistance);
-            }
-            // Ignore tiles with a further shortest distance than the starting one
-            if (shortestDistance >= shortestDistanceToEnemyAtStart){
-                continue;
+                if (distance === undefined){
+                    debugger;
+                }
             }
             tile["shortest_distance"] = shortestDistance;
+            if (shortestDistance === undefined){
+                debugger;
+            }
             tile["total_distance"] = totalDistance;
             lowestShortestDistance = Math.min(shortestDistance, lowestShortestDistance);
-            lowestTotalDistance = Math.min(shortestDistance, lowestTotalDistance);
+            lowestTotalDistance = Math.min(totalDistance, lowestTotalDistance);
             closerTiles.push(tile);
         }
 
@@ -691,14 +828,58 @@ class SkirmishBot extends SkirmishCharacter {
     determineMultiBushTiles(possibleEndTiles){
         let multiBushTiles = [];
         // Note: Weed out single-bushes
-        let scene = this.getGamemode().getScene();
-        for (let possibleEndTile of possibleEndTiles){
-            if (!scene.hasPhysicalTileAtLocation(possibleEndTile["tile_x"], possibleEndTile["tile_y"])){ continue; }
-            let physicalTile = scene.getPhysicalTileAtLocation(possibleEndTile["tile_x"], possibleEndTile["tile_y"]);
-            if (physicalTile.hasAttribute("multi_cover")){
-                multiBushTiles.push(possibleEndTile);
-            }
+
+        let enemyData = this.getEnemyData();
+        let friendlies = this.getFriends();
+        let scene = this.getScene();
+
+        let tileInMultiCover = (tileX, tileY) => {
+            return scene.tileAtLocationHasAttribute(tileX, tileY, "multi_cover");
         }
+
+        let containsEnemy = (tileX, tileY) => {
+            let bestEnemyConfidence = 0;
+            for (let enemyObj of enemyData){
+                if (enemyObj["status"] === "unknown"){ continue; }
+                if (!tileInMultiCover(enemyObj["tile_x"], enemyObj["tile_y"])){ continue; }
+                // If this enemy is in the same multi cover
+                if (scene.tilesInSameMultiCover(enemyObj["tile_x"], enemyObj["tile_y"], tileX, tileY)){
+                    bestEnemyConfidence = Math.max(bestEnemyConfidence, this.getBrain().getEnemyConfidence(enemyObj["id"], this.gamemode.getOtherTeam(this.getTeamName())));
+                }
+            }
+            return bestEnemyConfidence;
+        }
+
+        let containsFriendly = (tileX, tileY) => {
+            for (let friendly of friendlies){
+                if (!tileInMultiCover(friendly.getTileX(), friendly.getTileY())){ continue; }
+                // If this troop is in the same multi cover
+                if (scene.tilesInSameMultiCover(friendly.getTileX(), friendly.getTileY(), tileX, tileY)){
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        for (let possibleEndTile of possibleEndTiles){
+            if (!tileInMultiCover(possibleEndTile["tile_x"], possibleEndTile["tile_y"])){ continue; }
+            let enemyConfidence = containsEnemy(possibleEndTile["tile_x"], possibleEndTile["tile_y"]);
+            let spotContainsEnemy = enemyConfidence > 0;
+            // If contains an enemy then add it
+            if (spotContainsEnemy){
+                possibleEndTile["score"] = enemyConfidence * RETRO_GAME_DATA["bot"]["multi_cover_enemy_weight"];
+            }
+            // Else if it contains a friendly
+            else if (containsFriendly(possibleEndTile["tile_x"], possibleEndTile["tile_y"])){
+                possibleEndTile["score"] = RETRO_GAME_DATA["bot"]["multi_cover_friendly_occupied_weight"];
+            }
+            // Else empty
+            else{
+                possibleEndTile["score"] = RETRO_GAME_DATA["bot"]["multi_cover_empty_weight"];
+            }
+            multiBushTiles.push(possibleEndTile);
+        }
+
         return multiBushTiles;
     }
 
@@ -710,23 +891,28 @@ class SkirmishBot extends SkirmishCharacter {
         let gun = this.getGun();
         let range = gun.getBulletRange();
         let myID = this.getID();
-        let enemies = this.getEnemies();
+        let enemies = this.getEnemyData();
         // Look at each tile you can stand on to shoot
         for (let tile of tileSelection){
             let playerLeftX = scene.getXOfTile(tile["tile_x"]);
             let playerTopY = scene.getYOfTile(tile["tile_y"]);
             // Loop through enemies
-            for (let enemy of enemies){
-                let distanceToEnemy = this.distance(enemy);
+            for (let enemyObj of enemies){
+                if (enemyObj["status"] === "unknown"){ continue; }
+                let distanceToEnemy = this.distanceToTile(enemyObj["tile_x"], enemyObj["tile_y"]);
+                let enemyX = scene.getCenterXOfTile(enemyObj["tile_x"]);
+                let enemyY = scene.getCenterYOfTile(enemyObj["tile_y"]);
+                let confidenceInEnemyPosition = this.getBrain().getEnemyConfidence(enemyObj["id"], this.gamemode.getOtherTeam(this.getTeamName()));
                 let directionToFace;
                 let angleToEnemy = 0;
 
-                let yDiff = enemy.getInterpolatedTickCenterY() - this.getInterpolatedTickCenterY();
+                let yDiff = enemyY - this.getInterpolatedTickCenterY();
                 if (yDiff != 0){
-                    angleToEnemy = displacementToRadians(enemy.getInterpolatedTickCenterX() - this.getInterpolatedTickCenterX(), yDiff);
+                    angleToEnemy = displacementToRadians(enemyX - this.getInterpolatedTickCenterX(), yDiff);
                 }
-                if (tile["distance_to_enemy"] < this.getMeleeWeapon().getSwingRange()){
+                if (distanceToEnemy < this.getMeleeWeapon().getSwingRange()){
                     tile["direction_to_face"] = getAlternativeDirectionFormatOf(angleToBestFaceDirection(angleToEnemy));
+                    tile["confidence"] = confidenceInEnemyPosition;
                     roughStabTiles.push(tile);
                     // Ignore possibility of shooting
                     if (distanceToEnemy < RETRO_GAME_DATA["general"]["tile_size"]){
@@ -743,13 +929,15 @@ class SkirmishBot extends SkirmishCharacter {
                     let x = pos["x"];
                     let y = pos["y"];
                     // Check shoot directory at enemy
-                    let collision = scene.findInstantCollisionForProjectile(x, y, angleToShootAt, range, (enemy) => { return enemy.getID() == myID; });
+                    let collision = scene.findInstantCollisionForProjectile(x, y, angleToShootAt, range, (entity) => { return entity.getID() == myID; });
                     if (collision["collision_type"] === "entity"){
                         if (!collision["entity"].isOnSameTeam(this)){
                             // TODO: Check if it would kill
                             tile["angle_rad"] = angleToShootAt;
                             tile["direction_to_face"] = getAlternativeDirectionFormatOf(directionToFace);
                             tile["distance_to_enemy"] = collision["entity"].distance(this);
+                            // Even though we might hit a different enemy, the confidence is based on the enemy being aimed at
+                            tile["confidence"] = confidenceInEnemyPosition;
                             roughShootTiles.push(tile);
                         }
                     }

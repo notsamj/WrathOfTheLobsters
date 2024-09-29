@@ -6,9 +6,19 @@ class BotPlan {
     }
 
     generateRouteIfNeeded(){
-        if (this.planDetails["type"] === "shoot" || this.planDetails["type"] === "stab" || this.planDetails["type"] === "move_closer" || this.planDetails["type"] === "single_bush" || this.planDetails["type"] === "multi_bush"){
-            this.route = this.player.generateShortestRouteToPoint(this.planDetails["tile_x"], this.planDetails["tile_y"]);
+        let planType = this.planDetails["type"];
+        // If this is a simple move then set the round
+        if (planType === "shoot" || planType === "stab" || planType === "move_closer" || planType === "single_bush" || planType === "multi_bush"){
+            this.planDetails["route"] = this.player.generateShortestRouteToPoint(this.planDetails["tile_x"], this.planDetails["tile_y"]);
         }
+        // Else, if this is an order, it may be preceded by a route
+        else if (planType === "order_shoot" || planType === "order_move" || planType === "cannon_troops" || planType === "cannon_rock"){
+            this.planDetails["route"] = this.player.generateShortestRouteToPoint(this.planDetails["attached_closer_tile"]["tile_x"], this.planDetails["attached_closer_tile"]["tile_y"]);
+        }
+    }
+
+    getRoute(){
+        return this.planDetails["route"];
     }
 
     execute(decisions){
@@ -167,7 +177,7 @@ class BotPlan {
         }
 
         if (this.planDetails["type"] === "shoot"){
-            let moving = updateFromMoveDecisions(this.route.getDecisionAt(this.player.getTileX(), this.player.getTileY())) || this.player.isMoving();
+            let moving = updateFromMoveDecisions(this.getRoute().getDecisionAt(this.player.getTileX(), this.player.getTileY())) || this.player.isMoving();
             if (moving){ return; }
             let alreadyFacing = faceDirection(decisions);
             if (!alreadyFacing){ return; }
@@ -177,24 +187,26 @@ class BotPlan {
             decisions["trying_to_aim"] = true;
             decisions["trying_to_shoot"] = true;
         }else if (this.planDetails["type"] === "stab"){
-            let moving = updateFromMoveDecisions(this.route.getDecisionAt(this.player.getTileX(), this.player.getTileY())) || this.player.isMoving();
+            let moving = updateFromMoveDecisions(this.getRoute().getDecisionAt(this.player.getTileX(), this.player.getTileY())) || this.player.isMoving();
             if (moving){ return; }
             let alreadyFacing = faceDirection(decisions);
             if (!alreadyFacing){ return; }
             swingSword(decisions);
         }else if (this.planDetails["type"] === "move_closer"){
-            let moving = updateFromMoveDecisions(this.route.getDecisionAt(this.player.getTileX(), this.player.getTileY())) || this.player.isMoving();
+            let moving = updateFromMoveDecisions(this.getRoute().getDecisionAt(this.player.getTileX(), this.player.getTileY())) || this.player.isMoving();
             if (moving){ return; }
             waveWhiteFlag(decisions);
         }else if (this.planDetails["type"] === "single_bush"){
-            let moving = updateFromMoveDecisions(this.route.getDecisionAt(this.player.getTileX(), this.player.getTileY())) || this.player.isMoving();
+            let moving = updateFromMoveDecisions(this.getRoute().getDecisionAt(this.player.getTileX(), this.player.getTileY())) || this.player.isMoving();
             if (moving){ return; }
             waveWhiteFlag(decisions);
         }else if (this.planDetails["type"] === "multi_bush"){
-            let moving = updateFromMoveDecisions(this.route.getDecisionAt(this.player.getTileX(), this.player.getTileY())) || this.player.isMoving();
+            let moving = updateFromMoveDecisions(this.getRoute().getDecisionAt(this.player.getTileX(), this.player.getTileY())) || this.player.isMoving();
             if (moving){ return; }
             waveWhiteFlag(decisions);
         }else if (this.planDetails["type"] === "cannon_rock"){
+            let moving = updateFromMoveDecisions(this.getRoute().getDecisionAt(this.player.getTileX(), this.player.getTileY())) || this.player.isMoving();
+            if (moving){ return; }
             let hasEquippedCannon = equipCannon(decisions);
             if (!hasEquippedCannon){ return; }
             decisions["crosshair_center_x"] = this.planDetails["cannon_center_x"];
@@ -202,6 +214,8 @@ class BotPlan {
             decisions["new_crosshair_center"] = true;
             decisions["trying_to_shoot"] = true;
         }else if (this.planDetails["type"] === "cannon_troops"){
+            let moving = updateFromMoveDecisions(this.getRoute().getDecisionAt(this.player.getTileX(), this.player.getTileY())) || this.player.isMoving();
+            if (moving){ return; }
             let hasEquippedCannon = equipCannon(decisions);
             if (!hasEquippedCannon){ return; }
             decisions["crosshair_center_x"] = this.planDetails["cannon_center_x"];
@@ -209,6 +223,8 @@ class BotPlan {
             decisions["new_crosshair_center"] = true;
             decisions["trying_to_shoot"] = true;
         }else if (this.planDetails["type"] === "order_shoot"){
+            let moving = updateFromMoveDecisions(this.getRoute().getDecisionAt(this.player.getTileX(), this.player.getTileY())) || this.player.isMoving();
+            if (moving){ return; }
             let hasEquippedOrderToShoot = equipOrderToShoot(decisions);
             if (!hasEquippedOrderToShoot){ return; }
             decisions["crosshair_center_x"] = this.planDetails["x"];
@@ -216,6 +232,8 @@ class BotPlan {
             decisions["new_crosshair_center"] = true;
             decisions["trying_to_shoot"] = true;
         }else if (this.planDetails["type"] === "order_move"){
+            let moving = updateFromMoveDecisions(this.getRoute().getDecisionAt(this.player.getTileX(), this.player.getTileY())) || this.player.isMoving();
+            if (moving){ return; }
             let hasEquippedOrderToMove = equipOrderToMove(decisions);
             if (!hasEquippedOrderToMove){ return; }
             decisions["move_tile_x"] = this.planDetails["tile_x"];

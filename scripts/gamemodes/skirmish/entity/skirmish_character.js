@@ -55,10 +55,15 @@ class SkirmishCharacter extends Character {
     }
 
     updateMovement(){
+        let tileXBefore = this.tileX;
+        let tileYBefore = this.tileY;
         super.updateMovement();
         if (!this.isMakingAMove()){
             return;
         }
+        let tileChanged = this.tileX != tileXBefore || this.tileY != tileYBefore;
+        if (!tileChanged){ return; }
+        // We have a tile change
         let distanceToNewTile = Math.sqrt(Math.pow(this.tileX - this.tileXOnTurnStart, 2) + Math.pow(this.tileY - this.tileYOnTurnStart, 2));
         let maxDistance = this.walkingBar.getMaxValue();
         // If the new tile is too far away, for them back
@@ -66,6 +71,17 @@ class SkirmishCharacter extends Character {
             this.tileX = this.movementDetails["last_stood_tile_x"];
             this.tileY = this.movementDetails["last_stood_tile_y"];
             this.movementDetails = null;
+        }
+        // The move goes through -> emit tile change event
+        else{
+            this.gamemode.getEventHandler().emit({
+                "name": "change_tile",
+                "team": this.getTeamName(),
+                "troop_id": this.getID(),
+                "new_tile_x": this.tileX,
+                "new_tile_y": this.tileY,
+                "health": this.getHealth()
+            });
         }
         this.walkingBar.setValue(Math.sqrt(Math.pow(this.tileX - this.tileXOnTurnStart, 2) + Math.pow(this.tileY - this.tileYOnTurnStart, 2)));
     }
@@ -79,7 +95,8 @@ class SkirmishCharacter extends Character {
     }
 
     isVisibleTo(observer){
-        return observer.isOnSameTeam(this) || this.gamemode.visibleToTeam(observer.getTeamName(), this.getTeamName(), this.getID());
+        //console.log("Visible to team", this.gamemode.isVisibleToTeam(observer.getTeamName()))
+        return observer.isOnSameTeam(this) || this.gamemode.isVisibleToTeam(observer.getTeamName(), this.getTeamName(), this.getID());
     }
 
     isVisibleToSuper(observer){

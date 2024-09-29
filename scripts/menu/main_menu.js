@@ -36,7 +36,7 @@ class MainMenu extends Menu {
         // Turn Based Game
         let turnBasedGamedBottomY = (innerHeight) => { return gameBottonY(innerHeight) - buttonSizeY - gapSize; }
         this.components.push(new RectangleButton("Turn Based Game", "#3bc44b", "#e6f5f4", buttonX, turnBasedGamedBottomY, buttonSizeX, buttonSizeY, (menuInstance) => {
-            GAMEMODE_MANAGER.setActiveGamemode(new TurnBasedSkirmish(britishIsHuman, americanIsHuman))
+            GAMEMODE_MANAGER.setActiveGamemode(new TurnBasedSkirmish(RETRO_GAME_DATA["run"]["british_are_human"], RETRO_GAME_DATA["run"]["americans_are_human"]))
             MENU_MANAGER.switchTo("game");
         }));
 

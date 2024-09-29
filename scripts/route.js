@@ -3,12 +3,16 @@ class Route {
         this.tileSequence = [];
     }
 
+    isEmpty(){
+        return this.tileSequence.length === 0;
+    }
+
     addTile(tileX, tileY){
         this.tileSequence.push({"tile_x": tileX, "tile_y": tileY});
     }
 
     getStartTile(){
-        if (this.tileSequence.length === 0){ return null; }
+        if (this.isEmpty()){ return null; }
         return this.tileSequence[0];
     }
 

@@ -35,7 +35,7 @@ class TurnBasedSkirmish extends Gamemode {
                 let nowVisible = this.isVisibleToTeam(otherTeam, troopTeam, troopID);
                 // If went from visible -> non-visible
                 if (!nowVisible && previouslyVisible){
-                    this.getTeamBrain(otherTeam).troopVanishes(troopID, tileChangeDetailsObject["new_tile_x"], tileChangeDetailsObject["new_tile_y"]);
+                    this.getTeamBrain(otherTeam).troopVanishes(troopID, tileChangeDetailsObject["health"], tileChangeDetailsObject["new_tile_x"], tileChangeDetailsObject["new_tile_y"]);
                 }
             }else{
                 // Update visiblity
@@ -395,7 +395,7 @@ class TurnBasedSkirmish extends Gamemode {
                 livingRoster.push(troop);
             }
         }
-        return roster;
+        return livingRoster;
     }
 
     gameTick(){
@@ -417,9 +417,13 @@ class TurnBasedSkirmish extends Gamemode {
         // Else the team of the now moving character is a bot, the other team must be human, set the focus on the human team's camera
         else{
             let camera = this.getTeamCamera(this.getOtherTeam(currentlyMovingCharacter.getTeamName()));
+            let cameraTeam = camera.getTeamName();
             this.cameraToTick = camera;
             this.scene.setFocusedEntity(camera);
-            camera.focusOn(currentlyMovingCharacter);
+            // If visible focus on this one
+            if (this.isVisibleToTeam(camera.getTeamName(), currentlyMovingCharacter.getTeamName(), currentlyMovingCharacter.getID())){
+                camera.focusOn(currentlyMovingCharacter);
+            }
         }
     }
 
@@ -1129,6 +1133,13 @@ class TurnBasedSkirmish extends Gamemode {
                 this.rockHitboxes.push(new RockHitbox(x,y));
             }
         }
+    }
+
+    getSpawnOfTeam(teamNameString){
+        if (getProperAdjective(teamNameString) === "British"){
+            return this.britishSpawn;
+        }
+        return this.americanSpawn;
     }
 
     getRockHitboxes(){

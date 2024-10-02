@@ -36,13 +36,21 @@ class Sword extends Item {
         return RETRO_GAME_DATA["sword_data"]["arm_length"] + RETRO_GAME_DATA["sword_data"][this.model]["blade_length"];
     }
 
+    getSwingCenterX(playerLeftX=this.player.getInterpolatedTickX()){
+        return playerLeftX + RETRO_GAME_DATA["model_positions"][this.player.getModelCategory()][this.model]["swinging"][this.player.getFacingDirection()]["x_offset"];
+    }
+
+    getSwingCenterY(playerTopY=this.player.getInterpolatedTickY()){
+        return playerTopY - RETRO_GAME_DATA["model_positions"][this.player.getModelCategory()][this.model]["swinging"][this.player.getFacingDirection()]["y_offset"];
+    }
+
     finishSwing(){
         this.swinging = false;
         // Calculate what it hit
         let swingRange = this.getSwingRange();
         let swingHitbox = new CircleHitbox(swingRange);
-        let hitCenterX = this.player.getInterpolatedTickX() + RETRO_GAME_DATA["model_positions"][this.player.getModelCategory()][this.model]["swinging"][this.player.getFacingDirection()]["x_offset"];
-        let hitCenterY = this.player.getInterpolatedTickY() - RETRO_GAME_DATA["model_positions"][this.player.getModelCategory()][this.model]["swinging"][this.player.getFacingDirection()]["y_offset"];
+        let hitCenterX = this.getSwingCenterX();
+        let hitCenterY = this.getSwingCenterY();
         swingHitbox.update(hitCenterX, hitCenterY);
 
         let swingAngle;
@@ -181,7 +189,19 @@ class Sword extends Item {
         }
         if (hitCharacter == null){ return; }
         // Else hit a character
-        hitCharacter.damage(RETRO_GAME_DATA["sword_data"][this.model]["swing_damage"]);
+        hitCharacter.damage(this.getSwingDamage());
+        if (hitCharacter.isDead()){
+            // Assumes not dead prior to damage
+            this.getGamemode().getEventHandler().emit({
+                "victim_class": hitCharacter.getModel(),
+                "killer_class": this.player,
+                "name": "kill"
+            });
+        }
+    }
+
+    getSwingDamage(){
+        return RETRO_GAME_DATA["sword_data"][this.model]["swing_damage"];
     }
 
     isSwinging(){

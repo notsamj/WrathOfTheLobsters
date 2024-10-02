@@ -3,8 +3,41 @@ class Route {
         this.tileSequence = [];
     }
 
+    containsTile(tileX, tileY){
+        return this.getIndexOfTile(tileX, tileY) != -1;
+    }
+
+    getIndexOfTile(tileX, tileY){
+        for (let i = 0; i < this.getLength(); i++){
+            let tile = this.tileSequence[i];
+            if (tile["tile_x"] === tileX && tile["tile_y"] === tileY){
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    getLastTile(){
+        return this.tileSequence[this.getLength() - 1];
+    }
+
+    shortenToLength(maxLength){
+        // Shorten the route by repeatedly removing the last element
+        while (this.getLength() > maxLength){
+            this.tileSequence.pop();
+        }
+    }
+
+    getTileInRouteAtIndex(index){
+        return this.tileSequence[index];
+    }
+
+    getLength(){
+        return this.tileSequence.length;
+    }
+
     isEmpty(){
-        return this.tileSequence.length === 0;
+        return this.getLength() === 0;
     }
 
     addTile(tileX, tileY){
@@ -17,16 +50,8 @@ class Route {
     }
 
     getDecisionAt(tileX, tileY){
-        let position = -1;
-
-
         // Find the position of the entity sequence
-        for (let i = 0; i < this.tileSequence.length; i++){
-            if (this.tileSequence[i]["tile_x"] == tileX && this.tileSequence[i]["tile_y"] == tileY){
-                position = i;
-                break;
-            }
-        }
+        let position = this.getIndexOfTile(tileX, tileY);
 
         // If we can't find where the entity is in the sequence
         if (position == -1){

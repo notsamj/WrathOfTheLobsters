@@ -16,4 +16,8 @@ class SkirmishSword extends Sword {
         super.finishSwing();
         this.player.indicateMoveDone();
     }
+
+    getSwingDamage(){
+        return RETRO_GAME_DATA["skirmish"]["stab_damage"];
+    }
 }

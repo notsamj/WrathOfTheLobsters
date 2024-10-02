@@ -30,13 +30,13 @@ class RetroGameScene {
         let chunkXEnd = startX;
         let chunkYEnd = startY;
         for (let [chunk, chunkIndex] of this.chunks){
-            if (finalOffsetX > 0){
+            if (xDirection > 0){
                 chunkXEnd = Math.max(chunkXEnd, chunk.getNaturalRightX() * RETRO_GAME_DATA["general"]["tile_size"]);
             }else{
                 chunkXEnd = Math.min(chunkXEnd, chunk.getNaturalLeftX() * RETRO_GAME_DATA["general"]["tile_size"]);
             }
 
-            if (finalOffsetY > 0){
+            if (yDirection > 0){
                 chunkYEnd = Math.max(chunkYEnd, chunk.getNaturalTopY() * RETRO_GAME_DATA["general"]["tile_size"]);
             }else{
                 chunkYEnd = Math.min(chunkYEnd, chunk.getNaturalBottomY() * RETRO_GAME_DATA["general"]["tile_size"]);
@@ -83,6 +83,9 @@ class RetroGameScene {
         }
 
         // Loop from start to end but stop if you exceed where all existing chunk boundaries
+        if (isRDebugging()){
+            debugger;
+        }
         while (lessThanEQDir(tileX, endTileX, xDirection) && lessThanEQDir(tileY, endTileY, yDirection) && lessThanEQDir(x, chunkXEnd, xDirection) && lessThanEQDir(y, chunkYEnd, yDirection)){
             if (this.hasPhysicalTileCoveringLocation(tileX, tileY)){
                 let tile = this.getPhysicalTileCoveringLocation(tileX, tileY);

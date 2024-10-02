@@ -120,7 +120,7 @@ class SkirmishCharacter extends Character {
         this.commitedToAction = false;
         this.tileXOnTurnStart = this.tileX;
         this.tileYOnTurnStart = this.tileY;
-
+        this.walkingBar.setValue(0);
         // Reload all guns
         for (let item of this.inventory.getItems()){
             if (item instanceof Gun){

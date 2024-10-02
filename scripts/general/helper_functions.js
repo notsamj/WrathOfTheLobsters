@@ -68,7 +68,7 @@ function angleToBestFaceDirection(angleRAD){
         return "back";
     }
     // If to the left
-    else if (angleBetweenCCWRAD(angleRAD, toRadians(135), toRadians(180))){
+    else if (angleBetweenCCWRAD(angleRAD, toRadians(135), toRadians(225))){
         return "left";
     }
     // Else it must be down

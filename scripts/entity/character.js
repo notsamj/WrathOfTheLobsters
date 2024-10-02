@@ -211,12 +211,17 @@ class Character extends Entity {
         }
 
         let pickBestTile = () => {
-            // TODO: Use a heuristic to find the tile that is both the shortest and the closest to the end
+            // Note: Assume at least one unchecked tile
+            let chosenTileDistanceToEnd = Number.MAX_SAFE_INTEGER; 
             let chosenTile = null;
             for (let tile of tiles){
                 if (!tile["checked"][tile["path_direction"].toString()]){
-                    chosenTile = tile;
-                    break;
+                    let distanceInTiles = Math.sqrt(Math.pow(tile["tile_x"] - endTileX, 2) + Math.pow(tile["tile_y"] - endTileY, 2));
+                    // If this tile is better than the previous best tile to choose
+                    if (distanceInTiles < chosenTileDistanceToEnd){
+                        chosenTile = tile;
+                        chosenTileDistanceToEnd = distanceInTiles;
+                    }
                 }
             }
             return chosenTile;

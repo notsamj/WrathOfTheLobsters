@@ -3,10 +3,63 @@ class BotSharedBrain {
         this.gamemode = gamemode;
         this.teamName = teamName;
         this.lastKnownLocations = {};
+        this.spawnPointKnowledge = [];
+        this.initializeSpawnPointKnowledge();
+        this.gamemode.getEventHandler().addHandler("change_tile", (tileChangeDetailsObject) => {
+            // Note: Assume troop has already moved (though visibility hasn't been updated yet :)
+            let troopTeam = tileChangeDetailsObject["team"];
+            let troopID = tileChangeDetailsObject["troop_id"];
+            this.checkForExploredSpawnPoints(troopID, troopTeam);
+        });
+    }
+
+    initializeSpawnPointKnowledge(){
+        let size = RETRO_GAME_DATA["skirmish"]["area_size"];
+        this.spawnPointKnowledge = [{"tile_x": 0, "tile_y": 0, "has_been_explored": false}, {"tile_x": 0, "tile_y": size-1, "has_been_explored": false}, {"tile_x": size-1, "tile_y": 0, "has_been_explored": false}, {"tile_x": size-1, "tile_y": size-1, "has_been_explored": false}];
+        let myTeamSpawn = this.gamemode.getSpawnOfTeam(this.getTeamName());
+        // Mark own spawn as explored
+        for (let spawnPointObj of this.spawnPointKnowledge){
+            if (myTeamSpawn["x"] === spawnPointObj["tile_x"] && myTeamSpawn["y"] === spawnPointObj["tile_y"]){
+                spawnPointObj["has_been_explored"] = true;
+                break;
+            }
+        }
+    }
+
+    checkForExploredSpawnPoints(troopID, troopTeam){
+        let movingTroop = this.gamemode.getTroop(troopTeam, troopID);
+        // If troop is on the wrong team
+        if (movingTroop.getTeamName() != this.getTeamName()){ return; }
+        
+        // If I don't have unexplored spawn points
+        if (!this.hasUnexploredSpawnpoints()){ return; }
+
+
+        let unexploredSpawnpoints = this.getUnexploredSpawnpoints();
+        for (let spawnPointObj of unexploredSpawnpoints){
+            // If the moving troop can see this spawn point then mark it as explored
+            if (movingTroop.canSeeTileEntityAtTile(spawnPointObj["tile_x"], spawnPointObj["tile_y"])){
+                spawnPointObj["has_been_explored"] = true;
+            }
+        }
     }
 
     getTeamName(){
         return this.teamName;
+    }
+
+    hasUnexploredSpawnpoints(){
+        return this.getUnexploredSpawnpoints().length === 0;
+    }
+
+    getUnexploredSpawnpoints(){
+        let unexploredSpawnpoints = [];
+        for (let spawnPointObj of this.spawnPointKnowledge){
+            if (!spawnPointObj["has_been_explored"]){
+                unexploredSpawnpoints.push(spawnPointObj);
+            }
+        }
+        return unexploredSpawnpoints;
     }
 
     getEnemyData(){
@@ -38,7 +91,7 @@ class BotSharedBrain {
         let otherTeamName = this.gamemode.getOtherTeam(teamName);
         // If visible return health
         if (this.gamemode.isVisibleToTeam(teamName, otherTeamName, enemyID)){
-            let enemy = this.gamemode.getTroop();
+            let enemy = this.gamemode.getTroop(otherTeamName, enemyID);
             return enemy.getHealth();
         }
         // If was seen before return last recorded heatlh

@@ -25,16 +25,18 @@ const RETRO_GAME_DATA = {
         "multi_cover_friendly_occupied_weight": 0.1, // [0,1]
         "multi_cover_empty_weight": 0.5, // [0,1]
         "multi_cover_enemy_weight": 1, // [0,1]
+        "delay_ms": 250, // 1500?
         "weights": {
             "shoot": 3,
-            "stab": 2,
+            "stab": 7,
             "move_closer": 1,
             "single_bush": 3,
             "multi_bush": 4,
             "cannon_rock": 2,
             "cannon_troops": 2,
-            "order_shoot": 4,
-            "order_move": 2
+            "order_shoot": 5,
+            "order_move": 2,
+            "explore": 6
         }
     },
 
@@ -158,10 +160,11 @@ const RETRO_GAME_DATA = {
             "point_to_shoot_cannon_crosshair"
         ],
         "shot_damage": 0.75,
+        "stab_damage": 1,
         "camera": {
             "move_speed": 64*16
         },
-        "seed": 447 // null for random seed, 447 is good (on 20 size)
+        "seed": 834 // null for random seed, 447 is good (on 20 size)
     },
 
     "controls": {

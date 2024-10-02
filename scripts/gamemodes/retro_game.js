@@ -14,8 +14,22 @@ const ZOOM_MONITOR = {"button": null, "start_time_ms": null};
 var mouseX = 0;
 var mouseY = 0;
 var programOver = false;
+var ramshackleDebugToolValue = false;
 
 // Functions
+function rDebug(){
+    debugger;
+    ramshackleDebugToolValue = true;
+}
+
+function stopRDebugging(){
+    ramshackleDebugToolValue = false;
+}
+
+function isRDebugging(){
+    return ramshackleDebugToolValue;
+}
+
 async function setup() {
     await loadToImages("page_background");
     await loadToImages("crosshair");

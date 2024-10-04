@@ -538,6 +538,14 @@ function copyArray(array){
     return newArray;
 }
 
+function copyArrayOfJSONObjects(array){
+    let newArray = [];
+    for (let i = 0; i < array.length; i++){
+        newArray.push(copyObject(array[i]));
+    }
+    return newArray;
+}
+
 /*
     Method Name: listMean
     Method Parameters:

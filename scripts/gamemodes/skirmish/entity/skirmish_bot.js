@@ -199,7 +199,7 @@ class SkirmishBot extends SkirmishCharacter {
         let collectivePlans = [];
 
         // Find tiles where you can go to shoot an enemy
-        let shootStabCalculationResults = this.determineRoughShootAndStabTiles(possibleEndTiles);
+        let shootStabCalculationResults = this.determineRoughShootAndStabTiles(copyArrayOfJSONObjects(possibleEndTiles));
         let shootOneTiles = shootStabCalculationResults["rough_shoot_tiles"];
 
         // Find tiles where you can go to stab an enemy
@@ -207,20 +207,24 @@ class SkirmishBot extends SkirmishCharacter {
         let stabOneTiles = shootStabCalculationResults["rough_stab_tiles"];
 
         // Find tiles closer to enemy (from start position) where you can't be immediately shot/stabbed 
-        let closerTiles = this.determineCloserTiles(possibleEndTiles, shootOneTiles);
+        let closerTiles = this.determineCloserTiles(copyArrayOfJSONObjects(possibleEndTiles), shootOneTiles);
 
         // Find tiles that help explore
-        let explorationTiles = this.determineExplorationTiles(possibleEndTiles);
+        let explorationTiles = this.determineExplorationTiles(copyArrayOfJSONObjects(possibleEndTiles));
 
         // Find tiles where you can hide in a single-bush
-        let singleBushTiles = this.determineSingleBushTiles(possibleEndTiles);
+        let singleBushTiles = this.determineSingleBushTiles(copyArrayOfJSONObjects(possibleEndTiles));
 
         // Find tiles where you can hide in a multi-bush
-        let multiBushTiles = this.determineMultiBushTiles(possibleEndTiles);
+        let multiBushTiles = this.determineMultiBushTiles(copyArrayOfJSONObjects(possibleEndTiles));
 
 
         // Officer
         if (this.rankName === "officer"){
+            // TODO
+            let selectedTroopsSets = this.generateSelectedTroopsSets(possibleEndTiles);
+
+            // TODO: Cannon should not be dependent on having selected troops
             let selectedTroops = this.generateSelectedTroops();
             // No orders if no selected troops
             if (selectedTroops.length > 0){
@@ -272,7 +276,7 @@ class SkirmishBot extends SkirmishCharacter {
 
                 // Determine moving your selected troops to a given location
                 // Value moving closer to enemy you can make it more advanced in the future just do this for now
-                let orderTroopWalkToLocationTiles = this.determineCloserTiles(this.exploreAvailableTiles(RETRO_GAME_DATA["skirmish"]["distance_per_turn"]), shootOneTiles);
+                let orderTroopWalkToLocationTiles = this.determineCloserTiles(this.exploreAvailableTiles(), shootOneTiles);
             
                 // Add orderShootTargets tiles to collectiveplans
                 for (let orderShootTarget of orderShootTargets){
@@ -939,6 +943,7 @@ class SkirmishBot extends SkirmishCharacter {
         // Check tiles
         let lowestShortestDistance = Number.MAX_SAFE_INTEGER;
         let lowestTotalDistance = Number.MAX_SAFE_INTEGER;
+        let distanceMovePerTurn = RETRO_GAME_DATA["skirmish"]["distance_per_turn"][this.getRankName()];
 
         // Create routes to all enemies
         let routes = {};
@@ -957,15 +962,14 @@ class SkirmishBot extends SkirmishCharacter {
             let tileY = tile["tile_y"];
             // Ignore unsafe tiles
             if (isUnsafeTile(tileX, tileY)){ continue; }
-            let distanceFromCurrentTile = Math.abs(tileX - this.getTileX()) + Math.abs(tileY - this.getTileY());
             let shortestDistance;
             let totalDistance = 0;
             // Determine shortest distance
-            if (distanceFromCurrentTile >= shortestRouteToEnemy.getLength()){
-                shortestDistance = distanceFromCurrentTile - shortestRouteToEnemy.getLength();
+            if (distanceMovePerTurn >= shortestRouteToEnemy.getLength()){
+                shortestDistance = shortestRouteToEnemy.getLength();
             }else{
-                let tileAtSameDistance = shortestRouteToEnemy.getTileInRouteAtIndex(distanceFromCurrentTile);
-                shortestDistance = calculateEuclideanDistance(tileX, tileY, tileAtSameDistance["tile_x"], tileAtSameDistance["tile_y"]);
+                let tileAtMaxDistance = shortestRouteToEnemy.getTileInRouteAtIndex(distanceMovePerTurn);
+                shortestDistance = calculateEuclideanDistance(tileX, tileY, tileAtMaxDistance["tile_x"], tileAtMaxDistance["tile_y"]);
             }
 
             // Find the total distance to the perfect path to enemy
@@ -973,11 +977,11 @@ class SkirmishBot extends SkirmishCharacter {
                 if (enemyObj["status"] === "unknown"){ continue; }
                 let routeToEnemy = routes[enemyObj["entity"].getID()];
                 // If distance from current to this tile is longer than the distance to this enemy
-                if (distanceFromCurrentTile >= routeToEnemy.getLength()){
-                    totalDistance += distanceFromCurrentTile - routeToEnemy.getLength();
+                if (distanceMovePerTurn >= routeToEnemy.getLength()){
+                    totalDistance += routeToEnemy.getLength();
                 }else{
-                    let tileAtSameDistance = routeToEnemy.getTileInRouteAtIndex(distanceFromCurrentTile);
-                    totalDistance += calculateEuclideanDistance(tileX, tileY, tileAtSameDistance["tile_x"], tileAtSameDistance["tile_y"]);
+                    let tileAtMaxDistance = routeToEnemy.getTileInRouteAtIndex(distanceMovePerTurn);
+                    totalDistance += calculateEuclideanDistance(tileX, tileY, tileAtMaxDistance["tile_x"], tileAtMaxDistance["tile_y"]);
                 }
             }
             tile["shortest_distance"] = shortestDistance;
@@ -1008,10 +1012,45 @@ class SkirmishBot extends SkirmishCharacter {
         let singleBushTiles = [];
         // Note: Weed out multi-bushes
         let scene = this.getGamemode().getScene();
+        let enemyData = this.getEnemyData();
+        let maxDistanceInTiles = Math.sqrt(2 * Math.pow(RETRO_GAME_DATA["skirmish"]["area_size"], 2));
+        let calculateTileScore = (possibleEndTile) => {
+            let totalDistanceToEnemiesInTiles = 0;
+            for (let enemyObj of enemyData){
+                if (enemyObj["status"] === "unknown"){
+                    totalDistanceToEnemiesInTiles += maxDistanceInTiles;
+                    continue;
+                }
+                // If this bush would be visible to this enemy (if they are at the stored location)
+                let distanceToEnemyInTiles = calculateEuclideanDistance(enemyObj["tile_x"], enemyObj["tile_y"], possibleEndTile["tile_x"], possibleEndTile["tile_y"]);
+                // Note: This isn't a perfect indicator of the entry being visible, more of a rough approximation
+                let entryToTileVisibleToThisEnemy = distanceToEnemyInTiles < this.gamemode.getEnemyVisibilityDistance();
+                let alreadyOnThisTile = possibleEndTile["tile_x"] === this.getTileX() && possibleEndTile["tile_y"] === this.getTileY();
+                // A single bush you are already in isn't affected by the entry visibility
+                if (alreadyOnThisTile){
+                    entryToTileVisibleToThisEnemy = false;
+                }
+                // Worth nothing if the entry to tile is visible to the enemies
+                if (entryToTileVisibleToThisEnemy){
+                    return 0;
+                }
+                totalDistanceToEnemiesInTiles += distanceToEnemyInTiles;
+            }
+            let averageDistanceToEnemiesInTiles = totalDistanceToEnemiesInTiles / enemyData.length;
+            // Score in range [0,1]
+            return 1 - averageDistanceToEnemiesInTiles / maxDistanceInTiles;
+        }
+        // Find good single cover and value them
         for (let possibleEndTile of possibleEndTiles){
             if (!scene.hasPhysicalTileAtLocation(possibleEndTile["tile_x"], possibleEndTile["tile_y"])){ continue; }
             let physicalTile = scene.getPhysicalTileAtLocation(possibleEndTile["tile_x"], possibleEndTile["tile_y"]);
             if (physicalTile.hasAttribute("single_cover")){
+                // Ignore single bushes that are visible to enemies given their last known positions
+                let score = calculateTileScore(possibleEndTile);
+                // Don't even bother with such a bad score
+                if (score === 0) { continue; }
+                // Determine the score
+                possibleEndTile["score"] = score;
                 singleBushTiles.push(possibleEndTile);
             }
         }
@@ -1054,21 +1093,50 @@ class SkirmishBot extends SkirmishCharacter {
             return false;
         }
 
+        let calculateDistanceToEnemyScore = (possibleEndTile) => {
+            let totalDistanceToEnemiesInTiles = 0;
+            for (let enemyObj of enemyData){
+                if (enemyObj["status"] === "unknown"){
+                    totalDistanceToEnemiesInTiles += maxDistanceInTiles;
+                    continue;
+                }
+                // If this bush would be visible to this enemy (if they are at the stored location)
+                let distanceToEnemyInTiles = calculateEuclideanDistance(enemyObj["tile_x"], enemyObj["tile_y"], possibleEndTile["tile_x"], possibleEndTile["tile_y"]);
+                // Note: This isn't a perfect indicator of the entry being visible, more of a rough approximation
+                let entryToTileVisibleToThisEnemy = distanceToEnemyInTiles < this.gamemode.getEnemyVisibilityDistance();
+                let alreadyInThisMultiCover = this.isInMultipleCover() && this.gamemode.tilesInSameMultiCover(this.getTileX(), this.getTileY(), possibleEndTile["tile_x"], possibleEndTile["tile_y"]);
+                // A multi bush you are already in isn't affected by the entry visibility
+                if (alreadyInThisMultiCover){
+                    entryToTileVisibleToThisEnemy = false;
+                }
+                // Worth nothing if the entry to tile is visible to the enemies
+                if (entryToTileVisibleToThisEnemy){
+                    return 0;
+                }
+                totalDistanceToEnemiesInTiles += distanceToEnemyInTiles;
+            }
+            let averageDistanceToEnemiesInTiles = totalDistanceToEnemiesInTiles / enemyData.length;
+            // Score in range [0,1]
+            return 1 - averageDistanceToEnemiesInTiles / maxDistanceInTiles;
+        }
+
+        // Determine a score for each multi bush tile
         for (let possibleEndTile of possibleEndTiles){
             if (!tileInMultiCover(possibleEndTile["tile_x"], possibleEndTile["tile_y"])){ continue; }
             let enemyConfidence = containsEnemy(possibleEndTile["tile_x"], possibleEndTile["tile_y"]);
             let spotContainsEnemy = enemyConfidence > 0;
+            let distanceScore = calculateDistanceScore(possibleEndTile);
             // If contains an enemy then add it
             if (spotContainsEnemy){
                 possibleEndTile["score"] = enemyConfidence * RETRO_GAME_DATA["bot"]["multi_cover_enemy_weight"];
             }
             // Else if it contains a friendly
             else if (containsFriendly(possibleEndTile["tile_x"], possibleEndTile["tile_y"])){
-                possibleEndTile["score"] = RETRO_GAME_DATA["bot"]["multi_cover_friendly_occupied_weight"];
+                possibleEndTile["score"] = calculateDistanceToEnemyScore(possibleEndTile) * RETRO_GAME_DATA["bot"]["multi_cover_friendly_occupied_weight"];
             }
             // Else empty
             else{
-                possibleEndTile["score"] = RETRO_GAME_DATA["bot"]["multi_cover_empty_weight"];
+                possibleEndTile["score"] = calculateDistanceToEnemyScore(possibleEndTile) * RETRO_GAME_DATA["bot"]["multi_cover_empty_weight"];
             }
             multiBushTiles.push(possibleEndTile);
         }

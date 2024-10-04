@@ -941,28 +941,44 @@ class SkirmishBot extends SkirmishCharacter {
         let lowestTotalDistance = Number.MAX_SAFE_INTEGER;
 
         // Create routes to all enemies
-        /*let routes = {};
+        let routes = {};
+        let shortestRouteToEnemy = null;
         for (let enemyObj of enemies){
             if (enemyObj["status"] === "unknown"){ continue; }
             let routeToEnemy = this.generateShortestRouteToPoint(enemyObj["tile_x"], enemyObj["tile_y"]);
-            let distance = routeToEnemy.getLength();
-            totalDistance += distance;
-            shortestDistance = Math.min(distance, shortestDistance);
-        }*/
+            routes[enemyObj["entity"].getID()] = routeToEnemy;
+            if (shortestRouteToEnemy === null || routeToEnemy.getLength() < shortestRouteToEnemy.getLength()){
+                shortestRouteToEnemy = routeToEnemy;
+            }
+        }
+        // Loop through all tiles and find out how they compare to tiles along the routes
         for (let tile of possibleEndTiles){
+            let tileX = tile["tile_x"];
+            let tileY = tile["tile_y"];
             // Ignore unsafe tiles
-            if (isUnsafeTile(tile["tile_x"], tile["tile_y"])){ continue; }
-            let x = scene.getCenterXOfTile(tile["tile_x"]);
-            let y = scene.getCenterYOfTile(tile["tile_y"]);
+            if (isUnsafeTile(tileX, tileY)){ continue; }
+            let distanceFromCurrentTile = Math.abs(tileX - this.getTileX()) + Math.abs(tileY - this.getTileY());
+            let shortestDistance;
             let totalDistance = 0;
-            let shortestDistance = Number.MAX_SAFE_INTEGER;
-            // Find the distances to enemies
+            // Determine shortest distance
+            if (distanceFromCurrentTile >= shortestRouteToEnemy.getLength()){
+                shortestDistance = distanceFromCurrentTile - shortestRouteToEnemy.getLength();
+            }else{
+                let tileAtSameDistance = shortestRouteToEnemy.getTileInRouteAtIndex(distanceFromCurrentTile);
+                shortestDistance = calculateEuclideanDistance(tileX, tileY, tileAtSameDistance["tile_x"], tileAtSameDistance["tile_y"]);
+            }
+
+            // Find the total distance to the perfect path to enemy
             for (let enemyObj of enemies){
                 if (enemyObj["status"] === "unknown"){ continue; }
-                let routeToEnemy = this.generateShortestRouteToPoint(enemyObj["tile_x"], enemyObj["tile_y"]);
-                let distance = routeToEnemy.getLength();
-                totalDistance += distance;
-                shortestDistance = Math.min(distance, shortestDistance);
+                let routeToEnemy = routes[enemyObj["entity"].getID()];
+                // If distance from current to this tile is longer than the distance to this enemy
+                if (distanceFromCurrentTile >= routeToEnemy.getLength()){
+                    totalDistance += distanceFromCurrentTile - routeToEnemy.getLength();
+                }else{
+                    let tileAtSameDistance = routeToEnemy.getTileInRouteAtIndex(distanceFromCurrentTile);
+                    totalDistance += calculateEuclideanDistance(tileX, tileY, tileAtSameDistance["tile_x"], tileAtSameDistance["tile_y"]);
+                }
             }
             tile["shortest_distance"] = shortestDistance;
             tile["total_distance"] = totalDistance;

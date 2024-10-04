@@ -452,6 +452,10 @@ class Character extends Entity {
     }
 
     canSeeTileEntityAtTile(tileX, tileY){
+        return this.couldSeeTileEntityAtTile(this.getTileX(), this.getTileY(), tileX, tileY);
+    }
+
+    couldSeeTileEntityAtTile(mySupposedTileX, mySupposedTileY, otherTileX, otherTileY){
         // If the observer (this) does not have vision restrictions
         if (!this.hasVisionRestrictions()){
             return true;
@@ -465,24 +469,24 @@ class Character extends Entity {
             return this.getScene().tileAtLocationHasAttribute(tileX, tileY, "multi_cover");
         }
 
-        let distance = Math.sqrt(Math.pow(this.getTileX() - tileX, 2) + Math.pow(this.getTileY() - tileY, 2));
+        let distance = Math.sqrt(Math.pow(mySupposedTileX - otherTileX, 2) + Math.pow(mySupposedTileY - otherTileY, 2));
         if (distance > this.gamemode.getEnemyVisibilityDistance()){ return false; }
         // If in single cover that you can't be seen
-        if (tileInSingleCover(tileX, tileY)){
+        if (tileInSingleCover(otherTileX, otherTileY)){
             return distance <= 1;
         }
         // If not in single cover and not in multi cover then you are visible
-        if (!tileInMultiCover(tileX, tileY)){
+        if (!tileInMultiCover(otherTileX, otherTileY)){
             return true;
         }
 
         // If cover is not in multiple cover and you are then it cannot see you 
-        if (!this.isInMultipleCover()){
+        if (!tileInMultiCover(mySupposedTileX, mySupposedTileY)){
             return distance <= 1;
         }
 
         // So now we know observer is in multicover
-        return distance <= 1 || this.getScene().tilesInSameMultiCover(tileX, tileY, this.getTileX(), this.getTileY()); 
+        return distance <= 1 || this.getScene().tilesInSameMultiCover(otherTileX, otherTileY, mySupposedTileX, mySupposedTileY);   
     }
 
     isInSingleCover(){

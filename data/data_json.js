@@ -31,10 +31,10 @@ const RETRO_GAME_DATA = {
             "stab": 7,
             "move_closer": 1,
             "single_bush": 3,
-            "multi_bush": 4,
-            "cannon_rock": 2,
-            "cannon_troops": 2,
-            "order_shoot": 5,
+            "multi_bush": 3,
+            "cannon_rock": 5,
+            "cannon_troops": 5,
+            "order_shoot": 6,
             "order_move": 2,
             "explore": 6
         }

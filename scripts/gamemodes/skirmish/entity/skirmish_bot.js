@@ -826,25 +826,28 @@ class SkirmishBot extends SkirmishCharacter {
             let spawnPointTileY = unexploredSpawnpointObj["tile_y"];
             // Note: Route cannot be null/empty/whatever because it is known there are no obstructions to spawn points
             let routeToLocation = this.generateShortestRouteToPoint(spawnPointTileX, spawnPointTileY);
+            //console.log(this.getTeamName(), routeToLocation)
             routes.push(routeToLocation);
         }
 
         // Clip the routes so that they are the length to the point where they can first see the spawn point
-        let bestRouteObj = route;
+        let bestRoute = null;
         for (let route of routes){
             let lengthOfRouteUntilSpawnpointIsVisible = route.getLength();
             for (let i = 0; i < route.getLength(); i++){
                 let tileAtI = route.getTileInRouteAtIndex(i);
                 let currentLengthIfThisTileIsFinal = i + 1;
                 // If this tile can see the spawn point then clip route to this length
-                if (this.canSeeTileEntityAtTile(tileAtI["tile_x"], tileAtI["tile_y"])){
+                let routeEnd = route.getLastTile();
+                // Check if standing on tile at i, you could see the round end
+                if (this.couldSeeTileEntityAtTile(tileAtI["tile_x"], tileAtI["tile_y"], routeEnd["tile_x"], routeEnd["tile_y"])){
                     lengthOfRouteUntilSpawnpointIsVisible = currentLengthIfThisTileIsFinal;
                     break;
                 }
             }
 
             // Clip route to length
-            route.shortenToLength(lengthOfRouteUntilSpawnpointIsVisible)
+            route.shortenToLength(lengthOfRouteUntilSpawnpointIsVisible);
 
             // If the best route is null or longer than this route, replace it
             if (bestRoute === null || bestRoute.getLength() > route.getLength()){
@@ -894,7 +897,7 @@ class SkirmishBot extends SkirmishCharacter {
         if (noEnemiesVisible){
             // If there are still spawn points left to check
             if (this.getBrain().hasUnexploredSpawnpoints()){
-                return this.getTilesCloserToUnexploredSpawnpoints();
+                return this.getTilesCloserToUnexploredSpawnpoints(possibleEndTiles);
             }
             // Else this is the last option to explore
             return this.determineFurthestOutTiles(possibleEndTiles);
@@ -936,6 +939,16 @@ class SkirmishBot extends SkirmishCharacter {
         // Check tiles
         let lowestShortestDistance = Number.MAX_SAFE_INTEGER;
         let lowestTotalDistance = Number.MAX_SAFE_INTEGER;
+
+        // Create routes to all enemies
+        /*let routes = {};
+        for (let enemyObj of enemies){
+            if (enemyObj["status"] === "unknown"){ continue; }
+            let routeToEnemy = this.generateShortestRouteToPoint(enemyObj["tile_x"], enemyObj["tile_y"]);
+            let distance = routeToEnemy.getLength();
+            totalDistance += distance;
+            shortestDistance = Math.min(distance, shortestDistance);
+        }*/
         for (let tile of possibleEndTiles){
             // Ignore unsafe tiles
             if (isUnsafeTile(tile["tile_x"], tile["tile_y"])){ continue; }
@@ -946,14 +959,10 @@ class SkirmishBot extends SkirmishCharacter {
             // Find the distances to enemies
             for (let enemyObj of enemies){
                 if (enemyObj["status"] === "unknown"){ continue; }
-                let enemyX = scene.getCenterXOfTile(enemyObj["tile_x"]);
-                let enemyY = scene.getCenterYOfTile(enemyObj["tile_y"]);
-                let distance = calculateEuclideanDistance(x, y, enemyX, enemyY);
+                let routeToEnemy = this.generateShortestRouteToPoint(enemyObj["tile_x"], enemyObj["tile_y"]);
+                let distance = routeToEnemy.getLength();
                 totalDistance += distance;
                 shortestDistance = Math.min(distance, shortestDistance);
-                if (isNaN(shortestDistance)){
-                    debugger;
-                }
             }
             tile["shortest_distance"] = shortestDistance;
             tile["total_distance"] = totalDistance;

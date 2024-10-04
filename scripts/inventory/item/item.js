@@ -9,4 +9,7 @@ class Item {
     getDecision(decisionName){
         return this.player.getDecision(decisionName);
     }
+    getGamemode(){
+        return this.player.getGamemode();
+    }
 }

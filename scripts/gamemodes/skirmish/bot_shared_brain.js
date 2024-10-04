@@ -49,7 +49,7 @@ class BotSharedBrain {
     }
 
     hasUnexploredSpawnpoints(){
-        return this.getUnexploredSpawnpoints().length === 0;
+        return this.getUnexploredSpawnpoints().length > 0;
     }
 
     getUnexploredSpawnpoints(){

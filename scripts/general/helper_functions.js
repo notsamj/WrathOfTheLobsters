@@ -365,7 +365,7 @@ function copyObject(obj){
     // Deep copy, copy inner objects aswell
     let newObject = {};
     for (let key of Object.keys(obj)){
-        if (typeof obj[key] === "object"){
+        if (obj[key] != null && typeof obj[key] === "object"){
             newObject[key] = copyObject(obj[key]);
         }else{
             newObject[key] = obj[key];

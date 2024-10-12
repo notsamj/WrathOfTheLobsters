@@ -19,6 +19,13 @@ class TurnBasedSkirmish extends Gamemode {
             this.stats.addKill(victimClass, killerClass);
         });
 
+        let scene = this.getScene();
+        this.eventHandler.addHandler("gun_shot", (eventObj) => {
+            scene.addExpiringVisual(SmokeCloud.create(eventObj["x"], eventObj["y"]));
+            // Inform the team that is not moving of a shot
+            this.brains[this.getOtherTeam(this.gameState["turn"])].informOfShot(eventObj["shooter_tile_x"], eventObj["shooter_tile_y"]);
+        });
+
         this.eventHandler.addHandler("change_tile", (tileChangeDetailsObject) => {
             // Note: Assume troop has already moved (though visibility hasn't been updated yet :)
             let troopTeam = tileChangeDetailsObject["team"];
@@ -65,7 +72,7 @@ class TurnBasedSkirmish extends Gamemode {
     }
 
     getTroop(teamName, troopID){
-        let roster = this.getTeamNameRosterFromName(teamName);
+        let roster = this.getTeamRosterFromName(teamName);
         for (let troop of roster){
             if (troop.getID() == troopID){
                 return troop;
@@ -225,12 +232,16 @@ class TurnBasedSkirmish extends Gamemode {
 
         //console.log("New visiblity calculation")
         let updateTroops = (teamName) => {
-            let troops = this.getTeamNameRosterFromName(teamName);
+            let troops = this.getTeamRosterFromName(teamName);
             for (let troop of troops){
+                let id = troop.getID();
+                if (troop.isDead()){
+                    updatedTroops[teamName].push({"id": id, "dead": true});
+                    continue;
+                }
                 let positionObject = getLastRecordedPosition(troop);
                 let tileX = troop.getTileX();
                 let tileY = troop.getTileY();
-                let id = troop.getID();
                 let updatePosition = positionObject === null || positionObject["tile_x"] != tileX || positionObject["tile_y"] != tileY;
                 
                 if (!updatePosition){ continue; }
@@ -241,6 +252,7 @@ class TurnBasedSkirmish extends Gamemode {
                 }
                 positionObject["tile_x"] = tileX;
                 positionObject["tile_y"] = tileY;
+                positionObject["dead"] = false;
                 updatedTroops[teamName].push(positionObject);
             }
         }
@@ -248,6 +260,7 @@ class TurnBasedSkirmish extends Gamemode {
         // Check for changes in the last updated positions
         updateTroops("British");
         updateTroops("American");
+
         let noUpdates = updatedTroops["British"].length === 0 && updatedTroops["American"].length === 0;
 
         // Save time by doing nothing if no updates
@@ -276,23 +289,27 @@ class TurnBasedSkirmish extends Gamemode {
         */
 
         let updateSightings = (teamName) => {
-            let troops = this.getTeamNameRosterFromName(teamName);
+            let troops = this.getLivingTeamRosterFromName(teamName);
             let otherTeam = this.getOtherTeam(teamName);
             let changesMade = false;
 
-            let updateSight = (troop, sightObject, otherTeamTroopID, otherTroopTileX, otherTroopTileY) => {
+            let updateSight = (troop, sightObject, updateObject) => {
+                let otherTeamTroopID = updateObject["id"];
+                let otherTroopTileX = updateObject["tile_x"];
+                let otherTroopTileY = updateObject["tile_y"];
                 let index = getIndexOfElementInArray(sightObject["troops_in_sight"], otherTeamTroopID);
                 // If updated opposite team troop isn't sighted by this friendly troop
                 if (index === -1){
-                    // Check if it is visible
-                    if (troop.canSeeTileEntityAtTile(otherTroopTileX, otherTroopTileY)){
+                    // Check if it is visible (must be alive)
+                    if (!updateObject["dead"] && troop.canSeeTileEntityAtTile(otherTroopTileX, otherTroopTileY)){
                         sightObject["troops_in_sight"].push(otherTeamTroopID);
                         return true;
                     }
                 }
                 // Else if it is present
                 else{
-                    let canBeSeenStill = troop.canSeeTileEntityAtTile(otherTroopTileX, otherTroopTileY);
+                    // Check if it is still visible (and alive)
+                    let canBeSeenStill = !updateObject["dead"] && troop.canSeeTileEntityAtTile(otherTroopTileX, otherTroopTileY);
                     // If it can no longer be seen by this troop, then remove it
                     if (!canBeSeenStill){
                         // Swap indices and shift to remove
@@ -315,7 +332,7 @@ class TurnBasedSkirmish extends Gamemode {
                 }
                 // Loop through opposite team updated troops to maybe remove from sight if no longer visible
                 for (let updateObject of updatedTroops[otherTeam]){
-                    let newChange = updateSight(troop, sightObject, updateObject["id"], updateObject["tile_x"], updateObject["tile_y"]);
+                    let newChange = updateSight(troop, sightObject, updateObject);
                     if (newChange){
                         changesMade = true;
                     }
@@ -323,7 +340,7 @@ class TurnBasedSkirmish extends Gamemode {
             }
 
             // Loop through updated troops specifically can see what enemy troops they can see now that they've moved
-            let otherTeamRoster = this.getTeamNameRosterFromName(otherTeam);
+            let otherTeamRoster = this.getLivingTeamRosterFromName(otherTeam);
             for (let updatedTroop of updatedTroops[teamName]){
                 let troop = this.getTroop(teamName, updatedTroop["id"]);
                 let sightObject = getRecordedSightsForTroop(troop);
@@ -332,6 +349,9 @@ class TurnBasedSkirmish extends Gamemode {
                     sightObject = {"id": id, "troops_in_sight": []};
                     teamVisibilityJSON[teamName]["troop_sightings"].push(sightObject);
                 }
+                // Change made is it's dead
+                if (updatedTroop["dead"]){ return true; }
+                
                 // Loop through opposite team troops to maybe remove from sight if no longer visible
                 for (let enemy of otherTeamRoster){
                     let newChange = updateSight(troop, sightObject, enemy.getID(), enemy.getTileX(), enemy.getTileY());
@@ -352,10 +372,9 @@ class TurnBasedSkirmish extends Gamemode {
         }
 
         let consolidateVisibility = (teamName) => {
-            let troops = this.getTeamNameRosterFromName(teamName);
+            let troops = this.getLivingTeamRosterFromName(teamName);
             let newList = [];
             // Note: Full recalculation
-            //console.log("Start", teamName)
 
             // Loop through all troops and add added
             for (let troop of troops){
@@ -365,8 +384,6 @@ class TurnBasedSkirmish extends Gamemode {
                     addToArraySet(newList, id);
                 }
             }
-            //console.log("End", teamName)
-            //console.log(newList);
             teamVisibilityJSON[teamName]["visible_enemy_character_ids"] = newList;
         }
 
@@ -379,7 +396,7 @@ class TurnBasedSkirmish extends Gamemode {
         }
     }
 
-    getTeamNameRosterFromName(teamName){
+    getTeamRosterFromName(teamName){
         let teamProperAdjective = getProperAdjective(teamName);
         if (teamProperAdjective == "British"){
             return this.britishTroops;
@@ -388,7 +405,7 @@ class TurnBasedSkirmish extends Gamemode {
     }
 
     getLivingTeamRosterFromName(teamName){
-        let roster = this.getTeamNameRosterFromName(teamName);
+        let roster = this.getTeamRosterFromName(teamName);
         let livingRoster = [];
         for (let troop of roster){
             if (troop.isAlive()){

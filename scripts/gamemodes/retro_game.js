@@ -290,6 +290,12 @@ function startGameMaker(){
 class RetroGame extends Gamemode {
     constructor(){
         super();
+
+        let scene = this.getScene();
+        this.eventHandler.addHandler("gun_shot", (eventObj) => {
+            scene.addExpiringVisual(SmokeCloud.create(eventObj["x"], eventObj["y"]));
+        });
+        
         this.startUpLock = new Lock();
         this.startUpLock.lock();
         this.startUp();

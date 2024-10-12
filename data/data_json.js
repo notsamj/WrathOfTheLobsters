@@ -25,7 +25,9 @@ const RETRO_GAME_DATA = {
         "multi_cover_friendly_occupied_weight": 0.1, // [0,1]
         "multi_cover_empty_weight": 0.5, // [0,1]
         "multi_cover_enemy_weight": 1, // [0,1]
+        "unknown_enemy_health_assumption": 1,
         "delay_ms": 250, // 1500?
+        "min_avg_route_to_friend_length_to_ignore": 5, // in tiles 
         "weights": {
             "shoot": 3,
             "stab": 7,
@@ -34,9 +36,10 @@ const RETRO_GAME_DATA = {
             "multi_bush": 3,
             "cannon_rock": 5,
             "cannon_troops": 5,
-            "order_shoot": 6,
+            "order_shoot": 6 * 2,
             "order_move": 2,
-            "explore": 6
+            "explore": 6,
+            "move_to_friends": 1.5
         }
     },
 
@@ -148,7 +151,7 @@ const RETRO_GAME_DATA = {
         },
         "game_play": {
             "officer_count": 1,
-            "private_count": 2 // 4?
+            "private_count": 4 // 4?
         },
         "special_item_names": [
             "white_flag",
@@ -164,7 +167,7 @@ const RETRO_GAME_DATA = {
         "camera": {
             "move_speed": 64*16
         },
-        "seed": 834 // null for random seed, 447 is good (on 20 size)
+        "seed": 870 // null for random seed, 447 is good (on 20 size)
     },
 
     "controls": {

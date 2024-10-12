@@ -4,17 +4,33 @@ class BotPlan {
         this.planDetails = planDetails;
         this.generateRouteIfNeeded();
         this.delayLocks = [];
+        this.finished = false;
+    }
+
+    finishPlan(){
+        this.finished = true;
+    }
+
+    isFinished(){
+        return this.finished;
     }
 
     generateRouteIfNeeded(){
         let planType = this.planDetails["type"];
         // If this is a simple move then set the round
-        if (planType === "shoot" || planType === "stab" || planType === "move_closer" || planType === "single_bush" || planType === "multi_bush" || planType === "explore"){
+        if (planType === "shoot" || planType === "stab" || planType === "move_closer" || planType === "single_bush" || planType === "multi_bush" || planType === "explore" || planType === "move_to_friends"){
             this.planDetails["route"] = this.player.generateShortestRouteToPoint(this.planDetails["tile_x"], this.planDetails["tile_y"]);
         }
-        // Else, if this is an order, it may be preceded by a route
-        else if (planType === "order_shoot" || planType === "order_move" || planType === "cannon_troops" || planType === "cannon_rock"){
-            this.planDetails["route"] = this.player.generateShortestRouteToPoint(this.planDetails["attached_closer_tile"]["tile_x"], this.planDetails["attached_closer_tile"]["tile_y"]);
+        // Else, if this is an cannon order, it may be preceded by a route
+        else if (planType === "cannon_troops" || planType === "cannon_rock"){
+            this.planDetails["route"] = this.player.generateShortestRouteToPoint(this.planDetails["attached_location"]["tile_x"], this.planDetails["attached_location"]["tile_y"]);
+        }
+        // Else if its a move/shoot order it may involve two routes
+        else if (planType === "order_shoot" || planType === "order_move"){
+            this.planDetails["select_route"] = this.player.generateShortestRouteToPoint(this.planDetails["select_location"]["tile_x"], this.planDetails["select_location"]["tile_y"]);
+            // Route comes after select route
+            this.planDetails["route"] = this.player.generateShortestRouteFromPointToPoint(this.planDetails["select_location"]["tile_x"], this.planDetails["select_location"]["tile_y"], this.planDetails["attached_location"]["tile_x"], this.planDetails["attached_location"]["tile_y"]);
+            this.planDetails["has_selected"] = false;
         }
     }
 
@@ -23,6 +39,12 @@ class BotPlan {
     }
 
     execute(decisions){
+        if (this.isFinished()){
+            if (this.planDetails["type"] === "order_move"){
+                debugger; // Temp
+            }
+            return;
+        }
         let updateFromMoveDecisions = (moveObj) => {
             let directions = ["up", "down", "left", "right"];
             for (let direction of directions){
@@ -35,6 +57,32 @@ class BotPlan {
         }
 
         let waveWhiteFlag = (decisions) => {
+            // Swing the white flag
+            decisions["trying_to_swing_sword"] = true;
+        }
+
+        let equipAnythingButOrderTool = (decisions) => {
+            let inventory = this.player.getInventory();
+            let items = inventory.getItems();
+            let selectedItem = inventory.getSelectedItem();
+            // If not holding a troop ordering tool then switch off it
+            if (selectedItem instanceof PointToMove || selectedItem instanceof PointToShoot){
+                let selectIndex = -1;
+                // Find non-order-tool index
+                for (let i = 0; i < items.length; i++){
+                    let item = items[i];
+                    if (!(item instanceof PointToMove || item instanceof PointToShoot)){
+                        selectIndex = i;
+                        break;
+                    }
+                }
+                decisions["select_slot"] = selectIndex;
+                return false;
+            }
+            return true;
+        }
+
+        let equipWhiteFlag = (decisions) => {
             let inventory = this.player.getInventory();
             let items = inventory.getItems();
             let selectedItem = inventory.getSelectedItem();
@@ -50,11 +98,9 @@ class BotPlan {
                     }
                 }
                 decisions["select_slot"] = whiteFlagIndex;
-                return;
+                return false;
             }
-
-            // Swing the white flag
-            decisions["trying_to_swing_sword"] = true;
+            return true;
         }
 
         let equipSword = (decisions) => {
@@ -73,8 +119,9 @@ class BotPlan {
                     }
                 }
                 decisions["select_slot"] = swordIndex;
-                return;
+                return false;
             }
+            return true;
         }
 
         let swingSword = (decisions) => {
@@ -178,8 +225,8 @@ class BotPlan {
             }
             return true;
         }
-
-        if (this.planDetails["type"] === "shoot"){
+        let planType = this.planDetails["type"];
+        if (planType === "shoot"){
             // Delay before moving
             if (this.delay(0)){ return; }
             let moving = updateFromMoveDecisions(this.getRoute().getDecisionAt(this.player.getTileX(), this.player.getTileY())) || this.player.isMoving();
@@ -199,8 +246,10 @@ class BotPlan {
             // Delay before order
             if (this.delay(4)){ return; }
             decisions["trying_to_shoot"] = true;
-        }else if (this.planDetails["type"] === "stab"){
-            equipSword(decisions);
+            this.finishPlan()
+        }else if (planType === "stab"){
+            let swordIsEquipped = equipSword(decisions);
+            if (!swordIsEquipped){ return; }
             // Delay before moving
             if (this.delay(0)){ return; }
             let moving = updateFromMoveDecisions(this.getRoute().getDecisionAt(this.player.getTileX(), this.player.getTileY())) || this.player.isMoving();
@@ -212,15 +261,19 @@ class BotPlan {
             // Delay before swinging
             if (this.delay(2)){ return; }
             swingSword(decisions);
-        }else if (this.planDetails["type"] === "move_closer" || this.planDetails["type"] === "explore" || this.planDetails["type"] === "single_bush" || this.planDetails["type"] === "multi_bush"){
+            this.finishPlan()
+        }else if (planType === "move_closer" || planType === "explore" || planType === "single_bush" || planType === "multi_bush" || planType === "move_to_friends"){
             // Delay before moving
             if (this.delay(0)){ return; }
             let moving = updateFromMoveDecisions(this.getRoute().getDecisionAt(this.player.getTileX(), this.player.getTileY())) || this.player.isMoving();
             if (moving){ return; }
             // Delay before swinging
             if (this.delay(1)){ return; }
+            let whiteFlagIsEquipped = equipWhiteFlag(decisions);
+            if (!whiteFlagIsEquipped){ return; }
             waveWhiteFlag(decisions);
-        }else if (this.planDetails["type"] === "cannon_rock" || this.planDetails["type"] === "cannon_troops"){
+            this.finishPlan()
+        }else if (planType === "cannon_rock" || planType === "cannon_troops"){
             // Delay before moving
             if (this.delay(0)){ return; }
             let moving = updateFromMoveDecisions(this.getRoute().getDecisionAt(this.player.getTileX(), this.player.getTileY())) || this.player.isMoving();
@@ -237,36 +290,69 @@ class BotPlan {
             // Delay before order
             if (this.delay(3)){ return; }
             decisions["trying_to_shoot"] = true;
-        }else if (this.planDetails["type"] === "order_shoot"){
-            let hasEquippedOrderToShoot = equipOrderToShoot(decisions);
-            if (!hasEquippedOrderToShoot){ return; }
+            this.finishPlan()
+        }else if (planType === "order_shoot"){
+            // Swap out of the order first to so you can select new troops later
+            if (!this.planDetails["has_swapped"]){
+                equipAnythingButOrderTool(decisions);
+                this.planDetails["has_swapped"] = true;
+                return;
+            }
+            if (!this.planDetails["has_selected"]){
+                // Delay before moving
+                if (this.delay(0)){ return; }
+                let moving = updateFromMoveDecisions(this.planDetails["select_route"].getDecisionAt(this.player.getTileX(), this.player.getTileY())) || this.player.isMoving();
+                if (moving){ return; }
+                // Delay before equipping
+                if (this.delay(1)){ return; }
+                let hasEquippedOrderToShoot = equipOrderToShoot(decisions);
+                if (!hasEquippedOrderToShoot){ return; }
+                this.planDetails["has_selected"] = true;
+            }
             // Delay before moving
-            if (this.delay(0)){ return; }
+            if (this.delay(2)){ return; }
             let moving = updateFromMoveDecisions(this.getRoute().getDecisionAt(this.player.getTileX(), this.player.getTileY())) || this.player.isMoving();
             if (moving){ return; }
             // Delay before shooting
-            if (this.delay(1)){ return; }
+            if (this.delay(3)){ return; }
             decisions["crosshair_center_x"] = this.planDetails["x"];
             decisions["crosshair_center_y"] = this.planDetails["y"];
             decisions["new_crosshair_center"] = true;
             // Delay before order
-            if (this.delay(2)){ return; }
+            if (this.delay(4)){ return; }
             decisions["trying_to_shoot"] = true;
-        }else if (this.planDetails["type"] === "order_move"){
-            let hasEquippedOrderToMove = equipOrderToMove(decisions);
-            if (!hasEquippedOrderToMove){ return; }
-            // Delay before moving
-            if (this.delay(0)){ return; }
+            this.finishPlan()
+        }else if (planType === "order_move"){
+            // Swap out of the order first to so you can select new troops later
+            if (!this.planDetails["has_swapped"]){
+                equipAnythingButOrderTool(decisions);
+                this.planDetails["has_swapped"] = true;
+                return;
+            }
+            if (!this.planDetails["has_selected"]){
+                // Delay before moving
+                if (this.delay(0)){ return; }
+                let moving = updateFromMoveDecisions(this.planDetails["select_route"].getDecisionAt(this.player.getTileX(), this.player.getTileY())) || this.player.isMoving();
+                if (moving){ return; }
+                // Delay before equipping
+                if (this.delay(1)){ return; }
+                let hasEquippedOrderToMove = equipOrderToMove(decisions);
+                if (!hasEquippedOrderToMove){ return; }
+                this.planDetails["has_selected"] = true;
+            }
+            // Delay before moving to final location
+            if (this.delay(2)){ return; }
             let moving = updateFromMoveDecisions(this.getRoute().getDecisionAt(this.player.getTileX(), this.player.getTileY())) || this.player.isMoving();
             if (moving){ return; }
             // Delay before preparing order
-            if (this.delay(1)){ return; }
+            if (this.delay(3)){ return; }
             decisions["move_tile_x"] = this.planDetails["tile_x"];
             decisions["move_tile_y"] = this.planDetails["tile_y"];
             decisions["new_move_tile"] = true;
             // Delay before order
-            if (this.delay(2)){ return; }
+            if (this.delay(4)){ return; }
             decisions["trying_to_move_troops"] = true;
+            this.finishPlan()
         }else{
             throw new Error("Invalid plan type");
         }

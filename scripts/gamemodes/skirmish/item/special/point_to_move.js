@@ -129,6 +129,10 @@ class PointToMove extends Item {
     	this.moveTileY = playerStandingY; // Placeholder
         this.selectionMadeAtX = playerStandingX;
         this.selectionMadeAtY = playerStandingY;
+        this.resetSelectedTroopsForCurrentPosition();
+    }
+
+    resetSelectedTroopsForCurrentPosition(){
         this.selectedTroops = this.generateSelectedTroops();
     }
 

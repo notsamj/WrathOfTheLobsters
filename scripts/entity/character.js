@@ -59,9 +59,11 @@ class Character extends Entity {
     }
 
     generateShortestRouteToPoint(endTileX, endTileY){
+        return this.generateShortestRouteFromPointToPoint(this.getTileX(), this.getTileY(), endTileX, endTileY);
+    }
+
+    generateShortestRouteFromPointToPoint(startTileX, startTileY, endTileX, endTileY){
         let tiles = [];
-        let startTileX = this.tileX;
-        let startTileY = this.tileY;
         if (startTileX === endTileX && startTileY === endTileY){ return new Route(); }
 
         let addAdjacentTilesAsUnchecked = (tileX, tileY, pathToTile, startToEnd) => {

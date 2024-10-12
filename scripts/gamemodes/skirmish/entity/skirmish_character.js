@@ -38,6 +38,7 @@ class SkirmishCharacter extends Character {
     }
 
     tick(){
+        if (this.isDead()){ return; }
         this.lookingDetails["look_lock"].tick();
         this.inventory.tickSelectedItem();
 
@@ -121,6 +122,16 @@ class SkirmishCharacter extends Character {
         this.tileXOnTurnStart = this.tileX;
         this.tileYOnTurnStart = this.tileY;
         this.walkingBar.setValue(0);
+        this.forceReloadAllGuns();
+        // Reset selected troops if selected tool is a move troops or order shoot
+        let selectedItem = this.inventory.getSelectedItem();
+        // If selected item is one of these then reset the selected troops
+        if (selectedItem != null && (selectedItem instanceof PointToMove || selectedItem instanceof PointToShoot)){
+            selectedItem.resetSelectedTroopsForCurrentPosition();
+        }
+    }
+
+    forceReloadAllGuns(){
         // Reload all guns
         for (let item of this.inventory.getItems()){
             if (item instanceof Gun){

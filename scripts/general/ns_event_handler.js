@@ -124,7 +124,7 @@ class NSEvent {
     */
     constructor(name){
         this.name = name;
-        this.currentHandlerIndex = 0;
+        this.newHandlerID = 0;
         this.handlers = [];
     }
 
@@ -149,8 +149,8 @@ class NSEvent {
         Method Return: Integer
     */
     addHandler(handlerFunction, priority){
-        let handlerID = this.currentHandlerIndex;
-        this.currentHandlerIndex++;
+        let handlerID = this.newHandlerID;
+        this.newHandlerID++;
         this.handlers.push({"handler_id": handlerID, "handler_function": handlerFunction, "priority": priority});
         this.handlers.sort((a, b) => {
             return a["priority"] - b["priority"];
@@ -180,7 +180,7 @@ class NSEvent {
 
         // If handler not found
         if (foundIndex == -1){
-            throw new Error(this.getName() + " handler with id not found: " + handlerID);
+            throw new Error(this.getName() + " handler with id: " + handlerID + " not found.");
         }
 
         // Shift all down

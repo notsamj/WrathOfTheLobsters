@@ -158,6 +158,55 @@ class SkirmishBot extends SkirmishCharacter {
         return tiles;
     }
 
+    generateSelectedTroopsSets(possibleEndTiles){
+        let troopSetsData = [];
+        // Note: Using "lots" of storage but really not much its kinda wasteful though
+
+        // Note: Assumes all on same team
+        let troopSetIsEquivalent = (troopSet1, troopSet2) => {
+            if (troopSet1.length != troopSet2.length){ return false; }
+            // Check that at least 1 troop from set 1 is not in set 2
+            for (let troopOfSet1 of troopSet1){
+                let isPresent = false;
+                for (let troopOfSet2 of troopSet2){
+                    if (troopOfSet1.getID() === troopOfSet2.getID()){
+                        isPresent = true;
+                    }
+                }
+                if (!isPresent){
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        let hasTroopSet = (troopSet) => {
+            for (let presentTroopSetData of troopSetsData){
+                if (troopSetIsEquivalent(troopSet, presentTroopSetData["troop_set"])){
+                    return true;
+                }
+            }
+            return false;
+        }
+        // Note: -1 is for the 1 officer which is alive given this function is called
+        let numLivingTroops = this.gamemode.getLivingTeamRosterFromName(this.getTeamName()).length - 1;
+        // Loop through all ending tiles
+        for (let possibleEndTile of possibleEndTiles){
+            let troopsToSelect = this.generateSelectedTroopsForPosition(possibleEndTile["tile_x"], possibleEndTile["tile_y"]);
+            // Looking for a set of troops that isn't empty and also isn't already recorded
+            if (troopsToSelect.length > 0 && !hasTroopSet(troopsToSelect)){
+                let troopSetData = {"tile_x": possibleEndTile["tile_x"], "tile_y": possibleEndTile["tile_y"], "troop_set": troopsToSelect};
+                // Don't bother with combinations if you can get all of them
+                if (troopsToSelect.length === numLivingTroops){
+                    return [troopSetData];
+                }
+                troopSetsData.push(troopSetData);
+            }
+        }
+
+        return troopSetsData;
+    }
+
     async generatePlan(){
         // Indicate that the plan is being created
         this.planLock.lock();
@@ -191,7 +240,7 @@ class SkirmishBot extends SkirmishCharacter {
             let pickedX = random.getRandomFloat() * (xEnd - xStart) + xStart;
             let valueAtPickedX = func(pickedX);
             let progressionInY = (startY - valueAtPickedX) / (startY - endY);
-            let chosenIndex = Math.floor(n - progressionInY * n);
+            let chosenIndex = Math.floor(n * (1 - progressionInY));
             return chosenIndex;
         }
 
@@ -217,89 +266,6 @@ class SkirmishBot extends SkirmishCharacter {
 
         // Find tiles where you can hide in a multi-bush
         let multiBushTiles = this.determineMultiBushTiles(copyArrayOfJSONObjects(possibleEndTiles));
-
-
-        // Officer
-        if (this.rankName === "officer"){
-            // TODO
-            let selectedTroopsSets = this.generateSelectedTroopsSets(possibleEndTiles);
-
-            // TODO: Cannon should not be dependent on having selected troops
-            let selectedTroops = this.generateSelectedTroops();
-            // No orders if no selected troops
-            if (selectedTroops.length > 0){
-                let squaresAroundEnemies = this.getSquaresAroundEnemies();
-                // Select move location to attach to the order
-                closerTiles.sort(comparisonFunction);
-                let moveLocationToAttach = closerTiles[randomlySelectIndex(closerTiles.length)];
-
-                // If cannon is ready
-                if (!this.cannonIsOnCooldown()){
-                    // Determine targets to destroy rocks
-                    let rockTargets = this.determineRockTargets();
-
-                    // Determine troop damage spots
-                    let troopDamageTargets = this.determineTroopCannonDamageSpots(squaresAroundEnemies);
-
-                    // Add cannon rock tiles to collectiveplans
-                    for (let rockTarget of rockTargets){
-                        rockTarget["type"] = "cannon_rock";
-                        // In this case, rock tiles have values in [-180,180]
-                        rockTarget["value"] = (rockTarget["score"] + 180) / (180*2) * RETRO_GAME_DATA["bot"]["weights"]["cannon_rock"];
-                        rockTarget["attached_closer_tile"] = moveLocationToAttach;
-                        collectivePlans.push(rockTarget);
-                    }
-
-                    // Add cannon troop tiles to collectiveplans
-                    for (let troopDamageTarget of troopDamageTargets){
-                        troopDamageTarget["type"] = "cannon_troops";
-                        // In this case, rock tiles have values in (-4,4)
-                        troopDamageTarget["value"] = (troopDamageTarget["score"] + 4) / (4*2) * RETRO_GAME_DATA["bot"]["weights"]["cannon_troops"];
-                        troopDamageTarget["attached_closer_tile"] = moveLocationToAttach;
-                        collectivePlans.push(troopDamageTarget);
-                    }
-                }
-
-                // Determine how many troops you can shoot
-                /* 
-                    Maybe a different plan?
-                    So what you do is find out for each troop you have selected, what angle range (Relative to your crosshair) can they shoot a troop
-                   Then you find overlaps between them and determine what angle you pointing at gives you how many enemies killed/wounded
-                
-                    Another plan
-
-                    Create a list of the 9 tiles (no duplicates) around each enemy
-                    Try pointing crosshair at the center of each of the 9 tiles,
-                    Calculate expected value on each and find the best
-                */
-                let orderShootTargets = this.determineOrderShootPossibilities(squaresAroundEnemies, selectedTroops);
-
-                // Determine moving your selected troops to a given location
-                // Value moving closer to enemy you can make it more advanced in the future just do this for now
-                let orderTroopWalkToLocationTiles = this.determineCloserTiles(this.exploreAvailableTiles(), shootOneTiles);
-            
-                // Add orderShootTargets tiles to collectiveplans
-                for (let orderShootTarget of orderShootTargets){
-                    orderShootTarget["type"] = "order_shoot";
-                    // In this case, rock tiles have values in (-4,4)
-                    orderShootTarget["value"] = (orderShootTarget["value"] + 4) / (4*2) * RETRO_GAME_DATA["bot"]["weights"]["order_shoot"];
-                    orderShootTarget["num_selected_troops"] = selectedTroops.length;
-                    orderShootTarget["attached_closer_tile"] = moveLocationToAttach;
-                    collectivePlans.push(orderShootTarget);
-                }
-
-                // Add orderTroopWalkToLocationTiles to collectiveplans
-                for (let orderTroopWalkToLocationTile of orderTroopWalkToLocationTiles){
-                    orderTroopWalkToLocationTile["type"] = "order_move";
-                    // In this case, there is an existing value. It is already between [0,1] so multiply by weight
-                    orderTroopWalkToLocationTile["value"] = orderTroopWalkToLocationTile["score"] * RETRO_GAME_DATA["bot"]["weights"]["order_move"];
-                    orderTroopWalkToLocationTile["num_selected_troops"] = selectedTroops.length;
-                    orderTroopWalkToLocationTile["attached_closer_tile"] = moveLocationToAttach;
-                    collectivePlans.push(orderTroopWalkToLocationTile);
-                }
-            }
-
-        }
 
         // Add shoot tiles to collectiveplans
         for (let shootOneTile of shootOneTiles){
@@ -355,6 +321,165 @@ class SkirmishBot extends SkirmishCharacter {
             collectivePlans.push(multiBushTile);
         }
 
+        // Officer stuff
+        if (this.rankName === "officer"){
+            let selectedTroopsSets = this.generateSelectedTroopsSets(possibleEndTiles);
+
+            // Come up with positions to move to close to troops
+            let positionsCloseToMyTroops = this.determinePositionsCloseToMyTroops(possibleEndTiles, shootOneTiles);
+
+            // Add positionsCloseToMyTroops tiles to collectiveplans
+            for (let positionCloseToMyTroops of positionsCloseToMyTroops){
+                positionCloseToMyTroops["type"] = "move_to_friends";
+                positionCloseToMyTroops["value"] = positionCloseToMyTroops["score"] * RETRO_GAME_DATA["bot"]["weights"]["move_to_friends"];
+                collectivePlans.push(positionCloseToMyTroops);
+            }
+
+            // Only generate this if it will be used
+            if (!this.cannonIsOnCooldown() || selectedTroopsSets.length > 0){
+                let squaresAroundEnemies = this.getSquaresAroundEnemies();
+
+                // Come up with locations you can move if you are doing a command (just not the move command that will have a different position)
+                let locationsToMoveIfOrderingButNotMoveOrder = appendLists(closerTiles, explorationTiles);
+                locationsToMoveIfOrderingButNotMoveOrder = appendLists(locationsToMoveIfOrderingButNotMoveOrder, singleBushTiles);
+                locationsToMoveIfOrderingButNotMoveOrder = appendLists(locationsToMoveIfOrderingButNotMoveOrder, multiBushTiles);
+                locationsToMoveIfOrderingButNotMoveOrder = appendLists(locationsToMoveIfOrderingButNotMoveOrder, positionsCloseToMyTroops);
+
+                // Sort the locations for selection
+                locationsToMoveIfOrderingButNotMoveOrder.sort(comparisonFunction);
+                // Just incase its empty add current location
+                if (locationsToMoveIfOrderingButNotMoveOrder.length === 0){
+                    locationsToMoveIfOrderingButNotMoveOrder.push({"tile_x": this.getTileX(), "tile_y": this.getTileY(), "type": "debugger"});
+                }
+
+                let chosenIndex = randomlySelectIndex(locationsToMoveIfOrderingButNotMoveOrder.length);
+                let locationToMoveIfOrderingButNotMoveOrder =  locationsToMoveIfOrderingButNotMoveOrder[chosenIndex];
+                
+                // If cannon is ready
+                if (!this.cannonIsOnCooldown()){
+                    // Determine targets to destroy rocks
+                    let rockTargets = this.determineRockTargets();
+
+                    // Determine troop damage spots
+                    let troopDamageTargets = this.determineTroopCannonDamageSpots(squaresAroundEnemies);
+
+                    // Add cannon rock tiles to collectiveplans
+                    for (let rockTarget of rockTargets){
+                        rockTarget["type"] = "cannon_rock";
+                        // In this case, rock tiles have values in [-180,180]
+                        rockTarget["value"] = (rockTarget["score"] + 180) / (180*2) * RETRO_GAME_DATA["bot"]["weights"]["cannon_rock"];
+                        rockTarget["attached_location"] = locationToMoveIfOrderingButNotMoveOrder;
+                        collectivePlans.push(rockTarget);
+                    }
+
+                    // Add cannon troop tiles to collectiveplans
+                    for (let troopDamageTarget of troopDamageTargets){
+                        troopDamageTarget["type"] = "cannon_troops";
+                        // In this case, rock tiles have values in (-4,4)
+                        troopDamageTarget["value"] = (troopDamageTarget["score"] + 4) / (4*2) * RETRO_GAME_DATA["bot"]["weights"]["cannon_troops"];
+                        troopDamageTarget["attached_location"] = locationToMoveIfOrderingButNotMoveOrder;
+                        collectivePlans.push(troopDamageTarget);
+                    }
+                }
+
+                // Determine orders for troop sets
+                for (let troopSetData of selectedTroopsSets){
+                    let troopSelectionTile = {"tile_x": troopSetData["tile_x"], "tile_y": troopSetData["tile_y"]}
+                    let selectedTroops = troopSetData["troop_set"];
+                    // Note: troopSet is not empty
+
+                    let orderShootTargets = this.determineOrderShootPossibilities(squaresAroundEnemies, selectedTroops);
+                    // Create a reference list of tiles to order walk to
+                    let orderTroopWalkToLocationTiles = appendLists(closerTiles, explorationTiles);
+                    orderTroopWalkToLocationTiles = appendLists(orderTroopWalkToLocationTiles, singleBushTiles);
+                    orderTroopWalkToLocationTiles = appendLists(orderTroopWalkToLocationTiles, multiBushTiles);
+                    // Turn the reference list into a value-copy
+                    orderTroopWalkToLocationTiles = copyArrayOfJSONObjects(orderTroopWalkToLocationTiles);
+                    for (let orderTroopWalkToLocationTile of orderTroopWalkToLocationTiles){
+                        orderTroopWalkToLocationTile["attached_location"] = {"tile_x": locationToMoveIfOrderingButNotMoveOrder["tile_x"], "tile_y": locationToMoveIfOrderingButNotMoveOrder["tile_y"], "type": locationToMoveIfOrderingButNotMoveOrder["type"]}
+                    }
+
+                    /*
+                    // TODO: Testing
+                    let locationsToOrderAMoveTo = appendLists(closerTiles, explorationTiles);
+                    locationsToOrderAMoveTo = appendLists(locationsToOrderAMoveTo, singleBushTiles);
+                    locationsToOrderAMoveTo = appendLists(locationsToOrderAMoveTo, multiBushTiles);
+
+                    // Sort the locations for selection
+                    locationsToOrderAMoveTo.sort(comparisonFunction);
+                    // Just in case it's empty add current location
+                    if (locationsToOrderAMoveTo.length === 0){
+                        locationsToOrderAMoveTo.push({"tile_x": this.getTileX(), "tile_y": this.getTileY(), "type": "debugger"});
+                    }
+
+                    let chosenIndex = randomlySelectIndex(locationsToOrderAMoveTo.length);
+                    let locationToOrderAMoveTo =  locationsToOrderAMoveTo[chosenIndex];
+                    let orderTroopWalkToLocationTiles = [{"tile_x": locationToOrderAMoveTo["tile_x"], "tile_y": locationToOrderAMoveTo["tile_y"], "score": locationToOrderAMoveTo["score"]}];
+                    orderTroopWalkToLocationTiles[0]["attached_location"] = {"tile_x": locationToMoveIfOrderingButNotMoveOrder["tile_x"], "tile_y": locationToMoveIfOrderingButNotMoveOrder["tile_y"], "type": locationToMoveIfOrderingButNotMoveOrder["type"]}
+                    */
+                    // Add orderShootTargets tiles to collectiveplans
+                    for (let orderShootTarget of orderShootTargets){
+                        orderShootTarget["type"] = "order_shoot";
+                        // In this case, order shoot tiles have scores in (-4,4)
+                        orderShootTarget["value"] = (orderShootTarget["score"] + 4) / (4*2) * RETRO_GAME_DATA["bot"]["weights"]["order_shoot"];
+                        orderShootTarget["num_selected_troops"] = selectedTroops.length;
+                        orderShootTarget["select_location"] = troopSelectionTile;
+                        orderShootTarget["attached_location"] = locationToMoveIfOrderingButNotMoveOrder;
+                        collectivePlans.push(orderShootTarget);
+                    }
+
+                    // Add orderTroopWalkToLocationTiles to collectiveplans
+                    for (let orderTroopWalkToLocationTile of orderTroopWalkToLocationTiles){
+                        orderTroopWalkToLocationTile["type"] = "order_move";
+                        // In this case, there is an existing value. It is already between [0,1] so multiply by weight
+                        orderTroopWalkToLocationTile["value"] = orderTroopWalkToLocationTile["score"] * RETRO_GAME_DATA["bot"]["weights"]["order_move"] * RETRO_GAME_DATA["bot"]["weights"][orderTroopWalkToLocationTile["attached_location"]["type"]];
+                        orderTroopWalkToLocationTile["num_selected_troops"] = selectedTroops.length;
+                        orderTroopWalkToLocationTile["select_location"] = troopSelectionTile;
+                        // Attached location already here
+                        collectivePlans.push(orderTroopWalkToLocationTile);
+                    }
+                }
+            }
+        }
+
+        // Add extra value to stab, shoot, orders that involve bushes
+        let addBushValueToTile = (tileX, tileY, value) => {
+            for (let plan of collectivePlans){
+                let planType = plan["type"];
+                if (planType === "shoot"){
+                    if (plan["tile_x"] === tileX && plan["tile_y"] === tileY){
+                        plan["value"] += value;
+                    }
+                }else if (planType === "stab"){
+                    if (plan["tile_x"] === tileX && plan["tile_y"] === tileY){
+                        plan["value"] += value;
+                    }
+                }else if (planType === "cannon_rock"){
+                    if (plan["attached_location"]["tile_x"] === tileX && plan["attached_location"]["tile_y"] === tileY){
+                        plan["value"] += value;
+                    }
+                }else if (planType === "cannon_troops"){
+                    if (plan["attached_location"]["tile_x"] === tileX && plan["attached_location"]["tile_y"] === tileY){
+                        plan["value"] += value;
+                    }
+                }else if (planType === "order_shoot"){
+                    if (plan["attached_location"]["tile_x"] === tileX && plan["attached_location"]["tile_y"] === tileY){
+                        plan["value"] += value;
+                    }
+                }else if (planType === "order_move"){
+                    if (plan["attached_location"]["tile_x"] === tileX && plan["attached_location"]["tile_y"] === tileY){
+                        plan["value"] += value;
+                    }
+                }
+            }
+        }
+
+        // Add bush values
+        let allBushTiles = appendLists(singleBushTiles, multiBushTiles);
+        for (let bushTile of allBushTiles){
+            addBushValueToTile(bushTile["tile_x"], bushTile["tile_y"], bushTile["value"]);
+        }
+
         // Sort collective plans
         collectivePlans.sort(comparisonFunction);
 
@@ -378,7 +503,7 @@ class SkirmishBot extends SkirmishCharacter {
             }
             return null;
         }
-        let replacementTypes = [];
+        let replacementTypes = ["order_shoot", "cannon_troops"];
         let replacementPlan = selectBestPlanOfTypeForDebugging(replacementTypes);
         if (replacementPlan != null){
             bestPlan = replacementPlan;
@@ -390,8 +515,10 @@ class SkirmishBot extends SkirmishCharacter {
             let totalString = "";
             totalString += '\n' + "My ID: " + this.getID();
             totalString += '\n' + "My team: " + this.getTeamName();
+            totalString += '\n' + "My rank: " + this.getRankName();
             totalString += '\n' + "Chosen:";
             totalString += '\n' + this.explainPlan(bestPlan);
+
 
             let coveredTypes = [];
             let hasCoveredType = (typeName) => {
@@ -406,7 +533,7 @@ class SkirmishBot extends SkirmishCharacter {
                     totalString += '\n' + this.explainPlan(plan);
                 }
             }
-            console.log(totalString)
+            console.log(totalString);
         }
 
         debugPlanSelection();
@@ -418,6 +545,11 @@ class SkirmishBot extends SkirmishCharacter {
         this.planLock.unlock();
     }
 
+    determineOrderToMoveLocation(possibleEndTiles){
+        // TODO: Attach "attached_location" for the officer himself
+        return;
+    }
+
     explainPlan(plan){
         //let explanationString = "My ID: " + this.getID();
         //explanationString += '\n' + "My team: " + this.getTeamName();
@@ -427,20 +559,20 @@ class SkirmishBot extends SkirmishCharacter {
             explanationString += '\n' + "Moving troop from " + this.getTileX().toString() + "," + this.getTileY().toString() + " to closer tile at " + plan["tile_x"].toString() + "," + plan["tile_y"].toString();
         }
         else if (plan["type"] === "order_move"){
-            explanationString += '\n' + "Moving officer from " + this.getTileX().toString() + "," + this.getTileY().toString() + " to closer tile at " + plan["attached_closer_tile"]["tile_x"].toString() + "," + plan["attached_closer_tile"]["tile_y"].toString();
+            explanationString += '\n' + "Moving officer from " + this.getTileX().toString() + "," + this.getTileY().toString() + " to " + plan["attached_location"]["type"] + " tile at " + plan["attached_location"]["tile_x"].toString() + "," + plan["attached_location"]["tile_y"].toString();
             explanationString += '\n' + "Number of selected troops: " + plan["num_selected_troops"];
             explanationString += '\n' + "Telling troops to move to: " + plan["tile_x"].toString() + "," + plan["tile_y"].toString();  
         }
         else if (plan["type"] === "cannon_rock"){
-            explanationString += '\n' + "Moving officer from " + this.getTileX().toString() + "," + this.getTileY().toString() + " to closer tile at " + plan["attached_closer_tile"]["tile_x"].toString() + "," + plan["attached_closer_tile"]["tile_y"].toString();
+            explanationString += '\n' + "Moving officer from " + this.getTileX().toString() + "," + this.getTileY().toString() + " to " + plan["attached_location"]["type"] + " tile at " + plan["attached_location"]["tile_x"].toString() + "," + plan["attached_location"]["tile_y"].toString();
             explanationString += '\n' + "Aiming cannon at rock at " + plan["cannon_center_x"] + ", " + plan["cannon_center_y"];
         }
         else if (plan["type"] === "cannon_troops"){
-            explanationString += '\n' + "Moving officer from " + this.getTileX().toString() + "," + this.getTileY().toString() + " to closer tile at " + plan["attached_closer_tile"]["tile_x"].toString() + "," + plan["attached_closer_tile"]["tile_y"].toString();
+            explanationString += '\n' + "Moving officer from " + this.getTileX().toString() + "," + this.getTileY().toString() + " to " + plan["attached_location"]["type"] + " tile at " + plan["attached_location"]["tile_x"].toString() + "," + plan["attached_location"]["tile_y"].toString();
             explanationString += '\n' + "Aiming cannon at troops at " + plan["cannon_center_x"] + ", " + plan["cannon_center_y"];
         }
         else if (plan["type"] === "order_shoot"){
-            explanationString += '\n' + "Moving officer from " + this.getTileX().toString() + "," + this.getTileY().toString() + " to closer tile at " + plan["attached_closer_tile"]["tile_x"].toString() + "," + plan["attached_closer_tile"]["tile_y"].toString();
+            explanationString += '\n' + "Moving officer from " + this.getTileX().toString() + "," + this.getTileY().toString() + " to " + plan["attached_location"]["type"] + " tile at " + plan["attached_location"]["tile_x"].toString() + "," + plan["attached_location"]["tile_y"].toString();
             explanationString += '\n' + "Number of selected troops: " + plan["num_selected_troops"];
             explanationString += '\n' + "Aiming selected troops at " + plan["x"] + ", " + plan["y"];
         }
@@ -462,6 +594,9 @@ class SkirmishBot extends SkirmishCharacter {
         }
         else if (plan["type"] === "explore"){
             explanationString += '\n' + "Moving troop from " + this.getTileX().toString() + "," + this.getTileY().toString() + " to exploration tile at " + plan["tile_x"].toString() + "," + plan["tile_y"].toString();
+        }
+        else if (plan["type"] === "move_to_friends"){
+            explanationString += '\n' + "Moving troop from " + this.getTileX().toString() + "," + this.getTileY().toString() + " to tile closer to friends at " + plan["tile_x"].toString() + "," + plan["tile_y"].toString();
         }
         else{
             explanationString = plan.toString();
@@ -486,7 +621,7 @@ class SkirmishBot extends SkirmishCharacter {
             for (let selectedTroop of selectedTroops){
                 let playerLeftX = scene.getXOfTile(selectedTroop.getTileX());
                 let playerTopY = scene.getYOfTile(selectedTroop.getTileY());
-                let angleToTileCenter = displacementToRadians(selectedTroop.getInterpolatedTickCenterX(), selectedTroop.getInterpolatedTickY(), tileCenterX, tileCenterY);
+                let angleToTileCenter = displacementToRadians(tileCenterX - selectedTroop.getInterpolatedTickCenterX(), tileCenterY - selectedTroop.getInterpolatedTickY());
                 let directionToFace = angleToBestFaceDirection(angleToTileCenter);
                 let gun = selectedTroop.getGun();
                 let pos = gun.getSimulatedGunEndPosition(playerLeftX, playerTopY, directionToFace, angleToTileCenter);
@@ -495,7 +630,8 @@ class SkirmishBot extends SkirmishCharacter {
                 let range = gun.getBulletRange();
                 let myID = selectedTroop.getID();
                 // Check shoot directory at enemy
-                let collision = scene.findInstantCollisionForProjectile(x, y, angleToTileCenter, range, (entity) => { return entity.getID() == myID; });
+                let collision = scene.findInstantCollisionForProjectile(x, y, angleToTileCenter, range, (entity) => { return entity.getID() === myID; });
+               // console.log("findInstantCollisionForProjectile", x, y, angleToTileCenter, range, collision)
                 if (collision["collision_type"] === "entity"){
                     let troop = collision["entity"];
                     let isFriendly = troop.isOnSameTeam(selectedTroop);
@@ -533,7 +669,8 @@ class SkirmishBot extends SkirmishCharacter {
             let damageScore = enemyExtraDamage / enemies.length - RETRO_GAME_DATA["bot"]["friend_enemy_cannon_ratio"] * friendlyExtraDamage / friends.length;
             let score = killScore * RETRO_GAME_DATA["bot"]["kill_to_damage_importance_ratio"] + damageScore;
             // Score will be in range (-4, 4)
-            // Skip if <= 0 
+            // Skip if <= 0
+            //console.log("score for order shoot", score);
             if (score <= 0){ continue; }
             shootPossibilities.push({"x": tileCenterX, "y": tileCenterY, "score": score})
         }
@@ -577,8 +714,8 @@ class SkirmishBot extends SkirmishCharacter {
                 }
                 let distanceFromHitLocationInTiles = distanceFromHitLocation/RETRO_GAME_DATA["general"]["tile_size"];
                 let damage = calculateCannonDamage(distanceFromHitLocationInTiles, humanMultiplier);
-                let enemyConfidence = this.getBrain().getEnemyConfidence(enemy["id"], this.gamemode.getOtherTeam(this.getTeamName()));
-                if (damage > this.getBrain().getHealthOfEnemy(enemy["id"])){
+                let enemyConfidence = this.getBrain().getEnemyConfidence(enemy["entity_id"], this.gamemode.getOtherTeam(this.getTeamName()));
+                if (damage > this.getBrain().getHealthOfEnemy(enemy["entity_id"])){
                     enemyKills += 1 * enemyConfidence;
                 }else{
                     enemyExtraDamage += damage * enemyConfidence;
@@ -616,6 +753,7 @@ class SkirmishBot extends SkirmishCharacter {
             // Score will be in range (-4, 4)
             // Skip if <= 0 
             if (score <= 0){ continue; }
+            if (isNaN(tileCenterX)){ debugger; }
             cannonTargets.push({"cannon_center_x": tileCenterX, "cannon_center_y": tileCenterY, "score": score})
         }
         return cannonTargets;
@@ -735,7 +873,7 @@ class SkirmishBot extends SkirmishCharacter {
                 if (distanceToEnemyInTile > RETRO_GAME_DATA["cannon"]["aoe_tile_radius"]){
                     continue;
                 }
-                let enemyConfidence = this.getBrain().getEnemyConfidence(enemy["id"], this.gamemode.getOtherTeam(this.getTeamName()));
+                let enemyConfidence = this.getBrain().getEnemyConfidence(enemy["entity_id"], this.gamemode.getOtherTeam(this.getTeamName()));
                 enemyScore += 1 * enemyConfidence; 
             }
 
@@ -912,7 +1050,6 @@ class SkirmishBot extends SkirmishCharacter {
 
     determineCloserTiles(possibleEndTiles, shootOneTiles){
         let closerTiles = [];
-        // Note: Weed out bushes
         let enemies = this.getEnemyData();
         let noEnemiesVisible = true;
 
@@ -951,7 +1088,7 @@ class SkirmishBot extends SkirmishCharacter {
         for (let enemyObj of enemies){
             if (enemyObj["status"] === "unknown"){ continue; }
             let routeToEnemy = this.generateShortestRouteToPoint(enemyObj["tile_x"], enemyObj["tile_y"]);
-            routes[enemyObj["entity"].getID()] = routeToEnemy;
+            routes[enemyObj["entity_id"]] = routeToEnemy;
             if (shortestRouteToEnemy === null || routeToEnemy.getLength() < shortestRouteToEnemy.getLength()){
                 shortestRouteToEnemy = routeToEnemy;
             }
@@ -975,12 +1112,103 @@ class SkirmishBot extends SkirmishCharacter {
             // Find the total distance to the perfect path to enemy
             for (let enemyObj of enemies){
                 if (enemyObj["status"] === "unknown"){ continue; }
-                let routeToEnemy = routes[enemyObj["entity"].getID()];
+                let routeToEnemy = routes[enemyObj["entity_id"]];
                 // If distance from current to this tile is longer than the distance to this enemy
                 if (distanceMovePerTurn >= routeToEnemy.getLength()){
                     totalDistance += routeToEnemy.getLength();
                 }else{
                     let tileAtMaxDistance = routeToEnemy.getTileInRouteAtIndex(distanceMovePerTurn);
+                    totalDistance += calculateEuclideanDistance(tileX, tileY, tileAtMaxDistance["tile_x"], tileAtMaxDistance["tile_y"]);
+                }
+            }
+            tile["shortest_distance"] = shortestDistance;
+            tile["total_distance"] = totalDistance;
+            lowestShortestDistance = Math.min(shortestDistance, lowestShortestDistance);
+            lowestTotalDistance = Math.min(totalDistance, lowestTotalDistance);
+            closerTiles.push(tile);
+        }
+
+        // Value the tiles with a score of [0,1]
+        for (let tile of closerTiles){
+            if (lowestShortestDistance === 0){
+                tile["score"] = 0.5;
+            }else{
+                tile["score"] = 0.5 * lowestShortestDistance / tile["shortest_distance"];
+            }
+            if (lowestTotalDistance === 0){
+                tile["score"] += 0.5;
+            }else{
+                tile["score"] += 0.5 * lowestTotalDistance / tile["total_distance"];
+            }
+        }
+
+        return closerTiles;
+    }
+
+    determinePositionsCloseToMyTroops(possibleEndTiles, shootOneTiles){
+        let closerTiles = [];
+        let friends = this.getFriends();
+
+        let isUnsafeTile = (tileX, tileY) => {
+            for (let tile of shootOneTiles){
+                // Don't worry about confidence < 1 tiles
+                if (tile["tile_x"] === tileX && tile["tile_y"] === tileY && tile["confidence"] === 1){
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        // Create routes to all friends
+        let routes = {};
+        let shorestRouteToFriend = null;
+        let totalRouteToFriendLength = 0;
+        for (let friend of friends){
+            let routeToFriend = this.generateShortestRouteToPoint(friend.getTileX(), friend.getTileY());
+            routes[friend.getID()] = routeToFriend;
+            if (shorestRouteToFriend === null || routeToFriend.getLength() < shorestRouteToFriend.getLength()){
+                shorestRouteToFriend = routeToFriend;
+            }
+            totalRouteToFriendLength += routeToFriend.getLength();
+        }
+
+        let averageRouteToFriendLength = totalRouteToFriendLength / friends.length;
+        // Don't search for friends if they are all close
+        if (averageRouteToFriendLength < RETRO_GAME_DATA["bot"]["min_avg_route_to_friend_length_to_ignore"]){
+            return [];
+        }
+
+        let scene = this.getGamemode().getScene();
+        // Check tiles
+        let lowestShortestDistance = Number.MAX_SAFE_INTEGER;
+        let lowestTotalDistance = Number.MAX_SAFE_INTEGER;
+        // Note: Not hard coding "officer" because maybe I add some lower ranking troop at some point
+        let distanceMovePerTurn = RETRO_GAME_DATA["skirmish"]["distance_per_turn"][this.getRankName()];
+
+        // Loop through all tiles and find out how they compare to tiles along the routes
+        for (let tile of possibleEndTiles){
+            let tileX = tile["tile_x"];
+            let tileY = tile["tile_y"];
+            // Ignore unsafe tiles
+            if (isUnsafeTile(tileX, tileY)){ continue; }
+            let shortestDistance;
+            let totalDistance = 0;
+            // Determine shortest distance
+            if (distanceMovePerTurn >= shorestRouteToFriend.getLength()){
+                shortestDistance = shorestRouteToFriend.getLength();
+            }else{
+                let tileAtMaxDistance = shorestRouteToFriend.getTileInRouteAtIndex(distanceMovePerTurn);
+                shortestDistance = calculateEuclideanDistance(tileX, tileY, tileAtMaxDistance["tile_x"], tileAtMaxDistance["tile_y"]);
+            }
+
+            // Find the total distance to the perfect path to friend
+            for (let friend of friends){
+                let routeToFriend = routes[friend.getID()];
+                // If distance from current to this tile is longer than the distance to this enemy
+                if (distanceMovePerTurn >= routeToFriend.getLength()){
+                    totalDistance += routeToFriend.getLength();
+                }else{
+                    let tileAtMaxDistance = routeToFriend.getTileInRouteAtIndex(distanceMovePerTurn);
                     totalDistance += calculateEuclideanDistance(tileX, tileY, tileAtMaxDistance["tile_x"], tileAtMaxDistance["tile_y"]);
                 }
             }
@@ -1076,7 +1304,7 @@ class SkirmishBot extends SkirmishCharacter {
                 if (!tileInMultiCover(enemyObj["tile_x"], enemyObj["tile_y"])){ continue; }
                 // If this enemy is in the same multi cover
                 if (scene.tilesInSameMultiCover(enemyObj["tile_x"], enemyObj["tile_y"], tileX, tileY)){
-                    bestEnemyConfidence = Math.max(bestEnemyConfidence, this.getBrain().getEnemyConfidence(enemyObj["entity"].getID(), this.gamemode.getOtherTeam(this.getTeamName())));
+                    bestEnemyConfidence = Math.max(bestEnemyConfidence, this.getBrain().getEnemyConfidence(enemyObj["entity_id"], this.gamemode.getOtherTeam(this.getTeamName())));
                 }
             }
             return bestEnemyConfidence;
@@ -1093,6 +1321,7 @@ class SkirmishBot extends SkirmishCharacter {
             return false;
         }
 
+        let maxDistanceInTiles = Math.sqrt(2 * Math.pow(RETRO_GAME_DATA["skirmish"]["area_size"], 2));
         let calculateDistanceToEnemyScore = (possibleEndTile) => {
             let totalDistanceToEnemiesInTiles = 0;
             for (let enemyObj of enemyData){
@@ -1104,7 +1333,7 @@ class SkirmishBot extends SkirmishCharacter {
                 let distanceToEnemyInTiles = calculateEuclideanDistance(enemyObj["tile_x"], enemyObj["tile_y"], possibleEndTile["tile_x"], possibleEndTile["tile_y"]);
                 // Note: This isn't a perfect indicator of the entry being visible, more of a rough approximation
                 let entryToTileVisibleToThisEnemy = distanceToEnemyInTiles < this.gamemode.getEnemyVisibilityDistance();
-                let alreadyInThisMultiCover = this.isInMultipleCover() && this.gamemode.tilesInSameMultiCover(this.getTileX(), this.getTileY(), possibleEndTile["tile_x"], possibleEndTile["tile_y"]);
+                let alreadyInThisMultiCover = this.isInMultipleCover() && this.gamemode.getScene().tilesInSameMultiCover(this.getTileX(), this.getTileY(), possibleEndTile["tile_x"], possibleEndTile["tile_y"]);
                 // A multi bush you are already in isn't affected by the entry visibility
                 if (alreadyInThisMultiCover){
                     entryToTileVisibleToThisEnemy = false;
@@ -1125,7 +1354,7 @@ class SkirmishBot extends SkirmishCharacter {
             if (!tileInMultiCover(possibleEndTile["tile_x"], possibleEndTile["tile_y"])){ continue; }
             let enemyConfidence = containsEnemy(possibleEndTile["tile_x"], possibleEndTile["tile_y"]);
             let spotContainsEnemy = enemyConfidence > 0;
-            let distanceScore = calculateDistanceScore(possibleEndTile);
+            let distanceScore = calculateDistanceToEnemyScore(possibleEndTile);
             // If contains an enemy then add it
             if (spotContainsEnemy){
                 possibleEndTile["score"] = enemyConfidence * RETRO_GAME_DATA["bot"]["multi_cover_enemy_weight"];
@@ -1164,32 +1393,30 @@ class SkirmishBot extends SkirmishCharacter {
                 let myYTopWhenOnTile = scene.getYOfTile(tile["tile_y"]);
                 // Note: Assuming all troops have a melee weapon
                 let meleeWeapon = this.getMeleeWeapon();
-                let swingCenterX = meleeWeapon.getSwingCenterX(myXLeftWhenOnTile);
-                let swingCenterY = meleeWeapon.getSwingCenterY(myYTopWhenOnTile);
                 let myCenterXWhenOnTile = scene.getCenterXOfTile(tile["tile_x"]);
                 let myCenterYWhenOnTile = scene.getCenterYOfTile(tile["tile_y"]);
                 let enemyX = scene.getCenterXOfTile(enemyObj["tile_x"]);
                 let enemyY = scene.getCenterYOfTile(enemyObj["tile_y"]);
                 let distanceToEnemy = calculateEuclideanDistance(myCenterXWhenOnTile, myCenterYWhenOnTile, enemyX, enemyY);
-                // Note: It's actually to their center when you only need a corner but I'll let bots be conservative
-                let swingDistanceToEnemy = calculateEuclideanDistance(swingCenterX, swingCenterY, enemyX, enemyY);
                 
                 // Ignore possibility of stabbing or shooting
                 if (distanceToEnemy < RETRO_GAME_DATA["general"]["tile_size"]){
                     continue;
                 }
 
-                let confidenceInEnemyPosition = this.getBrain().getEnemyConfidence(enemyObj["entity"].getID(), this.gamemode.getOtherTeam(this.getTeamName()));
-                let directionToFace;
-                let angleToEnemy = 0;
+                let confidenceInEnemyPosition = this.getBrain().getEnemyConfidence(enemyObj["entity_id"], this.gamemode.getOtherTeam(this.getTeamName()));
 
                 let yDiff = enemyY - myCenterYWhenOnTile;
-                if (yDiff != 0){
-                    angleToEnemy = displacementToRadians(enemyX - myCenterYWhenOnTile, yDiff);
-                }
+                let angleToEnemy = displacementToRadians(enemyX - myCenterXWhenOnTile, yDiff);
+                let directionToFace = angleToBestFaceDirection(angleToEnemy);
+                let directionToEnemyAlt = getAlternativeDirectionFormatOf(directionToFace);
+                let swingCenterX = meleeWeapon.getSwingCenterX(myXLeftWhenOnTile, directionToFace);
+                let swingCenterY = meleeWeapon.getSwingCenterY(myYTopWhenOnTile, directionToFace);
+                // Note: It's actually to their center when you only need a corner but I'll let bots be conservative
+                let swingDistanceToEnemy = calculateEuclideanDistance(swingCenterX, swingCenterY, enemyX, enemyY);
                 // If the swing distance is low enough then try swinging
                 if (swingDistanceToEnemy < meleeWeapon.getSwingRange()){
-                    tile["direction_to_face"] = getAlternativeDirectionFormatOf(angleToBestFaceDirection(angleToEnemy));
+                    tile["direction_to_face"] = directionToEnemyAlt;
                     tile["confidence"] = confidenceInEnemyPosition;
                     roughStabTiles.push(tile);
                 }
@@ -1273,11 +1500,9 @@ class SkirmishBot extends SkirmishCharacter {
         return null;
     }
 
-    // TODO: Move this to character.js or something this is defined in at least 2 other classes
-    generateSelectedTroops(){
+    // TODO: Move this to character.js or something this is defined in at least 2 other classes. Well not exactly but similar.
+    generateSelectedTroopsForPosition(myPlayerTileX, myPlayerTileY){
         let allTroopsOnMyTeam = this.getGamemode().getLivingTeamRosterFromName(this.getTeamName());
-        let myPlayerTileX = this.getTileX();
-        let myPlayerTileY = this.getTileY();
         let selectedTroops = [];
         for (let otherTroop of allTroopsOnMyTeam){
             // Ignore me

@@ -9,6 +9,8 @@ class PointToShoot extends Item {
         this.selectionMadeAtX = 0;
         this.selectionMadeAtY = 0;
         this.selectedTroops = [];
+        this.waitingToShoot = [];
+        this.gunShotEventHandlerID = null;
 
         this.beingUsedForAction = false;
     }
@@ -53,6 +55,7 @@ class PointToShoot extends Item {
         // Make troop equip gun
         let troopInventory = troop.getInventory();
         let selectedItem = troopInventory.getSelectedItem();
+        let gunSelected = false;
         // If they don't have their gun selected
         if (!(selectedItem instanceof Gun)){
             let items = troopInventory.getItems();
@@ -66,20 +69,32 @@ class PointToShoot extends Item {
                     //console.log(item, "not gun")
                 }
             }
+        }else{
+            gunSelected = true;
         }
        // console.log(command["select_slot"])
        // debugger;
 
         // If not ready to start aiming then return current command
-        if (!facingCorrectDirection){
+        if (!gunSelected){
             return command;
         }
         
+        let gun = selectedItem;
+        // Force reload the gun
+        if (!gun.isLoaded()){
+            gun.forceReload();
+        }
+
         // Make troop start aiming in correct direction
         command["aiming_angle_rad"] = angleToCrosshairRAD;
         command["trying_to_aim"] = true;
-        command["trying_to_shoot"] = this.isBeingUsedForAction();
+        command["trying_to_shoot"] = this.isBeingUsedForAction() && getIndexOfElementInArray(this.waitingToShoot, troop.getID()) != -1;
         return command;
+    }
+
+    resetSelectedTroopsForCurrentPosition(){
+        this.selectedTroops = this.generateSelectedTroops();
     }
 
     getSelectedTroops(){
@@ -88,8 +103,10 @@ class PointToShoot extends Item {
 
     actOnDecisions(){
         // Tick 2 after trying to shot
-        if (this.player.hasCommitedToAction() && this.isBeingUsedForAction()){
+        if (this.player.hasCommitedToAction() && this.isBeingUsedForAction() && this.allHaveShot()){
             this.beingUsedForAction = false;
+            // remove handler
+            this.player.getGamemode().getEventHandler().removeHandler("gun_shot", this.gunShotEventHandlerID);
             this.player.indicateMoveDone();
         }
         if (this.getDecision("new_crosshair_center")){
@@ -104,8 +121,40 @@ class PointToShoot extends Item {
             if (!this.player.hasCommitedToAction()){
                 this.player.commitToAction();
                 this.beingUsedForAction = true;
+                this.waitingToShoot = this.generateWaitingToShootList();
+                // Create handler for gun shot
+                this.gunShotEventHandlerID = this.player.getGamemode().getEventHandler().addHandler("gun_shot", (gunShotEventObj) => {
+                    this.removeFromShootList(gunShotEventObj["shooter_id"]);
+                });
             }
         }
+    }
+
+    generateWaitingToShootList(){
+        let waitingToShootList = [];
+        for (let troop of this.selectedTroops){
+            waitingToShootList.push(troop.getID());
+        }
+        return waitingToShootList;
+    }
+
+    removeFromShootList(troopID){
+        let listIndex = -1;
+        for (let i = 0; i < this.waitingToShoot.length; i++){
+            if (this.waitingToShoot[i] === troopID){
+                listIndex = i;
+            }
+        }
+        if (listIndex === -1){
+            throw new Error("Unexpected troop id: " + troopID);
+        }
+        // Swap with 0 and remove first element
+        this.waitingToShoot[listIndex] = this.waitingToShoot[0];
+        this.waitingToShoot.shift();
+    }
+
+    allHaveShot(){
+        return this.waitingToShoot.length === 0;
     }
 
     generateSelectedTroops(){

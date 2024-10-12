@@ -65,19 +65,28 @@ class Gun extends Item {
 
     shoot(){
         // Add smoke where gun is shot
-        this.getScene().addExpiringVisual(SmokeCloud.create(this.getEndOfGunX(), this.getEndOfGunY()));
+        this.getGamemode().getEventHandler().emit({
+            "name": "gun_shot",
+            "x": this.getEndOfGunX(),
+            "y": this.getEndOfGunY(),
+            // tbf lets just say you can sort of extrapolate the shooters location its adjacent at worse anyway
+            "shooter_tile_x": this.player.getTileX(),
+            "shooter_tile_y": this.player.getTileY(),
+            "shooter_id": this.player.getID()
+        });
         // Try to kill whenever is there
         let angleRAD = this.getDecidedAngleRAD();
         let range = this.getBulletRange();
         let myID = this.player.getID();
         let collision = this.getScene().findInstantCollisionForProjectile(this.getEndOfGunX(), this.getEndOfGunY(), angleRAD, range, (enemy) => { return enemy.getID() == myID; });
         // If it hits an entity
-        if (collision["collision_type"] == "entity"){
+        if (collision["collision_type"] === "entity"){
             collision["entity"].getShot(this.player.getModel());
         }
         // If it hits a physical tile or nothing then create bullet collision particle
-        else if (collision["collision_type"] == null || collision["collision_type"] == "physical_tile"){
+        else if (collision["collision_type"] === null || collision["collision_type"] === "physical_tile"){
             // If the shot didn't hit anything alive then show particles when it hit
+            // TODO: Add an event for this
             this.getScene().addExpiringVisual(BulletImpact.create(collision["x"], collision["y"]));
         }
         this.loaded = false;

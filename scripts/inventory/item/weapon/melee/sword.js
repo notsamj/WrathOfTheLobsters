@@ -36,12 +36,12 @@ class Sword extends Item {
         return RETRO_GAME_DATA["sword_data"]["arm_length"] + RETRO_GAME_DATA["sword_data"][this.model]["blade_length"];
     }
 
-    getSwingCenterX(playerLeftX=this.player.getInterpolatedTickX()){
-        return playerLeftX + RETRO_GAME_DATA["model_positions"][this.player.getModelCategory()][this.model]["swinging"][this.player.getFacingDirection()]["x_offset"];
+    getSwingCenterX(playerLeftX=this.player.getInterpolatedTickX(), facingDirection=this.player.getFacingDirection()){
+        return playerLeftX + RETRO_GAME_DATA["model_positions"][this.player.getModelCategory()][this.model]["swinging"][facingDirection]["x_offset"];
     }
 
-    getSwingCenterY(playerTopY=this.player.getInterpolatedTickY()){
-        return playerTopY - RETRO_GAME_DATA["model_positions"][this.player.getModelCategory()][this.model]["swinging"][this.player.getFacingDirection()]["y_offset"];
+    getSwingCenterY(playerTopY=this.player.getInterpolatedTickY(), facingDirection=this.player.getFacingDirection()){
+        return playerTopY - RETRO_GAME_DATA["model_positions"][this.player.getModelCategory()][this.model]["swinging"][facingDirection]["y_offset"];
     }
 
     finishSwing(){
@@ -194,7 +194,7 @@ class Sword extends Item {
             // Assumes not dead prior to damage
             this.getGamemode().getEventHandler().emit({
                 "victim_class": hitCharacter.getModel(),
-                "killer_class": this.player,
+                "killer_class": this.player.getModel(),
                 "name": "kill"
             });
         }

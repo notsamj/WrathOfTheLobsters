@@ -9,7 +9,7 @@ const RETRO_GAME_DATA = {
     },
 
     "run": {
-        "british_are_human": false,
+        "british_are_human": true,
         "americans_are_human": false
     },
 
@@ -167,7 +167,9 @@ const RETRO_GAME_DATA = {
         "camera": {
             "move_speed": 64*16
         },
-        "seed": 870 // null for random seed, 447 is good (on 20 size)
+        "max_seed": 100000, // Self-explanatory
+        "good_seeds": [78518, 39352, 3833, 4216, 93276],
+        "seed": 94262 // null for random seed, 447 is good (on 20 size)
     },
 
     "controls": {
@@ -228,7 +230,7 @@ const RETRO_GAME_DATA = {
         "American": "#0a0c8c"
     },
 
-    "characharacter_class_to_team_name": {
+    "character_class_to_team_name": {
         "british_pvt_g": "Britain",
         "british_officer": "Britain",
         "usa_pvt": "America",

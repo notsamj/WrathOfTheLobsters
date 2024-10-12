@@ -12,6 +12,10 @@ class MenuManager {
     constructor(){
     }
 
+    getActiveMenu(){
+        return this.activeMenu;
+    }
+
     setup(){
         this.mainMenu = new MainMenu();
         this.soundMenu = new SoundMenu();

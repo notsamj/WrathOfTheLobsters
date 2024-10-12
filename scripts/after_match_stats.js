@@ -97,7 +97,7 @@ class AfterMatchStats {
         let classKillCounts = {};
         for (let kill of this.kills){
             // If victim on team B then its a kill for team A. This helps with cases like friendly-fire
-            if (getProperAdjective(RETRO_GAME_DATA["characharacter_class_to_team_name"][kill["victim_class"]]) != getProperAdjective(team)){
+            if (getProperAdjective(RETRO_GAME_DATA["character_class_to_team_name"][kill["victim_class"]]) != getProperAdjective(team)){
                 let killerClass = kill["killer_class"];
                 if (!objectHasKey(classKillCounts, killerClass)){
                     classKillCounts[killerClass] = 1;

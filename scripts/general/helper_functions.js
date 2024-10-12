@@ -3,6 +3,10 @@ if (typeof window === "undefined"){
     RETRO_GAME_DATA = require("../../data/data_json.js");
 }
 
+function teamNameIsEqual(team1, team2){
+    return getProperAdjective(team1) === getProperAdjective(team2);
+}
+
 function addToArraySet(array, element){
     // Don't add if already present
     if (getIndexOfElementInArray(array, element) != -1){ return; }
@@ -107,7 +111,7 @@ function calculateEuclideanDistance(x1, y1, x2, y2){
 }
 
 function getTeamNameFromClass(characterClass){
-    return RETRO_GAME_DATA["characharacter_class_to_team_name"][characterClass];
+    return RETRO_GAME_DATA["character_class_to_team_name"][characterClass];
 }
 
 function getNumKeys(obj){

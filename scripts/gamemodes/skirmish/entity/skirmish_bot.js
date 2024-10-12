@@ -518,7 +518,7 @@ class SkirmishBot extends SkirmishCharacter {
             totalString += '\n' + "My rank: " + this.getRankName();
             totalString += '\n' + "Chosen:";
             totalString += '\n' + this.explainPlan(bestPlan);
-
+            totalString += "\n\n";
 
             let coveredTypes = [];
             let hasCoveredType = (typeName) => {
@@ -529,6 +529,7 @@ class SkirmishBot extends SkirmishCharacter {
                 let typeName = plan["type"];
                 if (!hasCoveredType(typeName)){
                     coveredTypes.push(typeName);
+                    totalString += '\n';
                     totalString += '\n' + "Best of " + typeName + ":";
                     totalString += '\n' + this.explainPlan(plan);
                 }
@@ -766,12 +767,15 @@ class SkirmishBot extends SkirmishCharacter {
         let tryToAddSquare = (tileX, tileY) => {
             // See if present, return if it is 
             for (let square of squaresAroundEnemies){
-                if (square["tile_x"] == tileX && square["tile_y"] == tileY){
+                if (square["tile_x"] === tileX && square["tile_y"] === tileY){
                     return;
                 }
             }
 
             // So its not present
+            if (isNaN(tileX) || tileX === undefined || isNaN(tileY) || tileY === undefined){
+                debugger;
+            }
             squaresAroundEnemies.push({"tile_x": tileX, "tile_y": tileY});
         }
         let addSquaresAroundSpot = (tileX, tileY) => {
@@ -819,7 +823,8 @@ class SkirmishBot extends SkirmishCharacter {
                 else if (tileInMultiCover(enemyObj["tile_x"], enemyObj["tile_y"])){
                     let multiCoverTiles = this.getScene().getMultiCoverTilesConnectedTo(enemyObj["tile_x"], enemyObj["tile_y"]);
                     for (let tile of multiCoverTiles){
-                        addSquaresAroundSpot(tile["tile_x"], tile["tile_y"]);
+                        // Note: For these tiles x,y are used instead of tile_x and tile_y
+                        addSquaresAroundSpot(tile["x"], tile["y"]);
                     }
                 }
                 // Else just a regular last known then add tiles around it

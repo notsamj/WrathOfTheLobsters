@@ -125,7 +125,7 @@ async function setup() {
     }
 
     window.onfocus = () => {
-        if (TICK_SCHEDULER.isPaused()){
+        if (TICK_SCHEDULER.isPaused() && !(MENU_MANAGER.getActiveMenu() === MENU_MANAGER.getMenuByName("pauseMenu"))){
             TICK_SCHEDULER.unpause();
         }
     }

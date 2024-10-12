@@ -23,7 +23,10 @@ class TurnBasedSkirmish extends Gamemode {
         this.eventHandler.addHandler("gun_shot", (eventObj) => {
             scene.addExpiringVisual(SmokeCloud.create(eventObj["x"], eventObj["y"]));
             // Inform the team that is not moving of a shot
-            this.brains[this.getOtherTeam(this.gameState["turn"])].informOfShot(eventObj["shooter_tile_x"], eventObj["shooter_tile_y"]);
+            let otherTeamName = this.getOtherTeam(this.gameState["turn"]);
+            if (this.isTeamBot(otherTeamName)){
+                this.brains[otherTeamName].informOfShot(eventObj["shooter_tile_x"], eventObj["shooter_tile_y"]);
+            }
         });
 
         this.eventHandler.addHandler("change_tile", (tileChangeDetailsObject) => {
@@ -69,6 +72,10 @@ class TurnBasedSkirmish extends Gamemode {
         this.startUpLock = new Lock();
         this.startUpLock.lock();
         this.startUp();
+    }
+
+    isTeamBot(teamName){
+        return this.gameState["operation_type"][getProperAdjective(teamName)] === "bot";
     }
 
     getTroop(teamName, troopID){
@@ -767,7 +774,7 @@ class TurnBasedSkirmish extends Gamemode {
         let maxBigBushSize = 20;
         let bigBushes = 5;
 
-        let seed = randomNumberInclusive(0,1000);
+        let seed = randomNumberInclusive(0,RETRO_GAME_DATA["skirmish"]["max_seed"]);
 
         let setSeed = RETRO_GAME_DATA["skirmish"]["seed"];
         let useSetSeed = setSeed != null;

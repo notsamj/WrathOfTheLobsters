@@ -13,7 +13,12 @@ class SkirmishCharacter extends Character {
     }
 
     getShot(model){
-        this.damage(RETRO_GAME_DATA["skirmish"]["shot_damage"]);
+        let damage = RETRO_GAME_DATA["skirmish"]["shot_damage"];
+        // If the attacker is friendly then limit damage to avoid death of officer (This is to prevent dying while ordering shooting)
+        if (teamNameIsEqual(getTeamNameFromClass(model), this.getTeamName()) && this.getRankName() === "officer" && this.isMakingAMove()){
+            damage = Math.min(damage, Math.max(this.getHealth() - 0.01, 0));
+        }
+        this.damage(damage);
         // Assumes not dead prior to damage
         if (this.isDead()){
             this.gamemode.getEventHandler().emit({
@@ -96,7 +101,6 @@ class SkirmishCharacter extends Character {
     }
 
     isVisibleTo(observer){
-        //console.log("Visible to team", this.gamemode.isVisibleToTeam(observer.getTeamName()))
         return observer.isOnSameTeam(this) || this.gamemode.isVisibleToTeam(observer.getTeamName(), this.getTeamName(), this.getID());
     }
 

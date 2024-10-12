@@ -65,15 +65,11 @@ class PointToShoot extends Item {
                 if (item instanceof Gun){
                     command["select_slot"] = i;
                     break;
-                }else{
-                    //console.log(item, "not gun")
                 }
             }
         }else{
             gunSelected = true;
         }
-       // console.log(command["select_slot"])
-       // debugger;
 
         // If not ready to start aiming then return current command
         if (!gunSelected){
@@ -104,6 +100,7 @@ class PointToShoot extends Item {
     actOnDecisions(){
         // Tick 2 after trying to shot
         if (this.player.hasCommitedToAction() && this.isBeingUsedForAction() && this.allHaveShot()){
+            console.log("All have shot");
             this.beingUsedForAction = false;
             // remove handler
             this.player.getGamemode().getEventHandler().removeHandler("gun_shot", this.gunShotEventHandlerID);
@@ -143,6 +140,7 @@ class PointToShoot extends Item {
         for (let i = 0; i < this.waitingToShoot.length; i++){
             if (this.waitingToShoot[i] === troopID){
                 listIndex = i;
+                break;
             }
         }
         if (listIndex === -1){

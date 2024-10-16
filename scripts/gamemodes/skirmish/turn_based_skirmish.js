@@ -1,10 +1,15 @@
 class TurnBasedSkirmish extends Gamemode {
-    constructor(britishAreHuman=true, americansAreHuman=true){
+    constructor(britishAreHuman=true, americansAreHuman=true, aiSeed=null){
         super();
+
+        this.aiRandom = null;
+        if (this.aiSeed != null){
+            this.aiRandom = new SeededRandomizer(aiSeed);
+        }
 
         this.britishTroops = [];
         this.americanTroops = [];
-        this.stats = new AfterMatchStats();
+        this.stats = new MatchStats();
         this.random = null; // Declare
         this.brains = {
             "American": null,
@@ -97,7 +102,7 @@ class TurnBasedSkirmish extends Gamemode {
     }
 
     getRandom(){
-        return this.random;
+        return this.aiRandom;
     }
 
     getOtherTeam(teamNameString){
@@ -473,7 +478,7 @@ class TurnBasedSkirmish extends Gamemode {
         let characterIndex = 0;
         for (let troop of teamRoster){
             if (troop.isAlive()){
-                if (characterIndex == currentlyMovingCharacterIndex){
+                if (characterIndex === currentlyMovingCharacterIndex){
                     currentlyMovingCharacter = troop;
                     break;
                 }
@@ -492,6 +497,9 @@ class TurnBasedSkirmish extends Gamemode {
 
         // If currentlyMovingCharacter is still making the move do nothing
         if (!currentlyMovingCharacter.isMoveDone()){
+            if (GENERAL_DEBUGGER.getOrCreateSwitch("who_is_moving").check()){
+                console.log("Waiting for move from", currentlyMovingCharacter);
+            }
             return;
         }
 
@@ -781,8 +789,12 @@ class TurnBasedSkirmish extends Gamemode {
         if (useSetSeed){
             seed = setSeed;
         }
-        this.random = new SeededRandomizer(seed);
-        let random = this.random;
+        this.terrainRandom = new SeededRandomizer(seed);
+        // If not otherwise set, use terrain random for ai random
+        if (this.aiRandom === null){
+            this.aiRandom = this.terrainRandom;
+        }
+        let random = this.terrainRandom;
         console.log("seed", seed)
 
         let placeCluster = (visualTileDetails, physicalTileDetails, x, y, clusterSize) => {
@@ -1174,9 +1186,7 @@ class TurnBasedSkirmish extends Gamemode {
         if (this.startUpLock.isLocked()){ return; }
         this.scene.display();
         this.displayRockHealthBars();
-        if (this.isOver()){
-            this.stats.display();
-        }
+        this.stats.display();
     }
 
     displayRockHealthBars(){

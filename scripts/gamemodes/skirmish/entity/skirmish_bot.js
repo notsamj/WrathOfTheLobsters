@@ -1,7 +1,26 @@
 class SkirmishBot extends SkirmishCharacter {
     constructor(gamemode, model, rankName, team){
         super(gamemode, model, rankName, team);
+        this.shotSinceLastTurn = false;
         this.planLock = new Lock();
+
+        this.gunShotHandlerID = this.getGamemode().getEventHandler().addHandler("gun_shot", (gunShotEventObject) => {
+            if (gunShotEventObject["shooter_id"] === this.getID()){
+                this.indicateHasShotSinceLastTurn();
+            }
+            // Well maybe I'm dead so clean up the handler
+            else if (this.isDead()){
+                this.getGamemode().getEventHandler().removeHandler("gun_shot", this.gunShotHandlerID);
+            }
+        });
+    }
+
+    indicateHasShotSinceLastTurn(){
+        return this.shotSinceLastTurn = true;
+    }
+
+    hasShotSinceLastTurn(){
+        return this.shotSinceLastTurn;
     }
 
     getBrain(){
@@ -270,8 +289,8 @@ class SkirmishBot extends SkirmishCharacter {
         // Add shoot tiles to collectiveplans
         for (let shootOneTile of shootOneTiles){
             shootOneTile["type"] = "shoot";
-            // In this case, there is no existing value so directly assign the weight
-            shootOneTile["value"] = RETRO_GAME_DATA["bot"]["weights"]["shoot"];
+            // In this case, there is a score in [0,1] so directly assign the weight
+            shootOneTile["value"] = shootOneTile["score"] * RETRO_GAME_DATA["bot"]["weights"]["shoot"];
             // Apply the confidence
             shootOneTile["value"] *= shootOneTile["confidence"];
             collectivePlans.push(shootOneTile);
@@ -503,7 +522,7 @@ class SkirmishBot extends SkirmishCharacter {
             }
             return null;
         }
-        let replacementTypes = ["order_shoot", "cannon_troops"];
+        let replacementTypes = [];
         let replacementPlan = selectBestPlanOfTypeForDebugging(replacementTypes);
         if (replacementPlan != null){
             bestPlan = replacementPlan;
@@ -542,13 +561,12 @@ class SkirmishBot extends SkirmishCharacter {
         if (isRDebugging()){
             debugger;
         }
+
+        // Clean up
+        this.shotSinceLastTurn = false;
+
         // Indicate that the plan has been created
         this.planLock.unlock();
-    }
-
-    determineOrderToMoveLocation(possibleEndTiles){
-        // TODO: Attach "attached_location" for the officer himself
-        return;
     }
 
     explainPlan(plan){
@@ -1248,6 +1266,10 @@ class SkirmishBot extends SkirmishCharacter {
         let enemyData = this.getEnemyData();
         let maxDistanceInTiles = Math.sqrt(2 * Math.pow(RETRO_GAME_DATA["skirmish"]["area_size"], 2));
         let calculateTileScore = (possibleEndTile) => {
+            // Do not stay at the same tile if you just shot from there
+            if (this.hasShotSinceLastTurn() && possibleEndTile["tile_x"] === this.getTileX() && possibleEndTile["tile_y"] === this.getTileY()){
+                return 0;
+            }
             let totalDistanceToEnemiesInTiles = 0;
             for (let enemyObj of enemyData){
                 if (enemyObj["status"] === "unknown"){
@@ -1372,6 +1394,12 @@ class SkirmishBot extends SkirmishCharacter {
             else{
                 possibleEndTile["score"] = calculateDistanceToEnemyScore(possibleEndTile) * RETRO_GAME_DATA["bot"]["multi_cover_empty_weight"];
             }
+
+            // Do not stay at the same tile if you just shot from there
+            if (this.hasShotSinceLastTurn() && possibleEndTile["tile_x"] === this.getTileX() && possibleEndTile["tile_y"] === this.getTileY()){
+                possibleEndTile["score"] = 0;
+            }
+
             multiBushTiles.push(possibleEndTile);
         }
 
@@ -1421,9 +1449,10 @@ class SkirmishBot extends SkirmishCharacter {
                 let swingDistanceToEnemy = calculateEuclideanDistance(swingCenterX, swingCenterY, enemyX, enemyY);
                 // If the swing distance is low enough then try swinging
                 if (swingDistanceToEnemy < meleeWeapon.getSwingRange()){
-                    tile["direction_to_face"] = directionToEnemyAlt;
-                    tile["confidence"] = confidenceInEnemyPosition;
-                    roughStabTiles.push(tile);
+                    let tileCopy = copyObject(tile);
+                    tileCopy["direction_to_face"] = directionToEnemyAlt;
+                    tileCopy["confidence"] = confidenceInEnemyPosition;
+                    roughStabTiles.push(tileCopy);
                 }
                 let offsetAmount = RETRO_GAME_DATA["general"]["tile_size"]/4;
                 let offsetAngleAtRange = Math.atan(offsetAmount/distanceToEnemy);
@@ -1438,18 +1467,30 @@ class SkirmishBot extends SkirmishCharacter {
                     let collision = scene.findInstantCollisionForProjectile(x, y, angleToShootAt, range, (entity) => { return entity.getID() == myID; });
                     if (collision["collision_type"] === "entity"){
                         if (!collision["entity"].isOnSameTeam(this)){
-                            // TODO: Check if it would kill
-                            tile["angle_rad"] = angleToShootAt;
-                            tile["direction_to_face"] = getAlternativeDirectionFormatOf(directionToFace);
-                            tile["distance_to_enemy"] = collision["entity"].distanceToTile(tile["tile_x"], tile["tile_y"]);
+                            // Copy so you can reuse
+                            let tileCopy = copyObject(tile);
+                            tileCopy["enemy_health"] = this.getBrain().getHealthOfEnemy(collision["entity"].getID());
+                            tileCopy["angle_rad"] = angleToShootAt;
+                            tileCopy["direction_to_face"] = getAlternativeDirectionFormatOf(directionToFace);
+                            tileCopy["distance_to_enemy"] = collision["entity"].distanceToTile(tile["tile_x"], tile["tile_y"]);
                             // Even though we might hit a different enemy, the confidence is based on the enemy being aimed at
-                            tile["confidence"] = confidenceInEnemyPosition;
-                            roughShootTiles.push(tile);
+                            tileCopy["confidence"] = confidenceInEnemyPosition;
+                            roughShootTiles.push(tileCopy);
                         }
                     }
                 }
             }
         }
+
+        // Score the shoot tiles
+        let bestHealth = Number.MAX_SAFE_INTEGER;
+        for (let roughShootTile of roughShootTiles){
+            bestHealth = Math.min(roughShootTile["enemy_health"]);
+        }
+        for (let roughShootTile of roughShootTiles){
+            roughShootTile["score"] = bestHealth / roughShootTile["enemy_health"];
+        }
+
         return {"rough_shoot_tiles": roughShootTiles, "rough_stab_tiles": roughStabTiles};
     }
 

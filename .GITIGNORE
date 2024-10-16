@@ -11,3 +11,5 @@ backups/*
 Game Maker/server/node_modules
 images/source/
 /testing
+/scripts_modified
+/code_checker

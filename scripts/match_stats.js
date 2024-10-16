@@ -4,10 +4,10 @@ if (typeof window === "undefined"){
     objectHasKey = helperFunctions.objectHasKey;
 }
 /*
-    Class Name: AfterMatchStats
+    Class Name: MatchStats
     Description: Records the events taking place in a Fight for later review
 */
-class AfterMatchStats {
+class MatchStats {
     /*
         Method Name: constructor
         Method Parameters: None
@@ -16,12 +16,13 @@ class AfterMatchStats {
     */
     constructor(){
         this.reset();
+        this.maxKillRowsToDisplay = RETRO_GAME_DATA["match_stats"]["max_rows_of_kills_to_display"];
     }
 
     /*
         Method Name: reset
         Method Parameters: None
-        Method Description: Initializes an instance of AfterMatchStats
+        Method Description: Initializes an instance of MatchStats
         Method Return: void
     */
     reset(){
@@ -29,6 +30,7 @@ class AfterMatchStats {
         this.kills = [];
         this.britishText = null;
         this.americanText = null;
+        this.killFeedOffset = 0;
     }
 
     /*
@@ -54,7 +56,7 @@ class AfterMatchStats {
         Method Return: String
     */
     getWinnerColour(){
-        return AfterMatchStats.getTeamNameColour(getProperAdjective(this.winner));
+        return MatchStats.getTeamNameColour(getProperAdjective(this.winner));
     }
 
     /*
@@ -131,11 +133,56 @@ class AfterMatchStats {
         Method Return: void
     */
     display(){
+        this.tick();
+
+        // Display kill feed
+        this.displayKillFeed();
+        if (this.winner === null){ return; }
+        
+        // Display winner information
         let winnerText = "Winner: " + this.winner;
         // Make winner text
         Menu.makeText(winnerText, this.getWinnerColour(), Math.floor(getScreenWidth()/2), Math.floor(getScreenHeight() * 0.9), Math.floor(getScreenWidth()*0.70), Math.floor(getScreenHeight()/4), "center", "hanging");
-        Menu.makeText(this.britishText, AfterMatchStats.getTeamNameColour(getProperAdjective("British")), 0, Math.floor(getScreenHeight()*2/3), Math.floor(getScreenWidth()/2), Math.floor(getScreenHeight()*2/3), "left", "middle");
-        Menu.makeText(this.americanText, AfterMatchStats.getTeamNameColour(getProperAdjective("Americans")), Math.floor(getScreenWidth()/2), Math.floor(getScreenHeight()*2/3), Math.floor(getScreenWidth()/2), Math.floor(getScreenHeight()*2/3), "left", "middle");
+        Menu.makeText(this.britishText, MatchStats.getTeamNameColour(getProperAdjective("British")), 0, Math.floor(getScreenHeight()*2/3), Math.floor(getScreenWidth()/2), Math.floor(getScreenHeight()*2/3), "left", "middle");
+        Menu.makeText(this.americanText, MatchStats.getTeamNameColour(getProperAdjective("Americans")), Math.floor(getScreenWidth()/2), Math.floor(getScreenHeight()*2/3), Math.floor(getScreenWidth()/2), Math.floor(getScreenHeight()*2/3), "left", "middle");
+    }
+
+    displayKillFeed(){
+        let displayStr = "";
+        let lastToDisplayIndex = this.kills.length - 1 - this.killFeedOffset;
+        let firstToDisplayIndex = Math.max(0, startI - this.maxKillRowsToDisplay);
+        for (let i = firstToDisplayIndex; i <= lastToDisplayIndex; i++){
+            if (i != firstToDisplayIndex){
+                displayStr += '\n';
+            }
+            displayStr += 1;
+            // TODO: Make kill text
+        }
+    }
+
+    tick(){
+        let newKillFeedOffset = this.killFeedOffset;
+        let up = USER_INPUT_MANAGER.isActivated("kill_feed_up");
+        let down = USER_INPUT_MANAGER.isActivated("kill_feed_down");
+        // If both / neither button are pressed then do nothing
+        if ((up && down) || (!up && !down)){
+            return;
+        }
+        if (up){
+            newKillFeedOffset -= 1;
+        }else if (down){
+            newKillFeedOffset += 1;
+        }
+
+        // Don't allow < 0
+        if (newKillFeedOffset < 0){
+            return;
+        }
+
+        // Must be in range [0, this.kills.length - this.maxKillRowsToDisplay]
+        newKillFeedOffset = Math.min(newKillFeedOffset, Math.max(0, this.kills.length - this.maxKillRowsToDisplay));
+
+        this.killFeedOffset = newKillFeedOffset;
     }
 
     /*
@@ -167,7 +214,7 @@ class AfterMatchStats {
         Method Name: fromJSON
         Method Parameters:
             statsObject:
-                A Json representation of an aftermatchstats instance
+                A Json representation of an MatchStats instance
         Method Description: Load instance details from a JSON object
         Method Return: void
     */
@@ -183,5 +230,5 @@ class AfterMatchStats {
 
 // If using NodeJS then export the lock class
 if (typeof window === "undefined"){
-    module.exports = AfterMatchStats;
+    module.exports = MatchStats;
 }

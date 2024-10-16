@@ -7,6 +7,7 @@ const GAMEMODE_MANAGER = new GamemodeManager();
 const USER_INPUT_MANAGER = new UserInputManager();
 const MENU_MANAGER = new MenuManager();
 const SOUND_MANAGER = new SoundManager();
+const GENERAL_DEBUGGER = new GeneralDebugger();
 
 const ZOOM_MONITOR = {"button": null, "start_time_ms": null};
 
@@ -114,6 +115,9 @@ async function setup() {
     USER_INPUT_MANAGER.register("r_ticked", "keydown", (event) => { return event.keyCode==82; }, true, {"ticked": true, "ticked_activation": false});
 
     USER_INPUT_MANAGER.register("ticked_toggle_camera", "keydown", (event) => { return event.keyCode==67; }, true, {"ticked": true, "ticked_activation": false});
+
+    USER_INPUT_MANAGER.register("kill_feed_up", "keydown", (event) => { return event.keyCode==33; });
+    USER_INPUT_MANAGER.register("kill_feed_down", "keydown", (event) => { return event.keyCode==34; });
 
     // Disable context menu
     document.getElementById("main_area").addEventListener("contextmenu", (event) => {event.preventDefault()});

@@ -8,8 +8,12 @@ const RETRO_GAME_DATA = {
         }
     },
 
+    "match_stats": {
+        "max_rows_of_kills_to_display": 5
+    },
+
     "run": {
-        "british_are_human": true,
+        "british_are_human": false,
         "americans_are_human": false
     },
 
@@ -18,7 +22,7 @@ const RETRO_GAME_DATA = {
         "max_rock_value": 20,
         "friend_enemy_cannon_ratio": 5,
         "kill_to_damage_importance_ratio": 3,
-        "plan_choosing_f": 1.2,
+        "plan_choosing_f": 5, // previously 1.2
         "plan_choosing_x_start": 0.25,
         "plan_choosing_x_end": 3,
         "unknown_enemy_position_confidence": 0.01, // Confidence that an enemy is at a given position when this enemy's position isn't known
@@ -34,8 +38,8 @@ const RETRO_GAME_DATA = {
             "move_closer": 1,
             "single_bush": 3,
             "multi_bush": 3,
-            "cannon_rock": 5,
-            "cannon_troops": 5,
+            "cannon_rock": 6,
+            "cannon_troops": 6,
             "order_shoot": 6 * 2,
             "order_move": 2,
             "explore": 6,
@@ -169,7 +173,7 @@ const RETRO_GAME_DATA = {
         },
         "max_seed": 100000, // Self-explanatory
         "good_seeds": [78518, 39352, 3833, 4216, 93276],
-        "seed": 94262 // null for random seed, 447 is good (on 20 size)
+        "seed": 30908  // null for random seed, 447 is good (on 20 size)
     },
 
     "controls": {

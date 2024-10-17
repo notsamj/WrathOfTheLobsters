@@ -119,6 +119,8 @@ async function setup() {
     USER_INPUT_MANAGER.register("kill_feed_up", "keydown", (event) => { return event.keyCode==33; });
     USER_INPUT_MANAGER.register("kill_feed_down", "keydown", (event) => { return event.keyCode==34; });
 
+    USER_INPUT_MANAGER.register("m_ticked", "keydown", (event) => { return event.keyCode==77; }, true, {"ticked": true, "ticked_activation": false});
+
     // Disable context menu
     document.getElementById("main_area").addEventListener("contextmenu", (event) => {event.preventDefault()});
 

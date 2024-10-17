@@ -148,15 +148,21 @@ class MatchStats {
     }
 
     displayKillFeed(){
-        let displayStr = "";
         let lastToDisplayIndex = this.kills.length - 1 - this.killFeedOffset;
         let firstToDisplayIndex = Math.max(0, startI - this.maxKillRowsToDisplay);
+        updateFontSize(RETRO_GAME_DATA["match_stats"]["text_size"]);
+
+        // TODO
+        let maxTextSizeW = Menu.determineMaxTextSizeByWidth(splitByLine, boxWidth);
+        let maxTextSizeH = Math.floor((boxHeight - RETRO_GAME_DATA["menu"]["text_box_padding_proportion"] * boxHeight) / numLines);
         for (let i = firstToDisplayIndex; i <= lastToDisplayIndex; i++){
-            if (i != firstToDisplayIndex){
-                displayStr += '\n';
-            }
-            displayStr += 1;
-            // TODO: Make kill text
+            let killerClass = this.kills[i]["killer_class"];
+            let victimClass = this.kills[i]["victim_class"];
+            let killerTeam = getProperAdjective(RETRO_GAME_DATA["character_class_to_team_name"][killerClass]);
+            let victimTeam = getProperAdjective(RETRO_GAME_DATA["character_class_to_team_name"][victimClass]);
+            let killerTeamColour = MatchStats.getTeamNameColour(killerTeam);
+            let victimTeamColour = MatchStats.getTeamNameColour(victimTeam);
+
         }
     }
 

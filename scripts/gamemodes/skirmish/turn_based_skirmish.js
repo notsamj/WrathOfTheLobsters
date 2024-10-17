@@ -1213,6 +1213,7 @@ class TurnBasedSkirmish extends Gamemode {
         for (let specialItemName of RETRO_GAME_DATA["skirmish"]["special_item_names"]){
             // Do not load if already exists
             if (objectHasKey(IMAGES, specialItemName)){ continue; }
+            //console.log("Loading", specialItemName);
             await loadToImages(specialItemName, folderURL + specialItemName + "/");
         }
     }

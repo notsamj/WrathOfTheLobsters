@@ -9,7 +9,11 @@ const RETRO_GAME_DATA = {
     },
 
     "match_stats": {
-        "max_rows_of_kills_to_display": 5
+        "max_rows_of_kills_to_display": 5,
+        "text_size": 12,
+        "x_proportion_left": 0.70,
+        "x_size": 300,
+        "y_size": 300 
     },
 
     "run": {
@@ -160,7 +164,9 @@ const RETRO_GAME_DATA = {
         "special_item_names": [
             "white_flag",
             "point_to_move",
-            "point_to_move_crosshair",
+            "point_to_move_crosshair_green",
+            "point_to_move_crosshair_orange",
+            "point_to_move_crosshair_red",
             "point_to_shoot",
             "point_to_shoot_crosshair",
             "point_to_shoot_cannon",

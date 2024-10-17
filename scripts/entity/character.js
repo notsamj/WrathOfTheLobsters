@@ -58,15 +58,18 @@ class Character extends Entity {
         return calculateEuclideanDistance(this.getInterpolatedTickCenterX(), this.getInterpolatedTickCenterY(), this.getScene().getCenterXOfTile(tileX), this.getScene().getCenterYOfTile(tileY));
     }
 
-    generateShortestRouteToPoint(endTileX, endTileY){
-        return this.generateShortestRouteFromPointToPoint(this.getTileX(), this.getTileY(), endTileX, endTileY);
+    generateShortestRouteToPoint(endTileX, endTileY, stepLimit=Number.MAX_SAFE_INTEGER){
+        return this.generateShortestRouteFromPointToPoint(this.getTileX(), this.getTileY(), endTileX, endTileY, stepLimit);
     }
 
-    generateShortestRouteFromPointToPoint(startTileX, startTileY, endTileX, endTileY){
+    generateShortestRouteFromPointToPoint(startTileX, startTileY, endTileX, endTileY, stepLimit=Number.MAX_SAFE_INTEGER){
         let tiles = [];
         if (startTileX === endTileX && startTileY === endTileY){ return new Route(); }
 
         let addAdjacentTilesAsUnchecked = (tileX, tileY, pathToTile, startToEnd) => {
+            let stepsInPath = pathToTile.length - 1;
+            // Stop exploring from a path that is at max length
+            if (stepsInPath >= stepLimit){ return; }
             tryToAddTile(tileX+1, tileY, pathToTile, startToEnd);
             tryToAddTile(tileX-1, tileY, pathToTile, startToEnd);
             tryToAddTile(tileX, tileY+1, pathToTile, startToEnd);
@@ -263,7 +266,6 @@ class Character extends Entity {
         }
 
         let hasPathsInBothDirections = () => {
-            // TODO: If one direction has zero active paths then its stuck and the answer will never be found!
             // Check if it has paths forward
             let pathsForward = false;
             let pathsBackwards = false;

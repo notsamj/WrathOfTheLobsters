@@ -13,6 +13,59 @@ class PointToMove extends Item {
 
         this.troopMovementDetails = {};
         this.troopMovementInProgress = false;
+        this.crosshairColour = "green";
+        this.mode = "move_all";
+        // move_individal mode has a selected troop index
+        this.selectedTroopIndex = -1;
+    }
+
+    updateCrosshairColour(){
+        // If no selected troops its always red
+        if (this.selectedTroops.length === 0){
+            this.crosshairColour = "red";
+            return;
+        }
+        let prop;
+
+        if (this.getMode() === "move_all"){
+            let count = 0;
+            for (let troop of this.selectedTroops){
+                let routeToPoint = troop.generateShortestRouteToPoint(this.moveTileX, this.moveTileY, troop.getWalkingBar().getMaxValue());
+                let lastTile = routeToPoint.getLastTile();
+                // If troop can reach this tile x
+                if (lastTile["tile_x"] === this.moveTileX && lastTile["tile_y"] === this.moveTileY){
+                    count++;
+                }
+            }
+            prop = count / this.selectedTroops.length;
+        }else{
+            // Invidiaul selected
+            let routeToPoint = this.selectedTroops[this.selectedTroopIndex]
+        }
+        if (prop === 0){
+            this.crosshairColour = "red";
+        }else if (prop < 1){
+            this.crosshairColour = "orange";
+        }else{
+            this.crosshairColour = "green";
+        }
+    }
+
+    getCrosshairColour(){
+        return this.crosshairColour;
+    }
+
+    toggleMode(){
+        if (this.getMode() === "move_all"){
+            this.mode = "move_individual";
+            this.selectedTroopIndex = 0;
+        }else{
+            this.mode = "move_all";
+        }
+    }
+
+    getMode(){
+        return this.mode;
     }
 
     resetDecisions(){
@@ -20,7 +73,8 @@ class PointToMove extends Item {
             "move_tile_x": null,
             "move_tile_y": null,
             "trying_to_move_troops": false,
-            "new_move_tile": false
+            "new_move_tile": false,
+            "toggle_mode": false
         });
     }
 
@@ -84,25 +138,56 @@ class PointToMove extends Item {
 
     generateTroopMovementDetails(){
         for (let troop of this.selectedTroops){
-            this.troopMovementDetails[troop.getID()] = troop.generateShortestRouteToPoint(this.moveTileX, this.moveTileY);
+            this.troopMovementDetails[troop.getID()] = troop.generateShortestRouteToPoint(this.moveTileX, this.moveTileY, troop.getWalkingBar().getMaxValue());
         }
     }
 
+    generateIndividualTroopMovementDetails(){
+        let troopToBeMoved = this.selectedTroops[this.selectedTroopIndex];
+        this.troopMovementDetails[troop.getID()] = troop.generateShortestRouteToPoint(this.moveTileX, this.moveTileY, troop.getWalkingBar().getMaxValue());
+        // Go to the next one (if its the last then it will end here)
+        this.selectedTroopIndex++;
+    }
+
     getSelectedTroops(){
-        return this.selectedTroops;
+        if (this.getMode() === "move_all"){
+            return this.selectedTroops;
+        }else{
+            // If none then don't try to access it
+            if (this.selectedTroops.length === 0){
+                return this.selectedTroops;
+            }
+            return [this.selectedTroops[this.selectedTroopIndex]];
+        }
     }
 
     actOnDecisions(){
-    	if (this.getDecision("new_move_tile") && !this.player.hasCommitedToAction()){
+    	if (this.getDecision("toggle_mode")){
+            this.toggleMode();
+        }
+        if (this.getDecision("new_move_tile") && !this.player.hasCommitedToAction()){
         	this.moveTileX = this.getDecision("move_tile_x");
         	this.moveTileY = this.getDecision("move_tile_y");
+            this.updateCrosshairColour();
     	}
     	if (this.getDecision("trying_to_move_troops") && !this.player.hasCommitedToAction() && this.selectedTroops.length > 0){
             let canWalkOnTile = !this.getScene().tileAtLocationHasAttribute(this.moveTileX, this.moveTileY, "no_walk");
             if (canWalkOnTile){
-                this.player.commitToAction();
-                this.troopMovementInProgress = true;
-                this.generateTroopMovementDetails();
+                let tryingToCompleteMove = false;
+                if (this.getMode() === "move_all"){
+                    tryingToCompleteMove = true;
+                    this.generateTroopMovementDetails();
+                }else{
+                    this.generateIndividualTroopMovementDetails();
+                    if (this.selectedTroopIndex === this.selectedTroops.length){
+                        tryingToCompleteMove = true;
+                    }
+                }
+
+                if (tryingToCompleteMove){
+                    this.player.commitToAction();
+                    this.troopMovementInProgress = true;
+                }
             }
     	}
         this.checkIfMovementFinished();
@@ -134,6 +219,7 @@ class PointToMove extends Item {
 
     resetSelectedTroopsForCurrentPosition(){
         this.selectedTroops = this.generateSelectedTroops();
+        this.selectedTroopIndex = 0;
     }
 
     getGamemode(){
@@ -181,6 +267,7 @@ class PointToMove extends Item {
 
     tick(){
         // Moved this.checkIfMovementFinished();
+        MY_HUD.update("Item Mode", this.getMode());
     }
 
     display(lX, bY){
@@ -188,7 +275,7 @@ class PointToMove extends Item {
         
     	let x = this.getScene().getDisplayXFromTileX(lX, this.moveTileX);
         let y = this.getScene().getDisplayYFromTileY(bY, this.moveTileY);
-        let crosshairImage = IMAGES["point_to_move_crosshair"];
+        let crosshairImage = IMAGES["point_to_move_crosshair_" + this.getCrosshairColour()];
         let crosshairWidth = crosshairImage.width;
         let crosshairHeight = crosshairImage.height;
         translate(x, y);

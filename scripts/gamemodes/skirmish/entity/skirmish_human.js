@@ -141,6 +141,7 @@ class SkirmishHuman extends SkirmishCharacter {
             "move_tile_x": newPlacerTileX,
             "move_tile_y": newPlacerTileY,
             "trying_to_move_troops": USER_INPUT_MANAGER.isActivated("left_click_ticked"),
+            "toggle_mode": USER_INPUT_MANAGER.isActivated("m_ticked"),
             "new_move_tile": true
         });
     }

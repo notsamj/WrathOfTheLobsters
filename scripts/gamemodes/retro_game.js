@@ -117,7 +117,9 @@ async function setup() {
     USER_INPUT_MANAGER.register("ticked_toggle_camera", "keydown", (event) => { return event.keyCode==67; }, true, {"ticked": true, "ticked_activation": false});
 
     USER_INPUT_MANAGER.register("kill_feed_up", "keydown", (event) => { return event.keyCode==33; });
+    USER_INPUT_MANAGER.register("kill_feed_up", "keyup", (event) => { return event.which==33; }, false);
     USER_INPUT_MANAGER.register("kill_feed_down", "keydown", (event) => { return event.keyCode==34; });
+    USER_INPUT_MANAGER.register("kill_feed_down", "keyup", (event) => { return event.which==34; }, false);
 
     USER_INPUT_MANAGER.register("m_ticked", "keydown", (event) => { return event.keyCode==77; }, true, {"ticked": true, "ticked_activation": false});
 

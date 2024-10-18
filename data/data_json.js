@@ -10,15 +10,13 @@ const RETRO_GAME_DATA = {
 
     "match_stats": {
         "max_rows_of_kills_to_display": 5,
-        "text_size": 12,
-        "x_proportion_left": 0.70,
-        "x_size": 300,
-        "y_size": 300 
+        "text_size": 24,
+        "kill_text_colour": "#3e3f40"
     },
 
     "run": {
-        "british_are_human": false,
-        "americans_are_human": false
+        "british_are_human": true,
+        "americans_are_human": true
     },
 
     "bot": {

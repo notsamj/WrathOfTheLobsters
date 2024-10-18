@@ -267,7 +267,7 @@ class PointToMove extends Item {
 
     tick(){
         // Moved this.checkIfMovementFinished();
-        MY_HUD.update("Item Mode", this.getMode());
+        MY_HUD.updateElement("Item Mode", this.getMode());
     }
 
     display(lX, bY){

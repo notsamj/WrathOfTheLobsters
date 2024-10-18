@@ -361,6 +361,14 @@ function makeText(textStr, screenX, screenY, boxWidth, boxHeight, textColour, te
     }
 }
 
+function makeTextExplicit(textStr, textSize, textColour, screenX, screenY, alignLR, alignTB){
+    updateFontSize(textSize);
+    updateFillColour(textColour);
+    drawingContext.textAlign = alignLR;
+    drawingContext.textBaseline = alignTB;
+    drawingContext.fillText(textStr, screenX, screenY, measureTextWidth(textStr));
+}
+
 /*
     Method Name: displayImage
     Method Parameters:

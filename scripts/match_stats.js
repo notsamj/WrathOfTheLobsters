@@ -31,6 +31,18 @@ class MatchStats {
         this.britishText = null;
         this.americanText = null;
         this.killFeedOffset = 0;
+        this.killFeedOffsetLock = new Lock();
+
+        // TEMP
+        this.addKill("usa_pvt", "british_pvt_g");
+        this.addKill("usa_pvt", "british_pvt_g");
+        this.addKill("usa_pvt", "british_pvt_g");
+        this.addKill("british_pvt_g", "usa_pvt");
+        this.addKill("british_pvt_g", "usa_pvt");
+        this.addKill("british_officer", "usa_pvt");
+        this.addKill("british_pvt_g", "usa_pvt");
+        this.addKill("british_pvt_g", "usa_pvt");
+        this.addKill("british_officer", "usa_officer");
     }
 
     /*
@@ -137,7 +149,7 @@ class MatchStats {
 
         // Display kill feed
         this.displayKillFeed();
-        if (this.winner === null){ return; }
+        if (this.winner === "None"){ return; }
         
         // Display winner information
         let winnerText = "Winner: " + this.winner;
@@ -149,20 +161,29 @@ class MatchStats {
 
     displayKillFeed(){
         let lastToDisplayIndex = this.kills.length - 1 - this.killFeedOffset;
-        let firstToDisplayIndex = Math.max(0, startI - this.maxKillRowsToDisplay);
-        updateFontSize(RETRO_GAME_DATA["match_stats"]["text_size"]);
+        let firstToDisplayIndex = Math.max(0, lastToDisplayIndex - this.maxKillRowsToDisplay);
+        let textSize = RETRO_GAME_DATA["match_stats"]["text_size"];
+        updateFontSize(textSize);
 
-        // TODO
-        let maxTextSizeW = Menu.determineMaxTextSizeByWidth(splitByLine, boxWidth);
-        let maxTextSizeH = Math.floor((boxHeight - RETRO_GAME_DATA["menu"]["text_box_padding_proportion"] * boxHeight) / numLines);
+        let startY = 0;
+        let rightX = getScreenWidth();
+        let killTextColour = Colour.fromCode(RETRO_GAME_DATA["match_stats"]["kill_text_colour"]);
+        let killText = " killed ";
         for (let i = firstToDisplayIndex; i <= lastToDisplayIndex; i++){
+            let currentY = startY + (i - firstToDisplayIndex) * textSize;
             let killerClass = this.kills[i]["killer_class"];
             let victimClass = this.kills[i]["victim_class"];
+            //console.log(RETRO_GAME_DATA["character_class_to_team_name"][killerClass], RETRO_GAME_DATA["character_class_to_team_name"][victimClass])
             let killerTeam = getProperAdjective(RETRO_GAME_DATA["character_class_to_team_name"][killerClass]);
             let victimTeam = getProperAdjective(RETRO_GAME_DATA["character_class_to_team_name"][victimClass]);
-            let killerTeamColour = MatchStats.getTeamNameColour(killerTeam);
-            let victimTeamColour = MatchStats.getTeamNameColour(victimTeam);
-
+            let killerTeamColour = Colour.fromCode(MatchStats.getTeamNameColour(killerTeam));
+            let victimTeamColour = Colour.fromCode(MatchStats.getTeamNameColour(victimTeam));
+            let victimTextLength = Math.ceil(measureTextWidth(victimClass));
+            let killerTextLength = Math.ceil(measureTextWidth(killerClass));
+            let killTextLength = Math.ceil(measureTextWidth(killText));
+            makeTextExplicit(killerClass, textSize, killerTeamColour, rightX - victimTextLength - killTextLength - killerTextLength, currentY, "left", "top");
+            makeTextExplicit(killText, textSize, killTextColour, rightX - victimTextLength - killTextLength, currentY, "left", "top");
+            makeTextExplicit(victimClass, textSize, victimTeamColour, rightX - victimTextLength, currentY, "left", "top");
         }
     }
 
@@ -172,12 +193,17 @@ class MatchStats {
         let down = USER_INPUT_MANAGER.isActivated("kill_feed_down");
         // If both / neither button are pressed then do nothing
         if ((up && down) || (!up && !down)){
+            this.killFeedOffsetLock.unlock();
             return;
         }
+        if (this.killFeedOffsetLock.isLocked()){
+            return;
+        }
+        this.killFeedOffsetLock.lock();
         if (up){
-            newKillFeedOffset -= 1;
-        }else if (down){
             newKillFeedOffset += 1;
+        }else if (down){
+            newKillFeedOffset -= 1;
         }
 
         // Don't allow < 0
@@ -187,7 +213,6 @@ class MatchStats {
 
         // Must be in range [0, this.kills.length - this.maxKillRowsToDisplay]
         newKillFeedOffset = Math.min(newKillFeedOffset, Math.max(0, this.kills.length - this.maxKillRowsToDisplay));
-
         this.killFeedOffset = newKillFeedOffset;
     }
 

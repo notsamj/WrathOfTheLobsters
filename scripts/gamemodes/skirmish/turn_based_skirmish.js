@@ -18,9 +18,6 @@ class TurnBasedSkirmish extends Gamemode {
         this.eventHandler.addHandler("kill", (killObject) => {
             let victimClass = killObject["victim_class"];
             let killerClass = killObject["killer_class"];
-            if (getTeamNameFromClass(victimClass) == getTeamNameFromClass(killerClass)){
-                killerClass = "friendly_fire";
-            }
             this.stats.addKill(victimClass, killerClass);
         });
 

@@ -8,10 +8,47 @@ const RETRO_GAME_DATA = {
         }
     },
 
+    "visual_effects": {
+        "blood_generation": {
+            "min_circles_per_blood_spatter": 15,
+            "max_circles_per_blood_spatter": 25,
+            "min_radius": 3,
+            "max_radius": 6,
+            "center_radius": 12,
+            "blood_colour": "#6e160f",
+            "blood_opacity": 1,
+            "min_life_ms": 20000,
+            "max_life_ms": 30000,
+        },
+        "smoke_generation": {
+            "min_circles_per_smoke_cloud": 15,
+            "max_circles_per_smoke_cloud": 25,
+            "min_radius": 6,
+            "max_radius": 10,
+            "center_radius": 25,
+            "smoke_colour": "#ededeb",
+            "smoke_opacity": 0.99,
+            "min_life_ms": 2000, // 3000?
+            "max_life_ms": 10000, // 10000?
+            "max_speed": 0.5
+        },
+
+        "bullet_impact_generation": {
+            "min_dirt_per_impact": 6,
+            "max_dirt_per_impact": 7,
+            "size": 4,
+            "center_radius": 1,
+            "dirt_colour": "#404040",
+            "min_life_ms": 400,
+            "max_life_ms": 600,
+            "max_speed": 50
+        }
+    },
+
     "match_stats": {
         "max_rows_of_kills_to_display": 5,
         "text_size": 24,
-        "kill_text_colour": "#3e3f40"
+        "kill_text_colour": "#ffffff"
     },
 
     "run": {
@@ -304,32 +341,9 @@ const RETRO_GAME_DATA = {
         }
     },
 
-    "smoke_generation": {
-        "min_circles_per_smoke_cloud": 15,
-        "max_circles_per_smoke_cloud": 25,
-        "min_radius": 6,
-        "max_radius": 10,
-        "center_radius": 25,
-        "smoke_colour": "#ededeb",
-        "smoke_opacity": 0.99,
-        "min_life_ms": 2000, // 3000?
-        "max_life_ms": 10000, // 10000?
-        "max_speed": 0.5
-    },
-
-    "bullet_impact_generation": {
-        "min_dirt_per_impact": 6,
-        "max_dirt_per_impact": 7,
-        "size": 4,
-        "center_radius": 1,
-        "dirt_colour": "#404040",
-        "min_life_ms": 400,
-        "max_life_ms": 600,
-        "max_speed": 50
-    },
-
     "sound_data": {
         "sounds": [
+            {"name": "gunshot", "type": "discrete"}
         ],
         "url": "./sounds",
         "file_type": ".mp3"

@@ -34,7 +34,7 @@ class Inventory {
 
     actOnDecisions(){
         let newSlot = this.getDecision("select_slot");
-        if (newSlot == -1 || newSlot == this.selectedSlot){ return; }
+        if (newSlot === -1 || newSlot === this.selectedSlot){ return; }
 
         if (this.hasSelectedItem()){
             this.getItemAtSelectedSlot().deselect();

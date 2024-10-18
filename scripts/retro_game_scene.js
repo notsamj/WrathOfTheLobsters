@@ -808,12 +808,28 @@ class RetroGameScene {
         let rX = lX + this.getWidth() / gameZoom;
         let tY = bY + this.getHeight() / gameZoom;
 
+        // Make sounds play
+        SOUND_MANAGER.playAll(lX, rX, bY, tY);
+
         // Display Page Background
         this.displayPageBackground();
 
         // Display Tiles
         for (let [chunk, cI] of this.chunks){
             chunk.display(lX, rX, bY, tY, this.isDisplayingPhysicalLayer());
+        }
+
+        // Delete expired visuals
+        this.expiringVisuals.deleteWithCondition((visual) => {
+            return visual.isExpired();
+        });
+
+
+        // Display Ground Expiring Visuals
+        for (let [visual, vI] of this.expiringVisuals){
+            if (visual.getYCategory() === "ground"){
+                visual.display(this, lX, rX, bY, tY);
+            }
         }
 
         // Display Entities
@@ -824,13 +840,11 @@ class RetroGameScene {
         }
         
 
-        // Delete expired visuals
-        this.expiringVisuals.deleteWithCondition((visual) => {
-            return visual.isExpired();
-        });
-        // Display Expiring Visuals
+        // Display Air Expiring Visuals
         for (let [visual, vI] of this.expiringVisuals){
-            visual.display(this, lX, rX, bY, tY);
+            if (visual.getYCategory() === "air"){
+                visual.display(this, lX, rX, bY, tY);
+            }
         }
 
         // Display focused entity

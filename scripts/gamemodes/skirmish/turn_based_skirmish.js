@@ -15,15 +15,17 @@ class TurnBasedSkirmish extends Gamemode {
             "American": null,
             "British": null
         }
+        let scene = this.getScene();
         this.eventHandler.addHandler("kill", (killObject) => {
+            scene.addExpiringVisual(BloodPool.create(scene.getCenterXOfTile(killObject["tile_x"]), scene.getCenterYOfTile(killObject["tile_y"])));
             let victimClass = killObject["victim_class"];
             let killerClass = killObject["killer_class"];
             this.stats.addKill(victimClass, killerClass);
         });
 
-        let scene = this.getScene();
         this.eventHandler.addHandler("gun_shot", (eventObj) => {
             scene.addExpiringVisual(SmokeCloud.create(eventObj["x"], eventObj["y"]));
+            SOUND_MANAGER.play("gunshot", eventObj["x"], eventObj["y"]);
             // Inform the team that is not moving of a shot
             let otherTeamName = this.getOtherTeam(this.gameState["turn"]);
             if (this.isTeamBot(otherTeamName)){

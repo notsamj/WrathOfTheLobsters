@@ -53,6 +53,9 @@ async function setup() {
     }
 
     // Game Maker
+    USER_INPUT_MANAGER.register("option_slider_grab", "mousedown", (event) => { return true; });
+    USER_INPUT_MANAGER.register("option_slider_grab", "mouseup", (event) => { return true; }, false);
+    
     USER_INPUT_MANAGER.register("left_click", "mousedown", (event) => { return event.which==1; });
     USER_INPUT_MANAGER.register("left_click", "mouseup", (event) => { return event.which==1; }, false);
 
@@ -302,11 +305,20 @@ class RetroGame extends Gamemode {
         let scene = this.getScene();
         this.eventHandler.addHandler("gun_shot", (eventObj) => {
             scene.addExpiringVisual(SmokeCloud.create(eventObj["x"], eventObj["y"]));
+            SOUND_MANAGER.play("gunshot", eventObj["x"], eventObj["y"]);
+        });
+
+        this.eventHandler.addHandler("kill", (killObject) => {
+            scene.addExpiringVisual(BloodPool.create(scene.getCenterXOfTile(killObject["tile_x"]), scene.getCenterYOfTile(killObject["tile_y"])));
         });
         
         this.startUpLock = new Lock();
         this.startUpLock.lock();
         this.startUp();
+    }
+
+    getEnemyVisibilityDistance(){
+        return Number.MAX_SAFE_INTEGER;
     }
 
     async startUp(){

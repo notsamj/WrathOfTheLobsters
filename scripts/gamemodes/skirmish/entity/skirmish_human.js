@@ -2,6 +2,7 @@ class SkirmishHuman extends SkirmishCharacter {
     constructor(gamemode, model, rank, team){
         super(gamemode, model, rank, team);
         this.usingTeamCamera = false;
+        this.toggleModeLock = new Lock();
     }
 
     makeDecisions(){
@@ -137,11 +138,19 @@ class SkirmishHuman extends SkirmishCharacter {
         let engineY = canvasY / gameZoom + this.getScene().getBY();
         let newPlacerTileX = RetroGameScene.getTileXAt(engineX);
         let newPlacerTileY = RetroGameScene.getTileYAt(engineY);
+        let tryingToToggleMode = USER_INPUT_MANAGER.isActivated("m_ticked");
+        let toggleMode = tryingToToggleMode && this.toggleModeLock.isUnlocked();
+        if (!tryingToToggleMode){
+            this.toggleModeLock.unlock();
+        }
+        if (toggleMode){
+            this.toggleModeLock.lock();
+        }
         this.amendDecisions({
             "move_tile_x": newPlacerTileX,
             "move_tile_y": newPlacerTileY,
             "trying_to_move_troops": USER_INPUT_MANAGER.isActivated("left_click_ticked"),
-            "toggle_mode": USER_INPUT_MANAGER.isActivated("m_ticked"),
+            "toggle_mode": toggleMode,
             "new_move_tile": true
         });
     }

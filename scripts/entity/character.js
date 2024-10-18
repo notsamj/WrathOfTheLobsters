@@ -64,7 +64,14 @@ class Character extends Entity {
 
     generateShortestRouteFromPointToPoint(startTileX, startTileY, endTileX, endTileY, stepLimit=Number.MAX_SAFE_INTEGER){
         let tiles = [];
-        if (startTileX === endTileX && startTileY === endTileY){ return new Route(); }
+        if (startTileX === endTileX && startTileY === endTileY){ return Route.fromPath([{"tile_x": startTileX, "tile_y": startTileY}]); }
+
+        let tileCanBeWalkedOn = (tileX, tileY) => {
+            return !this.getScene().tileAtLocationHasAttribute(tileX, tileY, "no_walk");
+        }
+
+        if (!tileCanBeWalkedOn(startTileX, startTileY)){ return null; }
+        if (!tileCanBeWalkedOn(endTileX, endTileY)){ return null; }
 
         let addAdjacentTilesAsUnchecked = (tileX, tileY, pathToTile, startToEnd) => {
             let stepsInPath = pathToTile.length - 1;
@@ -91,9 +98,6 @@ class Character extends Entity {
             return tiles[tileIndex]["checked"][startToEnd.toString()];
         }
 
-        let tileCanBeWalkedOn = (tileX, tileY) => {
-            return !this.getScene().tileAtLocationHasAttribute(tileX, tileY, "no_walk");
-        }
 
         let tryToAddTile = (tileX, tileY, pathToTile, startToEnd=true) => {
             if (!tileCanBeWalkedOn(tileX, tileY)){ return; }
@@ -514,6 +518,8 @@ class Character extends Entity {
             this.gamemode.getEventHandler().emit({
                 "victim_class": this.getModel(),
                 "killer_class": model,
+                "tile_x": this.getTileX(),
+                "tile_y": this.getTileY(),
                 "name": "kill"
             });
         }

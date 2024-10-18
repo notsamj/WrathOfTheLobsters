@@ -24,6 +24,8 @@ class SkirmishCharacter extends Character {
             this.gamemode.getEventHandler().emit({
                 "victim_class": this.getModel(),
                 "killer_class": model,
+                "tile_x": this.getTileX(),
+                "tile_y": this.getTileY(),
                 "name": "kill"
             });
         }

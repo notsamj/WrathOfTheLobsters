@@ -31,6 +31,7 @@ class PointToMove extends Item {
             let count = 0;
             for (let troop of this.selectedTroops){
                 let routeToPoint = troop.generateShortestRouteToPoint(this.moveTileX, this.moveTileY, troop.getWalkingBar().getMaxValue());
+                if (routeToPoint === null || routeToPoint.isEmpty()){ continue; }
                 let lastTile = routeToPoint.getLastTile();
                 // If troop can reach this tile x
                 if (lastTile["tile_x"] === this.moveTileX && lastTile["tile_y"] === this.moveTileY){
@@ -40,7 +41,19 @@ class PointToMove extends Item {
             prop = count / this.selectedTroops.length;
         }else{
             // Invidiaul selected
-            let routeToPoint = this.selectedTroops[this.selectedTroopIndex]
+            let troop = this.selectedTroops[this.selectedTroopIndex];
+            let routeToPoint = troop.generateShortestRouteToPoint(this.moveTileX, this.moveTileY, troop.getWalkingBar().getMaxValue());
+            if (routeToPoint === null || routeToPoint.isEmpty()){
+                prop = 0;
+            }else{
+                let lastTile = routeToPoint.getLastTile();
+                // If troop can reach this tile x
+                if (lastTile["tile_x"] === this.moveTileX && lastTile["tile_y"] === this.moveTileY){
+                    prop = 1;
+                }else{
+                    prop = 0;
+                }
+            }
         }
         if (prop === 0){
             this.crosshairColour = "red";
@@ -99,6 +112,7 @@ class PointToMove extends Item {
     }
 
     getCommandForTroop(troop){
+        if (!this.troopMovementInProgress){ return; }
         if (!objectHasKey(this.troopMovementDetails, troop.getID())){
             return null;
         }
@@ -138,13 +152,15 @@ class PointToMove extends Item {
 
     generateTroopMovementDetails(){
         for (let troop of this.selectedTroops){
-            this.troopMovementDetails[troop.getID()] = troop.generateShortestRouteToPoint(this.moveTileX, this.moveTileY, troop.getWalkingBar().getMaxValue());
+            // Note: Don't cap the length because we want it to move as if it was on the unlimited route and just go as far as it can
+            this.troopMovementDetails[troop.getID()] = troop.generateShortestRouteToPoint(this.moveTileX, this.moveTileY);
         }
     }
 
     generateIndividualTroopMovementDetails(){
         let troopToBeMoved = this.selectedTroops[this.selectedTroopIndex];
-        this.troopMovementDetails[troop.getID()] = troop.generateShortestRouteToPoint(this.moveTileX, this.moveTileY, troop.getWalkingBar().getMaxValue());
+        // Note: Don't cap the length because we want it to move as if it was on the unlimited route and just go as far as it can
+        this.troopMovementDetails[troopToBeMoved.getID()] = troopToBeMoved.generateShortestRouteToPoint(this.moveTileX, this.moveTileY);
         // Go to the next one (if its the last then it will end here)
         this.selectedTroopIndex++;
     }
@@ -155,6 +171,10 @@ class PointToMove extends Item {
         }else{
             // If none then don't try to access it
             if (this.selectedTroops.length === 0){
+                return this.selectedTroops;
+            }
+            // Else if we have run out of troops to individually order then all are selected again
+            else if (this.selectedTroopIndex >= this.selectedTroops.length){
                 return this.selectedTroops;
             }
             return [this.selectedTroops[this.selectedTroopIndex]];
@@ -246,6 +266,7 @@ class PointToMove extends Item {
     }
 
     deselect(){
+        MY_HUD.clearElement("Item Mode");
     }
 
     displayItemSlot(providedX, providedY){

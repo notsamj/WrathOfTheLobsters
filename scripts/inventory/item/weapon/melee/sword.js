@@ -195,6 +195,8 @@ class Sword extends Item {
             this.getGamemode().getEventHandler().emit({
                 "victim_class": hitCharacter.getModel(),
                 "killer_class": this.player.getModel(),
+                "tile_x": hitCharacter.getTileX(),
+                "tile_y": hitCharacter.getTileY(),
                 "name": "kill"
             });
         }

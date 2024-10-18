@@ -7,6 +7,10 @@ class CannonSmoke {
         this.circles = circles;
     }
 
+    getYCategory(){
+        return "air";
+    }
+
     display(scene, lX, rX, bY, tY){
         if (!this.touchesRegion(lX, rX, bY, tY)){ return; }
         let currentTime = Date.now();

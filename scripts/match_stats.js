@@ -32,17 +32,6 @@ class MatchStats {
         this.americanText = null;
         this.killFeedOffset = 0;
         this.killFeedOffsetLock = new Lock();
-
-        // TEMP
-        this.addKill("usa_pvt", "british_pvt_g");
-        this.addKill("usa_pvt", "british_pvt_g");
-        this.addKill("usa_pvt", "british_pvt_g");
-        this.addKill("british_pvt_g", "usa_pvt");
-        this.addKill("british_pvt_g", "usa_pvt");
-        this.addKill("british_officer", "usa_pvt");
-        this.addKill("british_pvt_g", "usa_pvt");
-        this.addKill("british_pvt_g", "usa_pvt");
-        this.addKill("british_officer", "usa_officer");
     }
 
     /*

@@ -69,6 +69,14 @@ class HUD {
             element.clear();
         }
     }
+
+    clearElement(elementName){
+        for (let element of this.hudElements){
+            if (elementName === element.getName()){
+                element.clear();
+            }
+        }
+    }
 }
 
 /*
@@ -137,8 +145,10 @@ class HUDElement {
         makeText(key, x, y, getScreenWidth(), getScreenHeight(), Colour.fromCode(RETRO_GAME_DATA["hud"]["key_colour"]), RETRO_GAME_DATA["hud"]["text_size"], "left", "top");
         let xOffset = measureTextWidth(key);
         makeText(`${this.value}`, x + xOffset, y, getScreenWidth(), getScreenHeight(), Colour.fromCode(RETRO_GAME_DATA["hud"]["value_colour"]), RETRO_GAME_DATA["hud"]["text_size"], "left", "top");
+        if (this.readyToDisplay){
+            this.extraTimeLock.lock();
+        }
         this.readyToDisplay = false;
-        this.extraTimeLock.lock();
     }
 
     /*
@@ -148,7 +158,7 @@ class HUDElement {
         Method Return: boolean, true -> ready to display, false -> not ready to display
     */
     isReadyToDisplay(){
-        return this.readyToDisplay || this.extraTimeLock.notReady();
+        return this.readyToDisplay || this.extraTimeLock.isLocked();
     }
 
     /*
@@ -159,5 +169,6 @@ class HUDElement {
     */
     clear(){
         this.extraTimeLock.unlock();
+        this.readyToDisplay = false;
     }
 }

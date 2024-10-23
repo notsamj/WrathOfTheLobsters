@@ -393,7 +393,9 @@ const RETRO_GAME_DATA = {
     },
 
     "model_positions": {
-        "at_the_ready_rotation": 40,
+        "holding_rotation": 40,
+        "holding_rotation_sword": 60,
+        "blocking_rotation": 30,
         "category_1": {
             "brown_bess": {
                 "aiming": {

@@ -28,6 +28,30 @@ function arraySwap(array, index1, index2){
     array[index2] = temp;
 }
 
+function areDirectionsEqual(direction1, direction2){
+    return getAlternativeDirectionFormatOf(direction1) === getAlternativeDirectionFormatOf(direction2);
+}
+
+function equalsOppositeDirection(direction1, direction2){
+    let alt1 = getAlternativeDirectionFormatOf(direction1);
+    let alt2 = getAlternativeDirectionFormatOf(direction2);
+    return getOppositeAltDirectionOf(alt1) === alt2;
+}
+
+function getOppositeAltDirectionOf(altDirection){
+    if (direction === "down"){
+        return "up";
+    }else if (direction === "up"){
+        return "down";
+    }else if (direction === "left"){
+        return "right";
+    }else if (direction === "right"){
+        return "left";
+    }
+
+    throw new Error("Invalid direction: " + altDirection);
+}
+
 function getAlternativeDirectionFormatOf(direction){
     if (direction === "front"){
         return "down";

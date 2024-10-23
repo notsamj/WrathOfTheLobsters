@@ -57,8 +57,10 @@ class HumanCharacter extends Character {
 
     makeSwordDecisions(){
         let tryingToSwing = USER_INPUT_MANAGER.isActivated("left_click_ticked");
+        let tryingToBlock = USER_INPUT_MANAGER.isActivated("right_click");
         this.amendDecisions({
             "trying_to_swing_sword": tryingToSwing,
+            "trying_to_block": tryingToBlock
         });
     }
 

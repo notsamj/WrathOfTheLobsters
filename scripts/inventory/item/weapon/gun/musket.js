@@ -296,7 +296,7 @@ class Musket extends Gun {
         let displayRotateAngleRAD;
         let playerAimingAngleRAD = this.getDecidedAngleRAD();
         let playerAimingAngleDEG = toFixedDegrees(playerAimingAngleRAD);
-        let atTheReady = RETRO_GAME_DATA["model_positions"]["at_the_ready_rotation"];
+        let readyRotationDEG = RETRO_GAME_DATA["model_positions"]["holding_rotation"];
 
         // Based on player action
         if (isAiming){
@@ -347,14 +347,14 @@ class Musket extends Gun {
                 if (this.isReloading()){
                     displayRotateAngleRAD = toFixedRadians(90);
                 }else{
-                    displayRotateAngleRAD = toRadians(atTheReady);
+                    displayRotateAngleRAD = toRadians(readyRotationDEG);
                 }
             }else if (playerDirection == "back" || playerDirection == "left"){
                 image = IMAGES[this.model + "_left" + (this.hasBayonetEquipped() ? "_bayonet" : "")];
                 if (this.isReloading()){
                     displayRotateAngleRAD = toFixedRadians(-90);
                 }else{
-                    displayRotateAngleRAD = toRadians(-1 * atTheReady);
+                    displayRotateAngleRAD = toRadians(-1 * readyRotationDEG);
                 }
             }
         }

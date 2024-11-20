@@ -8,6 +8,7 @@ const USER_INPUT_MANAGER = new UserInputManager();
 const MENU_MANAGER = new MenuManager();
 const SOUND_MANAGER = new SoundManager();
 const GENERAL_DEBUGGER = new GeneralDebugger();
+const LOADING_SCREEN = new LoadingScreen();
 
 const ZOOM_MONITOR = {"button": null, "start_time_ms": null};
 
@@ -16,6 +17,7 @@ var mouseX = 0;
 var mouseY = 0;
 var programOver = false;
 var ramshackleDebugToolValue = false;
+var setupOngoing = false;
 
 // Functions
 function rDebug(){
@@ -32,13 +34,18 @@ function isRDebugging(){
 }
 
 async function setup() {
-    await loadToImages("page_background");
-    await loadToImages("crosshair");
-    await CharacterAnimationManager.loadAllImages();
-    await Musket.loadAllImages();
-    await Sword.loadAllImages();
-    await Pistol.loadAllImages();
-    await TurnBasedSkirmish.loadImages();
+    setupOngoing = true;
+    try {
+        await loadToImages("page_background");
+        await loadToImages("crosshair");
+        await CharacterAnimationManager.loadAllImages();
+        await Musket.loadAllImages();
+        await Sword.loadAllImages();
+        await Pistol.loadAllImages();
+        await TurnBasedSkirmish.loadImages();
+    }catch(error){
+        console.error("Failed to load images:", error);
+    }
 
     // Make sure all physical tiles are loaded
     for (let tileDetails of RETRO_GAME_DATA["physical_tiles"]){
@@ -154,6 +161,7 @@ async function setup() {
     MENU_MANAGER.setup();
     MenuManager.setupClickListener();
     
+    setupOngoing = false;
     requestAnimationFrame(tick);
 }
 

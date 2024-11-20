@@ -4,10 +4,10 @@ if (typeof window === "undefined"){
     objectHasKey = helperFunctions.objectHasKey;
 }
 /*
-    Class Name: MatchStats
+    Class Name: SkirmishMatchStats
     Description: Records the events taking place in a Fight for later review
 */
-class MatchStats {
+class SkirmishMatchStats {
     /*
         Method Name: constructor
         Method Parameters: None
@@ -22,7 +22,7 @@ class MatchStats {
     /*
         Method Name: reset
         Method Parameters: None
-        Method Description: Initializes an instance of MatchStats
+        Method Description: Initializes an instance of SkirmishMatchStats
         Method Return: void
     */
     reset(){
@@ -57,7 +57,7 @@ class MatchStats {
         Method Return: String
     */
     getWinnerColour(){
-        return MatchStats.getTeamNameColour(getProperAdjective(this.winner));
+        return SkirmishMatchStats.getTeamNameColour(getProperAdjective(this.winner));
     }
 
     /*
@@ -144,8 +144,8 @@ class MatchStats {
         let winnerText = "Winner: " + this.winner;
         // Make winner text
         Menu.makeText(winnerText, this.getWinnerColour(), Math.floor(getScreenWidth()/2), Math.floor(getScreenHeight() * 0.9), Math.floor(getScreenWidth()*0.70), Math.floor(getScreenHeight()/4), "center", "hanging");
-        Menu.makeText(this.britishText, MatchStats.getTeamNameColour(getProperAdjective("British")), 0, Math.floor(getScreenHeight()*2/3), Math.floor(getScreenWidth()/2), Math.floor(getScreenHeight()*2/3), "left", "middle");
-        Menu.makeText(this.americanText, MatchStats.getTeamNameColour(getProperAdjective("Americans")), Math.floor(getScreenWidth()/2), Math.floor(getScreenHeight()*2/3), Math.floor(getScreenWidth()/2), Math.floor(getScreenHeight()*2/3), "left", "middle");
+        Menu.makeText(this.britishText, SkirmishMatchStats.getTeamNameColour(getProperAdjective("British")), 0, Math.floor(getScreenHeight()*2/3), Math.floor(getScreenWidth()/2), Math.floor(getScreenHeight()*2/3), "left", "middle");
+        Menu.makeText(this.americanText, SkirmishMatchStats.getTeamNameColour(getProperAdjective("Americans")), Math.floor(getScreenWidth()/2), Math.floor(getScreenHeight()*2/3), Math.floor(getScreenWidth()/2), Math.floor(getScreenHeight()*2/3), "left", "middle");
     }
 
     displayKillFeed(){
@@ -165,8 +165,8 @@ class MatchStats {
             //console.log(RETRO_GAME_DATA["character_class_to_team_name"][killerClass], RETRO_GAME_DATA["character_class_to_team_name"][victimClass])
             let killerTeam = getProperAdjective(RETRO_GAME_DATA["character_class_to_team_name"][killerClass]);
             let victimTeam = getProperAdjective(RETRO_GAME_DATA["character_class_to_team_name"][victimClass]);
-            let killerTeamColour = Colour.fromCode(MatchStats.getTeamNameColour(killerTeam));
-            let victimTeamColour = Colour.fromCode(MatchStats.getTeamNameColour(victimTeam));
+            let killerTeamColour = Colour.fromCode(SkirmishMatchStats.getTeamNameColour(killerTeam));
+            let victimTeamColour = Colour.fromCode(SkirmishMatchStats.getTeamNameColour(victimTeam));
             let victimTextLength = Math.ceil(measureTextWidth(victimClass));
             let killerTextLength = Math.ceil(measureTextWidth(killerClass));
             let killTextLength = Math.ceil(measureTextWidth(killText));
@@ -234,7 +234,7 @@ class MatchStats {
         Method Name: fromJSON
         Method Parameters:
             statsObject:
-                A Json representation of an MatchStats instance
+                A Json representation of an SkirmishMatchStats instance
         Method Description: Load instance details from a JSON object
         Method Return: void
     */
@@ -250,5 +250,5 @@ class MatchStats {
 
 // If using NodeJS then export the lock class
 if (typeof window === "undefined"){
-    module.exports = MatchStats;
+    module.exports = SkirmishMatchStats;
 }

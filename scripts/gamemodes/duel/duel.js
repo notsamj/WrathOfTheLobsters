@@ -1,5 +1,5 @@
-class TurnBasedSkirmish extends Gamemode {
-    constructor(britishAreHuman=true, americansAreHuman=true, aiSeed=null){
+class Duel extends Gamemode {
+    constructor(gameIncludesAHuman=false, aiSeed=null){
         super();
 
         this.aiRandom = null;
@@ -7,97 +7,35 @@ class TurnBasedSkirmish extends Gamemode {
             this.aiRandom = new SeededRandomizer(aiSeed);
         }
 
-        this.britishTroops = [];
-        this.americanTroops = [];
-        this.stats = new SkirmishMatchStats();
+        this.participants = [];
+
+        this.stats = new DuelMatchStats();
         this.random = null; // Declare
-        this.brains = {
-            "American": null,
-            "British": null
-        }
+
         let scene = this.getScene();
         this.eventHandler.addHandler("kill", (killObject) => {
             scene.addExpiringVisual(BloodPool.create(scene.getCenterXOfTile(killObject["tile_x"]), scene.getCenterYOfTile(killObject["tile_y"])));
-            let victimClass = killObject["victim_class"];
-            let killerClass = killObject["killer_class"];
-            this.stats.addKill(victimClass, killerClass);
         });
 
         this.eventHandler.addHandler("gun_shot", (eventObj) => {
             scene.addExpiringVisual(SmokeCloud.create(eventObj["x"], eventObj["y"]));
             SOUND_MANAGER.play("gunshot", eventObj["x"], eventObj["y"]);
-            // Inform the team that is not moving of a shot
-            let otherTeamName = this.getOtherTeam(this.gameState["turn"]);
-            if (this.isTeamBot(otherTeamName)){
-                this.brains[otherTeamName].informOfShot(eventObj["shooter_tile_x"], eventObj["shooter_tile_y"]);
-            }
         });
 
         this.eventHandler.addHandler("sword_swing", (eventObj) => {
             SOUND_MANAGER.play(eventObj["associated_sound_name"], eventObj["x"], eventObj["y"]);
         });
 
-        this.eventHandler.addHandler("change_tile", (tileChangeDetailsObject) => {
-            // Note: Assume troop has already moved (though visibility hasn't been updated yet :)
-            let troopTeam = tileChangeDetailsObject["team"];
-            let otherTeam = this.getOtherTeam(troopTeam);
-            let otherTeamIsABotTeam = this.gameState["operation_type"][getProperAdjective(otherTeam)] === "bot";
-            //console.log("Update visiblity!!!")
-            if (otherTeamIsABotTeam){
-                let troopID = tileChangeDetailsObject["troop_id"];
-                let previouslyVisible = this.isVisibleToTeam(otherTeam, troopTeam, troopID);
-
-                // Update visiblity
-                this.checkAndUpdateTeamVisibility()
-
-                let nowVisible = this.isVisibleToTeam(otherTeam, troopTeam, troopID);
-                // If went from visible -> non-visible
-                if (!nowVisible && previouslyVisible){
-                    this.getTeamBrain(otherTeam).troopVanishes(troopID, tileChangeDetailsObject["health"], tileChangeDetailsObject["new_tile_x"], tileChangeDetailsObject["new_tile_y"]);
-                }
-            }else{
-                // Update visiblity
-                this.checkAndUpdateTeamVisibility()
-            }
-        });
-
-        this.britishCamera = new SkirmishCamera(this, getProperAdjective("British"));
-        this.americanCamera = new SkirmishCamera(this, getProperAdjective("American"));
-        this.neutralCamera = new SkirmishCamera(this, "neutral");
-
-        // A camera that needs to be ticked by the game instance
-        this.cameraToTick = null;
+        // TODO: Create DuelCamera class
+        this.camera = gameIncludesAHuman ? new DuelCamera() : null;
 
         this.gameOver = false;
-        this.britishSpawn = null;
-        this.americanSpawn = null;
-
-        this.gameState = null;
-        this.initializeGameState(britishAreHuman, americansAreHuman);
-
-        this.rockHitboxes = [];
+        this.spawn1 = null;
+        this.spawn2 = null;
 
         this.startUpLock = new Lock();
         this.startUpLock.lock();
         this.startUp();
-    }
-
-    isTeamBot(teamName){
-        return this.gameState["operation_type"][getProperAdjective(teamName)] === "bot";
-    }
-
-    getTroop(teamName, troopID){
-        let roster = this.getTeamRosterFromName(teamName);
-        for (let troop of roster){
-            if (troop.getID() == troopID){
-                return troop;
-            }
-        }
-        return null;
-    }
-
-    getTeamBrain(teamName){
-        return this.brains[getProperAdjective(teamName)];
     }
 
     getEnemyVisibilityDistance(){
@@ -108,449 +46,13 @@ class TurnBasedSkirmish extends Gamemode {
         return this.aiRandom;
     }
 
-    getOtherTeam(teamNameString){
-        if (getProperAdjective(teamNameString) == getProperAdjective("American")){
-            return getProperAdjective("British");
-        }
-        return getProperAdjective("American");
-    }
-
-    getTeamCamera(teamNameString){
-        if (getProperAdjective(teamNameString) == getProperAdjective("American")){
-            return this.americanCamera;
-        }
-        return this.britishCamera;
-    }
-
     isBotGame(){
-        return this.gameState["operation_type"]["British"] === "bot" && this.gameState["operation_type"]["American"] === "bot";
-    }
-
-    getAllTroops(){
-        return appendLists(this.britishTroops, this.americanTroops);
-    }
-
-    getSpawnObjectByName(teamNameString){
-        let teamNameConverted = getProperAdjective(teamNameString);
-        if (teamNameConverted == "American"){
-            return this.americanSpawn;
-        }
-        return this.britishSpawn;
-    }
-
-    getOfficerCommand(troop){
-        let officer = this.getTroopOfficer(troop);
-
-        // No officer for this troop
-        if (officer == null){ return null; }
-
-        let selectedItem = officer.getSelectedItem();
-
-        // If the officer is holding something
-        if (selectedItem != null){ 
-            // If the officer is holding a point to move or point to shoot tool
-            if (selectedItem instanceof PointToMove || selectedItem instanceof PointToShoot){
-                return selectedItem.getCommandForTroop(troop);
-            }
-        }
-
-        // Otherwise, no command
-        return null;
-    }
-
-    getTroopOfficer(troop){
-        let teamRoster = this.getLivingTeamRosterFromName(troop.getTeamName());
-        // Since one officer per team, an officer cannot be selected
-        if (troop.getRankName() === "officer"){
-            return null;
-        }
-        // Loop through all the troops on this troop's team to find the officer
-        for (let otherTroop of teamRoster){
-            // Skip yourself Note: May not be needed
-            if (otherTroop.is(troop)){ continue; }
-            // Note: Assuming only 1 officer
-            if (otherTroop.getRankName() === "officer"){
-                return otherTroop;
-            }
-        }
-        // Officer not found
-        return null;
-    }
-
-    isTroopSelected(troop){
-        let officer = this.getTroopOfficer(troop);
-
-        // If no officer found then return false, not selected
-        if (officer === null){ return false; }
-
-        // If officer is not making a move then return false
-        if (!officer.isMakingAMove()){ return false; }
-
-        let selectedItem = officer.getSelectedItem();
-
-        // If the officer is holding something
-        if (selectedItem != null){ 
-            // If the officer is holding a point to move or point to shoot tool
-            if (selectedItem instanceof PointToMove || selectedItem instanceof PointToShoot){
-                let selectedTroops = selectedItem.getSelectedTroops();
-                // Check all of the officer's selected troops to see if 'troop' is on the list
-                for (let selectedTroop of selectedTroops){
-                    if (selectedTroop.is(troop)){
-                        return true;
-                    }
-                }
-            }
-        }
-
-        // Troop isn't selected
-        return false;
-    }
-
-    getTurnCounter(){
-        return this.gameState["turn_counter"];
-    }
-
-    isVisibleToTeam(observerTeamName, observedTeamName, characterID){
-        if (observerTeamName === "neutral"){
-            return true;
-        }
-        // Note: Assumed team1 != team2
-        let teamVisibilityJSONPerspective = this.gameState["team_visibility"][observerTeamName];
-
-        // Check all ids
-        let ids = teamVisibilityJSONPerspective["visible_enemy_character_ids"];
-        for (let id of ids){
-            if (id == characterID){
-                return true;
-            }
-        }
-        return false;
-    }
-
-    checkAndUpdateTeamVisibility(){
-        let teamVisibilityJSON = this.gameState["team_visibility"];
-        let getLastRecordedPosition = (troop) => {
-            let teamName = troop.getTeamName();
-            let troopID = troop.getID();
-            for (let troopPositionObject of teamVisibilityJSON[teamName]["last_updated_positions"]){
-                if (troopPositionObject["id"] === troopID){
-                    return troopPositionObject;
-                }
-            }
-            return null;
-        }
-
-        let updatedTroops = {
-            "American": [],
-            "British": []
-        };
-
-        //console.log("New visiblity calculation")
-        let updateTroops = (teamName) => {
-            let troops = this.getTeamRosterFromName(teamName);
-            for (let troop of troops){
-                let id = troop.getID();
-                if (troop.isDead()){
-                    updatedTroops[teamName].push({"id": id, "dead": true});
-                    continue;
-                }
-                let positionObject = getLastRecordedPosition(troop);
-                let tileX = troop.getTileX();
-                let tileY = troop.getTileY();
-                let updatePosition = positionObject === null || positionObject["tile_x"] != tileX || positionObject["tile_y"] != tileY;
-                
-                if (!updatePosition){ continue; }
-                
-                if (positionObject === null){
-                    positionObject = {"id": id};
-                    teamVisibilityJSON[teamName]["last_updated_positions"].push(positionObject);
-                }
-                positionObject["tile_x"] = tileX;
-                positionObject["tile_y"] = tileY;
-                positionObject["dead"] = false;
-                updatedTroops[teamName].push(positionObject);
-            }
-        }
-
-        // Check for changes in the last updated positions
-        updateTroops("British");
-        updateTroops("American");
-
-        let noUpdates = updatedTroops["British"].length === 0 && updatedTroops["American"].length === 0;
-
-        // Save time by doing nothing if no updates
-        if (noUpdates){ return; }
-
-        let getRecordedSightsForTroop = (troop) => {
-            let teamName = troop.getTeamName();
-            let troopID = troop.getID();
-            for (let troopSightObject of teamVisibilityJSON[teamName]["troop_sightings"]){
-                if (troopSightObject["id"] === troopID){
-                    return troopSightObject;
-                }
-            }
-            return null;
-        }
-        /*
-            For each british troop
-                for each americanTroopUPDATED
-                    if americanTroop in sightList of birtsihTroop and no longer visible to british troop
-                        remove from sight list
-            
-            Same for american troops
-
-            Recomute sight list for each
-
-        */
-
-        let updateSightings = (teamName) => {
-            let troops = this.getLivingTeamRosterFromName(teamName);
-            let otherTeam = this.getOtherTeam(teamName);
-            let changesMade = false;
-
-            let updateSight = (troop, sightObject, updateObject) => {
-                let otherTeamTroopID = updateObject["id"];
-                let otherTroopTileX = updateObject["tile_x"];
-                let otherTroopTileY = updateObject["tile_y"];
-                let index = getIndexOfElementInArray(sightObject["troops_in_sight"], otherTeamTroopID);
-                // If updated opposite team troop isn't sighted by this friendly troop
-                if (index === -1){
-                    // Check if it is visible (must be alive)
-                    if (!updateObject["dead"] && troop.canSeeTileEntityAtTile(otherTroopTileX, otherTroopTileY)){
-                        sightObject["troops_in_sight"].push(otherTeamTroopID);
-                        return true;
-                    }
-                }
-                // Else if it is present
-                else{
-                    // Check if it is still visible (and alive)
-                    let canBeSeenStill = !updateObject["dead"] && troop.canSeeTileEntityAtTile(otherTroopTileX, otherTroopTileY);
-                    // If it can no longer be seen by this troop, then remove it
-                    if (!canBeSeenStill){
-                        // Swap indices and shift to remove
-                        arraySwap(sightObject["troops_in_sight"], 0, index);
-                        sightObject["troops_in_sight"].shift();
-                        return true;
-                    }
-                }
-                return false;
-            }
-
-
-            // Update what troops on team A can see UPDATED troops on team B
-            for (let troop of troops){
-                let sightObject = getRecordedSightsForTroop(troop);
-                let id = troop.getID();
-                if (sightObject === null){
-                    sightObject = {"id": id, "troops_in_sight": []};
-                    teamVisibilityJSON[teamName]["troop_sightings"].push(sightObject);
-                }
-                // Loop through opposite team updated troops to maybe remove from sight if no longer visible
-                for (let updateObject of updatedTroops[otherTeam]){
-                    let newChange = updateSight(troop, sightObject, updateObject);
-                    if (newChange){
-                        changesMade = true;
-                    }
-                }
-            }
-
-            // Loop through updated troops specifically can see what enemy troops they can see now that they've moved
-            let otherTeamRoster = this.getLivingTeamRosterFromName(otherTeam);
-            for (let updatedTroop of updatedTroops[teamName]){
-                let troop = this.getTroop(teamName, updatedTroop["id"]);
-                let sightObject = getRecordedSightsForTroop(troop);
-                let id = troop.getID();
-                if (sightObject === null){
-                    sightObject = {"id": id, "troops_in_sight": []};
-                    teamVisibilityJSON[teamName]["troop_sightings"].push(sightObject);
-                }
-                // Change made is it's dead
-                if (updatedTroop["dead"]){ return true; }
-                
-                // Loop through opposite team troops to maybe remove from sight if no longer visible
-                for (let enemy of otherTeamRoster){
-                    let newChange = updateSight(troop, sightObject, enemy.getID(), enemy.getTileX(), enemy.getTileY());
-                    if (newChange){
-                        changesMade = true;
-                    }
-                }
-            }
-
-            return changesMade;
-        }
-        let britishSightingsUpdated = updateSightings("British");
-        let americanSightingsUpdated = updateSightings("American");
-
-        // Don't continue if nothing to update
-        if (!britishSightingsUpdated && !americanSightingsUpdated){
-            return;
-        }
-
-        let consolidateVisibility = (teamName) => {
-            let troops = this.getLivingTeamRosterFromName(teamName);
-            let newList = [];
-            // Note: Full recalculation
-
-            // Loop through all troops and add added
-            for (let troop of troops){
-                let sightObject = getRecordedSightsForTroop(troop);
-                for (let id of sightObject["troops_in_sight"]){
-                    //console.log("Adding", id)
-                    addToArraySet(newList, id);
-                }
-            }
-            teamVisibilityJSON[teamName]["visible_enemy_character_ids"] = newList;
-        }
-
-        // Consolidate the data for simple checking
-        if (britishSightingsUpdated){
-            consolidateVisibility("British");
-        }
-        if (americanSightingsUpdated){
-            consolidateVisibility("American");
-        }
-    }
-
-    getTeamRosterFromName(teamName){
-        let teamProperAdjective = getProperAdjective(teamName);
-        if (teamProperAdjective == "British"){
-            return this.britishTroops;
-        }
-        return this.americanTroops;
-    }
-
-    getLivingTeamRosterFromName(teamName){
-        let roster = this.getTeamRosterFromName(teamName);
-        let livingRoster = [];
-        for (let troop of roster){
-            if (troop.isAlive()){
-                livingRoster.push(troop);
-            }
-        }
-        return livingRoster;
+        return this.camera != null;
     }
 
     gameTick(){
         if (this.isOver()){ return; }
         this.makeMove();
-    }
-
-    updateCameraToNewMover(currentlyMovingCharacter){
-        // If this game is bot vs bot then update the neutral camera
-        if (this.isBotGame()){
-            this.neutralCamera.focusOn(currentlyMovingCharacter);
-            this.cameraToTick = this.neutralCamera;
-        }
-        // Else if the team of the now moving character is human then focus on the character
-        else if (this.gameState["operation_type"][getProperAdjective(currentlyMovingCharacter.getTeamName())] === "human"){
-            this.scene.setFocusedEntity(currentlyMovingCharacter);
-            this.cameraToTick = null;
-        }
-        // Else the team of the now moving character is a bot, the other team must be human, set the focus on the human team's camera
-        else{
-            let camera = this.getTeamCamera(this.getOtherTeam(currentlyMovingCharacter.getTeamName()));
-            let cameraTeam = camera.getTeamName();
-            this.cameraToTick = camera;
-            this.scene.setFocusedEntity(camera);
-            // If visible focus on this one
-            if (this.isVisibleToTeam(camera.getTeamName(), currentlyMovingCharacter.getTeamName(), currentlyMovingCharacter.getID())){
-                camera.focusOn(currentlyMovingCharacter);
-            }
-        }
-    }
-
-    makeMove(){
-        // Assuming game still running
-        let currentTeamName = this.gameState["turn"];
-        let teamRoster = currentTeamName == "British" ? this.britishTroops : this.americanTroops;
-
-        let currentlyMovingCharacter = null;
-        let currentlyMovingCharacterIndex = this.gameState["troop_to_move_index"][currentTeamName];
-        let livingCount = 0;
-        for (let troop of teamRoster){
-            if (troop.isAlive()){
-                livingCount++;
-            }
-        }
-
-        // Adjust the index of the currently moving character based on how many are alive on the team
-        if (currentlyMovingCharacterIndex >= livingCount){
-            currentlyMovingCharacterIndex = 0;
-        }
-
-        let characterIndex = 0;
-        for (let troop of teamRoster){
-            if (troop.isAlive()){
-                if (characterIndex === currentlyMovingCharacterIndex){
-                    currentlyMovingCharacter = troop;
-                    break;
-                }
-                characterIndex++;
-            }
-        }
-
-        // Now the currently moving troop is selected
-        if (!currentlyMovingCharacter.isMakingAMove() && !currentlyMovingCharacter.isMoveDone()){
-            currentlyMovingCharacter.indicateTurn();
-            this.updateCameraToNewMover(currentlyMovingCharacter);
-            return;
-        }
-
-        // currentlyMovingCharacter is making a move
-
-        // If currentlyMovingCharacter is still making the move do nothing
-        if (!currentlyMovingCharacter.isMoveDone()){
-            if (GENERAL_DEBUGGER.getOrCreateSwitch("who_is_moving").check()){
-                console.log("Waiting for move from", currentlyMovingCharacter);
-            }
-            return;
-        }
-
-        // If currentlyMovingCharacter is done their move
-        currentlyMovingCharacter.acceptMoveDone();
-
-        // Go to next index
-        this.gameState["troop_to_move_index"][currentTeamName] = (currentlyMovingCharacterIndex + 1) % livingCount;
-
-        // Switch teams
-        this.gameState["turn"] = this.gameState["turn"] == "British" ? "American" : "British";
-
-        // Increase turn counter (used for simplifying some operations)
-        this.gameState["turn_counter"] += 1;
-
-        // Check if over
-        this.checkWin();
-        if (this.isOver()){ return; }
-
-        // Call again (state changed so its not an infinite loop)
-        this.makeMove();
-    }
-
-    initializeGameState(britishAreHuman, americansAreHuman){
-        this.gameState = {
-            "turn": "British",
-            "operation_type": {
-                "British": (britishAreHuman ? "human" : "bot"),
-                "American": (americansAreHuman ? "human" : "bot")
-            },
-            "troop_to_move_index": {
-                "British": 0,
-                "American": 0
-            },
-            "turn_counter": 0,
-            "team_visibility": {
-                "British": {
-                    "visible_enemy_character_ids": [],
-                    "troop_sightings": [],
-                    "last_updated_positions": []
-                },
-                "American": {
-                    "visible_enemy_character_ids": [],
-                    "troop_sightings": [],
-                    "last_updated_positions": []
-                },
-            }
-        }
     }
 
     async startUp(){
@@ -571,48 +73,25 @@ class TurnBasedSkirmish extends Gamemode {
     }
 
     checkWin(){
-        let livingAmericans = false;
-        for (let american of this.americanTroops){
-            if (american.isAlive()){
-                livingAmericans = true;
-                break;
+        let aliveCount = 0;
+        let winnerID = null;
+        for (let participant of this.participants){
+            if (participant.isAlive()){
+                winnerID = participant.getID(); // Save participant ID as winner (assumed the only one alive)
+                // If there is more than 1 alive (counted so far) then the game is not won
+                if (++aliveCount > 1){
+                    return;
+                }
             }
         }
-        if (!livingAmericans){
-            this.gameOver = true;
-            this.stats.setWinner("British");
-            return;
-        }
-        let livingBritish = false;
-        for (let brit of this.britishTroops){
-            if (brit.isAlive()){
-                livingBritish = true;
-                break;
-            }
-        }
-        if (!livingBritish){
-            this.gameOver = true;
-            this.stats.setWinner("Americans");
-        }
+
+        // Alive count <= 1 but should be 1 because no way for both to die in the same tick?
+        this.stats.setWinner(winnerID);
+        this.gameOver = true;
     }
 
     spawnTroops(){
-        let officers = [];
-        let privates = [];
-
-        let britishAreHuman = this.gameState["operation_type"]["British"] === "human";
-        let americansAreHuman = this.gameState["operation_type"]["American"] === "human";
-
-        // Create brains if needed
-        
-        if (!britishAreHuman){
-            this.brains["British"] = new BotSharedBrain(this, "British");
-        }
-
-        if (!americansAreHuman){
-            this.brains["American"] = new BotSharedBrain(this, "American");
-        }
-
+        // TODO:
         // Create officers
         for (let i = 0; i < RETRO_GAME_DATA["skirmish"]["game_play"]["officer_count"]; i++){
             let britishOfficer;
@@ -721,6 +200,7 @@ class TurnBasedSkirmish extends Gamemode {
         this.checkAndUpdateTeamVisibility();
     }
 
+    // Note: I stole this from Skirmish
     async generateTiles(){
         let scene = this.getScene();
         let size = RETRO_GAME_DATA["skirmish"]["area_size"];
@@ -1152,6 +632,7 @@ class TurnBasedSkirmish extends Gamemode {
         createPath(americanSpawn, spawns[1]);
         createPath(spawns[0], spawns[1]);
 
+        // TODO: Adjust this code
         this.britishSpawn = {
             "x": britishSpawn[0],
             "y": britishSpawn[1]
@@ -1161,63 +642,20 @@ class TurnBasedSkirmish extends Gamemode {
             "x": americanSpawn[0],
             "y": americanSpawn[1]
         }
-
-        // Add rock hitboxes
-        for (let y = 0; y < size; y++){
-            for (let x = 0; x < size; x++){
-                let tileAtLocation = this.scene.getVisualTileAtLocation(x, y);
-                if (!(tileAtLocation.getMaterial()["name"] === "rock_on_grass")){
-                    continue;
-                }
-                this.rockHitboxes.push(new RockHitbox(x,y));
-            }
-        }
-    }
-
-    getSpawnOfTeam(teamNameString){
-        if (getProperAdjective(teamNameString) === "British"){
-            return this.britishSpawn;
-        }
-        return this.americanSpawn;
-    }
-
-    getRockHitboxes(){
-        return this.rockHitboxes;
     }
 
     display(){
         if (this.startUpLock.isLocked()){ return; }
         this.scene.display();
-        this.displayRockHealthBars();
         this.stats.display();
-    }
-
-    displayRockHealthBars(){
-        let lX = this.scene.getLX();
-        let bY = this.scene.getBY();
-        for (let rock of this.rockHitboxes){
-            let displayX = this.scene.getDisplayXFromTileX(lX, rock.getTileX());
-            let displayY = this.scene.getDisplayYFromTileY(bY, rock.getTileY());
-            rock.display(displayX, displayY);            
-        }
     }
 
     tick(){
         if (this.startUpLock.isLocked()){ return; }
         this.gameTick();
-        if (this.cameraToTick != null){
-            this.cameraToTick.tick();
+        if (this.camera != null){
+            this.camera.tick();
         }
         this.scene.tick();
-    }
-
-    static async loadImages(){
-        let folderURL = "skirmish/item/special/";
-        for (let specialItemName of RETRO_GAME_DATA["skirmish"]["special_item_names"]){
-            // Do not load if already exists
-            if (objectHasKey(IMAGES, specialItemName)){ continue; }
-            //console.log("Loading", specialItemName);
-            await loadToImages(specialItemName, folderURL + specialItemName + "/");
-        }
     }
 }

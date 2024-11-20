@@ -18,6 +18,10 @@ class Gamemode {
         this.eventHandler = new NSEventHandler();
     }
 
+    getCurrentTick(){
+        return TICK_SCHEDULER.getNumTicks();
+    }
+
     getEventHandler(){
         return this.eventHandler;
     }

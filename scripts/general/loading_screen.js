@@ -1,0 +1,267 @@
+/*
+    Class Name: LoadingScreen
+    Description: TODO
+*/
+class LoadingScreen {
+    /*
+        Method Name: constructor
+        Method Parameters: None
+        Method Description: Constructor
+        Method Return: Constructor
+    */
+    constructor(){
+        this.meshes = new NotSamLinkedList();
+        this.xVelocity = randomFloatBetween(RETRO_GAME_DATA["loading_screen"]["max_x_velocity"] * -1, RETRO_GAME_DATA["loading_screen"]["max_x_velocity"]);
+        this.yVelocity = randomFloatBetween(RETRO_GAME_DATA["loading_screen"]["max_y_velocity"] * -1, RETRO_GAME_DATA["loading_screen"]["max_y_velocity"]);
+        this.x = randomFloatBetween(RETRO_GAME_DATA["loading_screen"]["origin_x_range_size"] * -1, RETRO_GAME_DATA["loading_screen"]["origin_x_range_size"]);
+        this.y = randomFloatBetween(RETRO_GAME_DATA["loading_screen"]["origin_y_range_size"] * -1, RETRO_GAME_DATA["loading_screen"]["origin_y_range_size"]);
+
+        //this.x = 0;
+        //this.y = 0;
+    }
+
+    /*
+        Method Name: display
+        Method Parameters:
+        Method Description: Displays the sky and meshs
+        Method Return: void
+    */
+    display(){
+        this.x += this.xVelocity;
+        this.y += this.yVelocity
+        this.displayMeshes(this.x, this.y);
+    }
+
+    /*
+        Method Name: display
+        Method Parameters:
+            lX:
+                The bottom left x displayed on the canvas relative to the focused entity
+            bY:
+                The bottom left y displayed on the canvas relative to the focused entity
+        Method Description: Displays meshs
+        Method Return: void
+    */
+    displayMeshes(lX, bY){
+        let rX = lX + getZoomedScreenWidth() - 1;
+        let tY = bY + getZoomedScreenHeight() - 1;
+
+        let leftMeshX = Math.floor(lX / RETRO_GAME_DATA["loading_screen"]["mesh_width"]);
+        let rightMeshX = Math.floor(rX / RETRO_GAME_DATA["loading_screen"]["mesh_width"]);
+        let bottomMeshY = Math.floor(bY / RETRO_GAME_DATA["loading_screen"]["mesh_height"]);
+        let topMeshY = Math.floor(tY / RETRO_GAME_DATA["loading_screen"]["mesh_height"]);
+
+        // Loop though all meshs and display
+        for (let meshX = leftMeshX; meshX <= rightMeshX; meshX++){
+            for (let meshY = bottomMeshY; meshY <= topMeshY; meshY++){
+                this.getMesh(meshX, meshY).display(lX, bY);
+            }
+        }
+        // Save space by deleting far away mesh meshs
+        this.deleteFarMeshes(lX, bY);
+    }
+
+    /*
+        Method Name: getMesh
+        Method Parameters: 
+    
+        Method Description: Finds a mesh mesh with the given identifiers and return it
+        Method Return: Mesh
+    */
+    getMesh(meshX, meshY){
+        let foundMesh = null;
+        // Find the Tile Cluster if it exists
+        for (let [mesh, meshIndex] of this.meshes){
+            if (mesh.getQuadrantX() == meshX && mesh.getQuadrantY() == meshY){
+                foundMesh = mesh;
+                break;
+            }
+        }
+        // If Tile Cluster do not exist, create it
+        if (foundMesh == null){
+            foundMesh = new Mesh(meshX, meshY, this);
+            this.meshes.append(foundMesh);
+        }
+        return foundMesh;
+    }
+
+    /*
+        Method Name: deleteFarMeshes
+        Method Parameters:
+            lX:
+                The bottom left x displayed on the canvas relative to the focused entity
+            bY:
+                The bottom left y displayed on the canvas relative to the focused entity
+        Method Description: Deletes all meshs that are a sufficient distance from the area currently being shown on screen
+        Method Return: void
+    */
+    deleteFarMeshes(lX, bY){
+        let cX = lX + 0.5 * getZoomedScreenWidth();
+        let cY = bY + 0.5 * getZoomedScreenHeight();
+        for (let i = this.meshes.getLength() - 1; i >= 0; i--){
+            let mesh = this.meshes.get(i);
+            let distance = Math.sqrt(Math.pow(mesh.getQuadrantX() * RETRO_GAME_DATA["loading_screen"]["mesh_width"] - cX, 2) + Math.pow(mesh.getQuadrantY() * RETRO_GAME_DATA["loading_screen"]["mesh_height"] - cY, 2));
+            // Delete meshs more than 2 times max(width, height) away from the center of the screen
+            if (distance > RETRO_GAME_DATA["loading_screen"]["far_away_multiplier"] * Math.max(RETRO_GAME_DATA["loading_screen"]["mesh_width"], RETRO_GAME_DATA["loading_screen"]["mesh_height"])){
+                this.meshes.remove(i);
+            }
+        }
+    }
+
+
+}
+
+/*
+    Class Name: Mesh
+    Description: A collection of mesh objects in a x, y region
+*/
+class Mesh {
+    constructor(meshX, meshY, backgroundManager){
+        this.backgroundManager = backgroundManager;
+        this.meshX = meshX;
+        this.meshY = meshY;
+        this.tiles = [];
+        this.createTiles();
+    }
+
+    /*
+        Method Name: getQuadrantX
+        Method Parameters: None
+        Method Description: Getter
+        Method Return: Integer
+    */
+    getQuadrantX(){
+        return this.meshX;
+    }
+
+    /*
+        Method Name: getQuadrantY
+        Method Parameters: None
+        Method Description: Getter
+        Method Return: Integer
+    */
+    getQuadrantY(){
+        return this.meshY;
+    }
+
+    /*
+        Method Name: createTiles
+        Method Parameters: None
+        Method Description: Creates many mesh objects
+        Method Return: void
+    */
+    createTiles(){
+        let meshWidth = RETRO_GAME_DATA["loading_screen"]["mesh_width"];
+        let meshHeight = RETRO_GAME_DATA["loading_screen"]["mesh_height"];
+        let tileWidth = RETRO_GAME_DATA["loading_screen"]["tile_width"];
+        let tileHeight = RETRO_GAME_DATA["loading_screen"]["tile_height"];
+        let leftX = this.meshX * meshWidth;
+        let bottomY = this.meshY * meshHeight;
+        
+        let topLeftMeshColour = this.getColourOfQuadrant(this.meshX - 1, this.meshY + 1);
+        let topMeshColour = this.getColourOfQuadrant(this.meshX, this.meshY + 1);
+        let topRightMeshColour = this.getColourOfQuadrant(this.meshX + 1, this.meshY + 1);
+
+        let middleLeftMeshColour = this.getColourOfQuadrant(this.meshX - 1, this.meshY);
+        let middleMeshColour = this.getColourOfQuadrant(this.meshX, this.meshY);
+        let middleRightMeshColour = this.getColourOfQuadrant(this.meshX + 1, this.meshY);
+
+        let bottomLeftMeshColour = this.getColourOfQuadrant(this.meshX - 1, this.meshY - 1);
+        let bottomMeshColour = this.getColourOfQuadrant(this.meshX, this.meshY - 1);
+        let bottomRightMeshColour = this.getColourOfQuadrant(this.meshX + 1, this.meshY - 1);
+
+        let colours = [
+            [topLeftMeshColour, topMeshColour, topRightMeshColour],
+            [middleLeftMeshColour, middleMeshColour, middleRightMeshColour],
+            [bottomLeftMeshColour, bottomMeshColour, bottomRightMeshColour]
+        ]
+
+        // Blend with colours of other meshes
+
+        // Create Tiles
+        let middleX = leftX + meshWidth/2;
+        let middleY = bottomY + meshHeight/2;
+        for (let x = leftX; x < leftX + meshWidth; x += tileWidth){
+            for (let y = bottomY; y < bottomY + meshHeight; y += tileHeight){
+                let colourY = ((y - middleY) / meshHeight) + 1;
+                let colourYFloor = Math.floor(colourY);
+                let colourYFloorProportion = colourY - colourYFloor;
+                let colourYCeil = Math.ceil(colourY);
+                let colourYCeilProportion = 1 - colourYFloorProportion;
+
+                let colourX = ((x - middleX) / meshWidth) + 1;
+                let colourXFloor = Math.floor(colourX);
+                let colourXFloorProportion = colourX - colourXFloor;
+                let colourXCeil = Math.ceil(colourX);
+                let colourXCeilProportion = 1 - colourXFloorProportion;
+                let red = colours[colourYCeil][colourXCeil].getRed() * colourYCeilProportion * colourXCeilProportion + colours[colourYCeil][colourXFloor].getRed() * colourYCeilProportion * colourXFloorProportion + colours[colourYFloor][colourXCeil].getRed() * colourYFloorProportion * colourXCeilProportion + colours[colourYFloor][colourXFloor].getRed() * colourYFloorProportion * colourXFloorProportion;
+                let green = colours[colourYCeil][colourXCeil].getGreen() * colourYCeilProportion * colourXCeilProportion + colours[colourYCeil][colourXFloor].getGreen() * colourYCeilProportion * colourXFloorProportion + colours[colourYFloor][colourXCeil].getGreen() * colourYFloorProportion * colourXCeilProportion + colours[colourYFloor][colourXFloor].getGreen() * colourYFloorProportion * colourXFloorProportion;
+                let blue = colours[colourYCeil][colourXCeil].getBlue() * colourYCeilProportion * colourXCeilProportion + colours[colourYCeil][colourXFloor].getBlue() * colourYCeilProportion * colourXFloorProportion + colours[colourYFloor][colourXCeil].getBlue() * colourYFloorProportion * colourXCeilProportion + colours[colourYFloor][colourXFloor].getBlue() * colourYFloorProportion * colourXFloorProportion;
+                let colour = new Colour(Math.floor(red), Math.floor(green), Math.floor(blue), 1);
+                this.tiles.push(new LSTile(x, y+tileHeight, tileWidth, tileHeight, colour));
+            }
+        }
+    }
+
+    getColourOfQuadrant(meshX, meshY){
+        let seed = meshX + 2 * meshY; // TODO: Come up with something better?
+        let random = new SeededRandomizer(seed);
+        let colour = new Colour(random.getIntInRangeInclusive(0, 255), random.getIntInRangeInclusive(0, 255), random.getIntInRangeInclusive(0, 255), 1);
+        return colour;
+    }
+
+    /*
+        Method Name: display
+        Method Parameters:
+            lX:
+                The bottom left x displayed on the canvas relative to the focused entity
+            bY:
+                The bottom left y displayed on the canvas relative to the focused entity
+        Method Description: Displays all the meshs in the mesh
+        Method Return: void
+    */
+    display(lX, bY){
+        for (let tile of this.tiles){
+            tile.display(lX, bY);
+        }
+    }
+}
+
+/*
+    Class Name: LSTile
+    Description: A collection of circles.
+*/
+class LSTile {
+    constructor(x, y, tileWidth, tileHeight, colour){
+        this.x = x;
+        this.y = y;
+        this.tileWidth = tileWidth;
+        this.tileHeight = tileHeight;
+        this.colour = colour;
+    }
+
+    /*
+        Method Name: display
+        Method Parameters:
+            lX:
+                The bottom left x displayed on the canvas relative to the focused entity
+            bY:
+                The bottom left y displayed on the canvas relative to the focused entity
+        Method Description: Displays all the circles in the mesh.
+        Method Return: void
+    */
+    display(lX, bY){
+        let screenX = Math.floor(this.getDisplayX(this.x, lX));
+        let screenY = Math.floor(this.getDisplayY(this.y, bY));
+        // Display the circle
+        noStrokeRectangle(this.colour, screenX, screenY, this.tileWidth*gameZoom, this.tileHeight*gameZoom);
+    }
+
+    getDisplayX(centerX, lX){
+        return (centerX - lX) * gameZoom;
+    }
+
+    getDisplayY(centerY, bY){
+        return getCanvasHeight() - (centerY - bY) * gameZoom;
+    }
+}

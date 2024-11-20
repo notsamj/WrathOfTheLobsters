@@ -5,14 +5,25 @@ class Sword extends Item {
         this.player = objectHasKey(details, "player") ? details["player"] : null;
         
         this.swinging = false;
-        this.swingLock = new TickLock(RETRO_GAME_DATA["sword_data"][this.getModel()]["swing_time_ms"] / RETRO_GAME_DATA["general"]["ms_between_ticks"]);
+        this.swingStartTick = null;
+        this.swingLock = new TickLock(RETRO_GAME_DATA["sword_data"]["swords"][this.getModel()]["swing_time_ms"] / RETRO_GAME_DATA["general"]["ms_between_ticks"]);
         this.swingFacing = null;
 
         this.blocking = false;
+        this.blockStartTick = null;
     }
 
     startBlocking(){
         this.blocking = true;
+        this.blockStartTick = this.getPlayer.getGamemode().getCurrentTick();
+    }
+
+    getSwingStartTick(){
+        return this.swingStartTick;
+    }
+
+    getBlockStartTick(){
+        return this.blockStartTick;
     }
 
     getPlayer(){
@@ -31,11 +42,11 @@ class Sword extends Item {
 
     actOnDecisions(){
         let tryingToSwing = this.getDecision("trying_to_swing_sword");
-        if (tryingToSwing && !this.isSwinging() && !this.isBlocking()){
+        if (tryingToSwing && !this.isSwinging() && !this.isBlocking() && this.getPlayer().getStaminaBar().hasStamina()){
             this.startSwing();
         }
         let tryingToBlock = this.getDecision("trying_to_block");
-        if (tryingToBlock && !tryingToSwing && !this.isSwinging() && !this.isBlocking()){
+        if (tryingToBlock && !tryingToSwing && !this.isSwinging() && !this.isBlocking() && this.getPlayer().getStaminaBar().hasStamina()){
             this.startBlocking();
         }
 
@@ -45,13 +56,15 @@ class Sword extends Item {
     }
 
     startSwing(){
+        this.getPlayer().getStaminaBar().useStamina(RETRO_GAME_DATA["sword_data"]["swords"][this.getModel()]["stamina_usage_for_swing"]);
         this.swinging = true;
+        this.swingStartTick = this.getPlayer().getGamemode().getCurrentTick();
         this.swingFacing = this.getPlayer().getFacingDirection();
         this.swingLock.resetAndLock();
     }
 
     getSwingRange(){
-        return RETRO_GAME_DATA["sword_data"]["arm_length"] + RETRO_GAME_DATA["sword_data"][this.getModel()]["blade_length"];
+        return RETRO_GAME_DATA["sword_data"]["arm_length"] + RETRO_GAME_DATA["sword_data"]["swords"][this.getModel()]["blade_length"];
     }
 
     getSwingCenterX(playerLeftX=this.getPlayer().getInterpolatedTickX(), facingDirection=this.getPlayer().getFacingDirection()){
@@ -82,7 +95,7 @@ class Sword extends Item {
         }else if (playerDirection == "back"){
             swingAngle = toFixedRadians(90);
         }
-        let rangeRAD = toFixedRadians(RETRO_GAME_DATA["sword_data"][this.getModel()]["swing_angle_range_deg"]);
+        let rangeRAD = toFixedRadians(RETRO_GAME_DATA["sword_data"]["swords"][this.getModel()]["swing_angle_range_deg"]);
         let startAngle = rotateCCWRAD(swingAngle, rangeRAD/2);
         let endAngle = rotateCWRAD(swingAngle, rangeRAD/2);
         //console.log(hitCenterX, hitCenterY, this.getPlayer().getInterpolatedTickX(), this.getPlayer().getInterpolatedTickY())
@@ -205,18 +218,85 @@ class Sword extends Item {
                 break;
             }
         }
-        if (hitCharacter == null){ return; }
+        if (hitCharacter === null){ return; }
         // Else hit a character
-        // TODO: Check for blocking
+        let damageToDeal = this.getSwingDamage();
+        let staminaToDrain = 0; // Zero if not blocking, otherwise another number
+        let soundToPlay = "slashing";
+
+        // Check for blocking
         let hitCharacterHeldWeapon = hitCharacter.getSelectedItem();
-        if (hitCharacterHeldWeapon instanceof Sword){
-            // If blocking properly then no damage
-            if (hitCharacterHeldWeapon.isBlocking() && equalsOppositeDirection(hitCharacter.getFacingDirection(), this.getSwingFacingDirection())){
-                return;
+        let victimHoldingASword = hitCharacterHeldWeapon instanceof Sword;
+        if (victimHoldingASword){
+            // If blocking properly 
+
+            // Check if direction is right
+            let ableToBlock = equalsOppositeDirection(hitCharacter.getFacingDirection(), this.getSwingFacingDirection());
+            // Check if its blocking
+            ableToBlock = ableToBlock && hitCharacterHeldWeapon.isBlocking();
+            if (ableToBlock){
+                // Subtract stamina
+                hitCharacter.getStaminaBar().useStamina();
+
+                // Compare the blades
+                let attackerLength = this.getBladeLength();
+                let defenderLength = hitCharacterHeldWeapon.getBladeLength();
+                let defenderBladeIsAContender = defenderLength >= attackerLength;
+
+                // Check when block started
+                let blockStartTick = hitCharacterHeldWeapon.getBlockStartTick();
+
+                // Check when swing start
+                let swingStartTick = this.getSwingStartTick();
+
+                let isDeflecting = blockStartTick >= swingStartTick;
+
+                // If the block started as a reaction and the blade contends in length
+                if (isDeflecting && defenderBladeIsAContender){
+                    damageToDeal *= RETRO_GAME_DATA["sword_data"]["blocking"]["deflect_damage"]; // Blocks all damage
+                    staminaToDrain = RETRO_GAME_DATA["sword_data"]["blocking"]["deflect_contender_stamina_drain"];
+                    soundToPlay = "longer_deflect";
+                }
+                // If the block started as a reaction but the defending blade is shorter
+                else if (isDeflecting){
+                    damageToDeal *= RETRO_GAME_DATA["sword_data"]["blocking"]["deflect_damage"]; // Blocks all damage
+                    staminaToDrain = RETRO_GAME_DATA["sword_data"]["blocking"]["deflect_shorter_stamina_drain"];
+                    soundToPlay = "shorter_deflect";
+                }
+                // If the block started prior to the swing and the blade contends in length
+                else if (defenderBladeIsAContender){
+                    damageToDeal *= RETRO_GAME_DATA["sword_data"]["blocking"]["block_damage"];
+                    staminaToDrain = RETRO_GAME_DATA["sword_data"]["blocking"]["block_contender_stamina_drain"];
+                    soundToPlay = "longer_block";
+                }
+                // If the block started prior to the swing and the defending blade is shorter
+                else{
+                    damageToDeal *= RETRO_GAME_DATA["sword_data"]["blocking"]["block_damage"];
+                    staminaToDrain = RETRO_GAME_DATA["sword_data"]["blocking"]["block_shorter_stamina_drain"];
+                    soundToPlay = "shorter_block";
+                }
+
             }
         }
 
-        hitCharacter.damage(this.getSwingDamage());
+        // Apply damage and stamina drain to victim
+        hitCharacter.damage(damageToDeal);
+        hitCharacter.getStaminaBar().useStamina(staminaToDrain);
+
+        // If the hit character still is alive and has stamina remove the block if it runs out now
+        if (hitCharacter.isAlive() && victimHoldingASword && hitCharacterHeldWeapon.isBlocking() && hitCharacter.getStaminaBar().isOutOfStamina()){
+            hitCharacterHeldWeapon.stopBlocking();
+        }
+
+        // Play sound associated with sword swing
+        this.getGamemode().getEventHandler().emit({
+            "name": "sword_swing",
+            "associated_sound_name": soundToPlay,
+            "tile_x": hitCharacter.getX(),
+            "tile_y": hitCharacter.getY()
+        });
+
+        // If the hit character died as a result of the hit
         if (hitCharacter.isDead()){
             // Assumes not dead prior to damage
             this.getGamemode().getEventHandler().emit({
@@ -230,7 +310,7 @@ class Sword extends Item {
     }
 
     getSwingDamage(){
-        return RETRO_GAME_DATA["sword_data"][this.getModel()]["swing_damage"];
+        return RETRO_GAME_DATA["sword_data"]["swords"][this.getModel()]["swing_damage"];
     }
 
     isSwinging(){
@@ -270,11 +350,11 @@ class Sword extends Item {
     }
 
     getWidth(){
-        return RETRO_GAME_DATA["sword_data"][this.getModel()]["image_width"] * RETRO_GAME_DATA["sword_data"][this.getModel()]["image_scale"];
+        return RETRO_GAME_DATA["sword_data"]["swords"][this.getModel()]["image_width"] * RETRO_GAME_DATA["sword_data"]["swords"][this.getModel()]["image_scale"];
     }
 
     getHeight(){
-        return RETRO_GAME_DATA["sword_data"][this.getModel()]["image_height"] * RETRO_GAME_DATA["sword_data"][this.getModel()]["image_scale"];
+        return RETRO_GAME_DATA["sword_data"]["swords"][this.getModel()]["image_height"] * RETRO_GAME_DATA["sword_data"]["swords"][this.getModel()]["image_scale"];
     }
 
     getScene(){
@@ -296,6 +376,10 @@ class Sword extends Item {
                     this.finishSwing();   
                 }
             }
+        }else if (this.isBlocking()){
+            if (this.getPlayer().getStaminaBar().isOutOfStamina()){
+                this.stopBlocking();
+            }
         }
     }
 
@@ -308,7 +392,7 @@ class Sword extends Item {
     }
 
     getBladeLength(){
-        return RETRO_GAME_DATA["sword_data"][this.getModel()]["blade_length"];
+        return RETRO_GAME_DATA["sword_data"]["swords"][this.getModel()]["blade_length"];
     }
 
     display(lX, bY){
@@ -324,7 +408,7 @@ class Sword extends Item {
 
         // Based on player action
         if (this.isSwinging()){ // Swinging
-            let rangeRAD = toFixedRadians(RETRO_GAME_DATA["sword_data"][this.getModel()]["swing_angle_range_deg"]);
+            let rangeRAD = toFixedRadians(RETRO_GAME_DATA["sword_data"]["swords"][this.getModel()]["swing_angle_range_deg"]);
             let positionalAngleRAD;
             if (playerDirection == "front"){
                 displayRotateAngleRAD = toFixedRadians(270);
@@ -345,12 +429,12 @@ class Sword extends Item {
             let timePassedTick = (this.swingLock.getCooldown() - this.swingLock.getTicksLeft()) * RETRO_GAME_DATA["general"]["ms_between_ticks"];
             let timePassedNonTick = FRAME_COUNTER.getLastFrameTime() - TICK_SCHEDULER.getLastTickTime();
             let totalTimePassedMS = timePassedTick + timePassedNonTick;
-            let proportion = totalTimePassedMS / RETRO_GAME_DATA["sword_data"][this.getModel()]["swing_time_ms"];
+            let proportion = totalTimePassedMS / RETRO_GAME_DATA["sword_data"]["swords"][this.getModel()]["swing_time_ms"];
             proportion = Math.min(1, Math.max(0, proportion));
-            let hypotenuse = RETRO_GAME_DATA["sword_data"]["arm_length"] + RETRO_GAME_DATA["sword_data"][this.getModel()]["image_width"] * RETRO_GAME_DATA["sword_data"][this.getModel()]["image_scale"] / 2 - RETRO_GAME_DATA["sword_data"][this.getModel()]["blade_length"];
+            let hypotenuse = RETRO_GAME_DATA["sword_data"]["arm_length"] + RETRO_GAME_DATA["sword_data"]["swords"][this.getModel()]["image_width"] * RETRO_GAME_DATA["sword_data"]["swords"][this.getModel()]["image_scale"] / 2 - RETRO_GAME_DATA["sword_data"]["swords"][this.getModel()]["blade_length"];
             let currentSwingAngle = rotateCWRAD(startAngle, rangeRAD * proportion);
 
-            let displayRotationAngleRange = toFixedRadians(RETRO_GAME_DATA["sword_data"][this.getModel()]["sword_rotation_deg"]);
+            let displayRotationAngleRange = toFixedRadians(RETRO_GAME_DATA["sword_data"]["swords"][this.getModel()]["sword_rotation_deg"]);
             let displayRotationStartAngle = rotateCCWRAD(displayRotateAngleRAD, displayRotationAngleRange/2);
             displayRotateAngleRAD = rotateCWRAD(displayRotationStartAngle, displayRotationAngleRange*proportion);
 
@@ -378,15 +462,15 @@ class Sword extends Item {
                 displayRotateAngleRAD = toRadians(-1 * readyRotationDEG);
             }
         }
-        let imageScale = RETRO_GAME_DATA["sword_data"][this.getModel()]["image_scale"];
+        let imageScale = RETRO_GAME_DATA["sword_data"]["swords"][this.getModel()]["image_scale"];
         let effectiveScale = gameZoom * imageScale;
         let flipped = flipDirection < 0;
-        let realImageWidth = RETRO_GAME_DATA["sword_data"][this.getModel()]["image_width"];
-        let realImageHeight = RETRO_GAME_DATA["sword_data"][this.getModel()]["image_height"];
+        let realImageWidth = RETRO_GAME_DATA["sword_data"]["swords"][this.getModel()]["image_width"];
+        let realImageHeight = RETRO_GAME_DATA["sword_data"]["swords"][this.getModel()]["image_height"];
         // So right now x,y is the position of the character's hand
 
-        let handleOffsetX = Math.cos(displayRotateAngleRAD) * (RETRO_GAME_DATA["sword_data"][this.getModel()]["handle_offset_x"] * (flipped ? -1 : 1)) - Math.sin(displayRotateAngleRAD) * RETRO_GAME_DATA["sword_data"][this.getModel()]["handle_offset_y"];
-        let handleOffsetY = Math.sin(displayRotateAngleRAD) * (RETRO_GAME_DATA["sword_data"][this.getModel()]["handle_offset_x"] * (flipped ? -1 : 1)) + Math.cos(displayRotateAngleRAD) * RETRO_GAME_DATA["sword_data"][this.getModel()]["handle_offset_y"];
+        let handleOffsetX = Math.cos(displayRotateAngleRAD) * (RETRO_GAME_DATA["sword_data"]["swords"][this.getModel()]["handle_offset_x"] * (flipped ? -1 : 1)) - Math.sin(displayRotateAngleRAD) * RETRO_GAME_DATA["sword_data"]["swords"][this.getModel()]["handle_offset_y"];
+        let handleOffsetY = Math.sin(displayRotateAngleRAD) * (RETRO_GAME_DATA["sword_data"]["swords"][this.getModel()]["handle_offset_x"] * (flipped ? -1 : 1)) + Math.cos(displayRotateAngleRAD) * RETRO_GAME_DATA["sword_data"]["swords"][this.getModel()]["handle_offset_y"];
         
         let rotateX = x - handleOffsetX * effectiveScale;
         let rotateY = y + handleOffsetY * effectiveScale;
@@ -423,17 +507,15 @@ class Sword extends Item {
     static async loadAllImagesOfModel(model){
         // Do not load if already exists
         if (objectHasKey(IMAGES, model)){ return; }
-        if (!objectHasKey(RETRO_GAME_DATA["sword_data"][model], "alternate_url")){
+        if (!objectHasKey(RETRO_GAME_DATA["sword_data"]["swords"][model], "alternate_url")){
             await loadToImages(model, "item/weapon/sword/" + model + "/");
         }else{
-            await loadToImages(model, RETRO_GAME_DATA["sword_data"][model]["alternate_url"] + model + "/");
+            await loadToImages(model, RETRO_GAME_DATA["sword_data"]["swords"][model]["alternate_url"] + model + "/");
         }
     }
 
     static async loadAllImages(){
-        for (let swordModel of Object.keys(RETRO_GAME_DATA["sword_data"])){
-            // Ignore
-            if (swordModel == "arm_length"){ continue; }
+        for (let swordModel of Object.keys(RETRO_GAME_DATA["sword_data"]["swords"])){
             await Sword.loadAllImagesOfModel(swordModel);
         }
     }

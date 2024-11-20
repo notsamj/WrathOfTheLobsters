@@ -8,6 +8,7 @@ class Character extends Entity {
         this.health = 1;
         this.model = model;
         this.animationManager = new CharacterAnimationManager();
+        this.staminaBar = new StaminaBar(RETRO_GAME_DATA["human"]["stamina"]["max_stamina"], RETRO_GAME_DATA["human"]["stamina"]["stamina_recovery_time_ms"]);
         this.tileX = 0;
         this.tileY = 0;
         this.lookingDetails = {
@@ -25,6 +26,9 @@ class Character extends Entity {
         }
     }
 
+    getStaminaBar(){
+        return this.staminaBar;
+    }
 
     resetDecisions(){
         this.amendDecisions({
@@ -408,7 +412,15 @@ class Character extends Entity {
 
         // TODO: Check if there is a tile that I'm walking to
         let desiredMoveSpeed = RETRO_GAME_DATA["general"]["walk_speed"];
-        desiredMoveSpeed *= (wantsToSprint ? RETRO_GAME_DATA["general"]["sprint_multiplier"] : 1);
+
+        // Determine if the character is going to sprint
+        let goingToSprint = wantsToSprint && this.getStaminaBar().hasStamina();
+        // If sprinting use stamina
+        if (goingToSprint){
+            this.getStaminaBar().useStamina(RETRO_GAME_DATA["human"]["stamina"]["sprinting_stamina_per_tile"]);
+        }
+
+        desiredMoveSpeed *= (goingToSprint ? RETRO_GAME_DATA["general"]["sprint_multiplier"] : 1);
         let tickProgressFromPrevious = 0;
         // If say at tileX 1.5 and moving right then keep that 0.5 as progress for the next move
         let lastLocationX = this.tileX;
@@ -569,8 +581,17 @@ class Character extends Entity {
         return this.getInterpolatedTickY() - this.getImage().height / 2;
     }
 
+    getX(){
+        return this.getInterpolatedX() + this.getImage().width / 2;
+    }
+
+    getY(){
+        return this.getInterpolatedTickY() - this.getImage().height / 2;
+    }
+
     tick(){
         this.lookingDetails["look_lock"].tick();
+        this.staminaBar.tick();
         this.inventory.tick();
         this.inventory.tickSelectedItem();
 
@@ -596,6 +617,7 @@ class Character extends Entity {
 
     displayWhenFocused(){
         this.inventory.display();
+        this.staminaBar.display();
     }
 
     getImage(){

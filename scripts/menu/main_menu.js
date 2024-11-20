@@ -26,6 +26,9 @@ class MainMenu extends Menu {
         let gapSize = 40;
         let buttonX = (innerWidth) => { return (innerWidth - buttonSizeX)/2; }
 
+        // Background
+        this.components.push(new LoadingScreenComponent());
+
         // Retro Game
         let gameBottonY = (innerHeight) => { return innerHeight - gapSize; };
         this.components.push(new RectangleButton("Retro Game", "#3bc44b", "#e6f5f4", buttonX, gameBottonY, buttonSizeX, buttonSizeY, (menuInstance) => {
@@ -65,5 +68,4 @@ class MainMenu extends Menu {
         let infoYSize = 200;
         this.components.push(new TextComponent("Made by notsamj.", "#000000", 0, infoY, infoXSize, infoYSize));
     }
-
 }

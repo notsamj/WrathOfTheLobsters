@@ -8,6 +8,44 @@ const RETRO_GAME_DATA = {
         }
     },
 
+    "loading_screen": {
+        "far_away_multiplier": 2,
+        "mesh_width": 8192,
+        "mesh_height": 8192,
+        "tile_width": 512,
+        "tile_height": 512,
+        "max_x_velocity": 2.5,
+        "max_y_velocity": 2.5,
+        "origin_x_range_size": 2500,
+        "origin_y_range_size": 2500
+    },
+
+    "duel": {
+        "theme_colour": "#5479ff"
+    },
+
+    "human": {
+        "stamina": {
+            "max_stamina": 100,
+            "stamina_recovery_time_ms": 8000,
+            "sprinting_stamina_per_tile": 8
+        }
+    },
+
+    "stamina_bar": {
+        "cooling_colour": "#ff212c",
+        "threshold_3_colour": "#ff212c",
+        "threshold_2_colour": "#ff7536",
+        "threshold_1_colour": "#73e34b",
+        "threshold_3": 0.2,
+        "threshold_2": 0.4,
+        "width": 120,
+        "height": 40,
+        "border_colour": "#000000",
+        "border_thickness": 1,
+        "recovery_delay_ms": 1000
+    },
+
     "visual_effects": {
         "blood_generation": {
             "min_circles_per_blood_spatter": 15,
@@ -143,7 +181,16 @@ const RETRO_GAME_DATA = {
 
     "sword_data": {
         "arm_length": 32,
-        "clever": {
+        "blocking": {
+            "deflect_damage": 0,
+            "deflect_contender_stamina_drain": 0,
+            "deflect_shorter_stamina_drain": 0.1,
+            "block_damage": 0.125,
+            "block_contender_stamina_drain": 0.1,
+            "block_shorter_stamina_drain": 0.2
+        },
+        "swords": {
+            "clever": {
             "swing_time_ms": 200, // 200
             "swing_angle_range_deg": 120,
             "handle_offset_x": 0,
@@ -153,32 +200,36 @@ const RETRO_GAME_DATA = {
             "image_width": 512,
             "image_height": 512,
             "image_scale": 1/16,
-            "blade_length": 286/16 // = 17.875
-        },
-        "white_flag": {
-            "swing_time_ms": 200, // 200
-            "swing_angle_range_deg": 120,
-            "handle_offset_x": 0,
-            "handle_offset_y": 0,
-            "sword_rotation_deg": 30,
-            "swing_damage": 0.0,
-            "image_width": 512,
-            "image_height": 512,
-            "image_scale": 1/16,
             "blade_length": 286/16, // = 17.875
-            "alternate_url": "skirmish/item/special/"
-        },
-        "cavalry_sword": {
-            "swing_time_ms": 250, // 250
-            "swing_angle_range_deg": 160, // 160
-            "handle_offset_x": 55-512/2,
-            "handle_offset_y": 512/2-344,
-            "sword_rotation_deg": 120,
-            "swing_damage": 0.7,
-            "image_width": 512,
-            "image_height": 512,
-            "image_scale": 1/8,
-            "blade_length": 414/8
+            "stamina_usage_for_swing": 10
+            },
+            "white_flag": {
+                "swing_time_ms": 200, // 200
+                "swing_angle_range_deg": 120,
+                "handle_offset_x": 0,
+                "handle_offset_y": 0,
+                "sword_rotation_deg": 30,
+                "swing_damage": 0.0,
+                "image_width": 512,
+                "image_height": 512,
+                "image_scale": 1/16,
+                "blade_length": 286/16, // = 17.875
+                "alternate_url": "skirmish/item/special/",
+                "stamina_usage_for_swing": 0
+            },
+            "cavalry_sword": {
+                "swing_time_ms": 250, // 250
+                "swing_angle_range_deg": 160, // 160
+                "handle_offset_x": 55-512/2,
+                "handle_offset_y": 512/2-344,
+                "sword_rotation_deg": 120,
+                "swing_damage": 0.7,
+                "image_width": 512,
+                "image_height": 512,
+                "image_scale": 1/8,
+                "blade_length": 414/8,
+                "stamina_usage_for_swing": 20
+            }
         }
     },
 
@@ -343,7 +394,12 @@ const RETRO_GAME_DATA = {
 
     "sound_data": {
         "sounds": [
-            {"name": "gunshot", "type": "discrete"}
+            {"name": "gunshot", "type": "discrete"},
+            {"name": "longer_block", "type": "discrete"},
+            {"name": "longer_deflect", "type": "discrete"},
+            {"name": "shorter_block", "type": "discrete"},
+            {"name": "shorter_deflect", "type": "discrete"},
+            {"name": "slashing", "type": "discrete"},
         ],
         "url": "./sounds",
         "file_type": ".mp3"

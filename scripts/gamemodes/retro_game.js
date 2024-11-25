@@ -299,11 +299,30 @@ window.addEventListener("load", () => {
 });
 
 function startGame(){
-    GAMEMODE_MANAGER.setActiveGamemode(new RetroGame())
+    //GAMEMODE_MANAGER.setActiveGamemode(new RetroGame());
+    let gameDetails = {
+        "participants": [
+            {
+                "human": true,
+                "model": "british_officer",
+                "swords": ["cavalry_sword"],
+                "pistols": [],
+                "muskets": []
+            },
+            {
+                "human": false,
+                "model": "usa_officer",
+                "swords": ["cavalry_sword"],
+                "pistols": [],
+                "muskets": []
+            }
+        ]
+    }
+    GAMEMODE_MANAGER.setActiveGamemode(new Duel(gameDetails));
 }
 
 function startGameMaker(){
-    GAMEMODE_MANAGER.setActiveGamemode(new GameMaker())
+    GAMEMODE_MANAGER.setActiveGamemode(new GameMaker());
 }
 
 class RetroGame extends Gamemode {

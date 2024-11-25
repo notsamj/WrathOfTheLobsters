@@ -1,6 +1,22 @@
 class Duel extends Gamemode {
-    constructor(gameIncludesAHuman=false, aiSeed=null){
+    constructor(gameSetupDetails, aiSeed=null){
         super();
+
+        /*
+            gameSetupDetails = {
+                "participants": [
+                    {
+                        "human": true/false,
+                        "model": "model_name",
+                        "melee_weapons": ["sword_model_name"],
+                        "pistols": ["pistol_model_name"],
+                        "muskets": ["musket_model_name"]
+                    }
+                    ...
+                ]
+        */
+
+        this.gameSetupDetails = gameSetupDetails;
 
         this.aiRandom = null;
         if (this.aiSeed != null){
@@ -11,6 +27,7 @@ class Duel extends Gamemode {
 
         this.stats = new DuelMatchStats();
         this.random = null; // Declare
+        this.spawns = []; // Declare
 
         let scene = this.getScene();
         this.eventHandler.addHandler("kill", (killObject) => {
@@ -27,11 +44,9 @@ class Duel extends Gamemode {
         });
 
         // TODO: Create DuelCamera class
-        this.camera = gameIncludesAHuman ? new DuelCamera() : null;
+        this.camera = this.isABotGame() ? new DuelCamera() : null;
 
         this.gameOver = false;
-        this.spawn1 = null;
-        this.spawn2 = null;
 
         this.startUpLock = new Lock();
         this.startUpLock.lock();
@@ -46,8 +61,11 @@ class Duel extends Gamemode {
         return this.aiRandom;
     }
 
-    isBotGame(){
-        return this.camera != null;
+    isABotGame(){
+        for (let participantObject of this.gameSetupDetails["participants"]){
+            if (participantObject["human"]){ return false; }
+        }
+        return true;
     }
 
     gameTick(){
@@ -61,8 +79,8 @@ class Duel extends Gamemode {
         this.spawnTroops();
 
         // If this is a bot vs bot game then set up the camera
-        if (this.isBotGame()){
-            this.scene.setFocusedEntity(this.neutralCamera);
+        if (this.isABotGame()){
+            this.scene.setFocusedEntity(this.camera);
         }
 
         this.startUpLock.unlock();
@@ -91,113 +109,62 @@ class Duel extends Gamemode {
     }
 
     spawnTroops(){
-        // TODO:
-        // Create officers
-        for (let i = 0; i < RETRO_GAME_DATA["skirmish"]["game_play"]["officer_count"]; i++){
-            let britishOfficer;
-            if (britishAreHuman){
-                britishOfficer = new SkirmishHuman(this, "british_officer", "officer", "British");
+        let participantID = 0;
+        for (let participantObject of this.gameSetupDetails["participants"]){
+            let characterModel = participantObject["model"];
+            let participant;
+            if (participantObject["human"]){
+                participant = new DuelHuman(this, characterModel);
             }else{
-                britishOfficer = new SkirmishBot(this, "british_officer", "officer", "British");
-            }
-            britishOfficer.setID("british_officer_" + i.toString());
-            this.britishTroops.push(britishOfficer);
-            officers.push(britishOfficer);
-
-            let americanOfficer;
-            if (americansAreHuman){
-                americanOfficer = new SkirmishHuman(this, "usa_officer", "officer", "American");
-            }else{
-                americanOfficer = new SkirmishBot(this, "usa_officer", "officer", "American");
-            }
-            americanOfficer.setID("american_officer_" + i.toString());
-            this.americanTroops.push(americanOfficer);
-            officers.push(americanOfficer);
-        }
-
-        // Equip officers
-        for (let officer of officers){
-            officer.getInventory().add(new SkirmishPistol("flintlock", {
-                "player": officer
-            }));
-
-            officer.getInventory().add(new SkirmishSword("cavalry_sword", {
-                "player": officer
-            }));
-
-            officer.getInventory().add(new PointToMove({
-                "player": officer
-            }));
-
-            officer.getInventory().add(new PointToShoot({
-                "player": officer
-            }));
-
-            officer.getInventory().add(new PointToShootCannon({
-                "player": officer
-            }));
-        }
-
-        // Create privates
-        for (let i = 0; i < RETRO_GAME_DATA["skirmish"]["game_play"]["private_count"]; i++){
-            let britishPrivate;
-            if (britishAreHuman){
-                britishPrivate = new SkirmishHuman(this, "british_pvt_g", "private", "British");
-            }else{
-                britishPrivate = new SkirmishBot(this, "british_pvt_g", "private", "British");
+                participant = new DuelBot(this, characterModel);
             }
 
-            britishPrivate.setID("british_private_" + i.toString());
-            this.britishTroops.push(britishPrivate);
-            privates.push(britishPrivate);
+            // Set their id
+            participant.setID("participant_" + (participantID++).toString());
 
-            let americanPrivate;
-            if (americansAreHuman){
-                americanPrivate = new SkirmishHuman(this, "usa_pvt", "private", "American");
-            }else{
-                americanPrivate = new SkirmishBot(this, "usa_pvt", "private", "American");
+            // Add them to list
+            this.participants.push(participant);
+
+            // Arm them
+            for (let pistolModelName of participantObject["pistols"]){
+                participant.getInventory().add(new DuelPistol(pistolModelName, {
+                    "player": participant
+                }))
             }
-
-            americanPrivate.setID("american_private_" + i.toString());
-            this.americanTroops.push(americanPrivate);
-            privates.push(americanPrivate);
-        } 
-
-        // Equip privates
-        for (let privateTroop of privates){
-            privateTroop.getInventory().add(new SkirmishMusket("brown_bess", {
-                "player": privateTroop
-            }));
-
-            privateTroop.getInventory().add(new SkirmishSword("clever", {
-                "player": privateTroop
-            }));
+            for (let musketModelName of participantObject["muskets"]){
+                participant.getInventory().add(new DuelMusket(musketModelName, {
+                    "player": participant
+                }))
+            }
+            for (let swordModelName of participantObject["swords"]){
+                participant.getInventory().add(new DuelSword(swordModelName, {
+                    "player": participant
+                }))
+            }
         }
 
-        let allTroops = appendLists(officers, privates);
+        let spawns = copyArray(this.spawns);
 
-        // Equip all troops
-        for (let troop of allTroops){
-            troop.getInventory().add(new WhiteFlag({
-                "player": troop
-            }));
-            this.scene.addEntity(troop);
+        // Make sure there aren't too many spawns
+        if (this.participants.length > spawns.length){
+            throw new Error("Too many participants (" + this.participants.length + ") for " + spawns.length + " spawns.");
         }
 
-        // Spawn British troops
-        for (let troop of this.britishTroops){
-            troop.setTileX(this.britishSpawn["x"]);
-            troop.setTileY(this.britishSpawn["y"]);
-        }
+        // Get associated random
+        let random = this.getRandom();
 
-        // Spawn American troops
-        for (let troop of this.americanTroops){
-            troop.setTileX(this.americanSpawn["x"]);
-            troop.setTileY(this.americanSpawn["y"]);
-        }
+        // Spawn participants randomly
+        for (let participant of this.participants){
+            let spawnNumber = random.getIntInRangeInclusive(0, spawns.length);
+            let spawn = spawns[spawnNumber];
 
-        // Check and update team visibility
-        this.checkAndUpdateTeamVisibility();
+            // Swap with last spawn and remove last one
+            spawns[spawnNumber] = spawns[spawns.length - 1];
+            spawns.pop();
+
+            participant.setTileX(spawn["x"]);
+            participant.setTileY(spawn["y"]);
+        }
     }
 
     // Note: I stole this from Skirmish
@@ -490,20 +457,8 @@ class Duel extends Gamemode {
             makeRiver(riverAngleRAD, riverStartX, riverStartY, currentWidth, riverType, minRiverWidth, maxRiverWidth);
         }
 
-        let spawns = [[0,0], [0,size-1], [size-1,0], [size-1,size-1]];
-        // Set british spawn
-        let britishSpawnNumber = random.getIntInRangeInclusive(0,3);
-        let britishSpawn = spawns[britishSpawnNumber];
-        
-        // Move around spawns[3] and remove britishSpawnNumber
-        spawns[britishSpawnNumber] = spawns[3];
-        spawns.pop();
-
-        // Set american spawn
-        let americanSpawnNumber = random.getIntInRangeInclusive(0,2);
-        let americanSpawn = spawns[americanSpawnNumber];
-        spawns[americanSpawnNumber] = spawns[2];
-        spawns.pop();
+        // Set the spawns
+        this.spawns = [[0,0], [0,size-1], [size-1,0], [size-1,size-1]];
 
         let createPath = (coordSet1, coordSet2) => {
             let startX = coordSet1[0];
@@ -627,25 +582,17 @@ class Duel extends Gamemode {
             }
         }
 
-        // Create paths
-        createPath(britishSpawn, spawns[0]);
-        createPath(americanSpawn, spawns[1]);
-        createPath(spawns[0], spawns[1]);
-
-        // TODO: Adjust this code
-        this.britishSpawn = {
-            "x": britishSpawn[0],
-            "y": britishSpawn[1]
-        }
-
-        this.americanSpawn = {
-            "x": americanSpawn[0],
-            "y": americanSpawn[1]
-        }
+        // Create paths between the four corners
+        createPath(this.spawns[0], this.spawns[1]);
+        createPath(this.spawns[1], this.spawns[2]);
+        createPath(this.spawns[2], this.spawns[3]);
     }
 
     display(){
-        if (this.startUpLock.isLocked()){ return; }
+        if (this.startUpLock.isLocked()){
+            LOADING_SCREEN.display();
+            return;
+        }
         this.scene.display();
         this.stats.display();
     }

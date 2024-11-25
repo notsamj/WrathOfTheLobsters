@@ -10,12 +10,12 @@ const RETRO_GAME_DATA = {
 
     "loading_screen": {
         "far_away_multiplier": 2,
-        "mesh_width": 8192,
-        "mesh_height": 8192,
+        "mesh_width": 8192/8,
+        "mesh_height": 8192/8,
         "tile_width": 512,
         "tile_height": 512,
-        "max_x_velocity": 2.5,
-        "max_y_velocity": 2.5,
+        "max_x_velocity": 2,
+        "max_y_velocity": 2,
         "origin_x_range_size": 2500,
         "origin_y_range_size": 2500
     },

@@ -206,7 +206,10 @@ class Mesh {
     getColourOfQuadrant(meshX, meshY){
         let seed = meshX + 2 * meshY; // TODO: Come up with something better?
         let random = new SeededRandomizer(seed);
-        let colour = new Colour(random.getIntInRangeInclusive(0, 255), random.getIntInRangeInclusive(0, 255), random.getIntInRangeInclusive(0, 255), 1);
+        let r = random.getIntInRangeInclusive(0, 255);
+        let g = random.getIntInRangeInclusive(0, 255);
+        let b = random.getIntInRangeInclusive(0, 255);
+        let colour = new Colour(r, g, b, 1);
         return colour;
     }
 

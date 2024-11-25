@@ -81,7 +81,7 @@ class Gun extends Item {
         let collision = this.getScene().findInstantCollisionForProjectile(this.getEndOfGunX(), this.getEndOfGunY(), angleRAD, range, (enemy) => { return enemy.getID() == myID; });
         // If it hits an entity
         if (collision["collision_type"] === "entity"){
-            collision["entity"].getShot(this.player.getModel());
+            collision["entity"].getShot(this.player.getModel(), this.getID());
         }
         // If it hits a physical tile or nothing then create bullet collision particle
         else if (collision["collision_type"] === null || collision["collision_type"] === "physical_tile"){

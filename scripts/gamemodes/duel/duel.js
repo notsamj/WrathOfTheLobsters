@@ -32,6 +32,8 @@ class Duel extends Gamemode {
         let scene = this.getScene();
         this.eventHandler.addHandler("kill", (killObject) => {
             scene.addExpiringVisual(BloodPool.create(scene.getCenterXOfTile(killObject["tile_x"]), scene.getCenterYOfTile(killObject["tile_y"])));
+            // Any time somebody dies the killer wins in duel
+            this.endGame(killObject["killer_id"]);
         });
 
         this.eventHandler.addHandler("gun_shot", (eventObj) => {
@@ -53,6 +55,25 @@ class Duel extends Gamemode {
         this.startUp();
     }
 
+    findParticipantFromID(participantID){
+        for (let participant of this.participants){
+            if (participant.getID() === participantID){
+                return participant;
+            }
+        }
+        throw new Error("Failed to find participant with ID: " + participantID);
+    }
+
+    endGame(winnerID){
+        this.gameOver = true;
+        let winner = this.findParticipantFromID(winnerID);
+        if (winner.isHuman()){
+            this.stats.setWinner("Player");
+        }else{
+            this.stats.setWinner("Bot_" + winnerID);
+        }
+    }
+
     getEnemyVisibilityDistance(){
         return RETRO_GAME_DATA["skirmish"]["enemy_visibility_distance"];
     }
@@ -70,7 +91,7 @@ class Duel extends Gamemode {
 
     gameTick(){
         if (this.isOver()){ return; }
-        this.makeMove();
+        // TODO?
     }
 
     async startUp(){
@@ -115,6 +136,8 @@ class Duel extends Gamemode {
             let participant;
             if (participantObject["human"]){
                 participant = new DuelHuman(this, characterModel);
+                // Human is automatically set as the focused entity
+                this.scene.setFocusedEntity(participant);
             }else{
                 participant = new DuelBot(this, characterModel);
             }
@@ -125,19 +148,22 @@ class Duel extends Gamemode {
             // Add them to list
             this.participants.push(participant);
 
+            // Add them to the scene
+            this.scene.addEntity(participant);
+
             // Arm them
             for (let pistolModelName of participantObject["pistols"]){
-                participant.getInventory().add(new DuelPistol(pistolModelName, {
+                participant.getInventory().add(new Pistol(pistolModelName, {
                     "player": participant
                 }))
             }
             for (let musketModelName of participantObject["muskets"]){
-                participant.getInventory().add(new DuelMusket(musketModelName, {
+                participant.getInventory().add(new Musket(musketModelName, {
                     "player": participant
                 }))
             }
             for (let swordModelName of participantObject["swords"]){
-                participant.getInventory().add(new DuelSword(swordModelName, {
+                participant.getInventory().add(new Sword(swordModelName, {
                     "player": participant
                 }))
             }
@@ -161,7 +187,6 @@ class Duel extends Gamemode {
             // Swap with last spawn and remove last one
             spawns[spawnNumber] = spawns[spawns.length - 1];
             spawns.pop();
-
             participant.setTileX(spawn["x"]);
             participant.setTileY(spawn["y"]);
         }
@@ -458,13 +483,13 @@ class Duel extends Gamemode {
         }
 
         // Set the spawns
-        this.spawns = [[0,0], [0,size-1], [size-1,0], [size-1,size-1]];
+        this.spawns = [{"x": 0, "y": 0}, {"x": 0, "y": size-1}, {"x": size-1, "y": 0}, {"x": size-1, "y": size-1}];
 
         let createPath = (coordSet1, coordSet2) => {
-            let startX = coordSet1[0];
-            let startY = coordSet1[1];
-            let endX = coordSet2[0];
-            let endY = coordSet2[1];
+            let startX = coordSet1["x"];
+            let startY = coordSet1["y"];
+            let endX = coordSet2["x"];
+            let endY = coordSet2["y"];
 
             let canWalk = (x, y) => {
                 return !(scene.hasPhysicalTileCoveringLocation(x, y) && scene.getPhysicalTileCoveringLocation(x, y).hasAttribute("no_walk"));

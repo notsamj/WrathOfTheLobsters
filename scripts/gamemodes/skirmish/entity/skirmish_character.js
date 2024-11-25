@@ -12,7 +12,7 @@ class SkirmishCharacter extends Character {
         this.visualEnvironmentHealthBar = new VisualEnvironmentHealthBar(this.health);
     }
 
-    getShot(model){
+    getShot(model, killerID){
         let damage = RETRO_GAME_DATA["skirmish"]["shot_damage"];
         // If the attacker is friendly then limit damage to avoid death of officer (This is to prevent dying while ordering shooting)
         if (teamNameIsEqual(getTeamNameFromClass(model), this.getTeamName()) && this.getRankName() === "officer" && this.isMakingAMove()){
@@ -24,6 +24,7 @@ class SkirmishCharacter extends Character {
             this.gamemode.getEventHandler().emit({
                 "victim_class": this.getModel(),
                 "killer_class": model,
+                "killer_id": killerID,
                 "tile_x": this.getTileX(),
                 "tile_y": this.getTileY(),
                 "name": "kill"

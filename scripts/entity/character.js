@@ -523,13 +523,14 @@ class Character extends Entity {
         return this.getScene().tileAtLocationHasAttribute(this.tileX, this.tileY, "multi_cover") && this.getScene().tileAtLocationHasAttribute(this.movementDetails["last_location_x"], this.movementDetails["last_location_y"], "multi_cover");
     }
 
-    getShot(model){
+    getShot(model, killerID){
         this.damage(1);
         // Assumes not dead prior to damage
         if (this.isDead()){
             this.gamemode.getEventHandler().emit({
                 "victim_class": this.getModel(),
                 "killer_class": model,
+                "killer_id": killerID,
                 "tile_x": this.getTileX(),
                 "tile_y": this.getTileY(),
                 "name": "kill"

@@ -15,7 +15,7 @@ class Sword extends Item {
 
     startBlocking(){
         this.blocking = true;
-        this.blockStartTick = this.getPlayer.getGamemode().getCurrentTick();
+        this.blockStartTick = this.getPlayer().getGamemode().getCurrentTick();
     }
 
     getSwingStartTick(){

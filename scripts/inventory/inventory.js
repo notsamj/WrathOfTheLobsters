@@ -148,6 +148,16 @@ class Inventory {
     setSelectedSlot(newSlotIndex){
         this.selectedSlot = newSlotIndex;
     }
+
+    getNumberOfContents(){
+        let count = 0;
+        for (let [item, itemIndex] of this.hotbar){
+            if (item != null){
+                count++;
+            }
+        }
+        return count;
+    }
 }
 /*
     Item required methods:

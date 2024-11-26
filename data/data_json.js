@@ -265,7 +265,7 @@ const RETRO_GAME_DATA = {
         },
         "max_seed": 100000, // Self-explanatory
         "good_seeds": [78518, 39352, 3833, 4216, 93276],
-        "seed": 30908  // null for random seed, 447 is good (on 20 size)
+        "seed": null  // null for random seed, 447 is good (on 20 size)
     },
 
     "controls": {

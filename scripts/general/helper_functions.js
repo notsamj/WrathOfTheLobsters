@@ -29,40 +29,50 @@ function arraySwap(array, index1, index2){
 }
 
 function areDirectionsEqual(direction1, direction2){
-    return getAlternativeDirectionFormatOf(direction1) === getAlternativeDirectionFormatOf(direction2);
+    return getMovementDirectionOf(direction1) === getMovementDirectionOf(direction2);
 }
 
-function equalsOppositeDirection(direction1, direction2){
-    let alt1 = getAlternativeDirectionFormatOf(direction1);
-    let alt2 = getAlternativeDirectionFormatOf(direction2);
-    return getOppositeAltDirectionOf(alt1) === alt2;
-}
-
-function getOppositeAltDirectionOf(altDirection){
-    if (direction === "down"){
-        return "up";
-    }else if (direction === "up"){
+function getMovementDirectionOf(direction){
+    if (direction === "front" || direction === "down"){
         return "down";
+    }else if (direction === "back" || direction === "up"){
+        return "up";
+    }else if (direction === "left"){
+        return "left";
+    }else if (direction === "right"){
+        return "right";
+    }
+    throw new Error("Invalid direction: " + direction);
+}
+
+function getVisualDirectionOf(direction){
+    if (direction === "down" || direction === "front"){
+        return "front";
+    }else if (direction === "up" || direction === "back"){
+        return "back";
+    }else if (direction === "left"){
+        return "left";
+    }else if (direction === "right"){
+        return "right";
+    }
+    throw new Error("Invalid direction: " + direction);
+}
+
+function getOppositeDirectionOf(direction){
+    if (direction === "up"){
+        return "down";
+    }else if (direction === "down"){
+        return "up";
+    }else if (direction === "front"){
+        return "back";
+    }else if (direction === "back"){
+        return "front";
     }else if (direction === "left"){
         return "right";
     }else if (direction === "right"){
         return "left";
     }
-
-    throw new Error("Invalid direction: " + altDirection);
-}
-
-function getAlternativeDirectionFormatOf(direction){
-    if (direction === "front"){
-        return "down";
-    }else if (direction === "back"){
-        return "up";
-    }else if (direction === "down"){
-        return "front";
-    }else if (direction === "front"){
-        return "up";
-    }
-    return direction;
+    throw new Error("Invalid direction: " + direction);
 }
 
 function getAngleFromMouseToScreenCenter(scene){

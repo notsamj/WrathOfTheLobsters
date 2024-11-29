@@ -21,7 +21,6 @@ var setupOngoing = false;
 
 // Functions
 function rDebug(){
-    debugger;
     ramshackleDebugToolValue = true;
 }
 

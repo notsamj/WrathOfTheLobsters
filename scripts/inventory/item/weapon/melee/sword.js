@@ -231,7 +231,7 @@ class Sword extends Item {
             // If blocking properly 
 
             // Check if direction is right
-            let ableToBlock = equalsOppositeDirection(hitCharacter.getFacingDirection(), this.getSwingFacingDirection());
+            let ableToBlock = getMovementDirectionOf(hitCharacter.getFacingDirection()) === getOppositeDirectionOf(getMovementDirectionOf(this.getSwingFacingDirection()));
             // Check if its blocking
             ableToBlock = ableToBlock && hitCharacterHeldWeapon.isBlocking();
             if (ableToBlock){

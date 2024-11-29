@@ -641,9 +641,9 @@ class SkirmishBot extends SkirmishCharacter {
                 let playerLeftX = scene.getXOfTile(selectedTroop.getTileX());
                 let playerTopY = scene.getYOfTile(selectedTroop.getTileY());
                 let angleToTileCenter = displacementToRadians(tileCenterX - selectedTroop.getInterpolatedTickCenterX(), tileCenterY - selectedTroop.getInterpolatedTickY());
-                let directionToFace = angleToBestFaceDirection(angleToTileCenter);
+                let visualDirectionToFace = angleToBestFaceDirection(angleToTileCenter);
                 let gun = selectedTroop.getGun();
-                let pos = gun.getSimulatedGunEndPosition(playerLeftX, playerTopY, directionToFace, angleToTileCenter);
+                let pos = gun.getSimulatedGunEndPosition(playerLeftX, playerTopY, visualDirectionToFace, angleToTileCenter);
                 let x = pos["x"];
                 let y = pos["y"];
                 let range = gun.getBulletRange();
@@ -655,7 +655,7 @@ class SkirmishBot extends SkirmishCharacter {
                     let troop = collision["entity"];
                     let isFriendly = troop.isOnSameTeam(selectedTroop);
                     tile["angle_rad"] = angleToTileCenter;
-                    tile["direction_to_face"] = getAlternativeDirectionFormatOf(directionToFace);
+                    tile["direction_to_face"] = getMovementDirectionOf(visualDirectionToFace);
                     let damage = RETRO_GAME_DATA["skirmish"]["shot_damage"];
                     if (isFriendly){
                         if (damage > troop.getHealth()){
@@ -1441,10 +1441,10 @@ class SkirmishBot extends SkirmishCharacter {
 
                 let yDiff = enemyY - myCenterYWhenOnTile;
                 let angleToEnemy = displacementToRadians(enemyX - myCenterXWhenOnTile, yDiff);
-                let directionToFace = angleToBestFaceDirection(angleToEnemy);
-                let directionToEnemyAlt = getAlternativeDirectionFormatOf(directionToFace);
-                let swingCenterX = meleeWeapon.getSwingCenterX(myXLeftWhenOnTile, directionToFace);
-                let swingCenterY = meleeWeapon.getSwingCenterY(myYTopWhenOnTile, directionToFace);
+                let visualDirectionToFace = angleToBestFaceDirection(angleToEnemy);
+                let directionToEnemyAlt = getMovementDirectionOf(visualDirectionToFace);
+                let swingCenterX = meleeWeapon.getSwingCenterX(myXLeftWhenOnTile, visualDirectionToFace);
+                let swingCenterY = meleeWeapon.getSwingCenterY(myYTopWhenOnTile, visualDirectionToFace);
                 // Note: It's actually to their center when you only need a corner but I'll let bots be conservative
                 let swingDistanceToEnemy = calculateEuclideanDistance(swingCenterX, swingCenterY, enemyX, enemyY);
                 // If the swing distance is low enough then try swinging
@@ -1459,8 +1459,8 @@ class SkirmishBot extends SkirmishCharacter {
 
                 let anglesToShootAt = [angleToEnemy, rotateCWRAD(angleToEnemy, offsetAngleAtRange), rotateCCWRAD(angleToEnemy, offsetAngleAtRange)];
                 for (let angleToShootAt of anglesToShootAt){
-                    directionToFace = angleToBestFaceDirection(angleToShootAt);
-                    let pos = gun.getSimulatedGunEndPosition(playerLeftX, playerTopY, directionToFace, angleToShootAt);
+                    visualDirectionToFace = angleToBestFaceDirection(angleToShootAt);
+                    let pos = gun.getSimulatedGunEndPosition(playerLeftX, playerTopY, visualDirectionToFace, angleToShootAt);
                     let x = pos["x"];
                     let y = pos["y"];
                     // Check shoot directory at enemy
@@ -1471,7 +1471,7 @@ class SkirmishBot extends SkirmishCharacter {
                             let tileCopy = copyObject(tile);
                             tileCopy["enemy_health"] = this.getBrain().getHealthOfEnemy(collision["entity"].getID());
                             tileCopy["angle_rad"] = angleToShootAt;
-                            tileCopy["direction_to_face"] = getAlternativeDirectionFormatOf(directionToFace);
+                            tileCopy["direction_to_face"] = getMovementDirectionOf(visualDirectionToFace);
                             tileCopy["distance_to_enemy"] = collision["entity"].distanceToTile(tile["tile_x"], tile["tile_y"]);
                             // Even though we might hit a different enemy, the confidence is based on the enemy being aimed at
                             tileCopy["confidence"] = confidenceInEnemyPosition;

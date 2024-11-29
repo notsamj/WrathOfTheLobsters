@@ -390,10 +390,12 @@ class Character extends Entity {
             direction = "up";
             newTileY += 1;
         }
+
+
         // Turn in direction if not moving
         if (!this.isMoving()){
-            if (this.animationManager.getAlternativeDirection() != direction){
-                this.animationManager.setDirectionFromAlternate(direction);
+            if (getMovementDirectionOf(this.animationManager.getVisualDirection()) != direction){
+                this.animationManager.setVisualDirectionFromMovementDirection(direction);
                 this.lookingDetails["direction"] = direction;
                 this.lookingDetails["look_lock"].lock();
                 return;
@@ -408,6 +410,10 @@ class Character extends Entity {
                 this.movementDetails = null;
             }
             return; 
+        }
+
+        if (isRDebugging()){
+            debugger;
         }
 
         // TODO: Check if there is a tile that I'm walking to
@@ -551,11 +557,11 @@ class Character extends Entity {
     }
 
     getFacingDirection(){
-        return this.animationManager.getDirection();
+        return this.animationManager.getVisualDirection();
     }
 
     getFacingUDLRDirection(){
-        return this.animationManager.getAlternativeDirection();
+        return getMovementDirectionOf(this.getFacingDirection());
     }
 
     getModel(){
@@ -718,7 +724,7 @@ class Character extends Entity {
         let y = this.getDisplayY(bY); // center of character
         let onScreen = pointInRectangle(x, y, 0, getScreenWidth(), 0, getScreenHeight()) || pointInRectangle(x-this.getWidth()/2, y-this.getHeight()/2, 0, getScreenWidth(), 0, getScreenHeight()) || pointInRectangle(x+this.getWidth()/2, y-this.getHeight()/2, 0, getScreenWidth(), 0, getScreenHeight()) || pointInRectangle(x-this.getWidth()/2, y+this.getHeight()/2, 0, getScreenWidth(), 0, getScreenHeight()) || pointInRectangle(x+this.getWidth()/2, y+this.getHeight()/2, 0, getScreenWidth(), 0, getScreenHeight());
         if (!onScreen){ return; }
-        if (this.animationManager.getDirection() === "back" || this.animationManager.getDirection() === "left"){
+        if (this.animationManager.getVisualDirection() === "back" || this.animationManager.getVisualDirection() === "left"){
             this.inventory.displaySelectedItem(lX, bY);
         }
         
@@ -734,7 +740,7 @@ class Character extends Entity {
 
         translate(-1 * x, -1 * y);
 
-        if (!(this.animationManager.getDirection() === "back" || this.animationManager.getDirection() === "left")){
+        if (!(this.animationManager.getVisualDirection() === "back" || this.animationManager.getVisualDirection() === "left")){
             this.inventory.displaySelectedItem(lX, bY);
         }
     }

@@ -25,23 +25,14 @@ class DuelBot extends DuelCharacter {
     botDecisions(){
         let state = this.botDecisionDetails["state"];
 
-        // Set loop condition to true while deciding
-        let stillDeciding = true;
-
-        let updateStillDeciding = () => {
-            stillDeciding = false;
+        if (state === "starting"){
+            this.pickAStartingWeapon();
         }
-            
-        // Keep making decisions until you are certain you're done
-        while (stillDeciding){
-            if (state === "starting"){
-                this.pickAStartingWeapon();
-            }else if (state === "searching_for_enemy"){
-                this.searchForEnemy();
-            }else if (state === "fighting_enemy"){
-                this.makeFightingDecisions();
-            }
-            updateStillDeciding();
+
+        if (state === "searching_for_enemy"){
+            this.searchForEnemy();
+        }else if (state === "fighting_enemy"){
+            this.makeFightingDecisions();
         }
     }
 

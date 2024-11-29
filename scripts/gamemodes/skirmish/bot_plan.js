@@ -154,7 +154,7 @@ class BotPlan {
         let faceDirection = (decisions) => {
             let isFacingDirectionAlready = true;
 
-            let playerDirection = getAlternativeDirectionFormatOf(this.player.getFacingDirection());
+            let playerDirection = getMovementDirectionOf(this.player.getFacingDirection());
             if (playerDirection != this.planDetails["direction_to_face"]){
                 isFacingDirectionAlready = false;
                 decisions[this.planDetails["direction_to_face"]] = true;

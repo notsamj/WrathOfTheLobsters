@@ -181,7 +181,7 @@ class Duel extends Gamemode {
 
         // Spawn participants randomly
         for (let participant of this.participants){
-            let spawnNumber = random.getIntInRangeInclusive(0, spawns.length);
+            let spawnNumber = random.getIntInRangeInclusive(0, spawns.length - 1);
             let spawn = spawns[spawnNumber];
 
             // Swap with last spawn and remove last one

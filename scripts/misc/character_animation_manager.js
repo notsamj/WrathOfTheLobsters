@@ -1,68 +1,55 @@
 class CharacterAnimationManager extends AnimationManager {
     constructor(){
         super();
-        this.direction = "front";
+        this.visualDirection = "front";
         this.walkingCountLR = 0;
         this.walkingCountUD = 0;
         this.walkingUDNext = 1;
         this.movingStepCD = new CooldownLock(RETRO_GAME_DATA["general"]["animation_frame_time"]);
     }
 
-    getDirection(){
-        return this.direction;
+    getVisualDirection(){
+        return this.visualDirection;
     }
 
-    setDirection(direction){
-        this.direction = direction;
+    setVisualDirection(visualDirection){
+        this.visualDirection = visualDirection;
     }
 
-    getAlternativeDirection(){
-        if (this.direction == "front"){
-            return "down";
-        }else if (this.direction == "back"){
-            return "up";
-        }
-        return this.direction;
-    }
-
-    setDirectionFromAlternate(alternateDirectionRep){
-        if (alternateDirectionRep == "down"){
-            alternateDirectionRep = "front";
-        }else if(alternateDirectionRep == "up"){
-            alternateDirectionRep = "back";
-        }
-        this.setDirection(alternateDirectionRep);
+    setVisualDirectionFromMovementDirection(movementDirection){
+        let visualDirection = getVisualDirectionOf(movementDirection);
+        this.setVisualDirection(visualDirection);
     }
 
     getCurrentImageSuffix(xVelocity, yVelocity){
         let suffixStart = "_64";
         if (xVelocity < 0){
-            this.direction = "left";
+            this.visualDirection = "left";
             this.updateWalkingCountIfMoving(xVelocity, yVelocity);
             suffixStart += "_left" + (this.walkingCountLR > 0 ? "_step" + this.walkingCountLR.toString() : "");
             return suffixStart;
         }else if (xVelocity > 0){
-            this.direction = "right";
+            this.visualDirection = "right";
             this.updateWalkingCountIfMoving(xVelocity, yVelocity);
             suffixStart += "_right" + (this.walkingCountLR > 0 ? "_step" + this.walkingCountLR.toString() : "");
             return suffixStart;
         }else if (yVelocity > 0){
-            this.direction = "back";
+            this.visualDirection = "back";
             this.updateWalkingCountIfMoving(xVelocity, yVelocity);
             suffixStart += "_back" + (this.walkingCountUD > 0 ? "_step" + this.walkingCountUD.toString() : "");
             return suffixStart;
         }else if (yVelocity < 0){
-            this.direction = "front";
+            this.visualDirection = "front";
             this.updateWalkingCountIfMoving(xVelocity, yVelocity);
             suffixStart += this.walkingCountUD > 0 ? "_step" + this.walkingCountUD.toString() : "";
             return suffixStart;
         }else{
             this.walkingCount = 0;
             // Not moving
-            if (this.direction == "front"){
+            if (this.visualDirection == "front"){
                 return suffixStart;
             }
-            return suffixStart + "_" + this.direction;
+            return suffixStart + "_" + this.visualDirection;
         }
     }
 
@@ -72,7 +59,7 @@ class CharacterAnimationManager extends AnimationManager {
             return; 
         }
         this.movingStepCD.lock();
-        if (this.direction == "front" || this.direction == "back"){
+        if (this.visualDirection == "front" || this.visualDirection == "back"){
             if (this.walkingCountUD == 2){
                 this.walkingCountUD = 0;
                 this.walkingUDNext = 1;

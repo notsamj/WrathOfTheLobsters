@@ -1005,7 +1005,7 @@ class SkirmishBot extends SkirmishCharacter {
                 // If this tile can see the spawn point then clip route to this length
                 let routeEnd = route.getLastTile();
                 // Check if standing on tile at i, you could see the round end
-                if (this.couldSeeTileEntityAtTile(tileAtI["tile_x"], tileAtI["tile_y"], routeEnd["tile_x"], routeEnd["tile_y"])){
+                if (this.couldISeeEntityAtTileFromTile(tileAtI["tile_x"], tileAtI["tile_y"], routeEnd["tile_x"], routeEnd["tile_y"])){
                     lengthOfRouteUntilSpawnpointIsVisible = currentLengthIfThisTileIsFinal;
                     break;
                 }

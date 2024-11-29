@@ -474,14 +474,18 @@ class Character extends Entity {
     }
 
     isVisibleTo(observer){
-        return observer.canSeeTileEntityAtTile(this.getTileX(), this.getTileY());
+        return observer.couldSeeEntityIfOnTile(this.getTileX(), this.getTileY());
     }
 
-    canSeeTileEntityAtTile(tileX, tileY){
-        return this.couldSeeTileEntityAtTile(this.getTileX(), this.getTileY(), tileX, tileY);
+    canSee(entity){
+        return this.couldSeeEntityIfOnTile(entity.getTileX(), entity.getTileY());
     }
 
-    couldSeeTileEntityAtTile(mySupposedTileX, mySupposedTileY, otherTileX, otherTileY){
+    couldSeeEntityIfOnTile(tileX, tileY){
+        return this.couldISeeEntityAtTileFromTile(this.getTileX(), this.getTileY(), tileX, tileY);
+    }
+
+    couldISeeEntityAtTileFromTile(mySupposedTileX, mySupposedTileY, otherTileX, otherTileY){
         // If the observer (this) does not have vision restrictions
         if (!this.hasVisionRestrictions()){
             return true;

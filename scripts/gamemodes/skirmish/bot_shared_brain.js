@@ -21,7 +21,7 @@ class BotSharedBrain {
         // If this position is visible then do nothing its fine
         let roster = this.getGamemode().getLivingTeamRosterFromName(this.getTeamName());
         for (let troop of roster){
-            if (troop.canSeeTileEntityAtTile(shooterTileX, shooterTileY)){
+            if (troop.couldSeeEntityIfOnTile(shooterTileX, shooterTileY)){
                 return;
             }
         }
@@ -82,7 +82,7 @@ class BotSharedBrain {
         let unexploredSpawnpoints = this.getUnexploredSpawnpoints();
         for (let spawnPointObj of unexploredSpawnpoints){
             // If the moving troop can see this spawn point then mark it as explored
-            if (movingTroop.canSeeTileEntityAtTile(spawnPointObj["tile_x"], spawnPointObj["tile_y"])){
+            if (movingTroop.couldSeeEntityIfOnTile(spawnPointObj["tile_x"], spawnPointObj["tile_y"])){
                 spawnPointObj["has_been_explored"] = true;
             }
         }

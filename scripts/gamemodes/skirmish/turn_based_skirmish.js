@@ -316,7 +316,7 @@ class TurnBasedSkirmish extends Gamemode {
                 // If updated opposite team troop isn't sighted by this friendly troop
                 if (index === -1){
                     // Check if it is visible (must be alive)
-                    if (!updateObject["dead"] && troop.canSeeTileEntityAtTile(otherTroopTileX, otherTroopTileY)){
+                    if (!updateObject["dead"] && troop.couldSeeEntityIfOnTile(otherTroopTileX, otherTroopTileY)){
                         sightObject["troops_in_sight"].push(otherTeamTroopID);
                         return true;
                     }
@@ -324,7 +324,7 @@ class TurnBasedSkirmish extends Gamemode {
                 // Else if it is present
                 else{
                     // Check if it is still visible (and alive)
-                    let canBeSeenStill = !updateObject["dead"] && troop.canSeeTileEntityAtTile(otherTroopTileX, otherTroopTileY);
+                    let canBeSeenStill = !updateObject["dead"] && troop.couldSeeEntityIfOnTile(otherTroopTileX, otherTroopTileY);
                     // If it can no longer be seen by this troop, then remove it
                     if (!canBeSeenStill){
                         // Swap indices and shift to remove

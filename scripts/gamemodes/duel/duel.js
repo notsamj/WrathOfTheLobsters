@@ -55,6 +55,10 @@ class Duel extends Gamemode {
         this.startUp();
     }
 
+    getParticipants(){
+        return this.participants;
+    }
+
     findParticipantFromID(participantID){
         for (let participant of this.participants){
             if (participant.getID() === participantID){

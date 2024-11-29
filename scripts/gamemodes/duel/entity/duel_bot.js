@@ -3,7 +3,14 @@ class DuelBot extends DuelCharacter {
         super(gamemode, model);
         this.botDecisionDetails = {
             "state": "starting",
-            "select_slot": null
+            "enemy": null,
+            "select_slot": null,
+            "weapons": {
+                "sword": { 
+                    "trying_to_swing_sword": false,
+                    "trying_to_block": false
+                }
+            }
         }
     }
 
@@ -23,21 +30,51 @@ class DuelBot extends DuelCharacter {
     }
 
     botDecisions(){
-        let state = this.botDecisionDetails["state"];
-
-        if (state === "starting"){
+        if (this.botDecisionDetails["state"] === "starting"){
             this.pickAStartingWeapon();
         }
 
-        if (state === "searching_for_enemy"){
+        // Run check before acting
+        if (!this.canSee(this.getEnemy())){
+            this.botDecisionDetails["state"] = "searching_for_enemy";
+        }else{
+            this.botDecisionDetails["state"] = "fighting_enemy";
+        }
+
+        // Act
+        if (this.botDecisionDetails["state"] === "searching_for_enemy"){
             this.searchForEnemy();
-        }else if (state === "fighting_enemy"){
+        }else if (this.botDecisionDetails["state"] === "fighting_enemy"){
             this.makeFightingDecisions();
         }
     }
 
+    getEnemy(){
+        // If I've already saved the enemy in storage then just return it
+        if (this.botDecisionDetails["enemy"] != null){
+            return this.botDecisionDetails["enemy"];
+        }
+
+        // Otherwise search for it
+        let participants = this.gamemode.getParticipants();
+        for (let participant of participants){
+            if (!participant.is(this)){
+                this.botDecisionDetails["enemy"] = participant;
+                return participant;
+            }
+        }
+
+        throw new Error("DuelBot failed to find enemy.");
+    }
+
     makeFightingDecisions(){
-        // TODO: Check if no longer see enemy -> if that is no longer the case -> go back to searching for enemy
+        // TODO: Movement and stuff
+        // TODO: Determine other stuff
+        let equippedWeaponType = "sword"; // TODO: Determine this (also maybe change weapons)
+
+        if (equippedWeaponType === "sword"){
+            this.makeAdvancedSwordDecisions();
+        }
     }
 
     searchForEnemy(){
@@ -89,9 +126,30 @@ class DuelBot extends DuelCharacter {
         });
     }
 
+    makeAdvancedSwordDecisions(){
+        let sword = this.getInventory().getSelectedItem();
+        // Set default
+        this.botDecisionDetails["weapons"]["sword"]["trying_to_swing_sword"] = false;
+        this.botDecisionDetails["weapons"]["sword"]["trying_to_block"] = false;
+
+        // TODO: Check if currently blocking
+
+        // Don't make decisions mid-swing
+        if (sword.isSwinging()){
+            return;
+        }
+        let enemy = this.getEnemy();
+
+        // TODO: Determine can I strike enemy with my sword
+        // TODO: Determine can enemy strike me with their sword (if they are carrying one)
+
+        // TODO: Make decisions based on this
+        this.botDecisionDetails["weapons"]["sword"]["trying_to_block"] = true;
+    }
+
     makeSwordDecisions(){
-        let tryingToSwing = false;
-        let tryingToBlock = false;
+        let tryingToSwing = this.botDecisionDetails["weapons"]["sword"]["trying_to_swing_sword"];
+        let tryingToBlock = this.botDecisionDetails["weapons"]["sword"]["trying_to_block"];
         this.amendDecisions({
             "trying_to_swing_sword": tryingToSwing,
             "trying_to_block": tryingToBlock

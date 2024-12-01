@@ -45,6 +45,10 @@ class Duel extends Gamemode {
             SOUND_MANAGER.play(eventObj["associated_sound_name"], eventObj["x"], eventObj["y"]);
         });
 
+        this.eventHandler.addHandler("sword_sparks", (eventObj) => {
+            scene.addExpiringVisual(SwordSparks.create(eventObj["spark_type"], eventObj["x"], eventObj["y"]));
+        });
+
         // TODO: Create DuelCamera class
         this.camera = this.isABotGame() ? new DuelCamera() : null;
 

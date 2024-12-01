@@ -86,7 +86,53 @@ const RETRO_GAME_DATA = {
             "min_life_ms": 400,
             "max_life_ms": 600,
             "max_speed": 50
-        }
+        },
+
+        "sword_sparks": {
+            "type": {
+                "block": {
+                    "min_sparks_per_impact": 3,
+                    "max_sparks_per_impact": 5,
+                    "size": 4,
+                    "center_radius": 15,
+                    "min_red": 230,
+                    "max_red": 250,
+                    "min_green": 168,
+                    "max_green": 178,
+                    "min_blue": 127,
+                    "max_blue": 137,
+                    "max_speed": 25
+                },
+                "deflect": {
+                    "min_sparks_per_impact": 7,
+                    "max_sparks_per_impact": 13,
+                    "size": 3,
+                    "center_radius": 12,
+                    "min_red": 243,
+                    "max_red": 252,
+                    "min_green": 145,
+                    "max_green": 155,
+                    "min_blue": 84,
+                    "max_blue": 94,
+                    "max_speed": 35
+                },
+                "stun_deflect": {
+                    "min_sparks_per_impact": 15,
+                    "max_sparks_per_impact": 19,
+                    "size": 2,
+                    "center_radius": 10,
+                    "min_red": 232,
+                    "max_red": 243,
+                    "min_green": 102,
+                    "max_green": 112,
+                    "min_blue": 21,
+                    "max_blue": 31,
+                    "max_speed": 40
+                }
+            },
+            "min_life_ms": 400,
+            "max_life_ms": 600
+        },
     },
 
     "match_stats": {
@@ -193,7 +239,10 @@ const RETRO_GAME_DATA = {
             "deflect_shorter_stamina_drain": 10,
             "block_damage": 0.125,
             "block_contender_stamina_drain": 25,
-            "block_shorter_stamina_drain": 35
+            "block_shorter_stamina_drain": 35,
+            "deflect_proportion": 0.5, // If block is started >= half the ticks through the swing then it's a deflect rather than a block
+            "stun_deflect_proportion": 0.9, // If block is started >= half the ticks through the swing then it's a deflect rather than a block
+            "stun_time_ms": 500
         },
         "swords": {
             "clever": {

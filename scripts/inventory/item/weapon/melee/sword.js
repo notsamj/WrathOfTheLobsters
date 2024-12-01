@@ -6,11 +6,15 @@ class Sword extends Item {
         
         this.swinging = false;
         this.swingStartTick = null;
-        this.swingLock = new TickLock(RETRO_GAME_DATA["sword_data"]["swords"][this.getModel()]["swing_time_ms"] / RETRO_GAME_DATA["general"]["ms_between_ticks"]);
+        this.swingLock = new TickLock(this.getSwingTimeMS() / RETRO_GAME_DATA["general"]["ms_between_ticks"]);
         this.swingFacing = null;
 
         this.blocking = false;
         this.blockStartTick = null;
+    }
+
+    getSwingTimeMS(){
+        return RETRO_GAME_DATA["sword_data"]["swords"][this.getModel()]["swing_time_ms"];
     }
 
     startBlocking(){
@@ -227,14 +231,19 @@ class Sword extends Item {
         // Check for blocking
         let hitCharacterHeldWeapon = hitCharacter.getSelectedItem();
         let victimHoldingASword = hitCharacterHeldWeapon instanceof Sword;
+
+        let blocking = false;
+        let isDeflected = false;
+        let stuns = false;
+
         if (victimHoldingASword){
             // If blocking properly 
 
             // Check if direction is right
             let ableToBlock = getMovementDirectionOf(hitCharacter.getFacingDirection()) === getOppositeDirectionOf(getMovementDirectionOf(this.getSwingFacingDirection()));
             // Check if its blocking
-            ableToBlock = ableToBlock && hitCharacterHeldWeapon.isBlocking();
-            if (ableToBlock){
+            blocking = ableToBlock && hitCharacterHeldWeapon.isBlocking();
+            if (blocking){
                 // Compare the blades
                 let attackerLength = this.getBladeLength();
                 let defenderLength = hitCharacterHeldWeapon.getBladeLength();
@@ -245,17 +254,22 @@ class Sword extends Item {
 
                 // Check when swing start
                 let swingStartTick = this.getSwingStartTick();
+                let swingTotalLengthInTicks = Math.ceil(this.getSwingTimeMS());
+                let blockStartTickGenerous = blockStartTick + 1; // Give them an extra tick to start block for the proportion reason
+                // Note: May be > 1?
+                let swingProportionCompletedWhenBlockStarted = (blockStartTick + 1 - swingStartTick) / swingTotalLengthInTicks;
 
-                let isDeflecting = blockStartTick >= swingStartTick;
+                isDeflected = swingProportionCompletedWhenBlockStarted >= RETRO_GAME_DATA["sword_data"]["blocking"]["deflect_proportion"];
+                stuns = swingProportionCompletedWhenBlockStarted >= RETRO_GAME_DATA["sword_data"]["blocking"]["stun_deflect_proportion"];
 
                 // If the block started as a reaction and the blade contends in length
-                if (isDeflecting && defenderBladeIsAContender){
+                if (isDeflected && defenderBladeIsAContender){
                     damageToDeal *= RETRO_GAME_DATA["sword_data"]["blocking"]["deflect_damage"]; // Blocks all damage
                     staminaToDrain = RETRO_GAME_DATA["sword_data"]["blocking"]["deflect_contender_stamina_drain"];
                     soundToPlay = "longer_deflect";
                 }
                 // If the block started as a reaction but the defending blade is shorter
-                else if (isDeflecting){
+                else if (isDeflected){
                     damageToDeal *= RETRO_GAME_DATA["sword_data"]["blocking"]["deflect_damage"]; // Blocks all damage
                     staminaToDrain = RETRO_GAME_DATA["sword_data"]["blocking"]["deflect_shorter_stamina_drain"];
                     soundToPlay = "shorter_deflect";
@@ -280,6 +294,11 @@ class Sword extends Item {
         hitCharacter.damage(damageToDeal);
         hitCharacter.getStaminaBar().useStamina(staminaToDrain);
 
+        // Do stun if applicable
+        if (stuns){
+            this.player.stun(Math.ceil(RETRO_GAME_DATA["sword_data"]["blocking"]["stun_time_ms"] / RETRO_GAME_DATA["general"]["ms_between_ticks"]));
+        }
+
         // If the hit character still is alive and has stamina remove the block if it runs out now
         if (hitCharacter.isAlive() && victimHoldingASword && hitCharacterHeldWeapon.isBlocking() && hitCharacter.getStaminaBar().isOutOfStamina()){
             hitCharacterHeldWeapon.stopBlocking();
@@ -289,9 +308,33 @@ class Sword extends Item {
         this.getGamemode().getEventHandler().emit({
             "name": "sword_swing",
             "associated_sound_name": soundToPlay,
-            "tile_x": hitCharacter.getX(),
-            "tile_y": hitCharacter.getY()
+            "x": hitCenterX,
+            "y": hitCenterY
         });
+
+        // Do visual effects
+        if (stuns){
+            this.getGamemode().getEventHandler().emit({
+                "name": "sword_sparks",
+                "spark_type": "stun_deflect",
+                "x": hitCenterX,
+                "y": hitCenterY
+            });
+        }else if (isDeflected){
+            this.getGamemode().getEventHandler().emit({
+                "name": "sword_sparks",
+                "spark_type": "deflect",
+                "x": hitCenterX,
+                "y": hitCenterY
+            });
+        }else if (blocking){
+            this.getGamemode().getEventHandler().emit({
+                "name": "sword_sparks",
+                "spark_type": "block",
+                "x": hitCenterX,
+                "y": hitCenterY
+            });
+        }
 
         // If the hit character died as a result of the hit
         if (hitCharacter.isDead()){
@@ -427,7 +470,7 @@ class Sword extends Item {
             let timePassedTick = (this.swingLock.getCooldown() - this.swingLock.getTicksLeft()) * RETRO_GAME_DATA["general"]["ms_between_ticks"];
             let timePassedNonTick = FRAME_COUNTER.getLastFrameTime() - TICK_SCHEDULER.getLastTickTime();
             let totalTimePassedMS = timePassedTick + timePassedNonTick;
-            let proportion = totalTimePassedMS / RETRO_GAME_DATA["sword_data"]["swords"][this.getModel()]["swing_time_ms"];
+            let proportion = totalTimePassedMS / this.getSwingTimeMS();
             proportion = Math.min(1, Math.max(0, proportion));
             let hypotenuse = RETRO_GAME_DATA["sword_data"]["arm_length"] + RETRO_GAME_DATA["sword_data"]["swords"][this.getModel()]["image_width"] * RETRO_GAME_DATA["sword_data"]["swords"][this.getModel()]["image_scale"] / 2 - RETRO_GAME_DATA["sword_data"]["swords"][this.getModel()]["blade_length"];
             let currentSwingAngle = rotateCWRAD(startAngle, rangeRAD * proportion);

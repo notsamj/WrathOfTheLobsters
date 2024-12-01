@@ -26,6 +26,10 @@ class Character extends Entity {
         }
     }
 
+    stun(ticks){
+        // TODO
+    }
+
     getStaminaBar(){
         return this.staminaBar;
     }

@@ -79,7 +79,7 @@ class BulletImpact {
     static create(x, y){
         let squares = [];
         let numSquares = randomNumberInclusive(RETRO_GAME_DATA["visual_effects"]["bullet_impact_generation"]["min_dirt_per_impact"], RETRO_GAME_DATA["visual_effects"]["bullet_impact_generation"]["max_dirt_per_impact"]);
-        let mainRadius = randomNumberInclusive(RETRO_GAME_DATA["visual_effects"]["bullet_impact_generation"]["center_radius"], RETRO_GAME_DATA["visual_effects"]["bullet_impact_generation"]["center_radius"]);
+        let mainRadius = RETRO_GAME_DATA["visual_effects"]["bullet_impact_generation"]["center_radius"], RETRO_GAME_DATA["visual_effects"]["bullet_impact_generation"]["center_radius"];
         let spawnTime = Date.now();
         for (let i = 0; i < numSquares; i++){
             let squareX = x + randomNumberInclusive(-1 * mainRadius, mainRadius);

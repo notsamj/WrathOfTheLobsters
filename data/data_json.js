@@ -21,7 +21,13 @@ const RETRO_GAME_DATA = {
     },
 
     "duel": {
-        "theme_colour": "#5479ff"
+        "theme_colour": "#5479ff",
+        "area_size": 10, // 50?,
+        "enemy_visibility_distance": 12, // 12
+        "shot_damage": 0.75,
+        "stab_damage": 1,
+        "max_seed": 100000, // Self-explanatory
+        "seed": 24873  // null for random seed, 447 is good (on 20 size)
     },
 
     "human": {
@@ -183,11 +189,11 @@ const RETRO_GAME_DATA = {
         "arm_length": 32,
         "blocking": {
             "deflect_damage": 0,
-            "deflect_contender_stamina_drain": 0,
-            "deflect_shorter_stamina_drain": 0.1,
+            "deflect_contender_stamina_drain": 1,
+            "deflect_shorter_stamina_drain": 10,
             "block_damage": 0.125,
-            "block_contender_stamina_drain": 0.1,
-            "block_shorter_stamina_drain": 0.2
+            "block_contender_stamina_drain": 25,
+            "block_shorter_stamina_drain": 35
         },
         "swords": {
             "clever": {

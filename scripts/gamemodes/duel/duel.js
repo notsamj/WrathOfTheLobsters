@@ -79,7 +79,7 @@ class Duel extends Gamemode {
     }
 
     getEnemyVisibilityDistance(){
-        return RETRO_GAME_DATA["skirmish"]["enemy_visibility_distance"];
+        return RETRO_GAME_DATA["duel"]["enemy_visibility_distance"];
     }
 
     getRandom(){
@@ -199,7 +199,7 @@ class Duel extends Gamemode {
     // Note: I stole this from Skirmish
     async generateTiles(){
         let scene = this.getScene();
-        let size = RETRO_GAME_DATA["skirmish"]["area_size"];
+        let size = RETRO_GAME_DATA["duel"]["area_size"];
 
         // Visual Details
         let grassDetails = {"name":"grass","file_link":"images/grass.png"};
@@ -261,9 +261,9 @@ class Duel extends Gamemode {
         let maxBigBushSize = 20;
         let bigBushes = 5;
 
-        let seed = randomNumberInclusive(0,RETRO_GAME_DATA["skirmish"]["max_seed"]);
+        let seed = randomNumberInclusive(0,RETRO_GAME_DATA["duel"]["max_seed"]);
 
-        let setSeed = RETRO_GAME_DATA["skirmish"]["seed"];
+        let setSeed = RETRO_GAME_DATA["duel"]["seed"];
         let useSetSeed = setSeed != null;
         if (useSetSeed){
             seed = setSeed;

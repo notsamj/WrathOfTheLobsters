@@ -18,6 +18,6 @@ class SkirmishSword extends Sword {
     }
 
     getSwingDamage(){
-        return RETRO_GAME_DATA["skirmish"]["stab_damage"];
+        return RETRO_GAME_DATA["duel"]["stab_damage"];
     }
 }

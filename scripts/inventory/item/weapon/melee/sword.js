@@ -75,7 +75,7 @@ class Sword extends Item {
         return playerTopY - RETRO_GAME_DATA["model_positions"][this.getPlayer().getModelCategory()][this.getModel()]["swinging"][facingDirection]["y_offset"];
     }
 
-    finishSwing(){
+    finishSwing(exclusionFunction=(character)=>{ return false; }){
         this.swinging = false;
         // Calculate what it hit
         let swingRange = this.getSwingRange();
@@ -102,7 +102,7 @@ class Sword extends Item {
         let characters = this.getScene().getEntities();
         let hitCharacter = null;
         for (let [character, charID] of characters){
-            if (character.getID() == this.getPlayer().getID() || character.isDead()){ continue; }
+            if (character.getID() === this.getPlayer().getID() || character.isDead() || exclusionFunction(character)){ continue; }
             let characterHitbox = character.getUpdatedHitbox();
 
             // If no collision ignore
@@ -235,9 +235,6 @@ class Sword extends Item {
             // Check if its blocking
             ableToBlock = ableToBlock && hitCharacterHeldWeapon.isBlocking();
             if (ableToBlock){
-                // Subtract stamina
-                hitCharacter.getStaminaBar().useStamina();
-
                 // Compare the blades
                 let attackerLength = this.getBladeLength();
                 let defenderLength = hitCharacterHeldWeapon.getBladeLength();

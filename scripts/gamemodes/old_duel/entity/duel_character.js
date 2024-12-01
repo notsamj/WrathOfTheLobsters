@@ -8,12 +8,12 @@ class SkirmishCharacter extends Character {
         this.tileXOnTurnStart = null;
         this.tileYOnTurnStart = null;
         this.rankName = rankName;
-        this.walkingBar = new ProgressBar(RETRO_GAME_DATA["skirmish"]["distance_per_turn"][this.rankName]);
+        this.walkingBar = new ProgressBar(RETRO_GAME_DATA["duel"]["distance_per_turn"][this.rankName]);
         this.visualEnvironmentHealthBar = new VisualEnvironmentHealthBar(this.health);
     }
 
     getShot(model, killerID){
-        let damage = RETRO_GAME_DATA["skirmish"]["shot_damage"];
+        let damage = RETRO_GAME_DATA["duel"]["shot_damage"];
         // If the attacker is friendly then limit damage to avoid death of officer (This is to prevent dying while ordering shooting)
         if (teamNameIsEqual(getTeamNameFromClass(model), this.getTeamName()) && this.getRankName() === "officer" && this.isMakingAMove()){
             damage = Math.min(damage, Math.max(this.getHealth() - 0.01, 0));

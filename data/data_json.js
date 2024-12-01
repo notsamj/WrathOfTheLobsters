@@ -27,7 +27,13 @@ const RETRO_GAME_DATA = {
         "shot_damage": 0.75,
         "stab_damage": 1,
         "max_seed": 100000, // Self-explanatory
-        "seed": 24873  // null for random seed, 447 is good (on 20 size)
+        "seed": null,  // null for random seed, 24873 is good (on 10 size)
+        "camera": {
+            "move_speed": 64*16  
+        },
+        "ai": {
+            "search_path_max_length": 15, // A path up to this length will be made when looking for the enemy. Once reached a new one will be made
+        }
     },
 
     "human": {

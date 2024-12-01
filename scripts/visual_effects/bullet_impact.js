@@ -48,11 +48,16 @@ class BulletImpact {
         let rightX = Number.MIN_SAFE_INTEGER;
         let leftX = Number.MAX_SAFE_INTEGER;
         for (let square of this.squares){
-            if (square["x"] - square["size"] > rX){ return false; }
-            if (square["x"] + square["size"] < lX){ return false; }
-            if (square["y"] - square["size"] > tY){ return false; }
-            if (square["y"] + square["size"] < bY){ return false; }
+            bottomY = Math.min(bottomY, square["y"] + square["size"]);
+            topY = Math.max(topY, square["y"] - square["size"]);
+            leftX = Math.min(leftX, square["x"] + square["size"]);
+            rightX = Math.max(rightX, square["x"] - square["size"]);
         }
+
+        if (leftX > rX){ return false; }
+        if (rightX < lX){ return false; }
+        if (bottomY > tY){ return false; }
+        if (topY < bY){ return false; }
         return true;
     }
 
@@ -79,7 +84,7 @@ class BulletImpact {
     static create(x, y){
         let squares = [];
         let numSquares = randomNumberInclusive(RETRO_GAME_DATA["visual_effects"]["bullet_impact_generation"]["min_dirt_per_impact"], RETRO_GAME_DATA["visual_effects"]["bullet_impact_generation"]["max_dirt_per_impact"]);
-        let mainRadius = RETRO_GAME_DATA["visual_effects"]["bullet_impact_generation"]["center_radius"], RETRO_GAME_DATA["visual_effects"]["bullet_impact_generation"]["center_radius"];
+        let mainRadius = RETRO_GAME_DATA["visual_effects"]["bullet_impact_generation"]["center_radius"];
         let spawnTime = Date.now();
         for (let i = 0; i < numSquares; i++){
             let squareX = x + randomNumberInclusive(-1 * mainRadius, mainRadius);

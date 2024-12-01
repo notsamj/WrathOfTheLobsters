@@ -6,6 +6,8 @@ class Entity extends VisualItem {
         this.dead = false;
     }
 
+    couldSeeEntityIfOnTile(){ throw new Error("Expect this to be overridden."); }
+
     isHuman(){
         return false;
     }

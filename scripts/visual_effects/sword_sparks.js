@@ -27,11 +27,16 @@ class SwordSparks extends BasicFadingEffect {
         let rightX = Number.MIN_SAFE_INTEGER;
         let leftX = Number.MAX_SAFE_INTEGER;
         for (let square of this.squares){
-            if (square["x"] - square["size"] > rX){ return false; }
-            if (square["x"] + square["size"] < lX){ return false; }
-            if (square["y"] - square["size"] > tY){ return false; }
-            if (square["y"] + square["size"] < bY){ return false; }
+            bottomY = Math.min(bottomY, square["y"] + square["size"]);
+            topY = Math.max(topY, square["y"] - square["size"]);
+            leftX = Math.min(leftX, square["x"] + square["size"]);
+            rightX = Math.max(rightX, square["x"] - square["size"]);
         }
+
+        if (leftX > rX){ return false; }
+        if (rightX < lX){ return false; }
+        if (bottomY > tY){ return false; }
+        if (topY < bY){ return false; }
         return true;
     }
 

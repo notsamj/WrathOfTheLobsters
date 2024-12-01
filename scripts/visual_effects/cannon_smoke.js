@@ -32,11 +32,16 @@ class CannonSmoke {
         let rightX = Number.MIN_SAFE_INTEGER;
         let leftX = Number.MAX_SAFE_INTEGER;
         for (let circle of this.circles){
-            if (circle["x"] - circle["radius"] > rX){ return false; }
-            if (circle["x"] + circle["radius"] < lX){ return false; }
-            if (circle["y"] - circle["radius"] > tY){ return false; }
-            if (circle["y"] + circle["radius"] < bY){ return false; }
+            bottomY = Math.min(bottomY, circle["y"] + circle["radius"]);
+            topY = Math.max(topY, circle["y"] - circle["radius"]);
+            leftX = Math.min(leftX, circle["x"] + circle["radius"]);
+            rightX = Math.max(rightX, circle["x"] - circle["radius"]);
         }
+
+        if (leftX > rX){ return false; }
+        if (rightX < lX){ return false; }
+        if (bottomY > tY){ return false; }
+        if (topY < bY){ return false; }
         return true;
     }
 

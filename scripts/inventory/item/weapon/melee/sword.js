@@ -1,4 +1,4 @@
-class Sword extends Item {
+class Sword extends MeleeWeapon {
     constructor(model, details){
         super();
         this.model = model;
@@ -261,6 +261,8 @@ class Sword extends Item {
 
                 isDeflected = swingProportionCompletedWhenBlockStarted >= RETRO_GAME_DATA["sword_data"]["blocking"]["deflect_proportion"];
                 stuns = swingProportionCompletedWhenBlockStarted >= RETRO_GAME_DATA["sword_data"]["blocking"]["stun_deflect_proportion"];
+                // Stun also requires a contender blade
+                stuns = stuns && defenderBladeIsAContender;
 
                 // If the block started as a reaction and the blade contends in length
                 if (isDeflected && defenderBladeIsAContender){

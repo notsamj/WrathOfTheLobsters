@@ -302,7 +302,7 @@ function startGame(){
     let gameDetails = {
         "participants": [
             {
-                "human": true,
+                "human": false,
                 "model": "british_officer",
                 "swords": ["cavalry_sword"],
                 "pistols": [],

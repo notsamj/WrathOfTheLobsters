@@ -223,6 +223,9 @@ class Sword extends MeleeWeapon {
             }
         }
         if (hitCharacter === null){ return; }
+
+        // Idea: Make sure it doesn't in the case where ATTACKER was on the same tile as DEFENDER but moves off as swinging 
+
         // Else hit a character
         let damageToDeal = this.getSwingDamage();
         let staminaToDrain = 0; // Zero if not blocking, otherwise another number
@@ -241,6 +244,8 @@ class Sword extends MeleeWeapon {
 
             // Check if direction is right
             let ableToBlock = getMovementDirectionOf(hitCharacter.getFacingDirection()) === getOppositeDirectionOf(getMovementDirectionOf(this.getSwingFacingDirection()));
+            // You can also block if you are on the same tile -> direction doesn't matter
+            ableToBlock = ableToBlock || (hitCharacter.getTileX() === this.getPlayer().getTileX() && hitCharacter.getTileY() === this.getPlayer().getTileY());
             // Check if its blocking
             blocking = ableToBlock && hitCharacterHeldWeapon.isBlocking();
             if (blocking){

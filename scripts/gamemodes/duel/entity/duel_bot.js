@@ -1,6 +1,7 @@
 class DuelBot extends DuelCharacter {
     constructor(gamemode, model){
         super(gamemode, model);
+        this.botPerception = new BotPerception();
         this.botDecisionDetails = {
             "state": "starting",
             "action" : null,
@@ -97,6 +98,8 @@ class DuelBot extends DuelCharacter {
             this.equipAWeapon();
         }else if (state === "searching_for_enemy"){
             this.searchForEnemy();
+        }else if (state === "fighting_enemy"){
+            this.makeFightingDecisions();
         }
     }
 
@@ -341,7 +344,7 @@ class DuelBot extends DuelCharacter {
         let equippedWeaponType = "sword"; // TODO: Determine this (also maybe change weapons)
 
         if (equippedWeaponType === "sword"){
-            this.makeAdvancedSwordDecisions();
+            this.makeSwordFightingDecisions();
         }
     }
 
@@ -400,13 +403,24 @@ class DuelBot extends DuelCharacter {
         });
     }
 
-    makeAdvancedSwordDecisions(){
+    makeSwordFightingDecisions(){
+        
+        let enemyLocation = this.
+
+
+        return;
         let sword = this.getInventory().getSelectedItem();
-        // Set default
+        if (!(sword instanceof Sword)){
+            throw new Error("Failed to find sword");
+        }
+        /*// Set default
         this.botDecisionDetails["weapons"]["sword"]["trying_to_swing_sword"] = false;
         this.botDecisionDetails["weapons"]["sword"]["trying_to_block"] = false;
 
         // TODO: Check if currently blocking
+        if (sword.isBlocking()){
+
+        }
 
         // Don't make decisions mid-swing
         if (sword.isSwinging()){
@@ -418,7 +432,7 @@ class DuelBot extends DuelCharacter {
         // TODO: Determine can enemy strike me with their sword (if they are carrying one)
 
         // TODO: Make decisions based on this
-        this.botDecisionDetails["weapons"]["sword"]["trying_to_block"] = true;
+        this.botDecisionDetails["weapons"]["sword"]["trying_to_block"] = true;*/
     }
 
     makeSwordDecisions(){

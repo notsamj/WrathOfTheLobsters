@@ -75,7 +75,7 @@ class Character extends Entity {
         if (startTileX === endTileX && startTileY === endTileY){ return Route.fromPath([{"tile_x": startTileX, "tile_y": startTileY}]); }
 
         let tileCanBeWalkedOn = (tileX, tileY) => {
-            return !this.getScene().tileAtLocationHasAttribute(tileX, tileY, "no_walk") && !this.getScene().hasEntityOnLocation(tileX, tileY);
+            return !this.getScene().tileAtLocationHasAttribute(tileX, tileY, "no_walk");
         }
 
         if (!tileCanBeWalkedOn(startTileX, startTileY)){ return null; }
@@ -409,10 +409,7 @@ class Character extends Entity {
         }
 
         // Check if the tile is walkable before moving
-        let canWalkOnTile = (tileX, tileY) => {
-            return !this.getScene().tileAtLocationHasAttribute(tileX, tileY, "no_walk") && !this.getScene().hasEntityOnLocation(tileX, tileY);
-        }
-        if (!canWalkOnTile(newTileX, newTileY)){
+        if (this.getScene().tileAtLocationHasAttribute(newTileX, newTileY, "no_walk")){
             if (this.isMoving()){
                 this.movementDetails = null;
             }

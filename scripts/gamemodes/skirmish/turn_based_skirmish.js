@@ -1031,8 +1031,8 @@ class TurnBasedSkirmish extends Gamemode {
             let endX = coordSet2[0];
             let endY = coordSet2[1];
 
-            let canWalk = (tileX, tileY) => {
-                return !this.getScene().tileAtLocationHasAttribute(tileX, tileY, "no_walk") && !this.getScene().hasEntityOnLocation(tileX, tileY);
+            let canWalk = (x, y) => {
+                return !(scene.hasPhysicalTileCoveringLocation(x, y) && scene.getPhysicalTileCoveringLocation(x, y).hasAttribute("no_walk"));
             }
 
             let tileStorage = [{"x": startX, "y": startY, "can_walk": canWalk(startX, startY), "checked": false}];

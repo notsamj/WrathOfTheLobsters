@@ -97,25 +97,7 @@ class DuelBot extends DuelCharacter {
             this.equipAWeapon();
         }else if (state === "searching_for_enemy"){
             this.searchForEnemy();
-        }else if (state === "fighting_enemy"){
-            this.fightEnemy();
         }
-    }
-
-    fightEnemy(){
-        // Handle case that weapon doesn't exist
-        if (!this.getInventory.hasSelectedItem()){ throw new Error("Somehow lost weapon."); }
-  
-        let equippedWeapon = this.getInventory().getSelectedItem();
-        if (equippedWeapon instanceof Sword){
-            this.engageInSwordFight();
-        }
-    }
-
-    engageInSwordFight(){
-        // TODO: Add something here incase you want to change weapons or maybe in 'fightEnemy'
-
-        
     }
 
     equipAWeapon(){
@@ -235,7 +217,7 @@ class DuelBot extends DuelCharacter {
         }
 
         let tileCanBeWalkedOn = (tileX, tileY) => {
-            return !this.getScene().tileAtLocationHasAttribute(tileX, tileY, "no_walk") && !this.getScene().hasEntityOnLocation(tileX, tileY);
+            return !this.getScene().tileAtLocationHasAttribute(tileX, tileY, "no_walk");
         }
 
         let tileTooFar = (pathToTileLength) => {

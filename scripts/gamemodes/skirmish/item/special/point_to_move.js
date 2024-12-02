@@ -191,7 +191,7 @@ class PointToMove extends Item {
             this.updateCrosshairColour();
     	}
     	if (this.getDecision("trying_to_move_troops") && !this.player.hasCommitedToAction() && this.selectedTroops.length > 0){
-            let canWalkOnTile = !this.getScene().tileAtLocationHasAttribute(this.moveTileX, this.moveTileY, "no_walk") && !this.getScene().hasEntityOnLocation(tileX, tileY);
+            let canWalkOnTile = !this.getScene().tileAtLocationHasAttribute(this.moveTileX, this.moveTileY, "no_walk");
             if (canWalkOnTile){
                 let tryingToCompleteMove = false;
                 if (this.getMode() === "move_all"){

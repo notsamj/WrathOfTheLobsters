@@ -8,6 +8,15 @@ class RetroGameScene {
         this.displayingPhyiscalLayer = false;
     }
 
+    hasEntityOnLocation(tileX, tileY){
+        for (let [entity, entityIndex] of this.entities){
+            if (entity.getTileX() === tileX && entity.getTileY() === tileY){
+                return true;
+            }
+        }
+        return false;
+    }
+
     getEntities(){
         return this.entities;
     }

@@ -77,7 +77,7 @@ class SkirmishBot extends SkirmishCharacter {
         }
 
         let tileCanBeWalkedOn = (tileX, tileY) => {
-            return !this.getScene().tileAtLocationHasAttribute(tileX, tileY, "no_walk");
+            return !this.getScene().tileAtLocationHasAttribute(tileX, tileY, "no_walk") && !this.getScene().hasEntityOnLocation(tileX, tileY);
         }
 
         let tileTooFar = (pathToTileLength) => {

@@ -1,7 +1,7 @@
 class DuelBot extends DuelCharacter {
     constructor(gamemode, model){
         super(gamemode, model);
-        this.botPerception = new BotPerception();
+        this.perception = new BotPerception();
         this.botDecisionDetails = {
             "state": "starting",
             "action" : null,
@@ -20,6 +20,64 @@ class DuelBot extends DuelCharacter {
                     "trying_to_swing_sword": false,
                     "trying_to_block": false
                 }
+            }
+        }
+    }
+
+    getCurrentTick(){
+        return this.gamemode.getCurrentTick();
+    }
+
+    getDataToReactTo(dataKey){
+        return this.perception.getDataToReactTo(dataKey, this.getCurrentTick());
+    }
+
+    hasDataToReactTo(dataKey){
+        return this.perception.hasDataToReactTo(dataKey, this.getCurrentTick());
+    }
+
+    inputPerceptionData(dataKey, dataValue){
+        this.perception.inputData(dataKey, dataValue, this.getCurrentTick());
+    }
+
+    tick(){
+        this.perceieve();
+        super.tick();
+    }
+
+    perceieve(){
+        let enemy = this.getEnemy();
+        let canSeeEnemy = this.canSee(enemy);
+
+        this.inputPerceptionData("can_see_enemy", canSeeEnemy);
+
+        if (canSeeEnemy){
+            let enemyTileX = enemy.getTileX();
+            let enemyTileY = enemy.getTileY();
+            this.inputPerceptionData("enemy_location", {"tile_x": enemyTileX, "tile_y": enemyTileY});
+
+            let enemyInventory = enemy.getInventory();
+            let enemyHoldingAnItem = enemyInventory.hasSelectedItem();
+            let enemyHoldingAWeapon = false;
+            let enemyHoldingARangedWeapon = false;
+            let enemyHoldingAMeleeWeapon = false;
+            let enemyHoldingASword = false;
+            let enemyItem;
+            if (enemyHoldingAnItem){
+                enemyItem = enemyInventory.getSelectedItem();
+                enemyHoldingAWeapon = enemyItem instanceof Weapon;
+                enemyHoldingARangedWeapon = enemyHoldingAWeapon && (enemyItem instanceof RangedWeapon);
+                enemyHoldingAMeleeWeapon = enemyHoldingAWeapon && (enemyItem instanceof MeleeWeapon);
+                enemyHoldingASword = enemyHoldingAMeleeWeapon && (enemyItem instanceof Sword);
+            }
+            this.inputPerceptionData("enemy_holding_a_weapon", enemyHoldingAWeapon);
+            this.inputPerceptionData("enemy_holding_a_ranged_weapon", enemyHoldingARangedWeapon);
+            this.inputPerceptionData("enemy_holding_a_melee_weapon", enemyHoldingAMeleeWeapon);
+            this.inputPerceptionData("enemy_holding_a_sword", enemyHoldingASword);
+
+            if (enemyHoldingASword){
+                let sword = enemyItem;
+                this.inputPerceptionData("enemy_swinging_a_sword", sword.isSwinging());
             }
         }
     }
@@ -80,16 +138,12 @@ class DuelBot extends DuelCharacter {
         this.actionName = newActionName;
     }
 
-    hasAction(){
-        return this.botDecisionDetails["action"] === null;
+    cancelAction(){
+        this.actionName = null;
     }
 
-    cancelAction(){
-        if (!this.hasAction()){ return; }
-        let action = this.getAction();
-        if (action === false){
-            // TODO 
-        }
+    hasAction(){
+        return this.botDecisionDetails["action"] === null;
     }
 
     makeDecisionsBasedOnDecidedState(){
@@ -140,7 +194,7 @@ class DuelBot extends DuelCharacter {
         }else if (state === "equip_a_weapon"){
             // If done equipping a weapon then start looking for the enemy
             if (this.hasWeaponEquipped()){
-                if (this.canSee(this.getEnemy())){
+                if (this.getDataToReactTo("can_see_enemy")){
                     this.changeToState("searching_for_enemy");
                 }else{
                     this.changeToState("fighting_enemy");
@@ -149,11 +203,11 @@ class DuelBot extends DuelCharacter {
                 this.equipAWeapon();
             }
         }else if (state === "searching_for_enemy"){
-            if (this.canSee(this.getEnemy())){
+            if (this.getDataToReactTo("can_see_enemy")){
                 this.changeToState("fighting_enemy");
             }
         }else if (state === "fighting_enemy"){
-            if (!this.canSee(this.getEnemy())){
+            if (!this.getDataToReactTo("can_see_enemy")){
                 this.changeToState("searching_for_enemy");
             }
         }
@@ -404,15 +458,42 @@ class DuelBot extends DuelCharacter {
     }
 
     makeSwordFightingDecisions(){
-        
-        let enemyLocation = this.
-
-
-        return;
         let sword = this.getInventory().getSelectedItem();
         if (!(sword instanceof Sword)){
             throw new Error("Failed to find sword");
         }
+
+        if (!this.perception.hasDataToReactTo("enemy_location")){ return; }
+        let enemyLocation = this.perception.getDataToReactTo("enemy_location");
+        let enemyTileX = enemyLocation["tile_x"];
+        let enemyTileY = enemyLocation["tile_y"];
+
+        // In tile units
+        let estimatedCombatDistance = RETRO_GAME_DATA["duel"]["ai"]["estimated_melee_distance"];
+
+        let myTileX = this.getTileX();
+        let myTileY = this.getTileY();
+
+        let enemyDistance = calculateEuclidianDistance(myTileX, myTileY, enemyTileX, enemyTileY);
+
+        // If enemy is outside of reasonable fighting distance
+        if (enemyDistance > estimatedCombatDistance){
+            // If blocking then stop
+            if (sword.isBlocking()){
+                this.botDecisionDetails["weapons"]["sword"]["trying_to_swing_sword"] = false;
+            }
+
+            // No sword action at the moment
+            if (this.hasAction()){
+                this.cancelAction();
+            }
+
+            return;
+        }
+        // Otherwise -> We are in sword range
+        let enemySwinging = this.getDataToReactTo("enemy_swinging_a_sword");
+        // TODO
+
         /*// Set default
         this.botDecisionDetails["weapons"]["sword"]["trying_to_swing_sword"] = false;
         this.botDecisionDetails["weapons"]["sword"]["trying_to_block"] = false;

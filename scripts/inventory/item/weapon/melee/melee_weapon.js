@@ -1,4 +1,4 @@
-class MeleeWeapon extends Item {
+class MeleeWeapon extends Weapon {
 	constructor(){
 		super();
 	}

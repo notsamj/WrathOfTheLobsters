@@ -1,4 +1,4 @@
-class Gun extends Item {
+class Gun extends RangedWeapon {
     constructor(model, details){
         super();
         this.model = model;

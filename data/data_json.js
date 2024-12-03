@@ -33,6 +33,7 @@ const RETRO_GAME_DATA = {
         },
         "ai": {
             "search_path_max_length": 15, // A path up to this length will be made when looking for the enemy. Once reached a new one will be made
+            "estimated_melee_distance": 2 // Distance in tiles at which melee combat is estimated to take place <= amount
         }
     },
 

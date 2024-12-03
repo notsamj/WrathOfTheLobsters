@@ -458,12 +458,17 @@ class DuelBot extends DuelCharacter {
     }
 
     makeSwordFightingDecisions(){
-        let sword = this.getInventory().getSelectedItem();
-        if (!(sword instanceof Sword)){
+        let mySword = this.getInventory().getSelectedItem();
+        if (!(mySword instanceof Sword)){
             throw new Error("Failed to find sword");
         }
 
+        // Nothing to do if you can't see the enemy
         if (!this.perception.hasDataToReactTo("enemy_location")){ return; }
+
+        // Nothing to do if you are mid-swing
+        if (this.isSwinging()){ return; }
+
         let enemyLocation = this.perception.getDataToReactTo("enemy_location");
         let enemyTileX = enemyLocation["tile_x"];
         let enemyTileY = enemyLocation["tile_y"];
@@ -479,20 +484,52 @@ class DuelBot extends DuelCharacter {
         // If enemy is outside of reasonable fighting distance
         if (enemyDistance > estimatedCombatDistance){
             // If blocking then stop
-            if (sword.isBlocking()){
-                this.botDecisionDetails["weapons"]["sword"]["trying_to_swing_sword"] = false;
+            if (mySword.isBlocking()){
+                this.botDecisionDetails["weapons"]["sword"]["trying_to_block"] = false;
             }
 
             // No sword action at the moment
-            if (this.hasAction()){
+            // TODO: Do I need actions?
+            /*if (this.hasAction()){
                 this.cancelAction();
-            }
+            }*/
+
+            // TODO: Move to enemy
 
             return;
         }
+
         // Otherwise -> We are in sword range
+
+
+        // Only continue if we can see the enemy
+        if (!this.getDataToReactTo("can_see_enemy")){ return; }
+
         let enemySwinging = this.getDataToReactTo("enemy_swinging_a_sword");
+
+        let mySwordTimeToSwingTicks = Math.ceil(mySword.getSwingTimeMS()/calculateMSBetweenTicks());
+
+        // If enemy is swinging
+        if (enemySwinging){
+            let enemySwordStartTick = this.getDataToReactTo("enemy_sword_start_tick");
+            let enemySwordTotalSwingTimeTicks = Math.max(1, Math.floor(this.getDataToReactTo("enemy_sword_start_tick")));
+            let timeUntilEnemySwordSwingIsFinished = this.getCurrentTick() - (enemySwordStartTick + enemySwordTotalSwingTimeTicks);
+            let enemySwordSwingCompletionProportion = (this.getCurrentTick() - enemySwordStartTick) / enemySwordTotalSwingTimeTicks;
+
+            // If the enemy sword will take longer to finish it's swing than I can swing
+            if (timeUntilEnemySwordSwingIsFinished > mySwordTimeToSwingTicks){
+                this.botDecisionDetails["weapons"]["sword"]["trying_to_swing_sword"] = true;
+                return;
+            }
+
+            // TODO: Try blocking
+        }
+
+        // So I am not swinging, enemy is not swinging. Check if my swing would hit the enemy. If so -> swing
         // TODO
+
+        // TODO: IF I can't hit enemy from where I am standing then move to enemy
+
 
         /*// Set default
         this.botDecisionDetails["weapons"]["sword"]["trying_to_swing_sword"] = false;

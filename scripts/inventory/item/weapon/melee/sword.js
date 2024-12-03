@@ -6,7 +6,7 @@ class Sword extends MeleeWeapon {
         
         this.swinging = false;
         this.swingStartTick = null;
-        this.swingLock = new TickLock(this.getSwingTimeMS() / RETRO_GAME_DATA["general"]["ms_between_ticks"]);
+        this.swingLock = new TickLock(this.getSwingTimeMS() / calculateMSBetweenTicks());
         this.swingFacing = null;
 
         this.blocking = false;

@@ -105,6 +105,7 @@ class DuelBot extends DuelCharacter {
     }
     
     makeDecisions(){
+        if (this.getGamemode().isOver()){ return; }
         this.resetDecisions();
         this.resetBotDecisions();
         this.botDecisions();
@@ -141,6 +142,11 @@ class DuelBot extends DuelCharacter {
             this.makeFightingDecisions();
         }
         */
+    }
+
+    actOnDecisions(){
+        if (this.getGamemode().isOver()){ return; }
+        super.actOnDecisions();
     }
 
     getAction(){
@@ -665,6 +671,7 @@ class DuelBot extends DuelCharacter {
     makeSwordDecisions(){
         let tryingToSwing = this.botDecisionDetails["decisions"]["weapons"]["sword"]["trying_to_swing_sword"];
         let tryingToBlock = this.botDecisionDetails["decisions"]["weapons"]["sword"]["trying_to_block"];
+        console.log(tryingToBlock)
         this.amendDecisions({
             "trying_to_swing_sword": tryingToSwing,
             "trying_to_block": tryingToBlock

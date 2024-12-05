@@ -27,7 +27,7 @@ const RETRO_GAME_DATA = {
         "shot_damage": 0.75,
         "stab_damage": 1,
         "max_seed": 100000, // Self-explanatory
-        "seed": null,  // null for random seed, 24873 is good (on 10 size)
+        "seed": 49123,  // null for random seed, 24873 is good (on 10 size)
         "camera": {
             "move_speed": 64*16  
         },
@@ -281,7 +281,7 @@ const RETRO_GAME_DATA = {
                 "stamina_usage_for_swing": 0
             },
             "cavalry_sword": {
-                "swing_time_ms": 250, // 250
+                "swing_time_ms": 1000, // 250
                 "swing_angle_range_deg": 160, // 160
                 "handle_offset_x": 55-512/2,
                 "handle_offset_y": 512/2-344,
@@ -671,8 +671,8 @@ const RETRO_GAME_DATA = {
             },
             "flintlock": {
                 "front": {
-                        "x_offset": 7,
-                        "y_offset": 49
+                    "x_offset": 7,
+                    "y_offset": 49
                 },
                 "left": {
                     "x_offset": 32,

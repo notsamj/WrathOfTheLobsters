@@ -34,29 +34,38 @@ class BotPerception {
 
         // If the oldest found tick is old enough to be useless (because there is more recent data older or as old as the reaction time)
         let newerDataExists = dataList.length > 1;
-        if (oldestDataTick < dataValue - this.getReactionTimeTicks() && newerDataExists){
+        if (oldestDataTick < tick - this.getReactionTimeTicks() && newerDataExists){
             dataList[oldestDataIndex] = newDataObject;
         }
         // Otherwise we can't get rid of any old data so append
         else{
             dataList.push(newDataObject);
         }
+
+        if (dataList.length > 50){
+            debugger;
+        }
     }
 
     hasDataToReactTo(dataKey, tick){
+        // Shouldn't be requesting data that hasn't been added yet
+        if (!objectHasKey(this.data, dataKey)){
+            return false;
+        }
         return this.getDataToReactTo(dataKey, tick) != null;
     }
 
     getDataToReactTo(dataKey, tick){
         // Shouldn't be requesting data that hasn't been added yet
         if (!objectHasKey(this.data, dataKey)){
-            throw new Error("Requesting data that has not been received");
+            throw new Error("Requesting data that has not been received: " + dataKey);
         }
+        if (tick === undefined){ debugger; }
         let bestTick = tick - this.getReactionTimeTicks();
 
         let dataList = this.data[dataKey];
         let newestAcceptableDataTick = -1;
-        let newestAcceptableDataIndex;
+        let newestAcceptableDataIndex = -1;
 
         // Search the data
         for (let i = 0; i < dataList.length; i++){
@@ -72,8 +81,12 @@ class BotPerception {
             }
         }
 
+
         // If nothing found, return null
         if (newestAcceptableDataIndex === -1){
+            if (isRDebugging()){
+                debugger;
+            }
             return null;
         }
 

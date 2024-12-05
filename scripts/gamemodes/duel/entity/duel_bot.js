@@ -1,7 +1,7 @@
 class DuelBot extends DuelCharacter {
     constructor(gamemode, model){
         super(gamemode, model);
-        this.perception = new BotPerception();
+        this.perception = new BotPerception(this, 3); // TODO: Make this 3 value variable
         this.botDecisionDetails = {
             "state": "starting",
             "action" : null,
@@ -13,12 +13,12 @@ class DuelBot extends DuelCharacter {
                 "down": false,
                 "left": false,
                 "right": false,
-                "sprint": false
-            },
-            "weapons": {
-                "sword": { 
-                    "trying_to_swing_sword": false,
-                    "trying_to_block": false
+                "sprint": false,
+                "weapons": {
+                    "sword": { 
+                        "trying_to_swing_sword": false,
+                        "trying_to_block": false
+                    }
                 }
             }
         }
@@ -477,12 +477,12 @@ class DuelBot extends DuelCharacter {
         }
 
         // Nothing to do if you can't see the enemy
-        if (!this.perception.hasDataToReactTo("enemy_location")){ return; }
+        if (!this.hasDataToReactTo("enemy_location")){ return; }
 
         // Nothing to do if you are mid-swing
-        if (this.isSwinging()){ return; }
+        if (mySword.isSwinging()){ return; }
 
-        let enemyLocation = this.perception.getDataToReactTo("enemy_location");
+        let enemyLocation = this.getDataToReactTo("enemy_location");
         let enemyTileX = enemyLocation["tile_x"];
         let enemyTileY = enemyLocation["tile_y"];
 
@@ -492,13 +492,16 @@ class DuelBot extends DuelCharacter {
         let myTileX = this.getTileX();
         let myTileY = this.getTileY();
 
-        let enemyDistance = calculateEuclidianDistance(myTileX, myTileY, enemyTileX, enemyTileY);
+        let enemyXDisplacement = enemyTileX - myTileX;
+        let enemyYDisplacement = enemyTileY - myTileY;
+
+        let enemyDistance = calculateEuclideanDistance(myTileX, myTileY, enemyTileX, enemyTileY);
 
         // If enemy is outside of reasonable fighting distance
         if (enemyDistance > estimatedCombatDistance){
             // If blocking then stop
             if (mySword.isBlocking()){
-                this.botDecisionDetails["weapons"]["sword"]["trying_to_block"] = false;
+                this.botDecisionDetails["decisions"]["weapons"]["sword"]["trying_to_block"] = false;
             }
 
             // No sword action at the moment
@@ -507,16 +510,58 @@ class DuelBot extends DuelCharacter {
                 this.cancelAction();
             }*/
 
-            // TODO: Move to enemy
+            // Make a route to enemy and start going along it here
+            let routeToEnemy = this.generateShortestRouteToPoint(enemyTileX, enemyTileY);
+            let routeDecision = routeToEnemy.getDecisionAt(this.getTileX(), this.getTileY());
+            if (objectHasKey(routeDecision, "up")){
+                this.botDecisionDetails["decisions"]["up"] = routeDecision["up"];
+            }else if (objectHasKey(routeDecision, "down")){
+                this.botDecisionDetails["decisions"]["down"] = routeDecision["down"];
+            }else if (objectHasKey(routeDecision, "left")){
+                this.botDecisionDetails["decisions"]["left"] = routeDecision["left"];
+            }else if (objectHasKey(routeDecision, "right")){
+                this.botDecisionDetails["decisions"]["right"] = routeDecision["right"];
+            }
 
             return;
         }
 
         // Otherwise -> We are in sword range
 
-
         // Only continue if we can see the enemy
         if (!this.getDataToReactTo("can_see_enemy")){ return; }
+
+        let facingDirectionUDLR = this.getFacingUDLRDirection();
+        let directionToFaceTheEnemyAtCloseRange;
+
+        // If the enemy is in the square to the right (or multiple)
+        if (enemyYDisplacement === 0 && enemyXDisplacement > 0){
+            directionToFaceTheEnemyAtCloseRange = "right";
+        }
+        // If the enemy is in the square to the left (or multiple)
+        else if (enemyYDisplacement === 0 && enemyXDisplacement < 0) {
+            directionToFaceTheEnemyAtCloseRange = "left";
+        }
+        // If the enemy is in the square above (or multiple)
+        else if (enemyYDisplacement > 0){
+            directionToFaceTheEnemyAtCloseRange = "up";
+        }
+        // If the enemy is in the square below (or multiple)
+        else{
+            directionToFaceTheEnemyAtCloseRange = "down";
+        }
+
+        let swingRange = mySword.getSwingRange();
+        let swingHitbox = new CircleHitbox(swingRange);
+        let hitCenterX = mySword.getSwingCenterX();
+        let hitCenterY = mySword.getSwingCenterY();
+        swingHitbox.update(hitCenterX, hitCenterY);
+        let enemyWidth = this.getDataToReactTo("enemy_width");
+        let enemyHeight = this.getDataToReactTo("enemy_height");
+        let enemyInterpolatedX = this.getDataToReactTo("enemy_interpolated_x");
+        let enemyInterpolatedY = this.getDataToReactTo("enemy_interpolated_y");
+        let enemyHitbox = new RectangleHitbox(enemyWidth, enemyHeight, enemyInterpolatedX, enemyInterpolatedY);
+        let canCurrentlyHitEnemyWithSword = swingHitbox.collidesWith(enemyHitbox);
 
         let enemySwinging = this.getDataToReactTo("enemy_swinging_a_sword");
 
@@ -525,8 +570,8 @@ class DuelBot extends DuelCharacter {
         // If enemy is swinging
         if (enemySwinging){
             // If already blocking then continue
-            if (this.isBlocking()){
-                this.botDecisionDetails["weapons"]["sword"]["trying_to_block"] = true;
+            if (mySword.isBlocking()){
+                this.botDecisionDetails["decisions"]["weapons"]["sword"]["trying_to_block"] = true;
             }else{
                 // Not currently blocking so think about it
                 let enemySwordStartTick = this.getDataToReactTo("enemy_sword_swing_start_tick");
@@ -535,104 +580,91 @@ class DuelBot extends DuelCharacter {
                 let enemySwordSwingCompletionProportion = (this.getCurrentTick() - enemySwordStartTick) / enemySwordTotalSwingTimeTicks;
 
                 // If the enemy sword will take longer to finish it's swing than I can swing
-                if (timeUntilEnemySwordSwingIsFinished > mySwordTimeToSwingTicks){
-                    this.botDecisionDetails["weapons"]["sword"]["trying_to_swing_sword"] = true;
-                    return;
-                }
-
-                // Consider blocking
-                let deflectProportionRequired = RETRO_GAME_DATA["sword_data"]["blocking"]["deflect_proportion"];
-                if (enemySwordSwingCompletionProportion >= deflectProportionRequired){
-                    
-                    let stunProportionRequired = RETRO_GAME_DATA["sword_data"]["blocking"]["stun_deflect_proportion"];
-                    // If you can stun then definitely block
-                    if (enemySwordSwingCompletionProportion >= stunProportionRequired){
-                        this.botDecisionDetails["weapons"]["sword"]["trying_to_block"] = true;
-                    }
-                    // You can block but you won't be stunning
-                    else{
-                        let numTriesToStunExpected = Math.max(1, Math.floor(enemySwordTotalSwingTimeTicks * RETRO_GAME_DATA["sword_data"]["blocking"]["stun_deflect_proportion"]));
-                        let numTriesToDeflectOrStunExpected = Math.max(1, Math.floor(enemySwordTotalSwingTimeTicks * RETRO_GAME_DATA["sword_data"]["blocking"]["deflect_proportion"]));
-                        let numTriesToDeflectExpected = Math.max(1, numTriesToDeflectOrStunExpected - numTriesToStunExpected);
+                if (timeUntilEnemySwordSwingIsFinished > mySwordTimeToSwingTicks && canCurrentlyHitEnemyWithSword){
+                    this.botDecisionDetails["decisions"]["weapons"]["sword"]["trying_to_swing_sword"] = true;
+                }else{
+                    // Consider blocking
+                    let deflectProportionRequired = RETRO_GAME_DATA["sword_data"]["blocking"]["deflect_proportion"];
+                    if (enemySwordSwingCompletionProportion >= deflectProportionRequired){
                         
-                        let probabilityOfDeflectAttempt = RETRO_GAME_DATA["duel"]["ai"]["regular_deflect_attempt_probability"];
-                        let probabilityOnThisTick = 1 - Math.pow(1 - probabilityOfDeflectAttempt, 1 / numTriesToDeflectExpected);
-                        let randomResult = this.getRandom().getFloatInRange(0, 1);
-                        // Randomly decide wether or not to block
-                        if (randomResult < probabilityOnThisTick){
-                            this.botDecisionDetails["weapons"]["sword"]["trying_to_block"] = true;
+                        let stunProportionRequired = RETRO_GAME_DATA["sword_data"]["blocking"]["stun_deflect_proportion"];
+                        // If you can stun then definitely block
+                        if (enemySwordSwingCompletionProportion >= stunProportionRequired){
+                            this.botDecisionDetails["decisions"]["weapons"]["sword"]["trying_to_block"] = true;
+                        }
+                        // You can block but you won't be stunning
+                        else{
+                            let numTriesToStunExpected = Math.max(1, Math.floor(enemySwordTotalSwingTimeTicks * RETRO_GAME_DATA["sword_data"]["blocking"]["stun_deflect_proportion"]));
+                            let numTriesToDeflectOrStunExpected = Math.max(1, Math.floor(enemySwordTotalSwingTimeTicks * RETRO_GAME_DATA["sword_data"]["blocking"]["deflect_proportion"]));
+                            let numTriesToDeflectExpected = Math.max(1, numTriesToDeflectOrStunExpected - numTriesToStunExpected);
+                            
+                            let probabilityOfDeflectAttempt = RETRO_GAME_DATA["duel"]["ai"]["regular_deflect_attempt_probability"];
+                            let probabilityOnThisTick = 1 - Math.pow(1 - probabilityOfDeflectAttempt, 1 / numTriesToDeflectExpected);
+                            let randomResult = this.getRandom().getFloatInRange(0, 1);
+                            // Randomly decide wether or not to block
+                            if (randomResult < probabilityOnThisTick){
+                                this.botDecisionDetails["decisions"]["weapons"]["sword"]["trying_to_block"] = true;
+                            }
                         }
                     }
-                }
 
-                // Face enemy
-                // TODO
+                    // Face enemy
+
+                    // If I'm facing the wrong way then try to face the right way
+                    if (facingDirectionUDLR != directionToFaceTheEnemyAtCloseRange){
+                        this.botDecisionDetails["decisions"][directionToFaceTheEnemyAtCloseRange] = true;
+                    }
+                }
             }
         }else{
             // Neither me or opponent is swinging
 
             // Don't block when they aren't swinging
-            if (this.isBlocking()){
-                this.botDecisionDetails["weapons"]["sword"]["trying_to_block"] = false;
+            if (mySword.isBlocking()){
+                this.botDecisionDetails["decisions"]["weapons"]["sword"]["trying_to_block"] = false;
             }
 
             // Make sure you can swing at and hit bot (if not then move)
-            let swingRange = mySword.getSwingRange();
-            let swingHitbox = new CircleHitbox(swingRange);
-            let hitCenterX = mySword.getSwingCenterX();
-            let hitCenterY = mySword.getSwingCenterY();
-            swingHitbox.update(hitCenterX, hitCenterY);
-            let enemyWidth = this.getDataToReactTo("enemy_width");
-            let enemyHeight = this.getDataToReactTo("enemy_height");
-            let enemyInterpolatedX = this.getDataToReactTo("enemy_interpolated_x");
-            let enemyInterpolatedY = this.getDataToReactTo("enemy_interpolated_y");
-            let enemyHitbox = new RectangleHitbox(enemyWidth, enemyHeight, enemyInterpolatedX, enemyInterpolatedY);
 
             // If we wouldn't hit the enemy from our current position
-            if (!characterHitbox.collidesWith(enemyHitbox)){
+            if (!canCurrentlyHitEnemyWithSword){
                 // We know that we are close enough so it must be wrongly facing
                 
-                // Face the enemy
+                // Face enemy
+
+                // If I'm facing the wrong way then try to face the right way
+                if (facingDirectionUDLR != directionToFaceTheEnemyAtCloseRange){
+                    this.botDecisionDetails["decisions"][directionToFaceTheEnemyAtCloseRange] = true;
+                }
+                // If I'm facing correctly and I still can't hit the opponent
+                else{
+                    // Make a route to enemy and start going along it here
+                    let routeToEnemy = this.generateShortestRouteToPoint(enemyTileX, enemyTileY);
+                    let routeDecision = routeToEnemy.getDecisionAt(this.getTileX(), this.getTileY());
+                    if (objectHasKey(routeDecision, "up")){
+                        this.botDecisionDetails["decisions"]["up"] = routeDecision["up"];
+                    }else if (objectHasKey(routeDecision, "down")){
+                        this.botDecisionDetails["decisions"]["down"] = routeDecision["down"];
+                    }else if (objectHasKey(routeDecision, "left")){
+                        this.botDecisionDetails["decisions"]["left"] = routeDecision["left"];
+                    }else if (objectHasKey(routeDecision, "right")){
+                        this.botDecisionDetails["decisions"]["right"] = routeDecision["right"];
+                    }
+                }
+
 
             }
-
-            // TODO: SOmething about you can start swinging before you are able to hit the enemy if oyu are moving do this
-
-            // Swing at bot
-            // TODO
+            // You can hit the enemy
+            else{
+                // Swing at bot
+                this.botDecisionDetails["decisions"]["weapons"]["sword"]["trying_to_swing_sword"] = true;
+            }
         }
-
-        // So I am not swinging, enemy is not swinging. Check if my swing would hit the enemy. If so -> swing
-        // TODO
-
-        // TODO: IF I can't hit enemy from where I am standing then move to enemy
-
-
-        /*// Set default
-        this.botDecisionDetails["weapons"]["sword"]["trying_to_swing_sword"] = false;
-        this.botDecisionDetails["weapons"]["sword"]["trying_to_block"] = false;
-
-        // TODO: Check if currently blocking
-        if (sword.isBlocking()){
-
-        }
-
-        // Don't make decisions mid-swing
-        if (sword.isSwinging()){
-            return;
-        }
-        let enemy = this.getEnemy();
-
-        // TODO: Determine can I strike enemy with my sword
-        // TODO: Determine can enemy strike me with their sword (if they are carrying one)
-
-        // TODO: Make decisions based on this
-        this.botDecisionDetails["weapons"]["sword"]["trying_to_block"] = true;*/
     }
 
     makeSwordDecisions(){
-        let tryingToSwing = this.botDecisionDetails["weapons"]["sword"]["trying_to_swing_sword"];
-        let tryingToBlock = this.botDecisionDetails["weapons"]["sword"]["trying_to_block"];
+        let tryingToSwing = this.botDecisionDetails["decisions"]["weapons"]["sword"]["trying_to_swing_sword"];
+        let tryingToBlock = this.botDecisionDetails["decisions"]["weapons"]["sword"]["trying_to_block"];
         this.amendDecisions({
             "trying_to_swing_sword": tryingToSwing,
             "trying_to_block": tryingToBlock

@@ -1,0 +1,8 @@
+Right now:
+	Set seed
+
+	Reaction time 0,0: Only one is blocking?
+	Reaction time 3,3:
+
+	Examing closely WHY they are moving to the same tile and try to stop this!
+	I think I found a solutioon // TODO: Add a check here to see if the enemy is currently movign to a new tile and when they get there you will be able to hit them then don't do this route thing

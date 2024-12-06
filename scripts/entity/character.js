@@ -357,7 +357,7 @@ class Character extends Entity {
 
     updateMovement(){
         // Nothing to do if between tiles
-        if (this.betweenTiles()){ return; }
+        if (this.isBetweenTiles()){ return; }
         let wantsToMoveUp = this.decisions["up"];
         let wantsToMoveDown = this.decisions["down"];
         let wantsToMoveLeft = this.decisions["left"];
@@ -707,7 +707,7 @@ class Character extends Entity {
         return this.gamemode.getScene().changeToScreenY((this.getInterpolatedCenterY() - bY) * gameZoom);
     }
 
-    betweenTiles(){
+    isBetweenTiles(){
         if (!this.isMoving()){
             return false;
         }

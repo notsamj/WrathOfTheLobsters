@@ -303,6 +303,7 @@ function startGame(){
         "participants": [
             {
                 "human": false,
+                "reaction_time_ticks": 3,
                 "model": "british_officer",
                 "swords": ["cavalry_sword"],
                 "pistols": [],
@@ -310,6 +311,7 @@ function startGame(){
             },
             {
                 "human": false,
+                "reaction_time_ticks": 3,
                 "model": "usa_officer",
                 "swords": ["cavalry_sword"],
                 "pistols": [],

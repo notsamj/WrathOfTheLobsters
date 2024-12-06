@@ -281,7 +281,7 @@ const RETRO_GAME_DATA = {
                 "stamina_usage_for_swing": 0
             },
             "cavalry_sword": {
-                "swing_time_ms": 1000, // 250
+                "swing_time_ms": 750, // 250
                 "swing_angle_range_deg": 160, // 160
                 "handle_offset_x": 55-512/2,
                 "handle_offset_y": 512/2-344,

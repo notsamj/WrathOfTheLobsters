@@ -1,5 +1,6 @@
 class SwordSparks extends BasicFadingEffect {
     constructor(squares){
+        super();
         this.squares = squares;
     }
 

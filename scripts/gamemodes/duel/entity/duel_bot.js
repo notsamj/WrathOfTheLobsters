@@ -1,7 +1,7 @@
 class DuelBot extends DuelCharacter {
-    constructor(gamemode, model){
+    constructor(gamemode, model, reactionTimeTicks){
         super(gamemode, model);
-        this.perception = new BotPerception(this, 3); // TODO: Make this 3 value variable
+        this.perception = new BotPerception(this, reactionTimeTicks);
         this.botDecisionDetails = {
             "state": "starting",
             "action" : null,
@@ -56,12 +56,12 @@ class DuelBot extends DuelCharacter {
             let enemyTileY = enemy.getTileY();
             let enemyWidth = enemy.getWidth();
             let enemyHeight = enemy.getHeight();
-            let enemyInterpolatedX = enemy.getInterpolatedX();
-            let enemyInterpolatedY = enemy.getInterpolatedY();
+            let enemyInterpolatedTickCenterX = enemy.getInterpolatedTickCenterX();
+            let enemyInterpolatedTickCenterY = enemy.getInterpolatedTickCenterY();
             this.inputPerceptionData("enemy_width", enemyWidth);
             this.inputPerceptionData("enemy_height", enemyHeight);
-            this.inputPerceptionData("enemy_interpolated_x", enemyInterpolatedX);
-            this.inputPerceptionData("enemy_interpolated_y", enemyInterpolatedY);
+            this.inputPerceptionData("enemy_interpolated_tick_center_x", enemyInterpolatedTickCenterY);
+            this.inputPerceptionData("enemy_interpolated_tick_center_y", enemyInterpolatedTickCenterY);
             this.inputPerceptionData("enemy_location", {"tile_x": enemyTileX, "tile_y": enemyTileY});
 
             let enemyInventory = enemy.getInventory();
@@ -89,7 +89,7 @@ class DuelBot extends DuelCharacter {
                 this.inputPerceptionData("enemy_sword_swing_time_ms", sword.getSwingTimeMS());
                 this.inputPerceptionData("enemy_swinging_a_sword", swordSwinging);
                 if (swordSwinging){
-                    this.inputPerceptionData("enemy_sword_swing_start_tick");
+                    this.inputPerceptionData("enemy_sword_swing_start_tick", sword.getSwingStartTick());
                 }
             }
         }
@@ -454,7 +454,6 @@ class DuelBot extends DuelCharacter {
             throw new Error("Unable to generate paths.")
         }
         let tileChosen = tilesToEndAt[this.getRandom().getIntInRangeInclusive(0, tilesToEndAt.length-1)];
-        if (tileChosen === undefined){ debugger; }
         return Route.fromPath(tileChosen["shortest_path"]);
     }
 
@@ -489,22 +488,30 @@ class DuelBot extends DuelCharacter {
         if (mySword.isSwinging()){ return; }
 
         let enemyLocation = this.getDataToReactTo("enemy_location");
+        let enemyInterpolatedTickCenterX = this.getDataToReactTo("enemy_interpolated_tick_center_x");
+        let enemyInterpolatedTickCenterY = this.getDataToReactTo("enemy_interpolated_tick_center_y");
         let enemyTileX = enemyLocation["tile_x"];
         let enemyTileY = enemyLocation["tile_y"];
 
         // In tile units
         let estimatedCombatDistance = RETRO_GAME_DATA["duel"]["ai"]["estimated_melee_distance"];
 
+        //let estimatedCombatDistance = RETRO_GAME_DATA["duel"]["ai"]["estimated_melee_distance"] * RETRO_GAME_DATA["general"]["tile_size"];
+
         let myTileX = this.getTileX();
         let myTileY = this.getTileY();
+        //let myInterpolatedTickCenterX = this.getInterpolatedTickCenterX();
+        //let myInterpolatedTickCenterY = this.getInterpolatedTickCenterY();
 
         let enemyXDisplacement = enemyTileX - myTileX;
         let enemyYDisplacement = enemyTileY - myTileY;
 
+        //let enemyDistance = calculateEuclideanDistance(myInterpolatedTickCenterX, myInterpolatedTickCenterY, enemyInterpolatedTickCenterX, enemyInterpolatedTickCenterY);
         let enemyDistance = calculateEuclideanDistance(myTileX, myTileY, enemyTileX, enemyTileY);
 
         // If enemy is outside of reasonable fighting distance
         if (enemyDistance > estimatedCombatDistance){
+            //console.log(enemyDistance, )
             // If blocking then stop
             if (mySword.isBlocking()){
                 this.botDecisionDetails["decisions"]["weapons"]["sword"]["trying_to_block"] = false;
@@ -517,18 +524,22 @@ class DuelBot extends DuelCharacter {
             }*/
 
             // Make a route to enemy and start going along it here
-            let routeToEnemy = this.generateShortestRouteToPoint(enemyTileX, enemyTileY);
-            let routeDecision = routeToEnemy.getDecisionAt(this.getTileX(), this.getTileY());
-            if (objectHasKey(routeDecision, "up")){
-                this.botDecisionDetails["decisions"]["up"] = routeDecision["up"];
-            }else if (objectHasKey(routeDecision, "down")){
-                this.botDecisionDetails["decisions"]["down"] = routeDecision["down"];
-            }else if (objectHasKey(routeDecision, "left")){
-                this.botDecisionDetails["decisions"]["left"] = routeDecision["left"];
-            }else if (objectHasKey(routeDecision, "right")){
-                this.botDecisionDetails["decisions"]["right"] = routeDecision["right"];
-            }
+            if (!this.isBetweenTiles()){
+                let routeToEnemy = this.generateShortestRouteToPoint(enemyTileX, enemyTileY);
+                let routeDecision = routeToEnemy.getDecisionAt(this.getTileX(), this.getTileY());
+                if (objectHasKey(routeDecision, "up")){
+                    this.botDecisionDetails["decisions"]["up"] = routeDecision["up"];
+                }else if (objectHasKey(routeDecision, "down")){
+                    this.botDecisionDetails["decisions"]["down"] = routeDecision["down"];
+                }else if (objectHasKey(routeDecision, "left")){
+                    this.botDecisionDetails["decisions"]["left"] = routeDecision["left"];
+                }else if (objectHasKey(routeDecision, "right")){
+                    this.botDecisionDetails["decisions"]["right"] = routeDecision["right"];
+                }
+                console.log(routeDecision, enemyTileX, enemyTileY, this.getTileX(), this.getTileY(), this.model, enemyDistance, this.getCurrentTick())
 
+            }
+            
             return;
         }
 
@@ -564,9 +575,7 @@ class DuelBot extends DuelCharacter {
         swingHitbox.update(hitCenterX, hitCenterY);
         let enemyWidth = this.getDataToReactTo("enemy_width");
         let enemyHeight = this.getDataToReactTo("enemy_height");
-        let enemyInterpolatedX = this.getDataToReactTo("enemy_interpolated_x");
-        let enemyInterpolatedY = this.getDataToReactTo("enemy_interpolated_y");
-        let enemyHitbox = new RectangleHitbox(enemyWidth, enemyHeight, enemyInterpolatedX, enemyInterpolatedY);
+        let enemyHitbox = new RectangleHitbox(enemyWidth, enemyHeight, enemyInterpolatedTickCenterX, enemyInterpolatedTickCenterY);
         let canCurrentlyHitEnemyWithSword = swingHitbox.collidesWith(enemyHitbox);
 
         let enemySwinging = this.getDataToReactTo("enemy_swinging_a_sword");
@@ -591,6 +600,10 @@ class DuelBot extends DuelCharacter {
                 }else{
                     // Consider blocking
                     let deflectProportionRequired = RETRO_GAME_DATA["sword_data"]["blocking"]["deflect_proportion"];
+                    /*if (this.model === "usa_officer"){
+                        console.log(enemySwordSwingCompletionProportion, deflectProportionRequired)
+                        debugger;
+                    }*/
                     if (enemySwordSwingCompletionProportion >= deflectProportionRequired){
                         
                         let stunProportionRequired = RETRO_GAME_DATA["sword_data"]["blocking"]["stun_deflect_proportion"];
@@ -644,17 +657,22 @@ class DuelBot extends DuelCharacter {
                 }
                 // If I'm facing correctly and I still can't hit the opponent
                 else{
+                    // TODO: Add a check here to see if the enemy is currently movign to a new tile and when they get there you will be able to hit them then don't do this route thing
+
                     // Make a route to enemy and start going along it here
-                    let routeToEnemy = this.generateShortestRouteToPoint(enemyTileX, enemyTileY);
-                    let routeDecision = routeToEnemy.getDecisionAt(this.getTileX(), this.getTileY());
-                    if (objectHasKey(routeDecision, "up")){
-                        this.botDecisionDetails["decisions"]["up"] = routeDecision["up"];
-                    }else if (objectHasKey(routeDecision, "down")){
-                        this.botDecisionDetails["decisions"]["down"] = routeDecision["down"];
-                    }else if (objectHasKey(routeDecision, "left")){
-                        this.botDecisionDetails["decisions"]["left"] = routeDecision["left"];
-                    }else if (objectHasKey(routeDecision, "right")){
-                        this.botDecisionDetails["decisions"]["right"] = routeDecision["right"];
+                    if (!this.isBetweenTiles()){
+                        let routeToEnemy = this.generateShortestRouteToPoint(enemyTileX, enemyTileY);
+                        let routeDecision = routeToEnemy.getDecisionAt(this.getTileX(), this.getTileY());
+                        if (objectHasKey(routeDecision, "up")){
+                            this.botDecisionDetails["decisions"]["up"] = routeDecision["up"];
+                        }else if (objectHasKey(routeDecision, "down")){
+                            this.botDecisionDetails["decisions"]["down"] = routeDecision["down"];
+                        }else if (objectHasKey(routeDecision, "left")){
+                            this.botDecisionDetails["decisions"]["left"] = routeDecision["left"];
+                        }else if (objectHasKey(routeDecision, "right")){
+                            this.botDecisionDetails["decisions"]["right"] = routeDecision["right"];
+                        }
+                        console.log(routeDecision, enemyTileX, enemyTileY, this.getTileX(), this.getTileY(), this.model, enemyDistance, this.getCurrentTick())
                     }
                 }
 
@@ -671,7 +689,6 @@ class DuelBot extends DuelCharacter {
     makeSwordDecisions(){
         let tryingToSwing = this.botDecisionDetails["decisions"]["weapons"]["sword"]["trying_to_swing_sword"];
         let tryingToBlock = this.botDecisionDetails["decisions"]["weapons"]["sword"]["trying_to_block"];
-        console.log(tryingToBlock)
         this.amendDecisions({
             "trying_to_swing_sword": tryingToSwing,
             "trying_to_block": tryingToBlock

@@ -3,6 +3,13 @@ if (typeof window === "undefined"){
     RETRO_GAME_DATA = require("../../data/data_json.js");
 }
 
+function isMovingInSameDirection(value1, value2){
+    if (value1 < 0 && value2 < 0){ return true; }
+    if (value1 > 0 && value2 > 0){ return true; }
+    if (value1 === 0 && value2 === 0){ return true; }
+    return false;
+}
+
 function teamNameIsEqual(team1, team2){
     return getProperAdjective(team1) === getProperAdjective(team2);
 }

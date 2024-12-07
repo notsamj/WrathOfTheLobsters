@@ -8,9 +8,14 @@ class Sword extends MeleeWeapon {
         this.swingStartTick = null;
         this.swingLock = new TickLock(this.getSwingTimeMS() / calculateMSBetweenTicks());
         this.swingFacing = null;
+        this.swingCooldownLock = new TickLock(this.getSwingCooldownMS() / calculateMSBetweenTicks());
 
         this.blocking = false;
         this.blockStartTick = null;
+    }
+
+    getSwingCooldownMS(){
+        return RETRO_GAME_DATA["sword_data"]["swords"][this.getModel()]["swing_cooldown_ms"]
     }
 
     getSwingTimeMS(){
@@ -46,7 +51,7 @@ class Sword extends MeleeWeapon {
 
     actOnDecisions(){
         let tryingToSwing = this.getDecision("trying_to_swing_sword");
-        if (tryingToSwing && !this.isSwinging() && !this.isBlocking() && this.getPlayer().getStaminaBar().hasStamina()){
+        if (tryingToSwing && !this.isSwinging() && !this.isBlocking() && this.getPlayer().getStaminaBar().hasStamina() && this.swingCooldownLock.isReady()){
             this.startSwing();
         }
         let tryingToBlock = this.getDecision("trying_to_block");
@@ -62,9 +67,11 @@ class Sword extends MeleeWeapon {
     startSwing(){
         this.getPlayer().getStaminaBar().useStamina(RETRO_GAME_DATA["sword_data"]["swords"][this.getModel()]["stamina_usage_for_swing"]);
         this.swinging = true;
+        this.swingCooldownLock.lock();
         this.swingStartTick = this.getPlayer().getGamemode().getCurrentTick();
         this.swingFacing = this.getPlayer().getFacingDirection();
         this.swingLock.resetAndLock();
+        console.log("Starting swing", this.swingStartTick, this.player.model)
     }
 
     getSwingRange(){
@@ -81,6 +88,10 @@ class Sword extends MeleeWeapon {
 
     finishSwing(exclusionFunction=(character)=>{ return false; }){
         this.swinging = false;
+        console.log("Finish swing", this.player.isAlive());
+        if (!this.player.isAlive()){
+            debugger;
+        }
         // Calculate what it hit
         let swingRange = this.getSwingRange();
         let swingHitbox = new CircleHitbox(swingRange);
@@ -102,7 +113,6 @@ class Sword extends MeleeWeapon {
         let rangeRAD = toFixedRadians(RETRO_GAME_DATA["sword_data"]["swords"][this.getModel()]["swing_angle_range_deg"]);
         let startAngle = rotateCCWRAD(swingAngle, rangeRAD/2);
         let endAngle = rotateCWRAD(swingAngle, rangeRAD/2);
-        //console.log(hitCenterX, hitCenterY, this.getPlayer().getInterpolatedTickX(), this.getPlayer().getInterpolatedTickY())
         let characters = this.getScene().getEntities();
         let hitCharacter = null;
         for (let [character, charID] of characters){
@@ -259,7 +269,7 @@ class Sword extends MeleeWeapon {
 
                 // Check when swing start
                 let swingStartTick = this.getSwingStartTick();
-                let swingTotalLengthInTicks = Math.ceil(this.getSwingTimeMS());
+                let swingTotalLengthInTicks = Math.ceil(this.getSwingTimeMS() / calculateMSBetweenTicks());
                 let blockStartTickGenerous = blockStartTick + 1; // Give them an extra tick to start block for the proportion reason
                 // Note: May be > 1?
                 let swingProportionCompletedWhenBlockStarted = (blockStartTick + 1 - swingStartTick) / swingTotalLengthInTicks;
@@ -414,6 +424,7 @@ class Sword extends MeleeWeapon {
     }
 
     tick(){
+        // Check swing/block
         if (this.isSwinging()){
             // Note: Moving doesn't stop
             if (!areDirectionsEqual(this.getPlayer().getFacingDirection(), this.getSwingFacingDirection())){
@@ -428,6 +439,11 @@ class Sword extends MeleeWeapon {
             if (this.getPlayer().getStaminaBar().isOutOfStamina()){
                 this.stopBlocking();
             }
+        }
+
+        // Make sure swing cooldown is going down when not swinging
+        if (!this.isSwinging()){
+            this.swingCooldownLock.tick();
         }
     }
 

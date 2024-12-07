@@ -14,6 +14,7 @@ class DuelBot extends DuelCharacter {
                 "left": false,
                 "right": false,
                 "sprint": false,
+                "breaking_stride": false,
                 "weapons": {
                     "sword": { 
                         "trying_to_swing_sword": false,
@@ -41,6 +42,7 @@ class DuelBot extends DuelCharacter {
     }
 
     tick(){
+        if (this.isDead()){ return; }
         this.perceieve();
         super.tick();
     }
@@ -58,6 +60,8 @@ class DuelBot extends DuelCharacter {
             let enemyHeight = enemy.getHeight();
             let enemyInterpolatedTickCenterX = enemy.getInterpolatedTickCenterX();
             let enemyInterpolatedTickCenterY = enemy.getInterpolatedTickCenterY();
+            this.inputPerceptionData("enemy_x_velocity", enemy.getXVelocity());
+            this.inputPerceptionData("enemy_y_velocity", enemy.getYVelocity());
             this.inputPerceptionData("enemy_width", enemyWidth);
             this.inputPerceptionData("enemy_height", enemyHeight);
             this.inputPerceptionData("enemy_interpolated_tick_center_x", enemyInterpolatedTickCenterY);
@@ -505,13 +509,10 @@ class DuelBot extends DuelCharacter {
 
         let enemyXDisplacement = enemyTileX - myTileX;
         let enemyYDisplacement = enemyTileY - myTileY;
-
         //let enemyDistance = calculateEuclideanDistance(myInterpolatedTickCenterX, myInterpolatedTickCenterY, enemyInterpolatedTickCenterX, enemyInterpolatedTickCenterY);
         let enemyDistance = calculateEuclideanDistance(myTileX, myTileY, enemyTileX, enemyTileY);
-
         // If enemy is outside of reasonable fighting distance
         if (enemyDistance > estimatedCombatDistance){
-            //console.log(enemyDistance, )
             // If blocking then stop
             if (mySword.isBlocking()){
                 this.botDecisionDetails["decisions"]["weapons"]["sword"]["trying_to_block"] = false;
@@ -536,7 +537,6 @@ class DuelBot extends DuelCharacter {
                 }else if (objectHasKey(routeDecision, "right")){
                     this.botDecisionDetails["decisions"]["right"] = routeDecision["right"];
                 }
-                console.log(routeDecision, enemyTileX, enemyTileY, this.getTileX(), this.getTileY(), this.model, enemyDistance, this.getCurrentTick())
 
             }
             
@@ -600,12 +600,7 @@ class DuelBot extends DuelCharacter {
                 }else{
                     // Consider blocking
                     let deflectProportionRequired = RETRO_GAME_DATA["sword_data"]["blocking"]["deflect_proportion"];
-                    /*if (this.model === "usa_officer"){
-                        console.log(enemySwordSwingCompletionProportion, deflectProportionRequired)
-                        debugger;
-                    }*/
                     if (enemySwordSwingCompletionProportion >= deflectProportionRequired){
-                        
                         let stunProportionRequired = RETRO_GAME_DATA["sword_data"]["blocking"]["stun_deflect_proportion"];
                         // If you can stun then definitely block
                         if (enemySwordSwingCompletionProportion >= stunProportionRequired){
@@ -632,12 +627,13 @@ class DuelBot extends DuelCharacter {
                     // If I'm facing the wrong way then try to face the right way
                     if (facingDirectionUDLR != directionToFaceTheEnemyAtCloseRange){
                         this.botDecisionDetails["decisions"][directionToFaceTheEnemyAtCloseRange] = true;
+                        // Just turning not moving
+                        this.botDecisionDetails["decisions"]["breaking_stride"] = true;
                     }
                 }
             }
         }else{
             // Neither me or opponent is swinging
-
             // Don't block when they aren't swinging
             if (mySword.isBlocking()){
                 this.botDecisionDetails["decisions"]["weapons"]["sword"]["trying_to_block"] = false;
@@ -654,11 +650,11 @@ class DuelBot extends DuelCharacter {
                 // If I'm facing the wrong way then try to face the right way
                 if (facingDirectionUDLR != directionToFaceTheEnemyAtCloseRange){
                     this.botDecisionDetails["decisions"][directionToFaceTheEnemyAtCloseRange] = true;
+                    // Just turning not moving
+                    this.botDecisionDetails["decisions"]["breaking_stride"] = true;
                 }
                 // If I'm facing correctly and I still can't hit the opponent
                 else{
-                    // TODO: Add a check here to see if the enemy is currently movign to a new tile and when they get there you will be able to hit them then don't do this route thing
-
                     // Make a route to enemy and start going along it here
                     if (!this.isBetweenTiles()){
                         let routeToEnemy = this.generateShortestRouteToPoint(enemyTileX, enemyTileY);
@@ -672,7 +668,6 @@ class DuelBot extends DuelCharacter {
                         }else if (objectHasKey(routeDecision, "right")){
                             this.botDecisionDetails["decisions"]["right"] = routeDecision["right"];
                         }
-                        console.log(routeDecision, enemyTileX, enemyTileY, this.getTileX(), this.getTileY(), this.model, enemyDistance, this.getCurrentTick())
                     }
                 }
 
@@ -681,6 +676,7 @@ class DuelBot extends DuelCharacter {
             // You can hit the enemy
             else{
                 // Swing at bot
+                console.log("Choosing to swing", enemySwinging, this.getEnemy().getSelectedItem().isSwinging())
                 this.botDecisionDetails["decisions"]["weapons"]["sword"]["trying_to_swing_sword"] = true;
             }
         }
@@ -731,6 +727,7 @@ class DuelBot extends DuelCharacter {
         this.decisions["left"] = this.botDecisionDetails["decisions"]["left"];
         this.decisions["right"] = this.botDecisionDetails["decisions"]["right"];
         this.decisions["sprint"] = this.botDecisionDetails["decisions"]["sprint"];
+        this.decisions["breaking_stride"] = this.botDecisionDetails["decisions"]["breaking_stride"];
     }
 
     isHuman(){ return false; }

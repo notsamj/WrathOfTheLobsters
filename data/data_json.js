@@ -103,12 +103,18 @@ const RETRO_GAME_DATA = {
                     "max_sparks_per_impact": 5,
                     "size": 4,
                     "center_radius": 15,
-                    "min_red": 230,
+                    "min_red": 0,
+                    "max_red": 0,
+                    "min_green": 255,
+                    "max_green": 255,
+                    "min_blue": 0,
+                    "max_blue": 0,
+                    /*"min_red": 230,
                     "max_red": 250,
                     "min_green": 168,
                     "max_green": 178,
                     "min_blue": 127,
-                    "max_blue": 137,
+                    "max_blue": 137,*/
                     "max_speed": 25
                 },
                 "deflect": {
@@ -116,12 +122,18 @@ const RETRO_GAME_DATA = {
                     "max_sparks_per_impact": 13,
                     "size": 3,
                     "center_radius": 12,
-                    "min_red": 243,
+                    "min_red": 0,
+                    "max_red": 0,
+                    "min_green": 0,
+                    "max_green": 0,
+                    "min_blue": 255,
+                    "max_blue": 255,
+                    /*"min_red": 243,
                     "max_red": 252,
                     "min_green": 145,
                     "max_green": 155,
                     "min_blue": 84,
-                    "max_blue": 94,
+                    "max_blue": 94,*/
                     "max_speed": 35
                 },
                 "stun_deflect": {
@@ -129,13 +141,19 @@ const RETRO_GAME_DATA = {
                     "max_sparks_per_impact": 19,
                     "size": 2,
                     "center_radius": 10,
-                    "min_red": 232,
-                    "max_red": 243,
-                    "min_green": 102,
-                    "max_green": 112,
-                    "min_blue": 21,
-                    "max_blue": 31,
-                    "max_speed": 40
+                    "min_red": 255,
+                    "max_red": 255,
+                    "min_green": 0,
+                    "max_green": 0,
+                    "min_blue": 0,
+                    "max_blue": 0,
+                    /*"min_red": 243,
+                    "max_red": 252,
+                    "min_green": 145,
+                    "max_green": 155,
+                    "min_blue": 84,
+                    "max_blue": 94,*/
+                    "max_speed": 35
                 }
             },
             "min_life_ms": 400,
@@ -254,17 +272,18 @@ const RETRO_GAME_DATA = {
         },
         "swords": {
             "clever": {
-            "swing_time_ms": 200, // 200
-            "swing_angle_range_deg": 120,
-            "handle_offset_x": 0,
-            "handle_offset_y": 0,
-            "sword_rotation_deg": 30,
-            "swing_damage": 0.2,
-            "image_width": 512,
-            "image_height": 512,
-            "image_scale": 1/16,
-            "blade_length": 286/16, // = 17.875
-            "stamina_usage_for_swing": 10
+                "swing_time_ms": 200, // 200
+                "swing_angle_range_deg": 120,
+                "handle_offset_x": 0,
+                "handle_offset_y": 0,
+                "sword_rotation_deg": 30,
+                "swing_damage": 0.2,
+                "image_width": 512,
+                "image_height": 512,
+                "image_scale": 1/16,
+                "blade_length": 286/16, // = 17.875
+                "stamina_usage_for_swing": 10,
+                "swing_cooldown_ms": 200
             },
             "white_flag": {
                 "swing_time_ms": 200, // 200
@@ -278,7 +297,8 @@ const RETRO_GAME_DATA = {
                 "image_scale": 1/16,
                 "blade_length": 286/16, // = 17.875
                 "alternate_url": "skirmish/item/special/",
-                "stamina_usage_for_swing": 0
+                "stamina_usage_for_swing": 0,
+                "swing_cooldown_ms": 400
             },
             "cavalry_sword": {
                 "swing_time_ms": 750, // 250
@@ -291,7 +311,8 @@ const RETRO_GAME_DATA = {
                 "image_height": 512,
                 "image_scale": 1/8,
                 "blade_length": 414/8,
-                "stamina_usage_for_swing": 20
+                "stamina_usage_for_swing": 20,
+                "swing_cooldown_ms": 400
             }
         }
     },

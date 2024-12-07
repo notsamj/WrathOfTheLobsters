@@ -22,7 +22,8 @@ class Character extends Entity {
             "down": false,
             "left": false,
             "right": false,
-            "sprint": false
+            "sprint": false,
+            "breaking_stride": false
         }
     }
 
@@ -40,7 +41,8 @@ class Character extends Entity {
             "down": false,
             "left": false,
             "right": false,
-            "sprint": false
+            "sprint": false,
+            "breaking_stride": false
         });
         if (this.inventory.hasSelectedItem()){
             this.inventory.getSelectedItem().resetDecisions();
@@ -408,6 +410,12 @@ class Character extends Entity {
             }
         }
 
+        // If breaking stride then don't move
+        if (this.isMoving() && this.decisions["breaking_stride"]){
+            this.movementDetails = null;
+            return;
+        }
+
         // Check if the tile is walkable before moving
         if (this.getScene().tileAtLocationHasAttribute(newTileX, newTileY, "no_walk")){
             if (this.isMoving()){
@@ -605,6 +613,7 @@ class Character extends Entity {
     }
 
     tick(){
+        if (this.isDead()){ return; }
         this.lookingDetails["look_lock"].tick();
         this.staminaBar.tick();
         this.inventory.tick();

@@ -3,6 +3,7 @@ class DuelBot extends DuelCharacter {
         super(gamemode, model);
         this.perception = new BotPerception(this, botExtraDetails["reaction_time_ticks"]);
         this.disabled = botExtraDetails["disabled"];
+        this.randomEventManager = new RandomEventManager();
         this.botDecisionDetails = {
             "state": "starting",
             "action" : null,
@@ -623,10 +624,10 @@ class DuelBot extends DuelCharacter {
                             let numTriesToDeflectExpected = Math.max(1, numTriesToDeflectOrStunExpected - numTriesToStunExpected);
                             
                             let probabilityOfDeflectAttempt = RETRO_GAME_DATA["duel"]["ai"]["regular_deflect_attempt_probability"];
-                            let probabilityOnThisTick = 1 - Math.pow(1 - probabilityOfDeflectAttempt, 1 / numTriesToDeflectExpected);
-                            let randomResult = this.getRandom().getFloatInRange(0, 1);
+                            
+                            let doBlock = this.randomEventManager.getResultIndependent(probabilityOfDeflectAttempt, numTriesToDeflectExpected);
                             // Randomly decide wether or not to block
-                            if (randomResult < probabilityOnThisTick){
+                            if (doBlock){
                                 this.botDecisionDetails["decisions"]["weapons"]["sword"]["trying_to_block"] = true;
                             }
                         }

@@ -1,6 +1,9 @@
 Right now:
 	Set seed
 
+	If enemy is not swinging and im not swinging and we're on same time then do a random chance thing to backup a tile
+		Add a forced limit of X idk
+
 	Reaction time 1 vs 7 both bots they are going to the same spot. Try to see if its possible to stop this!
 	Getting stunned should cancel your current swing
 	Getting hit by a sword should cause you a small stun

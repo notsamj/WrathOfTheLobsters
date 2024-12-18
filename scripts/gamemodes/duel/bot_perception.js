@@ -58,6 +58,7 @@ class BotPerception {
     getDataToReactTo(dataKey, tick){
         // Shouldn't be requesting data that hasn't been added yet
         if (!objectHasKey(this.data, dataKey)){
+            debugger;
             throw new Error("Requesting data that has not been received: " + dataKey);
         }
         if (tick === undefined){ debugger; }

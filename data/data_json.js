@@ -1,4 +1,32 @@
 const RETRO_GAME_DATA = {
+    "test_settings": {
+        "duel": {
+            "participants": [
+                {
+                    "human": true,
+                    "model": "british_officer",
+                    "swords": ["cavalry_sword"],
+                    "pistols": [],
+                    "muskets": [],
+                    "bot_extra_details": {
+                        "disabled": false,
+                        "reaction_time_ticks": 1
+                    }
+                },
+                {
+                    "human": false,
+                    "model": "usa_officer",
+                    "swords": ["cavalry_sword"],
+                    "pistols": [],
+                    "muskets": [],
+                    "bot_extra_details": {
+                        "disabled": false,
+                        "reaction_time_ticks": 7
+                    }
+                }
+            ]
+        }
+    },
     "game_maker": {
         "server_ip": "localhost",
         "server_port": 8080,
@@ -43,7 +71,9 @@ const RETRO_GAME_DATA = {
             "max_stamina": 100,
             "stamina_recovery_time_ms": 8000,
             "sprinting_stamina_per_tile": 8
-        }
+        },
+        "look_time_ms": 150, // Time to hold down look key before starting to move in that direction
+        "max_stun_time_ms": 1000 // Max time a character can be stunned
     },
 
     "stamina_bar": {
@@ -261,14 +291,14 @@ const RETRO_GAME_DATA = {
         "arm_length": 32,
         "blocking": {
             "deflect_damage": 0,
-            "deflect_contender_stamina_drain": 1,
-            "deflect_shorter_stamina_drain": 10,
+            "deflect_contender_stamina_drain": 20,
+            "deflect_shorter_stamina_drain": 30,
             "block_damage": 0.125,
-            "block_contender_stamina_drain": 25,
-            "block_shorter_stamina_drain": 35,
+            "block_contender_stamina_drain": 45,
+            "block_shorter_stamina_drain": 55,
             "deflect_proportion": 0.5, // If block is started >= half the ticks through the swing then it's a deflect rather than a block
             "stun_deflect_proportion": 0.9, // If block is started >= half the ticks through the swing then it's a deflect rather than a block
-            "stun_time_ms": 500
+            "stun_time_ms": 1000
         },
         "swords": {
             "clever": {

@@ -1,7 +1,8 @@
 class DuelBot extends DuelCharacter {
-    constructor(gamemode, model, reactionTimeTicks){
+    constructor(gamemode, model, botExtraDetails){
         super(gamemode, model);
-        this.perception = new BotPerception(this, reactionTimeTicks);
+        this.perception = new BotPerception(this, botExtraDetails["reaction_time_ticks"]);
+        this.disabled = botExtraDetails["disabled"];
         this.botDecisionDetails = {
             "state": "starting",
             "action" : null,
@@ -23,6 +24,10 @@ class DuelBot extends DuelCharacter {
                 }
             }
         }
+    }
+
+    isDisabled(){
+        return this.disabled;
     }
 
     getCurrentTick(){
@@ -64,7 +69,7 @@ class DuelBot extends DuelCharacter {
             this.inputPerceptionData("enemy_y_velocity", enemy.getYVelocity());
             this.inputPerceptionData("enemy_width", enemyWidth);
             this.inputPerceptionData("enemy_height", enemyHeight);
-            this.inputPerceptionData("enemy_interpolated_tick_center_x", enemyInterpolatedTickCenterY);
+            this.inputPerceptionData("enemy_interpolated_tick_center_x", enemyInterpolatedTickCenterX);
             this.inputPerceptionData("enemy_interpolated_tick_center_y", enemyInterpolatedTickCenterY);
             this.inputPerceptionData("enemy_location", {"tile_x": enemyTileX, "tile_y": enemyTileY});
 
@@ -106,10 +111,14 @@ class DuelBot extends DuelCharacter {
         this.botDecisionDetails["decisions"]["left"] = false;
         this.botDecisionDetails["decisions"]["right"] = false;
         this.botDecisionDetails["decisions"]["sprint"] = false;
+        this.botDecisionDetails["decisions"]["breaking_stride"] = false;
+        this.botDecisionDetails["decisions"]["weapons"]["sword"]["trying_to_swing_sword"] = false;
+        this.botDecisionDetails["decisions"]["weapons"]["sword"]["trying_to_block"] = false;
     }
     
     makeDecisions(){
         if (this.getGamemode().isOver()){ return; }
+        if (this.isDisabled()){ return; }
         this.resetDecisions();
         this.resetBotDecisions();
         this.botDecisions();
@@ -513,6 +522,7 @@ class DuelBot extends DuelCharacter {
         let enemyDistance = calculateEuclideanDistance(myTileX, myTileY, enemyTileX, enemyTileY);
         // If enemy is outside of reasonable fighting distance
         if (enemyDistance > estimatedCombatDistance){
+            //console.log(enemyDistance, this.getTileX(), this.getTileY())
             // If blocking then stop
             if (mySword.isBlocking()){
                 this.botDecisionDetails["decisions"]["weapons"]["sword"]["trying_to_block"] = false;
@@ -578,7 +588,7 @@ class DuelBot extends DuelCharacter {
         let enemyHitbox = new RectangleHitbox(enemyWidth, enemyHeight, enemyInterpolatedTickCenterX, enemyInterpolatedTickCenterY);
         let canCurrentlyHitEnemyWithSword = swingHitbox.collidesWith(enemyHitbox);
 
-        let enemySwinging = this.getDataToReactTo("enemy_swinging_a_sword");
+        let enemySwinging = this.getDataToReactTo("enemy_holding_a_sword") && this.getDataToReactTo("enemy_swinging_a_sword");
 
         let mySwordTimeToSwingTicks = Math.ceil(mySword.getSwingTimeMS()/calculateMSBetweenTicks());
 
@@ -655,6 +665,8 @@ class DuelBot extends DuelCharacter {
                 }
                 // If I'm facing correctly and I still can't hit the opponent
                 else{
+                    //console.log("Moving to enemy :\\", this.getTileX(), this.getTileY(), canCurrentlyHitEnemyWithSword, swingHitbox, enemyHitbox);
+                    //console.log("Enemy info", this.getEnemy().getInterpolatedTickCenterX(), this.getEnemy().getInterpolatedTickCenterY())
                     // Make a route to enemy and start going along it here
                     if (!this.isBetweenTiles()){
                         let routeToEnemy = this.generateShortestRouteToPoint(enemyTileX, enemyTileY);
@@ -676,7 +688,7 @@ class DuelBot extends DuelCharacter {
             // You can hit the enemy
             else{
                 // Swing at bot
-                console.log("Choosing to swing", enemySwinging, this.getEnemy().getSelectedItem().isSwinging())
+                //console.log("Choosing to swing", enemySwinging, this.getEnemy().getSelectedItem().isSwinging())
                 this.botDecisionDetails["decisions"]["weapons"]["sword"]["trying_to_swing_sword"] = true;
             }
         }

@@ -71,7 +71,7 @@ class Sword extends MeleeWeapon {
         this.swingStartTick = this.getPlayer().getGamemode().getCurrentTick();
         this.swingFacing = this.getPlayer().getFacingDirection();
         this.swingLock.resetAndLock();
-        console.log("Starting swing", this.swingStartTick, this.player.model)
+        //console.log("Starting swing", this.swingStartTick, this.player.model)
     }
 
     getSwingRange(){
@@ -88,7 +88,7 @@ class Sword extends MeleeWeapon {
 
     finishSwing(exclusionFunction=(character)=>{ return false; }){
         this.swinging = false;
-        console.log("Finish swing", this.player.isAlive());
+        //console.log("Finish swing", this.player.isAlive());
         if (!this.player.isAlive()){
             debugger;
         }

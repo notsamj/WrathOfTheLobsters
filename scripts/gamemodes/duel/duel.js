@@ -147,7 +147,7 @@ class Duel extends Gamemode {
                 // Human is automatically set as the focused entity
                 this.scene.setFocusedEntity(participant);
             }else{
-                participant = new DuelBot(this, characterModel, participantObject["reaction_time_ticks"]);
+                participant = new DuelBot(this, characterModel, participantObject["bot_extra_details"]);
             }
 
             // Set their id

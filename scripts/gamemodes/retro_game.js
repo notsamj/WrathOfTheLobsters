@@ -299,26 +299,7 @@ window.addEventListener("load", () => {
 
 function startGame(){
     //GAMEMODE_MANAGER.setActiveGamemode(new RetroGame());
-    let gameDetails = {
-        "participants": [
-            {
-                "human": false,
-                "reaction_time_ticks": 3,
-                "model": "british_officer",
-                "swords": ["cavalry_sword"],
-                "pistols": [],
-                "muskets": []
-            },
-            {
-                "human": false,
-                "reaction_time_ticks": 3,
-                "model": "usa_officer",
-                "swords": ["cavalry_sword"],
-                "pistols": [],
-                "muskets": []
-            }
-        ]
-    }
+    let gameDetails = RETRO_GAME_DATA["test_settings"]["duel"];
     GAMEMODE_MANAGER.setActiveGamemode(new Duel(gameDetails));
 }
 

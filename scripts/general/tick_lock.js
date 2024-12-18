@@ -80,6 +80,10 @@ class TickLock extends Lock{
         this.ticksLeft = ticksLeft;
     }
 
+    addTime(ticks){
+        this.ticksLeft = Math.min(this.numTicks, this.ticksLeft + ticks);
+    }
+
     // TODO: Comments
     reset(){
         this.ticksLeft = this.getCooldown();

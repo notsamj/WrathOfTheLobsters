@@ -8,12 +8,13 @@ class Character extends Entity {
         this.health = 1;
         this.model = model;
         this.animationManager = new CharacterAnimationManager();
+        this.stunLock = new TickLock(Math.ceil(RETRO_GAME_DATA["human"]["max_stun_time_ms"]/calculateMSBetweenTicks()));
         this.staminaBar = new StaminaBar(RETRO_GAME_DATA["human"]["stamina"]["max_stamina"], RETRO_GAME_DATA["human"]["stamina"]["stamina_recovery_time_ms"]);
         this.tileX = 0;
         this.tileY = 0;
         this.lookingDetails = {
             "direction": null,
-            "look_lock": new TickLock(3)
+            "look_lock": new TickLock(Math.ceil(RETRO_GAME_DATA["human"]["look_time_ms"]/calculateMSBetweenTicks()))
         }
         this.movementDetails = null;
         this.inventory = new Inventory(this);
@@ -28,7 +29,7 @@ class Character extends Entity {
     }
 
     stun(ticks){
-        // TODO
+        this.stunLock.addTime(ticks);
     }
 
     getStaminaBar(){
@@ -616,6 +617,7 @@ class Character extends Entity {
         if (this.isDead()){ return; }
         this.lookingDetails["look_lock"].tick();
         this.staminaBar.tick();
+        this.stunLock.tick();
         this.inventory.tick();
         this.inventory.tickSelectedItem();
 
@@ -634,6 +636,7 @@ class Character extends Entity {
     }
 
     actOnDecisions(){
+        if (this.stunLock.isLocked()){ return; }
         this.updateMovement();
         this.inventory.actOnDecisions();
         this.inventory.actOnDecisionsForSelectedItem();

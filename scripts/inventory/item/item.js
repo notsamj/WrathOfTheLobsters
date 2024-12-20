@@ -12,4 +12,5 @@ class Item {
     getGamemode(){
         return this.player.getGamemode();
     }
+    breakAction(){}
 }

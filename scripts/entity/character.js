@@ -30,6 +30,10 @@ class Character extends Entity {
 
     stun(ticks){
         this.stunLock.addTime(ticks);
+
+        if (this.inventory.hasSelectedItem()){
+            this.inventory.getSelectedItem().breakAction();
+        }
     }
 
     getStaminaBar(){

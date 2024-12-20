@@ -1,7 +1,7 @@
 class DuelBot extends DuelCharacter {
     constructor(gamemode, model, botExtraDetails){
         super(gamemode, model);
-        this.perception = new BotPerception(this, botExtraDetails["reaction_time_ticks"]);
+        this.perception = new BotPerception(this, Math.ceil(botExtraDetails["reaction_time_ms"] / calculateMSBetweenTicks()));
         this.disabled = botExtraDetails["disabled"];
         this.randomEventManager = new RandomEventManager(this.getRandom());
         this.botDecisionDetails = {
@@ -136,26 +136,6 @@ class DuelBot extends DuelCharacter {
 
         // Execute state decisions
         this.makeDecisionsBasedOnDecidedState();
-
-        /*
-        if (this.botDecisionDetails["state"] === "starting"){
-            this.pickAStartingWeapon();
-        }
-
-        // Run check before acting
-        if (!this.canSee(this.getEnemy())){
-            this.botDecisionDetails["state"] = "searching_for_enemy";
-        }else{
-            this.botDecisionDetails["state"] = "fighting_enemy";
-        }
-
-        // Act
-        if (this.botDecisionDetails["state"] === "searching_for_enemy"){
-            this.searchForEnemy();
-        }else if (this.botDecisionDetails["state"] === "fighting_enemy"){
-            this.makeFightingDecisions();
-        }
-        */
     }
 
     actOnDecisions(){
@@ -276,7 +256,26 @@ class DuelBot extends DuelCharacter {
 
     prepareSearchingForEnemyState(){
         let stateDataJSON = this.getStateData();
-        stateDataJSON["route"] = null;
+        let startingRoute = null;
+
+        // See if last enemy known location is available
+        if (this.hasDataToReactTo("enemy_location")){
+            let enemyLocation = this.getDataToReactTo("enemy_location");
+            let enemyTileX = enemyLocation["tile_x"];
+            let enemyTileY = enemyLocation["tile_y"];
+            // If we aren't on their last tile now
+            if (enemyTileX != this.getTileX() && enemyTileY != this.getTileY()){
+                let tilesToEndAt = this.exploreAvailableTiles(RETRO_GAME_DATA["duel"]["ai"]["search_path_max_length"]);
+                // Try and find a path to the last enemy location
+                for (let tileToEndAt of tilesToEndAt){
+                    if (tileToEndAt["tile_x"] === enemyTileX && tileToEndAt["tile_y"] === enemyTileY){
+                        startingRoute = Route.fromPath(tileToEndAt["shortest_path"]);
+                        break;
+                    }
+                }
+            }
+        }
+        stateDataJSON["route"] = startingRoute;
     }
 
     exploreAvailableTiles(range){
@@ -466,8 +465,10 @@ class DuelBot extends DuelCharacter {
         // If no tiles to move to (including current)
         if (tilesToEndAt.length === 0){
             throw new Error("Unable to generate paths.")
-        }
-        let tileChosen = tilesToEndAt[this.getRandom().getIntInRangeInclusive(0, tilesToEndAt.length-1)];
+        } 
+
+        let chosenIndex = this.getRandom().getIntInRangeInclusive(0, tilesToEndAt.length-1);
+        let tileChosen = tilesToEndAt[chosenIndex];
         return Route.fromPath(tileChosen["shortest_path"]);
     }
 
@@ -528,12 +529,6 @@ class DuelBot extends DuelCharacter {
             if (mySword.isBlocking()){
                 this.botDecisionDetails["decisions"]["weapons"]["sword"]["trying_to_block"] = false;
             }
-
-            // No sword action at the moment
-            // TODO: Do I need actions?
-            /*if (this.hasAction()){
-                this.cancelAction();
-            }*/
 
             // Make a route to enemy and start going along it here
             if (!this.isBetweenTiles()){
@@ -664,8 +659,16 @@ class DuelBot extends DuelCharacter {
                     this.decideToMoveToAdjacentTile();
                 }
             }else{
+                let isAdjacentToEnemy = Math.abs(enemyTileX - myTileX) + Math.abs(enemyTileY - myTileY) === 1;
+                let tryAndPivot = false;
+
+                // If we aren't adjacent then maybe try and pivot to be in a proper position to attack
+                if (!isAdjacentToEnemy && !this.isBetweenTiles()){
+                    tryAndPivot = this.randomEventManager.getResultExpectedMS(RETRO_GAME_DATA["duel"]["ai"]["expected_adjacent_pivot_ms"]);
+                }
+
                 // If we wouldn't hit the enemy from our current position
-                if (!canCurrentlyHitEnemyWithSword){
+                if (!canCurrentlyHitEnemyWithSword || tryAndPivot){
                     // We know that we are close enough so it must be wrongly facing
                     
                     // Face enemy

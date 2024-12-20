@@ -5,12 +5,12 @@ const RETRO_GAME_DATA = {
                 {
                     "human": false,
                     "model": "british_officer",
-                    "swords": ["cavalry_sword"],
+                    "swords": ["clever"],
                     "pistols": [],
                     "muskets": [],
                     "bot_extra_details": {
                         "disabled": false,
-                        "reaction_time_ticks": 1
+                        "reaction_time_ms": 50
                     }
                 },
                 {
@@ -21,7 +21,7 @@ const RETRO_GAME_DATA = {
                     "muskets": [],
                     "bot_extra_details": {
                         "disabled": false,
-                        "reaction_time_ticks": 1
+                        "reaction_time_ms": 50
                     }
                 }
             ]
@@ -64,7 +64,8 @@ const RETRO_GAME_DATA = {
             "estimated_melee_distance": Math.sqrt(2) + 0.1, // Distance in tiles at which melee combat is estimated to take place <= amount
             "regular_deflect_attempt_probability": 0.6, // [0,1] the proability that a bot will attempt to perform a regular deflect (as opposed to no deflect or stun deflect)
             "expected_swing_delay_ms": 150, // The bot has the ability to swing it's sword at the enemy. This is the expected delay used to calculate probability of swing attmempt per tick
-            "adjust_close_duel_delay_ms": 500 // The bots are locked too close. Expected delay before making a pivot.
+            "adjust_close_duel_delay_ms": 500, // The bots are locked too close. Expected delay before making a pivot.
+            "expected_adjacent_pivot_ms": 100 // The bots are probably diagonal to one another. They can hit but it's better to move closer
         }
     },
 
@@ -315,7 +316,8 @@ const RETRO_GAME_DATA = {
                 "image_scale": 1/16,
                 "blade_length": 286/16, // = 17.875
                 "stamina_usage_for_swing": 10,
-                "swing_cooldown_ms": 200
+                "swing_cooldown_ms": 200,
+                "stun_time_ms": 100
             },
             "white_flag": {
                 "swing_time_ms": 200, // 200
@@ -330,7 +332,8 @@ const RETRO_GAME_DATA = {
                 "blade_length": 286/16, // = 17.875
                 "alternate_url": "skirmish/item/special/",
                 "stamina_usage_for_swing": 0,
-                "swing_cooldown_ms": 400
+                "swing_cooldown_ms": 400,
+                "stun_time_ms": 0
             },
             "cavalry_sword": {
                 "swing_time_ms": 750, // 250
@@ -344,7 +347,8 @@ const RETRO_GAME_DATA = {
                 "image_scale": 1/8,
                 "blade_length": 414/8,
                 "stamina_usage_for_swing": 20,
-                "swing_cooldown_ms": 400
+                "swing_cooldown_ms": 400,
+                "stun_time_ms": 200
             }
         }
     },

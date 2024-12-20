@@ -204,6 +204,34 @@ class Sword extends MeleeWeapon {
         throw new Error("Invalid character facing direction: " + characterFacingDirection);
     }
 
+    static facingTheRightDirectionToBlock(victimMovementDirection, attackerToDefenderDisplacementX, attackerToDefenderDisplacementY){
+        // attackerToDefenderDisplacementX: > 0 attacker is to the right < 0 attacker is to the left
+        // attackerToDefenderDisplacementY: > 0 attacker is above < 0 attacker is below
+
+        // Attacker is above and defender is facing up then they can block
+        if (victimMovementDirection === "up" && attackerToDefenderDisplacementY > 0){
+            return true;
+        }
+        // Attacker is below and defender is facing down then they can block
+        else if (victimMovementDirection === "down" && attackerToDefenderDisplacementY < 0){
+            return true;
+        }
+        // Attacker is to the right and defender is facing right then they can block
+        else if (victimMovementDirection === "right" && attackerToDefenderDisplacementX > 0){
+            return true;
+        }
+        // Attacker is to the left and defender is facing left then they can block
+        else if (victimMovementDirection === "left" && attackerToDefenderDisplacementX < 0){
+            return true;
+        }
+        // If they are in the asme position then direction doesn't matter
+        else if (attackerToDefenderDisplacementX === 0 && attackerToDefenderDisplacementY === 0){
+            return true;
+        }
+        // Otherwise not facing the right direction
+        return false;
+    }
+
     getSwingAngleRangeRAD(){
         return toFixedRadians(RETRO_GAME_DATA["sword_data"]["swords"][this.getModel()]["swing_angle_range_deg"]);
     }
@@ -244,6 +272,7 @@ class Sword extends MeleeWeapon {
 
         // Else hit a character
         let damageToDeal = this.getSwingDamage();
+        let victimStunTicks = 0;
         let staminaToDrain = 0; // Zero if not blocking, otherwise another number
         let soundToPlay = "slashing";
 
@@ -253,15 +282,16 @@ class Sword extends MeleeWeapon {
 
         let blocking = false;
         let isDeflected = false;
-        let stuns = false;
+        let stunsAttacker = false;
+
+        let myCharacterCenterX = this.getPlayer().getInterpolatedTickCenterX();
+        let myCharacterCenterY = this.getPlayer().getInterpolatedTickCenterY();
 
         if (victimHoldingASword){
             // If blocking properly 
 
             // Check if direction is right
-            let ableToBlock = getMovementDirectionOf(hitCharacter.getFacingDirection()) === getOppositeDirectionOf(getMovementDirectionOf(this.getSwingFacingDirection()));
-            // You can also block if you are on the same tile -> direction doesn't matter
-            ableToBlock = ableToBlock || (hitCharacter.getTileX() === this.getPlayer().getTileX() && hitCharacter.getTileY() === this.getPlayer().getTileY());
+            let ableToBlock = Sword.facingTheRightDirectionToBlock(getMovementDirectionOf(hitCharacter.getFacingDirection()), myCharacterCenterX - hitCharacter.getInterpolatedTickCenterX(), myCharacterCenterY - hitCharacter.getInterpolatedTickCenterY());
             // Check if its blocking
             blocking = ableToBlock && hitCharacterHeldWeapon.isBlocking();
             if (blocking){
@@ -281,9 +311,9 @@ class Sword extends MeleeWeapon {
                 let swingProportionCompletedWhenBlockStarted = (blockStartTick + 1 - swingStartTick) / swingTotalLengthInTicks;
 
                 isDeflected = swingProportionCompletedWhenBlockStarted >= RETRO_GAME_DATA["sword_data"]["blocking"]["deflect_proportion"];
-                stuns = swingProportionCompletedWhenBlockStarted >= RETRO_GAME_DATA["sword_data"]["blocking"]["stun_deflect_proportion"];
+                stunsAttacker = swingProportionCompletedWhenBlockStarted >= RETRO_GAME_DATA["sword_data"]["blocking"]["stun_deflect_proportion"];
                 // Stun also requires a contender blade
-                stuns = stuns && defenderBladeIsAContender;
+                stunsAttacker = stunsAttacker && defenderBladeIsAContender;
 
                 // If the block started as a reaction and the blade contends in length
                 if (isDeflected && defenderBladeIsAContender){
@@ -309,16 +339,20 @@ class Sword extends MeleeWeapon {
                     staminaToDrain = RETRO_GAME_DATA["sword_data"]["blocking"]["block_shorter_stamina_drain"];
                     soundToPlay = "shorter_block";
                 }
-
+            }
+            // No block
+            else{
+                victimStunTicks = Math.ceil(RETRO_GAME_DATA["sword_data"]["swords"][this.getModel()]["stun_time_ms"] / calculateMSBetweenTicks());
             }
         }
 
         // Apply damage and stamina drain to victim
         hitCharacter.damage(damageToDeal);
+        hitCharacter.stun(victimStunTicks);
         hitCharacter.getStaminaBar().useStamina(staminaToDrain);
 
         // Do stun if applicable
-        if (stuns){
+        if (stunsAttacker){
             this.player.stun(Math.ceil(RETRO_GAME_DATA["sword_data"]["blocking"]["stun_time_ms"] / RETRO_GAME_DATA["general"]["ms_between_ticks"]));
         }
 
@@ -336,7 +370,7 @@ class Sword extends MeleeWeapon {
         });
 
         // Do visual effects
-        if (stuns){
+        if (stunsAttacker){
             this.getGamemode().getEventHandler().emit({
                 "name": "sword_sparks",
                 "spark_type": "stun_deflect",
@@ -385,11 +419,13 @@ class Sword extends MeleeWeapon {
         this.swinging = false;
     }
 
+    breakAction(){
+        this.cancelSwing();
+    }
+
     select(){}
     deselect(){
-        if (this.isSwinging()){
-            this.cancelSwing();
-        }
+        this.breakAction();
     }
 
     displayItemSlot(providedX, providedY){

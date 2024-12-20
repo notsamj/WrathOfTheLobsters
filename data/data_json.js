@@ -3,7 +3,7 @@ const RETRO_GAME_DATA = {
         "duel": {
             "participants": [
                 {
-                    "human": true,
+                    "human": false,
                     "model": "british_officer",
                     "swords": ["cavalry_sword"],
                     "pistols": [],
@@ -21,7 +21,7 @@ const RETRO_GAME_DATA = {
                     "muskets": [],
                     "bot_extra_details": {
                         "disabled": false,
-                        "reaction_time_ticks": 7
+                        "reaction_time_ticks": 1
                     }
                 }
             ]
@@ -55,14 +55,16 @@ const RETRO_GAME_DATA = {
         "shot_damage": 0.75,
         "stab_damage": 1,
         "max_seed": 100000, // Self-explanatory
-        "seed": 49123,  // null for random seed, 24873 is good (on 10 size)
+        "seed": null,  // null for random seed, 24873 is good (on 10 size)
         "camera": {
             "move_speed": 64*16  
         },
         "ai": {
             "search_path_max_length": 15, // A path up to this length will be made when looking for the enemy. Once reached a new one will be made
             "estimated_melee_distance": Math.sqrt(2) + 0.1, // Distance in tiles at which melee combat is estimated to take place <= amount
-            "regular_deflect_attempt_probability": 0.6 // [0,1] the proability that a bot will attempt to perform a regular deflect (as opposed to no deflect or stun deflect)
+            "regular_deflect_attempt_probability": 0.6, // [0,1] the proability that a bot will attempt to perform a regular deflect (as opposed to no deflect or stun deflect)
+            "expected_swing_delay_ms": 150, // The bot has the ability to swing it's sword at the enemy. This is the expected delay used to calculate probability of swing attmempt per tick
+            "adjust_close_duel_delay_ms": 500 // The bots are locked too close. Expected delay before making a pivot.
         }
     },
 
@@ -133,18 +135,18 @@ const RETRO_GAME_DATA = {
                     "max_sparks_per_impact": 5,
                     "size": 4,
                     "center_radius": 15,
-                    "min_red": 0,
+                    /*"min_red": 0,
                     "max_red": 0,
                     "min_green": 255,
                     "max_green": 255,
                     "min_blue": 0,
-                    "max_blue": 0,
-                    /*"min_red": 230,
+                    "max_blue": 0,*/
+                    "min_red": 230,
                     "max_red": 250,
                     "min_green": 168,
                     "max_green": 178,
                     "min_blue": 127,
-                    "max_blue": 137,*/
+                    "max_blue": 137,
                     "max_speed": 25
                 },
                 "deflect": {
@@ -152,18 +154,18 @@ const RETRO_GAME_DATA = {
                     "max_sparks_per_impact": 13,
                     "size": 3,
                     "center_radius": 12,
-                    "min_red": 0,
+                    /*"min_red": 0,
                     "max_red": 0,
                     "min_green": 0,
                     "max_green": 0,
                     "min_blue": 255,
-                    "max_blue": 255,
-                    /*"min_red": 243,
+                    "max_blue": 255,*/
+                    "min_red": 243,
                     "max_red": 252,
                     "min_green": 145,
                     "max_green": 155,
                     "min_blue": 84,
-                    "max_blue": 94,*/
+                    "max_blue": 94,
                     "max_speed": 35
                 },
                 "stun_deflect": {
@@ -171,18 +173,18 @@ const RETRO_GAME_DATA = {
                     "max_sparks_per_impact": 19,
                     "size": 2,
                     "center_radius": 10,
-                    "min_red": 255,
+                    /*"min_red": 255,
                     "max_red": 255,
                     "min_green": 0,
                     "max_green": 0,
                     "min_blue": 0,
-                    "max_blue": 0,
-                    /*"min_red": 243,
+                    "max_blue": 0,*/
+                    "min_red": 243,
                     "max_red": 252,
                     "min_green": 145,
                     "max_green": 155,
                     "min_blue": 84,
-                    "max_blue": 94,*/
+                    "max_blue": 94,
                     "max_speed": 35
                 }
             },

@@ -86,6 +86,128 @@ class Sword extends MeleeWeapon {
         return playerTopY - RETRO_GAME_DATA["model_positions"][this.getPlayer().getModelCategory()][this.getModel()]["swinging"][facingDirection]["y_offset"];
     }
 
+    static swordCanHitCharacter(characterHitbox, swingHitbox, hitCenterX, hitCenterY, swingAngle, swingRange, startAngle, endAngle){
+        // If no collision ignore
+        if (!characterHitbox.collidesWith(swingHitbox)){
+            return false;
+        }
+
+        // So we know they collide so find out if applicable
+
+        // if center within character square
+        if (hitCenterX >= characterHitbox.getLeftX() && hitCenterX <= characterHitbox.getRightX() && hitCenterY >= characterHitbox.getBottomY() && hitCenterY <= characterHitbox.getTopY()){
+            return true;
+        }
+
+        // if center within character square x but not y
+        if (hitCenterX >= characterHitbox.getLeftX() && hitCenterX <= characterHitbox.getRightX()){
+            let yOffsetTop = characterHitbox.getTopY() - hitCenterY;
+            let yOffsetBottom = characterHitbox.getBottomY() - hitCenterY;
+
+            if (yOffsetTop > 0 == Math.sin(swingAngle) > 0 && Math.abs(yOffsetTop) < swingRange){
+                return true;
+            }else if (yOffsetBottom > 0 == Math.sin(swingAngle) > 0 && Math.abs(yOffsetBottom) < swingRange){
+                return true;
+            }
+        }
+
+        // if center within character square y but not x
+        if (hitCenterY >= characterHitbox.getBottomY() && hitCenterY <= characterHitbox.getTopY()){
+            let xOffsetLeft = characterHitbox.getLeftX() - hitCenterX;
+            let xOffsetRight = characterHitbox.getRightX() - hitCenterX;
+
+            if (xOffsetLeft > 0 == Math.cos(swingAngle) > 0 && Math.abs(xOffsetLeft) < swingRange){
+                return true;
+            }else if (xOffsetRight > 0 == Math.cos(swingAngle) > 0 && Math.abs(xOffsetRight) < swingRange){
+                return true;
+            }
+        }
+
+        // Check each corner and center
+
+        // Center
+        let characterHitboxCenterX = characterHitbox.getCenterX();
+        let characterHitboxCenterY = characterHitbox.getCenterY();
+        let distanceToCenter = Math.sqrt(Math.pow(characterHitboxCenterX-hitCenterX, 2) + Math.pow(characterHitboxCenterY-hitCenterY, 2));
+        let centerAngleWithin = angleBetweenCWRAD(displacementToRadians(characterHitboxCenterX-hitCenterX, characterHitboxCenterY-hitCenterY), startAngle, endAngle);
+        if (distanceToCenter <= swingRange && centerAngleWithin){
+            return true;
+        }
+
+
+        // Bottom Left
+        let characterHitboxLeftX = characterHitbox.getLeftX();
+        let characterHitboxBottomY = characterHitbox.getBottomY();
+        let distanceToBottomLeft = Math.sqrt(Math.pow(characterHitboxLeftX-hitCenterX, 2) + Math.pow(characterHitboxBottomY-hitCenterY, 2));
+        let bottomLeftAngleWithin = angleBetweenCWRAD(displacementToRadians(characterHitboxLeftX-hitCenterX, characterHitboxBottomY-hitCenterY), startAngle, endAngle);
+        if (distanceToBottomLeft <= swingRange && bottomLeftAngleWithin){
+            return true;
+        }
+
+        // Bottom Right
+        let characterHitboxRightX = characterHitbox.getRightX();
+        let distanceToBottomRight = Math.sqrt(Math.pow(characterHitboxRightX-hitCenterX, 2) + Math.pow(characterHitboxBottomY-hitCenterY, 2));
+        let bottomRightAngleWithin = angleBetweenCWRAD(displacementToRadians(characterHitboxRightX-hitCenterX, characterHitboxBottomY-hitCenterY), startAngle, endAngle);
+        if (distanceToBottomRight <= swingRange && bottomRightAngleWithin){
+            return true;
+        }
+
+        // Top Left
+        let characterHitboxTopY = characterHitbox.getTopY();
+        let distanceToTopLeft = Math.sqrt(Math.pow(characterHitboxLeftX-hitCenterX, 2) + Math.pow(characterHitboxTopY-hitCenterY, 2));
+        let topLeftAngleWithin = angleBetweenCWRAD(displacementToRadians(characterHitboxLeftX-hitCenterX, characterHitboxTopY-hitCenterY), startAngle, endAngle);
+        if (distanceToTopLeft <= swingRange && topLeftAngleWithin){
+            return true;
+        }
+
+        // Top Right
+        let distanceToTopRight = Math.sqrt(Math.pow(characterHitboxRightX-hitCenterX, 2) + Math.pow(characterHitboxTopY-hitCenterY, 2));
+        let topRightAngleWithin = angleBetweenCWRAD(displacementToRadians(characterHitboxRightX-hitCenterX, characterHitboxTopY-hitCenterY), startAngle, endAngle);
+        if (distanceToTopRight <= swingRange && topRightAngleWithin){
+            return true;
+        }
+
+        // Check edges of swing range
+        let hitStartX = Math.cos(startAngle) * swingRange + hitCenterX;
+        let hitStartY = Math.sin(startAngle) * swingRange + hitCenterY;
+        if (hitStartX >= characterHitbox.getLeftX() && hitStartX <= characterHitbox.getRightX() && hitStartY >= characterHitbox.getBottomY() && hitStartY <= characterHitbox.getTopY()){
+            return true;
+        }
+
+        let hitEndX = Math.cos(endAngle) * swingRange + hitCenterX;
+        let hitEndY = Math.sin(endAngle) * swingRange + hitCenterY;
+        if (hitEndX >= characterHitbox.getLeftX() && hitEndX <= characterHitbox.getRightX() && hitEndY >= characterHitbox.getBottomY() && hitEndY <= characterHitbox.getTopY()){
+            return true;
+        }
+
+        // Check center of swing range
+        let hitMiddleX = Math.cos(swingAngle) * swingRange + hitCenterX;
+        let hitMiddleY = Math.sin(swingAngle) * swingRange + hitCenterY;
+        if (hitMiddleX >= characterHitbox.getLeftX() && hitMiddleX <= characterHitbox.getRightX() && hitMiddleY >= characterHitbox.getBottomY() && hitMiddleY <= characterHitbox.getTopY()){
+            return true;
+        }
+
+        // Otherwise no
+        return false;
+    }
+
+    static getSwingAngle(characterFacingDirection){
+        if (characterFacingDirection == "front"){
+            return toFixedRadians(270);
+        }else if (characterFacingDirection == "left"){
+            return toFixedRadians(180);
+        }else if (characterFacingDirection == "right"){
+            return toFixedRadians(0);
+        }else if (characterFacingDirection == "back"){
+            return toFixedRadians(90);
+        }
+        throw new Error("Invalid character facing direction: " + characterFacingDirection);
+    }
+
+    getSwingAngleRangeRAD(){
+        return toFixedRadians(RETRO_GAME_DATA["sword_data"]["swords"][this.getModel()]["swing_angle_range_deg"]);
+    }
+
     finishSwing(exclusionFunction=(character)=>{ return false; }){
         this.swinging = false;
         //console.log("Finish swing", this.player.isAlive());
@@ -99,18 +221,9 @@ class Sword extends MeleeWeapon {
         let hitCenterY = this.getSwingCenterY();
         swingHitbox.update(hitCenterX, hitCenterY);
 
-        let swingAngle;
         let playerDirection = this.getPlayer().getFacingDirection();
-        if (playerDirection == "front"){
-            swingAngle = toFixedRadians(270);
-        }else if (playerDirection == "left"){
-            swingAngle = toFixedRadians(180);
-        }else if (playerDirection == "right"){
-            swingAngle = toFixedRadians(0);
-        }else if (playerDirection == "back"){
-            swingAngle = toFixedRadians(90);
-        }
-        let rangeRAD = toFixedRadians(RETRO_GAME_DATA["sword_data"]["swords"][this.getModel()]["swing_angle_range_deg"]);
+        let swingAngle = Sword.getSwingAngle(playerDirection);
+        let rangeRAD = this.getSwingAngleRangeRAD();
         let startAngle = rotateCCWRAD(swingAngle, rangeRAD/2);
         let endAngle = rotateCWRAD(swingAngle, rangeRAD/2);
         let characters = this.getScene().getEntities();
@@ -119,115 +232,8 @@ class Sword extends MeleeWeapon {
             if (character.getID() === this.getPlayer().getID() || character.isDead() || exclusionFunction(character)){ continue; }
             let characterHitbox = character.getUpdatedHitbox();
 
-            // If no collision ignore
-            if (!characterHitbox.collidesWith(swingHitbox)){
-                continue;
-            }
-
-            // So we know they collide so find out if applicable
-
-            // if center within character square
-            if (hitCenterX >= characterHitbox.getLeftX() && hitCenterX <= characterHitbox.getRightX() && hitCenterY >= characterHitbox.getBottomY() && hitCenterY <= characterHitbox.getTopY()){
-                hitCharacter = character;
-                break;
-            }
-
-            // if center within character square x but not y
-            if (hitCenterX >= characterHitbox.getLeftX() && hitCenterX <= characterHitbox.getRightX()){
-                let yOffsetTop = characterHitbox.getTopY() - hitCenterY;
-                let yOffsetBottom = characterHitbox.getBottomY() - hitCenterY;
-
-                if (yOffsetTop > 0 == Math.sin(swingAngle) > 0 && Math.abs(yOffsetTop) < swingRange){
-                    hitCharacter = character;
-                    break;
-                }else if (yOffsetBottom > 0 == Math.sin(swingAngle) > 0 && Math.abs(yOffsetBottom) < swingRange){
-                    hitCharacter = character;
-                    break;
-                }
-            }
-
-            // if center within character square y but not x
-            if (hitCenterY >= characterHitbox.getBottomY() && hitCenterY <= characterHitbox.getTopY()){
-                let xOffsetLeft = characterHitbox.getLeftX() - hitCenterX;
-                let xOffsetRight = characterHitbox.getRightX() - hitCenterX;
-
-                if (xOffsetLeft > 0 == Math.cos(swingAngle) > 0 && Math.abs(xOffsetLeft) < swingRange){
-                    hitCharacter = character;
-                    break;
-                }else if (xOffsetRight > 0 == Math.cos(swingAngle) > 0 && Math.abs(xOffsetRight) < swingRange){
-                    hitCharacter = character;
-                    break;
-                }
-            }
-
-            // Check each corner and center
-
-            // Center
-            let characterHitboxCenterX = characterHitbox.getCenterX();
-            let characterHitboxCenterY = characterHitbox.getCenterY();
-            let distanceToCenter = Math.sqrt(Math.pow(characterHitboxCenterX-hitCenterX, 2) + Math.pow(characterHitboxCenterY-hitCenterY, 2));
-            let centerAngleWithin = angleBetweenCWRAD(displacementToRadians(characterHitboxCenterX-hitCenterX, characterHitboxCenterY-hitCenterY), startAngle, endAngle);
-            if (distanceToCenter <= swingRange && centerAngleWithin){
-                hitCharacter = character;
-                break;
-            }
-
-
-            // Bottom Left
-            let characterHitboxLeftX = characterHitbox.getLeftX();
-            let characterHitboxBottomY = characterHitbox.getBottomY();
-            let distanceToBottomLeft = Math.sqrt(Math.pow(characterHitboxLeftX-hitCenterX, 2) + Math.pow(characterHitboxBottomY-hitCenterY, 2));
-            let bottomLeftAngleWithin = angleBetweenCWRAD(displacementToRadians(characterHitboxLeftX-hitCenterX, characterHitboxBottomY-hitCenterY), startAngle, endAngle);
-            if (distanceToBottomLeft <= swingRange && bottomLeftAngleWithin){
-                hitCharacter = character;
-                break;
-            }
-
-            // Bottom Right
-            let characterHitboxRightX = characterHitbox.getRightX();
-            let distanceToBottomRight = Math.sqrt(Math.pow(characterHitboxRightX-hitCenterX, 2) + Math.pow(characterHitboxBottomY-hitCenterY, 2));
-            let bottomRightAngleWithin = angleBetweenCWRAD(displacementToRadians(characterHitboxRightX-hitCenterX, characterHitboxBottomY-hitCenterY), startAngle, endAngle);
-            if (distanceToBottomRight <= swingRange && bottomRightAngleWithin){
-                hitCharacter = character;
-                break;
-            }
-
-            // Top Left
-            let characterHitboxTopY = characterHitbox.getTopY();
-            let distanceToTopLeft = Math.sqrt(Math.pow(characterHitboxLeftX-hitCenterX, 2) + Math.pow(characterHitboxTopY-hitCenterY, 2));
-            let topLeftAngleWithin = angleBetweenCWRAD(displacementToRadians(characterHitboxLeftX-hitCenterX, characterHitboxTopY-hitCenterY), startAngle, endAngle);
-            if (distanceToTopLeft <= swingRange && topLeftAngleWithin){
-                hitCharacter = character;
-                break;
-            }
-
-            // Top Right
-            let distanceToTopRight = Math.sqrt(Math.pow(characterHitboxRightX-hitCenterX, 2) + Math.pow(characterHitboxTopY-hitCenterY, 2));
-            let topRightAngleWithin = angleBetweenCWRAD(displacementToRadians(characterHitboxRightX-hitCenterX, characterHitboxTopY-hitCenterY), startAngle, endAngle);
-            if (distanceToTopRight <= swingRange && topRightAngleWithin){
-                hitCharacter = character;
-                break;
-            }
-
-            // Check edges of swing range
-            let hitStartX = Math.cos(startAngle) * swingRange + hitCenterX;
-            let hitStartY = Math.sin(startAngle) * swingRange + hitCenterY;
-            if (hitStartX >= characterHitbox.getLeftX() && hitStartX <= characterHitbox.getRightX() && hitStartY >= characterHitbox.getBottomY() && hitStartY <= characterHitbox.getTopY()){
-                hitCharacter = character;
-                break;
-            }
-
-            let hitEndX = Math.cos(endAngle) * swingRange + hitCenterX;
-            let hitEndY = Math.sin(endAngle) * swingRange + hitCenterY;
-            if (hitEndX >= characterHitbox.getLeftX() && hitEndX <= characterHitbox.getRightX() && hitEndY >= characterHitbox.getBottomY() && hitEndY <= characterHitbox.getTopY()){
-                hitCharacter = character;
-                break;
-            }
-
-            // Check center of swing range
-            let hitMiddleX = Math.cos(swingAngle) * swingRange + hitCenterX;
-            let hitMiddleY = Math.sin(swingAngle) * swingRange + hitCenterY;
-            if (hitMiddleX >= characterHitbox.getLeftX() && hitMiddleX <= characterHitbox.getRightX() && hitMiddleY >= characterHitbox.getBottomY() && hitMiddleY <= characterHitbox.getTopY()){
+            // If the sword can hit then you have found the character
+            if (Sword.swordCanHitCharacter(characterHitbox, swingHitbox, hitCenterX, hitCenterY, swingAngle, swingRange, startAngle, endAngle)){
                 hitCharacter = character;
                 break;
             }

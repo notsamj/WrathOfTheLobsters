@@ -1,23 +1,19 @@
 Right now:
 	Set seed
 
-	If enemy is not swinging and im not swinging and we're on same time then do a random chance thing to backup a tile
-		Add a forced limit of X idk
-
-	Reaction time 1 vs 7 both bots they are going to the same spot. Try to see if its possible to stop this!
-	Getting stunned should cancel your current swing
 	Getting hit by a sword should cause you a small stun
+	Getting stunned should cancel your current swing
 
-	Try fighting the bot yourself to try out blocking and deflecting and stuff
-	Add gun shaking
+	Add pistol shaking
 		Test as human
-	Add bot pistol and musket fighting
+
+	Work on pistol fighting
+	Merge pistol and sword fighting to have both at once
+
+	Add pistol features to musket
+
 	Add run away mechanic for unarmed
 	Make menu
 	Add settings pages
 	Review current_todo.txt
 	Publish
-
-	Note: These following issues were produced with old mechanics
-	Reaction time 0,0: Only one is blocking?
-	Reaction time 3,3:

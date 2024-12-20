@@ -3,7 +3,7 @@ class DuelBot extends DuelCharacter {
         super(gamemode, model);
         this.perception = new BotPerception(this, botExtraDetails["reaction_time_ticks"]);
         this.disabled = botExtraDetails["disabled"];
-        this.randomEventManager = new RandomEventManager();
+        this.randomEventManager = new RandomEventManager(this.getRandom());
         this.botDecisionDetails = {
             "state": "starting",
             "action" : null,
@@ -584,10 +584,15 @@ class DuelBot extends DuelCharacter {
         let hitCenterX = mySword.getSwingCenterX();
         let hitCenterY = mySword.getSwingCenterY();
         swingHitbox.update(hitCenterX, hitCenterY);
+        let playerDirection = this.getFacingDirection();
+        let swingAngle = Sword.getSwingAngle(playerDirection);
+        let rangeRAD = mySword.getSwingAngleRangeRAD();
+        let startAngle = rotateCCWRAD(swingAngle, rangeRAD/2);
+        let endAngle = rotateCWRAD(swingAngle, rangeRAD/2);
         let enemyWidth = this.getDataToReactTo("enemy_width");
         let enemyHeight = this.getDataToReactTo("enemy_height");
         let enemyHitbox = new RectangleHitbox(enemyWidth, enemyHeight, enemyInterpolatedTickCenterX, enemyInterpolatedTickCenterY);
-        let canCurrentlyHitEnemyWithSword = swingHitbox.collidesWith(enemyHitbox);
+        let canCurrentlyHitEnemyWithSword = Sword.swordCanHitCharacter(enemyHitbox, swingHitbox, hitCenterX, hitCenterY, swingAngle, swingRange, startAngle, endAngle)
 
         let enemySwinging = this.getDataToReactTo("enemy_holding_a_sword") && this.getDataToReactTo("enemy_swinging_a_sword");
 
@@ -607,7 +612,8 @@ class DuelBot extends DuelCharacter {
 
                 // If the enemy sword will take longer to finish it's swing than I can swing
                 if (timeUntilEnemySwordSwingIsFinished > mySwordTimeToSwingTicks && canCurrentlyHitEnemyWithSword){
-                    this.botDecisionDetails["decisions"]["weapons"]["sword"]["trying_to_swing_sword"] = true;
+                    // Run a trial to determine whether or not to swing
+                    this.botDecisionDetails["decisions"]["weapons"]["sword"]["trying_to_swing_sword"] = this.randomEventManager.getResultExpectedMS(RETRO_GAME_DATA["duel"]["ai"]["expected_swing_delay_ms"]);
                 }else{
                     // Consider blocking
                     let deflectProportionRequired = RETRO_GAME_DATA["sword_data"]["blocking"]["deflect_proportion"];
@@ -652,46 +658,75 @@ class DuelBot extends DuelCharacter {
 
             // Make sure you can swing at and hit bot (if not then move)
 
-            // If we wouldn't hit the enemy from our current position
-            if (!canCurrentlyHitEnemyWithSword){
-                // We know that we are close enough so it must be wrongly facing
-                
-                // Face enemy
-
-                // If I'm facing the wrong way then try to face the right way
-                if (facingDirectionUDLR != directionToFaceTheEnemyAtCloseRange){
-                    this.botDecisionDetails["decisions"][directionToFaceTheEnemyAtCloseRange] = true;
-                    // Just turning not moving
-                    this.botDecisionDetails["decisions"]["breaking_stride"] = true;
+            // If I'm not moving and I'm on the same tile as the enemy and neither of us are swinging then move away a bit
+            if (!this.isBetweenTiles() && myTileX === enemyTileX && myTileY === enemyTileY){
+                if (this.randomEventManager.getResultExpectedMS(RETRO_GAME_DATA["duel"]["ai"]["adjust_close_duel_delay_ms"])){
+                    this.decideToMoveToAdjacentTile();
                 }
-                // If I'm facing correctly and I still can't hit the opponent
-                else{
-                    //console.log("Moving to enemy :\\", this.getTileX(), this.getTileY(), canCurrentlyHitEnemyWithSword, swingHitbox, enemyHitbox);
-                    //console.log("Enemy info", this.getEnemy().getInterpolatedTickCenterX(), this.getEnemy().getInterpolatedTickCenterY())
-                    // Make a route to enemy and start going along it here
-                    if (!this.isBetweenTiles()){
-                        let routeToEnemy = this.generateShortestRouteToPoint(enemyTileX, enemyTileY);
-                        let routeDecision = routeToEnemy.getDecisionAt(this.getTileX(), this.getTileY());
-                        if (objectHasKey(routeDecision, "up")){
-                            this.botDecisionDetails["decisions"]["up"] = routeDecision["up"];
-                        }else if (objectHasKey(routeDecision, "down")){
-                            this.botDecisionDetails["decisions"]["down"] = routeDecision["down"];
-                        }else if (objectHasKey(routeDecision, "left")){
-                            this.botDecisionDetails["decisions"]["left"] = routeDecision["left"];
-                        }else if (objectHasKey(routeDecision, "right")){
-                            this.botDecisionDetails["decisions"]["right"] = routeDecision["right"];
+            }else{
+                // If we wouldn't hit the enemy from our current position
+                if (!canCurrentlyHitEnemyWithSword){
+                    // We know that we are close enough so it must be wrongly facing
+                    
+                    // Face enemy
+
+                    // If I'm facing the wrong way then try to face the right way
+                    if (facingDirectionUDLR != directionToFaceTheEnemyAtCloseRange){
+                        this.botDecisionDetails["decisions"][directionToFaceTheEnemyAtCloseRange] = true;
+                        // Just turning not moving
+                        this.botDecisionDetails["decisions"]["breaking_stride"] = true;
+                    }
+                    // If I'm facing correctly and I still can't hit the opponent
+                    else{
+                        //console.log("Moving to enemy :\\", this.getTileX(), this.getTileY(), canCurrentlyHitEnemyWithSword, swingHitbox, enemyHitbox);
+                        //console.log("Enemy info", this.getEnemy().getInterpolatedTickCenterX(), this.getEnemy().getInterpolatedTickCenterY())
+                        // Make a route to enemy and start going along it here
+                        if (!this.isBetweenTiles()){
+                            let routeToEnemy = this.generateShortestRouteToPoint(enemyTileX, enemyTileY);
+                            let routeDecision = routeToEnemy.getDecisionAt(this.getTileX(), this.getTileY());
+                            if (objectHasKey(routeDecision, "up")){
+                                this.botDecisionDetails["decisions"]["up"] = routeDecision["up"];
+                            }else if (objectHasKey(routeDecision, "down")){
+                                this.botDecisionDetails["decisions"]["down"] = routeDecision["down"];
+                            }else if (objectHasKey(routeDecision, "left")){
+                                this.botDecisionDetails["decisions"]["left"] = routeDecision["left"];
+                            }else if (objectHasKey(routeDecision, "right")){
+                                this.botDecisionDetails["decisions"]["right"] = routeDecision["right"];
+                            }
                         }
                     }
+
+
                 }
-
-
+                // You can hit the enemy
+                else{
+                    // Swing at bot
+                    //console.log("Choosing to swing", enemySwinging, this.getEnemy().getSelectedItem().isSwinging())
+                    // Run a trial to determine whether or not to swing
+                    this.botDecisionDetails["decisions"]["weapons"]["sword"]["trying_to_swing_sword"] = this.randomEventManager.getResultExpectedMS(RETRO_GAME_DATA["duel"]["ai"]["expected_swing_delay_ms"]);
+                }
             }
-            // You can hit the enemy
-            else{
-                // Swing at bot
-                //console.log("Choosing to swing", enemySwinging, this.getEnemy().getSelectedItem().isSwinging())
-                this.botDecisionDetails["decisions"]["weapons"]["sword"]["trying_to_swing_sword"] = true;
-            }
+        }
+    }
+
+    decideToMoveToAdjacentTile(){
+        let options = [];
+        if (this.canWalkOnTile(this.getTileX(), this.getTileY() + 1)){
+            options.push("up");
+        }
+        if (this.canWalkOnTile(this.getTileX(), this.getTileY() - 1)){
+            options.push("down");
+        }
+        if (this.canWalkOnTile(this.getTileX() - 1, this.getTileY())){
+            options.push("left");
+        }
+        if (this.canWalkOnTile(this.getTileX() + 1, this.getTileY())){
+            options.push("right");
+        }
+        // If there are options
+        if (options.length > 0){
+            let chosenOption = options[this.getRandom().getIntInRangeInclusive(0, options.length - 1)];
+            this.botDecisionDetails["decisions"][chosenOption] = true;
         }
     }
 

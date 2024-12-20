@@ -73,12 +73,16 @@ class Character extends Entity {
         return this.generateShortestRouteFromPointToPoint(this.getTileX(), this.getTileY(), endTileX, endTileY, stepLimit);
     }
 
+    canWalkOnTile(tileX, tileY){
+        return !this.getScene().tileAtLocationHasAttribute(tileX, tileY, "no_walk");
+    }
+
     generateShortestRouteFromPointToPoint(startTileX, startTileY, endTileX, endTileY, stepLimit=Number.MAX_SAFE_INTEGER){
         let tiles = [];
         if (startTileX === endTileX && startTileY === endTileY){ return Route.fromPath([{"tile_x": startTileX, "tile_y": startTileY}]); }
 
         let tileCanBeWalkedOn = (tileX, tileY) => {
-            return !this.getScene().tileAtLocationHasAttribute(tileX, tileY, "no_walk");
+            return this.canWalkOnTile(tileX, tileY);
         }
 
         if (!tileCanBeWalkedOn(startTileX, startTileY)){ return null; }

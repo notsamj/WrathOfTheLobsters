@@ -8,6 +8,12 @@ class RandomEventManager {
         return this.seededRandomGenerator;
     }
 
+    getResultExpectedMS(ms){
+        // Find how many ticks this amount of miliseconds translates to
+        let expectedTicks = Math.ceil(ms / calculateMSBetweenTicks());
+        return this.getRandom().getFloatInRange(0, 1) < 1 / expectedTicks;
+    }
+
     getResultIndependent(probabilityOfEvent, numberOfTrials){
         let probabilityOfOccurance = 1 - Math.pow(1 - probabilityOfEvent, 1 / numberOfTrials);
         let randomResult = this.getRandom().getFloatInRange(0, 1);
@@ -45,6 +51,9 @@ class RandomEventManager {
         if (currentTick - eventObj["last_tick"] > eventObj["tick_gap"]){
             eventObj["streak"] = 0;
         }
+
+        // Update last tick
+        eventObj["last_tick"] = currentTick;
 
         // Add to current streak
         eventObj["streak"] += 1;

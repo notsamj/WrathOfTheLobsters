@@ -39,6 +39,7 @@ class Duel extends Gamemode {
         this.eventHandler.addHandler("gun_shot", (eventObj) => {
             scene.addExpiringVisual(SmokeCloud.create(eventObj["x"], eventObj["y"]));
             SOUND_MANAGER.play("gunshot", eventObj["x"], eventObj["y"]);
+            this.alertBotsOfGunshot(eventObj["shooter_tile_x"], eventObj["shooter_tile_y"]);
         });
 
         this.eventHandler.addHandler("sword_swing", (eventObj) => {
@@ -57,6 +58,14 @@ class Duel extends Gamemode {
         this.startUpLock = new Lock();
         this.startUpLock.lock();
         this.startUp();
+    }
+
+    alertBotsOfGunshot(gunshotShooterTileX, gunshotShooterTileY){
+        for (let participant of this.participants){
+            if (participant instanceof DuelBot){
+                participant.notifyOfGunshot(gunshotShooterTileX, gunshotShooterTileY);
+            }
+        }
     }
 
     getParticipants(){

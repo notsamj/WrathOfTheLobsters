@@ -3,10 +3,10 @@ const RETRO_GAME_DATA = {
         "duel": {
             "participants": [
                 {
-                    "human": false,
+                    "human": true,
                     "model": "british_officer",
                     "swords": ["clever"],
-                    "pistols": [],
+                    "pistols": ["flintlock"],
                     "muskets": [],
                     "bot_extra_details": {
                         "disabled": false,
@@ -21,7 +21,7 @@ const RETRO_GAME_DATA = {
                     "muskets": [],
                     "bot_extra_details": {
                         "disabled": false,
-                        "reaction_time_ms": 50
+                        "reaction_time_ms": 500
                     }
                 }
             ]
@@ -50,17 +50,17 @@ const RETRO_GAME_DATA = {
 
     "duel": {
         "theme_colour": "#5479ff",
-        "area_size": 10, // 50?,
+        "area_size": 20, // 50?,
         "enemy_visibility_distance": 12, // 12
         "shot_damage": 0.75,
         "stab_damage": 1,
         "max_seed": 100000, // Self-explanatory
-        "seed": null,  // null for random seed, 24873 is good (on 10 size)
+        "seed": 51596,  // null for random seed, 24873 is good (on 10 size)
         "camera": {
             "move_speed": 64*16  
         },
         "ai": {
-            "search_path_max_length": 15, // A path up to this length will be made when looking for the enemy. Once reached a new one will be made
+            //"search_path_max_length": 15, // A path up to this length will be made when looking for the enemy. Once reached a new one will be made
             "estimated_melee_distance": Math.sqrt(2) + 0.1, // Distance in tiles at which melee combat is estimated to take place <= amount
             "regular_deflect_attempt_probability": 0.6, // [0,1] the proability that a bot will attempt to perform a regular deflect (as opposed to no deflect or stun deflect)
             "expected_swing_delay_ms": 150, // The bot has the ability to swing it's sword at the enemy. This is the expected delay used to calculate probability of swing attmempt per tick

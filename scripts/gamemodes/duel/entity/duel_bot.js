@@ -27,6 +27,10 @@ class DuelBot extends DuelCharacter {
         }
     }
 
+    notifyOfGunshot(shooterTileX, shooterTileY){
+        this.inputPerceptionData("enemy_location", {"tile_x": shooterTileX, "tile_y": shooterTileY});
+    }
+
     isDisabled(){
         return this.disabled;
     }
@@ -256,26 +260,9 @@ class DuelBot extends DuelCharacter {
 
     prepareSearchingForEnemyState(){
         let stateDataJSON = this.getStateData();
-        let startingRoute = null;
-
-        // See if last enemy known location is available
-        if (this.hasDataToReactTo("enemy_location")){
-            let enemyLocation = this.getDataToReactTo("enemy_location");
-            let enemyTileX = enemyLocation["tile_x"];
-            let enemyTileY = enemyLocation["tile_y"];
-            // If we aren't on their last tile now
-            if (enemyTileX != this.getTileX() && enemyTileY != this.getTileY()){
-                let tilesToEndAt = this.exploreAvailableTiles(RETRO_GAME_DATA["duel"]["ai"]["search_path_max_length"]);
-                // Try and find a path to the last enemy location
-                for (let tileToEndAt of tilesToEndAt){
-                    if (tileToEndAt["tile_x"] === enemyTileX && tileToEndAt["tile_y"] === enemyTileY){
-                        startingRoute = Route.fromPath(tileToEndAt["shortest_path"]);
-                        break;
-                    }
-                }
-            }
-        }
-        stateDataJSON["route"] = startingRoute;
+        stateDataJSON["route"] = null;
+        stateDataJSON["last_checked_enemy_x"] = null;
+        stateDataJSON["last_checked_enemy_y"] = null;
     }
 
     exploreAvailableTiles(range){
@@ -439,6 +426,28 @@ class DuelBot extends DuelCharacter {
         // Check if you can see the enemy otherwise move around
         let route = stateDataJSON["route"];
 
+
+        // If there is an enemy location that may be worth checking
+        if (this.hasDataToReactTo("enemy_location")){
+            let enemyLocation = this.getDataToReactTo("enemy_location");
+            let enemyTileX = enemyLocation["tile_x"];
+            let enemyTileY = enemyLocation["tile_y"];
+            // If this location hasn't been checked 
+            if (enemyTileX != stateDataJSON["last_checked_enemy_x"] || enemyTileY != stateDataJSON["last_checked_enemy_y"]){
+                stateDataJSON["last_checked_enemy_x"] = enemyTileX;
+                stateDataJSON["last_checked_enemy_y"] = enemyTileY;
+                let tilesToEndAt = this.exploreAvailableTiles(this.getMaxSearchPathLength());
+                // Try and find a path to the last enemy location
+                for (let tileToEndAt of tilesToEndAt){
+                    if (tileToEndAt["tile_x"] === enemyTileX && tileToEndAt["tile_y"] === enemyTileY){
+                        route = Route.fromPath(tileToEndAt["shortest_path"]);
+                        stateDataJSON["route"] = route;
+                        break;
+                    }
+                }
+            }
+        }
+
         // if not route (or at an end) -> make one
         // Note: Assume route is not empty
         if (route === null || (route.getLastTile()["tile_x"] === this.getTileX() && route.getLastTile()["tile_y"] === this.getTileY())){
@@ -459,8 +468,12 @@ class DuelBot extends DuelCharacter {
         updateFromMoveDecisions(route.getDecisionAt(this.getTileX(), this.getTileY()));
     }
 
+    getMaxSearchPathLength(){
+        return Math.ceil(Math.sqrt(2 * Math.pow(RETRO_GAME_DATA["duel"]["area_size"], 2)));
+    }
+
     generateRouteToSearchForEnemy(){
-        let tileRange = RETRO_GAME_DATA["duel"]["ai"]["search_path_max_length"];
+        let tileRange = this.getMaxSearchPathLength();
         let tilesToEndAt = this.exploreAvailableTiles(tileRange);
         // If no tiles to move to (including current)
         if (tilesToEndAt.length === 0){
@@ -524,7 +537,6 @@ class DuelBot extends DuelCharacter {
         let enemyDistance = calculateEuclideanDistance(myTileX, myTileY, enemyTileX, enemyTileY);
         // If enemy is outside of reasonable fighting distance
         if (enemyDistance > estimatedCombatDistance){
-            //console.log(enemyDistance, this.getTileX(), this.getTileY())
             // If blocking then stop
             if (mySword.isBlocking()){
                 this.botDecisionDetails["decisions"]["weapons"]["sword"]["trying_to_block"] = false;
@@ -681,8 +693,6 @@ class DuelBot extends DuelCharacter {
                     }
                     // If I'm facing correctly and I still can't hit the opponent
                     else{
-                        //console.log("Moving to enemy :\\", this.getTileX(), this.getTileY(), canCurrentlyHitEnemyWithSword, swingHitbox, enemyHitbox);
-                        //console.log("Enemy info", this.getEnemy().getInterpolatedTickCenterX(), this.getEnemy().getInterpolatedTickCenterY())
                         // Make a route to enemy and start going along it here
                         if (!this.isBetweenTiles()){
                             let routeToEnemy = this.generateShortestRouteToPoint(enemyTileX, enemyTileY);
@@ -704,7 +714,14 @@ class DuelBot extends DuelCharacter {
                 // You can hit the enemy
                 else{
                     // Swing at bot
-                    //console.log("Choosing to swing", enemySwinging, this.getEnemy().getSelectedItem().isSwinging())
+
+                    // If I'm facing the wrong way then try to face the right way
+                    if (facingDirectionUDLR != directionToFaceTheEnemyAtCloseRange){
+                        this.botDecisionDetails["decisions"][directionToFaceTheEnemyAtCloseRange] = true;
+                        // Just turning not moving
+                        this.botDecisionDetails["decisions"]["breaking_stride"] = true;
+                    }
+                    
                     // Run a trial to determine whether or not to swing
                     this.botDecisionDetails["decisions"]["weapons"]["sword"]["trying_to_swing_sword"] = this.randomEventManager.getResultExpectedMS(RETRO_GAME_DATA["duel"]["ai"]["expected_swing_delay_ms"]);
                 }

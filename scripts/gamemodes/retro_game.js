@@ -9,6 +9,7 @@ const MENU_MANAGER = new MenuManager();
 const SOUND_MANAGER = new SoundManager();
 const GENERAL_DEBUGGER = new GeneralDebugger();
 const LOADING_SCREEN = new LoadingScreen();
+const LOCAL_EVENT_HANDLER = new NSEventHandler();
 
 const ZOOM_MONITOR = {"button": null, "start_time_ms": null};
 

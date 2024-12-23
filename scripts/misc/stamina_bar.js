@@ -15,12 +15,16 @@ class StaminaBar {
     */
     constructor(maxStamina, recoveryTimeMS){
         this.maxStamina = maxStamina;
-        this.maxRecoveryDelayTicks = Math.ceil(RETRO_GAME_DATA["stamina_bar"]["recovery_delay_ms"] / RETRO_GAME_DATA["settings"]["ms_between_ticks"]);
+        this.maxRecoveryDelayTicks = Math.ceil(RETRO_GAME_DATA["stamina_bar"]["recovery_delay_ms"] / calculateMSBetweenTicks());
         this.recoveryDelayTicks = 0;
         this.recoveryTimeMS = recoveryTimeMS;
         this.stamina = this.maxStamina;
         this.emergencyRecovery = false;
         this.activelyDraining = false;
+    }
+
+    getStamina(){
+        return this.stamina;
     }
 
     isOutOfStamina(){
@@ -59,7 +63,7 @@ class StaminaBar {
         if (!this.isActivelyDraining()){
             this.stamina = Math.min(this.maxStamina, this.stamina + this.maxStamina * RETRO_GAME_DATA["general"]["ms_between_ticks"] / this.recoveryTimeMS);
             // Determine whether to cancel prehibatory recovery
-            if (this.isRecovering() && this.stamina / this.maxStamina > RETRO_GAME_DATA["stamina_bar"]["threshold_3"]){
+            if (this.isExperiencingEmergencyRecovery() && this.stamina / this.maxStamina > RETRO_GAME_DATA["stamina_bar"]["threshold_3"]){
                 this.emergencyRecovery = false;
             }
         }
@@ -92,12 +96,12 @@ class StaminaBar {
     }
 
     /*
-        Method Name: isRecovering
+        Method Name: isExperiencingEmergencyRecovery
         Method Parameters: None
         Method Description: Checks if the stamina bar is performing emergency recovery
         Method Return: Boolean
     */
-    isRecovering(){
+    isExperiencingEmergencyRecovery(){
         return this.emergencyRecovery;
     }
 
@@ -127,7 +131,7 @@ class StaminaBar {
         Method Return: Boolean
     */
     hasStamina(){
-        return !this.isRecovering();
+        return !this.isExperiencingEmergencyRecovery();
     }
 
     /*
@@ -158,7 +162,7 @@ class StaminaBar {
 
         // Determine bar colour
         // Note: The code after the && checks if the cooling will be over next tick
-        if (this.isRecovering()){
+        if (this.isExperiencingEmergencyRecovery()){
             staminaBarColourCode = RETRO_GAME_DATA["stamina_bar"]["cooling_colour"];
         }else if (realStaminaPercentage < RETRO_GAME_DATA["stamina_bar"]["threshold_3"]){
             staminaBarColourCode = RETRO_GAME_DATA["stamina_bar"]["threshold_3_colour"];

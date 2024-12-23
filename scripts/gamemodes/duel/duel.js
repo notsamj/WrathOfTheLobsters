@@ -31,9 +31,13 @@ class Duel extends Gamemode {
 
         let scene = this.getScene();
         this.eventHandler.addHandler("kill", (killObject) => {
-            scene.addExpiringVisual(BloodPool.create(scene.getCenterXOfTile(killObject["tile_x"]), scene.getCenterYOfTile(killObject["tile_y"])));
+            scene.addExpiringVisual(BloodPool.create(killObject["center_x"], killObject["center_y"]));
             // Any time somebody dies the killer wins in duel
             this.endGame(killObject["killer_id"]);
+        });
+
+        this.eventHandler.addHandler("injury", (injuryObject) => {
+            scene.addExpiringVisual(BloodSpray.create(injuryObject["center_x"], injuryObject["center_y"]));
         });
 
         this.eventHandler.addHandler("gun_shot", (eventObj) => {

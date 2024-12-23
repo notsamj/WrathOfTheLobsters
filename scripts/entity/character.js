@@ -349,6 +349,11 @@ class Character extends Entity {
 
     damage(amount){
         this.setHealth(this.health - amount);
+        this.gamemode.getEventHandler().emit({
+            "center_x": this.getInterpolatedTickCenterX(),
+            "center_y": this.getInterpolatedTickCenterY(),
+            "name": "injury"
+        });
         if (this.getHealth() <= 0){
             this.die();
         }
@@ -564,6 +569,8 @@ class Character extends Entity {
                 "killer_id": killerID,
                 "tile_x": this.getTileX(),
                 "tile_y": this.getTileY(),
+                "center_x": this.getInterpolatedTickCenterX(),
+                "center_y": this.getInterpolatedTickCenterY(),
                 "name": "kill"
             });
         }
@@ -684,6 +691,9 @@ class Character extends Entity {
     }
 
     getInterpolatedX(){
+        if (TICK_SCHEDULER.isPaused()){
+            return this.getInterpolatedTickX();
+        }
         let xOfTile = this.gamemode.getScene().getXOfTile(this.tileX);
         // If not moving (or moving u/d) then x is just tile x
         if (!this.isMoving() || this.movementDetails["direction"] == "up" || this.movementDetails["direction"] == "down"){
@@ -700,6 +710,9 @@ class Character extends Entity {
     }
 
     getInterpolatedY(){
+        if (TICK_SCHEDULER.isPaused()){
+            return this.getInterpolatedTickY();
+        }
         let yOfTile = this.gamemode.getScene().getYOfTile(this.tileY);
         // If not moving (or moving l/r) then y is just tile y
         if (!this.isMoving() || this.movementDetails["direction"] == "left" || this.movementDetails["direction"] == "right"){

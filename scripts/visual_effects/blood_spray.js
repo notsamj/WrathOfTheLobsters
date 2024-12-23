@@ -1,10 +1,10 @@
-class BloodPool {
+class BloodSpray {
     constructor(circles){
         this.circles = circles;
     }
 
     getYCategory(){
-        return "ground";
+        return "air"; // "air" || "ground"
     }
 
     display(scene, lX, rX, bY, tY){
@@ -16,11 +16,11 @@ class BloodPool {
             if (circleObject["expirey"] < currentTime){ continue; }
             let totalExistenceTime = circleObject["expirey"] - circleObject["spawn_time"];
             let currentExistenceTime = currentTime - circleObject["spawn_time"];
-            let screenX = scene.getDisplayX(circleObject["x"], 0, lX, false);
-            let screenY = scene.getDisplayY(circleObject["y"], 0, bY, false);
-            let bloodColour = Colour.fromCode(RETRO_GAME_DATA["visual_effects"]["blood_generation"]["blood_colour"]);
-            bloodColour.setAlpha(RETRO_GAME_DATA["visual_effects"]["blood_generation"]["blood_opacity"] * (1-currentExistenceTime/totalExistenceTime));
-            noStrokeCircle(bloodColour, screenX, screenY, circleObject["radius"]*2*gameZoom);
+            let screenX = scene.getDisplayX(circleObject["x"] + currentExistenceTime/1000 * circleObject["x_velocity"], 0, lX, false);
+            let screenY = scene.getDisplayY(circleObject["y"] + currentExistenceTime/1000 * circleObject["y_velocity"], 0, bY, false);
+            let smokeColour = Colour.fromCode(RETRO_GAME_DATA["visual_effects"]["blood_spray"]["colour"]);
+            smokeColour.setAlpha(RETRO_GAME_DATA["visual_effects"]["blood_spray"]["opacity"] * (1-currentExistenceTime/totalExistenceTime));
+            noStrokeCircle(smokeColour, screenX, screenY, circleObject["radius"]*2*gameZoom);
         }
     }
 
@@ -53,28 +53,20 @@ class BloodPool {
         return true; 
     }
 
-    /*
-        Method Name: create
-        Method Parameters:
-            x: 
-                Center x of the circle
-            y:
-                Center y of the circle
-        Method Description: Creates a smoke cloud object given x, y
-        Method Return: SmokeCloud
-    */
     static create(x, y){
         let circles = [];
-        let numCircles = randomNumberInclusive(RETRO_GAME_DATA["visual_effects"]["blood_generation"]["min_circles_per_blood_spatter"], RETRO_GAME_DATA["visual_effects"]["blood_generation"]["max_circles_per_blood_spatter"]);
-        let mainRadius = RETRO_GAME_DATA["visual_effects"]["blood_generation"]["center_radius"];
+        let numCircles = randomNumberInclusive(RETRO_GAME_DATA["visual_effects"]["blood_spray"]["min_circles"], RETRO_GAME_DATA["visual_effects"]["blood_spray"]["max_circles"]);
+        let mainRadius = RETRO_GAME_DATA["visual_effects"]["blood_spray"]["center_radius"];
         let spawnTime = Date.now();
         for (let i = 0; i < numCircles; i++){
             let circleX = x + randomNumberInclusive(-1 * mainRadius, mainRadius);
             let circleY = y + randomNumberInclusive(-1 * mainRadius, mainRadius);
-            let circleRadius = randomNumberInclusive(RETRO_GAME_DATA["visual_effects"]["blood_generation"]["min_radius"], RETRO_GAME_DATA["visual_effects"]["blood_generation"]["max_radius"]);
-            let circleLifeLength = randomNumberInclusive(RETRO_GAME_DATA["visual_effects"]["blood_generation"]["min_life_ms"], RETRO_GAME_DATA["visual_effects"]["blood_generation"]["max_life_ms"]);
-            circles.push({"x": circleX, "y": circleY, "radius": circleRadius, "spawn_time": spawnTime, "expirey": spawnTime + circleLifeLength});
+            let circleRadius = randomNumberInclusive(RETRO_GAME_DATA["visual_effects"]["blood_spray"]["min_radius"], RETRO_GAME_DATA["visual_effects"]["blood_spray"]["max_radius"]);
+            let circleLifeLength = randomNumberInclusive(RETRO_GAME_DATA["visual_effects"]["blood_spray"]["min_life_ms"], RETRO_GAME_DATA["visual_effects"]["blood_spray"]["max_life_ms"]);
+            let xVelocity = randomFloatBetween(RETRO_GAME_DATA["visual_effects"]["blood_spray"]["max_speed"] * -1, RETRO_GAME_DATA["visual_effects"]["blood_spray"]["max_speed"]);
+            let yVelocity = randomFloatBetween(RETRO_GAME_DATA["visual_effects"]["blood_spray"]["max_speed"] * -1, RETRO_GAME_DATA["visual_effects"]["blood_spray"]["max_speed"]);
+            circles.push({"x": circleX, "y": circleY, "radius": circleRadius, "spawn_time": spawnTime, "expirey": spawnTime + circleLifeLength, "x_velocity": xVelocity, "y_velocity": yVelocity});
         }
-        return new BloodPool(circles);
+        return new BloodSpray(circles);
     }
 }

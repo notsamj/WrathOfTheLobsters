@@ -5,7 +5,7 @@ const RETRO_GAME_DATA = {
                 {
                     "human": true,
                     "model": "british_officer",
-                    "swords": ["clever"],
+                    "swords": ["cavalry_sword"],
                     "pistols": ["flintlock"],
                     "muskets": [],
                     "bot_extra_details": {
@@ -20,7 +20,7 @@ const RETRO_GAME_DATA = {
                     "pistols": [],
                     "muskets": [],
                     "bot_extra_details": {
-                        "disabled": false,
+                        "disabled": true,
                         "reaction_time_ms": 500
                     }
                 }
@@ -50,7 +50,7 @@ const RETRO_GAME_DATA = {
 
     "duel": {
         "theme_colour": "#5479ff",
-        "area_size": 20, // 50?,
+        "area_size": 15, // 15?,
         "enemy_visibility_distance": 12, // 12
         "shot_damage": 0.75,
         "stab_damage": 1,
@@ -90,7 +90,7 @@ const RETRO_GAME_DATA = {
         "height": 40,
         "border_colour": "#000000",
         "border_thickness": 1,
-        "recovery_delay_ms": 1000
+        "recovery_delay_ms": 1000 // used 1000ms for a while
     },
 
     "visual_effects": {
@@ -104,6 +104,18 @@ const RETRO_GAME_DATA = {
             "blood_opacity": 1,
             "min_life_ms": 20000,
             "max_life_ms": 30000,
+        },
+        "blood_spray": {
+            "min_circles": 15,
+            "max_circles": 25,
+            "min_radius": 1,
+            "max_radius": 3,
+            "center_radius": 12,
+            "colour": "#6e160f",
+            "opacity": 1,
+            "min_life_ms": 500,
+            "max_life_ms": 1000,
+            "max_speed": 200 // px/second
         },
         "smoke_generation": {
             "min_circles_per_smoke_cloud": 15,
@@ -294,11 +306,11 @@ const RETRO_GAME_DATA = {
         "arm_length": 32,
         "blocking": {
             "deflect_damage": 0,
-            "deflect_contender_stamina_drain": 20,
-            "deflect_shorter_stamina_drain": 30,
+            "deflect_contender_stamina_drain": 30,
+            "deflect_shorter_stamina_drain": 45,
             "block_damage": 0.125,
-            "block_contender_stamina_drain": 45,
-            "block_shorter_stamina_drain": 55,
+            "block_contender_stamina_drain": 55,
+            "block_shorter_stamina_drain": 70,
             "deflect_proportion": 0.5, // If block is started >= half the ticks through the swing then it's a deflect rather than a block
             "stun_deflect_proportion": 0.9, // If block is started >= half the ticks through the swing then it's a deflect rather than a block
             "stun_time_ms": 1000
@@ -538,7 +550,17 @@ const RETRO_GAME_DATA = {
         "entity_render_distance": 30
     },
 
-    "extra_settings": [],
+    "user_chosen_settings": {
+        "gore": false // Off by default
+    },
+
+    "extra_settings": [
+        {
+            "name": "gore",
+            "path": ["user_chosen_settings", "gore"],
+            "type": "on_off"
+        }
+    ],
 
     "inventory": {
         "hotbar_size": 10,

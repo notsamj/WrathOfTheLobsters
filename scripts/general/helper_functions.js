@@ -3,6 +3,53 @@ if (typeof window === "undefined"){
     RETRO_GAME_DATA = require("../../data/data_json.js");
 }
 
+/*
+    Method Name: modifyDataJSONValue
+    Method Parameters:
+        path:
+            A list of strings representing a path through the PROGRAM_DATA JSON Object
+        newValue:
+            new value to place in the JSON OBject
+    Method Description: Finds a JSON object with a given path
+    Method Return: JSON Object
+*/
+function modifyDataJSONValue(path, newValue){
+    path = copyArray(path);
+    let finalKey = path[path.length-1];
+    getDataJSONObjAtPath(path)[finalKey] = newValue;
+}
+
+/*
+    Method Name: getDataJSONObjAtPath
+    Method Parameters:
+        path:
+            A list of strings representing a path through the PROGRAM_DATA JSON Object
+    Method Description: Finds a value at a given path through the PROGRAM_DATA JSON Object
+    Method Return: Unknown
+*/
+function accessDataJSONValue(path){
+    path = copyArray(path);
+    let finalKey = path[path.length-1];
+    return getDataJSONObjAtPath(path)[finalKey];
+}
+
+/*
+    Method Name: getDataJSONObjAtPath
+    Method Parameters:
+        path:
+            A list of strings representing a path through the PROGRAM_DATA JSON Object
+    Method Description: Finds a JSON object with a given path
+    Method Return: JSON Object
+*/
+function getDataJSONObjAtPath(path){
+    let obj = RETRO_GAME_DATA;
+    while (path.length > 1){
+        obj = obj[path.shift()];
+    }
+    return obj;
+}
+
+
 function isMovingInSameDirection(value1, value2){
     if (value1 < 0 && value2 < 0){ return true; }
     if (value1 > 0 && value2 > 0){ return true; }

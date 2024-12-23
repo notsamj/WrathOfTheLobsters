@@ -14,6 +14,8 @@ class DuelCharacter extends Character {
                 "killer_id": killerID,
                 "tile_x": this.getTileX(),
                 "tile_y": this.getTileY(),
+                "center_x": this.getInterpolatedTickCenterX(),
+                "center_y": this.getInterpolatedTickCenterY(),
                 "name": "kill"
             });
         }

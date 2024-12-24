@@ -28,6 +28,10 @@ class Character extends Entity {
         }
     }
 
+    getRandom(){
+        return this.gamemode.getRandom();
+    }
+
     stun(ticks){
         this.stunLock.addTime(ticks);
 

@@ -111,6 +111,7 @@ class Pistol extends Gun {
     }
 
     tick(){
+        super.tick();
         this.resetDecisions();
         if (this.isReloading()){
             if (this.player.isMoving()){
@@ -199,7 +200,7 @@ class Pistol extends Gun {
 
         let image = IMAGES[this.model];
         let displayRotateAngleRAD;
-        let playerAimingAngleRAD = this.getDecidedAngleRAD();
+        let playerAimingAngleRAD = this.getSwayedAngleRAD();
         let playerAimingAngleDEG = toFixedDegrees(playerAimingAngleRAD);
         let readyRotationDEG = RETRO_GAME_DATA["model_positions"]["holding_rotation"];
         let flipDirection = 1;
@@ -268,7 +269,7 @@ class Pistol extends Gun {
 
         // Display Crosshair if aiming
         if (isAiming && this.player.isHuman()){
-            drawCrosshair();
+            this.drawCrosshair(lX, bY);
         }
     }
 

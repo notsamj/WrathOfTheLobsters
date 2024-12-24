@@ -153,6 +153,7 @@ class Musket extends Gun {
     }
 
     tick(){
+        super.tick();
         if (this.isReloading()){
             if (this.player.isMoving()){
                 this.cancelReload();
@@ -294,7 +295,7 @@ class Musket extends Gun {
 
         let image = null;
         let displayRotateAngleRAD;
-        let playerAimingAngleRAD = this.getDecidedAngleRAD();
+        let playerAimingAngleRAD = this.getSwayedAngleRAD();
         let playerAimingAngleDEG = toFixedDegrees(playerAimingAngleRAD);
         let readyRotationDEG = RETRO_GAME_DATA["model_positions"]["holding_rotation"];
 
@@ -378,7 +379,7 @@ class Musket extends Gun {
 
         // Display Crosshair if aiming
         if (isAiming && this.player.isHuman()){
-            drawCrosshair();
+            this.drawCrosshair(lX, bY);
         }
     }
 

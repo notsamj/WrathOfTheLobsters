@@ -219,17 +219,19 @@ function setGameZoom(){
     }
 }
 
-function drawCrosshair(){
-    drawCustomCrosshair(IMAGES["crosshair"]);
-}
-
-function drawCustomCrosshair(crosshairImage){
+function drawCustomCrosshair(crosshairImage, customX=null, customY=null){
     let x = window.mouseX;
     let y = window.mouseY;
     let crosshairWidth = crosshairImage.width;
     let crosshairHeight = crosshairImage.height;
     let displayX = x - crosshairWidth/2;
     let displayY = y - crosshairHeight/2;
+    if (customX != null){
+        displayX = customX;
+    }
+    if (customY != null){
+        displayY = customY;
+    }
     drawingContext.drawImage(crosshairImage, displayX, displayY); 
 }
 

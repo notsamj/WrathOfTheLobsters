@@ -7,7 +7,7 @@ const RETRO_GAME_DATA = {
                     "model": "british_officer",
                     "swords": ["cavalry_sword"],
                     "pistols": ["flintlock"],
-                    "muskets": [],
+                    "muskets": ["brown_bess"],
                     "bot_extra_details": {
                         "disabled": false,
                         "reaction_time_ms": 50
@@ -56,6 +56,8 @@ const RETRO_GAME_DATA = {
         "stab_damage": 1,
         "max_seed": 100000, // Self-explanatory
         "seed": 51596,  // null for random seed, 24873 is good (on 10 size)
+        "pistol_sway_constant": 0.2,
+        "musket_sway_constant": 0.2,
         "camera": {
             "move_speed": 64*16  
         },
@@ -489,7 +491,11 @@ const RETRO_GAME_DATA = {
                     "x_offset": 62-32,
                     "y_offset": 32-28 // 32-28
                 }
-            }
+            },
+            "sway_max_angle_deg": 70, // [0,360]
+            "max_sway_velocity_seconds": 0.7, // Seconds to sway by the max sway offset
+            "sway_decline_a": 1.3, // 1 / [(x+b)^a]
+            "sway_decline_b": 0.8 // 1 / [(x+b)^a]
         },
         "flintlock": {
             "type": "pistol",
@@ -503,7 +509,11 @@ const RETRO_GAME_DATA = {
                 "y_offset": 256-230
             },
             "handle_offset_x": 70-512/2,
-            "handle_offset_y": 512/2-369
+            "handle_offset_y": 512/2-369,
+            "sway_max_angle_deg": 60, // [0,360]
+            "max_sway_velocity_seconds": 0.5, // Seconds to sway by the max sway offset
+            "sway_decline_a": 1.9, // 1 / [(x+b)^a]
+            "sway_decline_b": 0.5 // 1 / [(x+b)^a]
         }
     },
 

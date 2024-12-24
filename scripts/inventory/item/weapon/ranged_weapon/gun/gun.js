@@ -7,6 +7,132 @@ class Gun extends RangedWeapon {
 
         this.reloading = false;
         this.reloadLock = new TickLock(RETRO_GAME_DATA["gun_data"][this.model]["reload_time_ms"] / RETRO_GAME_DATA["general"]["ms_between_ticks"]);
+    
+        this.swayConstant = objectHasKey(details, "sway_constant") ? details["sway_constant"] : 0;
+        this.currentAngleOffsetRAD = 0;
+        this.currentAngleOffsetVelocity = 0;
+        this.swaying = false;
+        this.swayStartTick = -1;
+    }
+
+    drawCrosshair(lX, bY){
+        let mouseX = window.mouseX;
+        let mouseY = window.mouseY;
+
+        let canvasX = mouseX;
+        let canvasY = this.getScene().changeFromScreenY(mouseY);
+
+        // Don't display if invalid value
+        if (canvasX < 0 || canvasX >= this.getScene().getWidth() || canvasY < 0 || canvasY >= this.getScene().getHeight()){ return; }
+
+        let engineX = canvasX / gameZoom + lX;
+        let engineY = canvasY / gameZoom + bY;
+
+        let humanCenterX = this.player.getInterpolatedTickCenterX();
+        let humanCenterY = this.player.getInterpolatedTickCenterY();
+
+        let distance = Math.sqrt(Math.pow(engineX - humanCenterX, 2) + Math.pow(engineY - humanCenterY, 2));
+        let swayedAngleRAD = this.getSwayedAngleRAD();
+
+        let crosshairCenterX = Math.cos(swayedAngleRAD) * distance + humanCenterX;
+        let crosshairCenterY = Math.sin(swayedAngleRAD) * distance + humanCenterY;
+
+        let x = this.getScene().getDisplayXOfPoint(crosshairCenterX, lX);
+        let y = this.getScene().getDisplayYOfPoint(crosshairCenterY, bY);
+        let crosshairImage = IMAGES["crosshair"];
+        let crosshairWidth = crosshairImage.width;
+        let crosshairHeight = crosshairImage.height;
+        translate(x, y);
+
+        // Game zoom
+        scale(gameZoom, gameZoom);
+
+        drawingContext.drawImage(crosshairImage, -1 * crosshairWidth / 2, -1 * crosshairHeight / 2);
+
+        // Game zoom
+        scale(1 / gameZoom, 1 / gameZoom);
+
+        translate(-1 * x, -1 * y);
+    }
+
+    resetSway(){
+        // If already acknowledged that swaying is stopped then ignore
+        if (!this.isSwaying()){
+            return;
+        }
+        let swayMaxAngleRAD = this.getSwayMaxAngleRAD();
+        let maxVelocity = swayMaxAngleRAD / RETRO_GAME_DATA["general"]["ms_between_ticks"] * this.getSwayVelocityCoefficient();
+        this.currentAngleOffsetRAD = this.player.getRandom().getFloatInRange(-1 * swayMaxAngleRAD, swayMaxAngleRAD);
+        this.currentAngleOffsetVelocity = this.player.getRandom().getFloatInRange(-1 * maxVelocity, maxVelocity);
+        this.swaying = false;
+    }
+
+    startSwaying(){
+        this.swaying = true;
+        this.swayStartTick = this.player.getGamemode().getCurrentTick();
+    }
+
+    isSwaying(){
+        return this.swaying;
+    }
+
+    updateSway(){
+        if (this.isAiming()){
+            if (!this.isSwaying()){
+                this.startSwaying();
+            }
+            let newAngleOffset = this.currentAngleOffsetRAD;
+            let acceleration = this.player.getRandom().getFloatInRange(-1 * this.swayConstant, this.swayConstant);
+
+            let declineConstA = this.getSwayConstantA();
+            let declineConstB = this.getSwayConstantB();
+            let swayMaxAngleRAD = this.getSwayMaxAngleRAD();
+            let maxVelocity = swayMaxAngleRAD / RETRO_GAME_DATA["general"]["ms_between_ticks"] * this.getSwayVelocityCoefficient();
+
+            let secondsSinceSwayStarted = RETRO_GAME_DATA["general"]["ms_between_ticks"] * (this.player.getGamemode().getCurrentTick() - this.swayStartTick) / 1000; 
+
+            let maxVelocityAtTime = getDeclining1OverXOf(declineConstA, declineConstB, secondsSinceSwayStarted) / 1 * maxVelocity;
+            let swayMaxAngleAtTimeRAD = getDeclining1OverXOf(declineConstA, declineConstB, secondsSinceSwayStarted) / 1 * swayMaxAngleRAD;
+
+            //  Make sure velocity in bounds
+            let newVelocity = this.currentAngleOffsetVelocity + acceleration;
+            newVelocity = Math.min(newVelocity, maxVelocityAtTime);
+            newVelocity = Math.max(newVelocity, maxVelocityAtTime * -1);
+            this.currentAngleOffsetVelocity = newVelocity;
+
+            // Make sure offset in bounds
+            let newOffset = this.currentAngleOffsetRAD + this.currentAngleOffsetVelocity;
+            newOffset = Math.min(newOffset, swayMaxAngleAtTimeRAD);
+            newOffset = Math.max(newOffset, swayMaxAngleAtTimeRAD * -1);
+            this.currentAngleOffsetRAD = newOffset;
+        }else{
+            // Reset angle offset if not aiming
+            this.resetSway();
+        }
+    }
+
+    getSwayConstantA(){
+        return RETRO_GAME_DATA["gun_data"][this.getModel()]["sway_decline_a"];
+    }
+
+    getSwayConstantB(){
+        return RETRO_GAME_DATA["gun_data"][this.getModel()]["sway_decline_b"];
+    }
+
+    getSwayVelocityCoefficient(){
+        return 1 / RETRO_GAME_DATA["gun_data"][this.getModel()]["max_sway_velocity_seconds"];
+    }
+
+    getSwayMaxAngleRAD(){
+        return toRadians(RETRO_GAME_DATA["gun_data"][this.getModel()]["sway_max_angle_deg"]);
+    }
+
+    getSwayedAngleRAD(){
+        return fixRadians(this.getDecidedAngleRAD() + this.currentAngleOffsetRAD);
+    }
+
+    tick(){
+        this.updateSway();
     }
 
     makeDecisions(){
@@ -75,7 +201,7 @@ class Gun extends RangedWeapon {
             "shooter_id": this.player.getID()
         });
         // Try to kill whenever is there
-        let angleRAD = this.getDecidedAngleRAD();
+        let angleRAD = this.getSwayedAngleRAD();
         let range = this.getBulletRange();
         let myID = this.player.getID();
         let collision = this.getScene().findInstantCollisionForProjectile(this.getEndOfGunX(), this.getEndOfGunY(), angleRAD, range, (enemy) => { return enemy.getID() === myID; });

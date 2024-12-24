@@ -175,12 +175,14 @@ class Duel extends Gamemode {
             // Arm them
             for (let pistolModelName of participantObject["pistols"]){
                 participant.getInventory().add(new Pistol(pistolModelName, {
-                    "player": participant
+                    "player": participant,
+                    "sway_constant": RETRO_GAME_DATA["duel"]["pistol_sway_constant"]
                 }))
             }
             for (let musketModelName of participantObject["muskets"]){
                 participant.getInventory().add(new Musket(musketModelName, {
-                    "player": participant
+                    "player": participant,
+                    "sway_constant": RETRO_GAME_DATA["duel"]["musket_sway_constant"]
                 }))
             }
             for (let swordModelName of participantObject["swords"]){

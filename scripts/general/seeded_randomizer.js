@@ -79,6 +79,10 @@ class SeededRandomizer {
     getFloatInRange(start, end){
         return this.getRandomFloat() * (end-start) + start;
     }
+
+    getBoolean(){
+        return this.getIntInRangeInclusive(0, 1) === 0;
+    }
 }
 
 // If using Node JS Export the class

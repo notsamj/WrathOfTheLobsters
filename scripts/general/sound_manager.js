@@ -48,7 +48,7 @@ class SoundManager {
     */
     play(soundName, x, y){
         if (!this.hasSound(soundName)){
-            return;
+            throw new Error("Failed to find sound: " + soundName);
         }
         this.soundQueue.push(new SoundRequest(this.findSound(soundName), x, y));
     }
@@ -105,6 +105,55 @@ class SoundManager {
             this.soundQueue.pop(0);
         }
         this.pauseAllIfPrepared();
+    }
+
+    display(){
+        let displayEnabled = RETRO_GAME_DATA["sound_data"]["active_sound_display"]["enabled"];
+        if (!displayEnabled){ return; }
+
+        let activeSounds = [];
+        for (let sound of this.sounds){
+            // Skip sounds that are not active
+            if (!sound.isRunning()){ continue; }
+            activeSounds.push({"name": sound.getName(), "play_time": sound.getCurrentTime()});
+        }
+
+        // Save time if no active sounds
+        if (activeSounds.length === 0){ return; }
+
+        // Now we have an unsorted list
+        let sortFunc = (time1, time2) => {
+            return time2 - time1;
+        }
+
+        // Sort biggest to smallest
+        activeSounds.sort(sortFunc);
+
+        let numSlots = RETRO_GAME_DATA["sound_data"]["active_sound_display"]["num_slots"];
+        let slotXSize = RETRO_GAME_DATA["sound_data"]["active_sound_display"]["slot_x_size"];
+        let slotYSize = RETRO_GAME_DATA["sound_data"]["active_sound_display"]["slot_y_size"];
+
+        let x = getScreenWidth() - slotXSize;
+        let y = slotYSize;
+        let backgroundColourCode = RETRO_GAME_DATA["sound_data"]["active_sound_display"]["background_colour"];
+        let textColourCode = RETRO_GAME_DATA["sound_data"]["active_sound_display"]["text_colour"];
+
+        let slotsToDisplay = Math.min(activeSounds.length, numSlots);
+        // Display slots
+        for (let i = 0; i < slotsToDisplay; i++){
+            let soundObj = activeSounds[i];
+            Menu.makeRectangleWithText(soundObj["name"], backgroundColourCode, textColourCode, x, y, slotXSize, slotYSize);
+
+            // Increase y for the next one
+            y += slotYSize;
+        }
+
+        // If there is extra that can't find then indicate this
+        let extraSoundsPlaying = activeSounds.length > numSlots;
+        if (extraSoundsPlaying){
+            let indicatorText = (activeSounds.length - numSlots).toString() + " other sounds.";
+            Menu.makeRectangleWithText(indicatorText, backgroundColourCode, textColourCode, x, y, slotXSize, slotYSize);
+        }
     }
 
     /*
@@ -340,7 +389,7 @@ class Sound {
         // Already playing....
         this.lastPlayed = Date.now();
         this.preparedToPause = false;
-        if (this.isRunning() || this.volume == 0){ return; }
+        if (this.isRunning() || this.volume === 0){ return; }
         this.audio.play();
         this.running = true;
     }
@@ -353,6 +402,10 @@ class Sound {
     */
     isRunning(){
         return this.audio.currentTime < this.audio.duration && this.running;
+    }
+
+    getCurrentTime(){
+        return this.audio.currentTime;
     }
 
     /*

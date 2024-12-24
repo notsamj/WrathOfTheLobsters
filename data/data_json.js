@@ -534,7 +534,15 @@ const RETRO_GAME_DATA = {
             {"name": "slashing", "type": "discrete"},
         ],
         "url": "./sounds",
-        "file_type": ".mp3"
+        "file_type": ".mp3",
+        "active_sound_display": {
+            "enabled": false, // off by default,
+            "num_slots": 2, // Will show information for $num_slots sounds and an indicator if more sounds are active
+            "slot_x_size": 100,
+            "slot_y_size": 30,
+            "background_colour": "#000000",
+            "text_colour": "#ffffff"
+        }
     },
 
     "general": {
@@ -558,6 +566,11 @@ const RETRO_GAME_DATA = {
         {
             "name": "gore",
             "path": ["user_chosen_settings", "gore"],
+            "type": "on_off"
+        },
+        {
+            "name": "active_sound_display",
+            "path": ["sound_data", "active_sound_display", "enabled"],
             "type": "on_off"
         }
     ],

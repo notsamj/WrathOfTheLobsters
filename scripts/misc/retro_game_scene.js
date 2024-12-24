@@ -852,6 +852,9 @@ class RetroGameScene {
             this.getFocusedEntity().display(lX, rX, bY, tY);
             this.getFocusedEntity().displayWhenFocused();
         }
+
+        // Display sound indicator
+        SOUND_MANAGER.display();
     }
 
     addExpiringVisual(expiringVisual){

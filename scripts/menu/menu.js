@@ -54,16 +54,16 @@ class Menu {
         Method Description: Create a rectangle with text inside
         Method Return: void
     */
-    static makeRectangleWithText(textStr, colour, textColour, x, y, width, height){
+    static makeRectangleWithText(textStr, backgroundColourCode, textColourCode, x, y, width, height){
         let screenX = x;
         let screenY = MENU_MANAGER.changeToScreenY(y);
 
         // Make the rectangle
-        let rectColour = Colour.fromCode(colour);
+        let rectColour = Colour.fromCode(backgroundColourCode);
         strokeRectangle(rectColour, screenX, screenY, width, height);
 
         // Make the text
-        Menu.makeText(textStr, textColour, x+width/2, y-height/2, width, height, "center", "middle");
+        Menu.makeText(textStr, textColourCode, x+width/2, y-height/2, width, height, "center", "middle");
     }
 
     /*
@@ -104,7 +104,7 @@ class Menu {
         textStr:
             String of text inside the rectangle
         textColour:
-            The colour of the text insid the rectangle
+            The colour of the text inside the rectangle
         x:
             The x location of the top left of the text box
         y:
@@ -118,7 +118,7 @@ class Menu {
         Method Return: void
     */
     static makeText(textStr, textColour, x, y, boxWidth, boxHeight, alignLR="left", alignTB="top"){
-        if (textStr == ""){ return; }
+        if (textStr === ""){ return; }
         let splitByLine = textStr.split("\n");
         let numLines = splitByLine.length;
         let screenX = x;

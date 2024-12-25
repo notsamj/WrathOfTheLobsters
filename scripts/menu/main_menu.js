@@ -29,9 +29,16 @@ class MainMenu extends Menu {
         // Background
         this.components.push(new LoadingScreenComponent());
 
+        // Logo
+        let logoSizeX = 512;
+        let logoSizeY = 512;
+        let logoX = (innerWidth) => { return 0; }
+        let logoY = (innerHeight) => { return innerHeight; }
+        this.components.push(new StaticImage(IMAGES["logo"], logoX, logoY, logoSizeX, logoSizeY));
+
         // Retro Game
         let gameBottonY = (innerHeight) => { return innerHeight - gapSize; };
-        this.components.push(new RectangleButton("Retro Game", "#3bc44b", "#e6f5f4", buttonX, gameBottonY, buttonSizeX, buttonSizeY, (menuInstance) => {
+        this.components.push(new RectangleButton("Duel", "#3bc44b", "#e6f5f4", buttonX, gameBottonY, buttonSizeX, buttonSizeY, (menuInstance) => {
             startGame();
             MENU_MANAGER.switchTo("game");
         }));

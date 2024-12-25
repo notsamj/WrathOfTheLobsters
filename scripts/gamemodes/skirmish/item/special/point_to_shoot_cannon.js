@@ -66,10 +66,10 @@ class PointToShootCannon extends Item {
         // Determine area of effect
         let tileDamageRadius = RETRO_GAME_DATA["cannon"]["aoe_tile_radius"];
         let damageRadius = tileDamageRadius * RETRO_GAME_DATA["general"]["tile_size"];
-        let leftTileAffected = RetroGameScene.getTileXAt(hitX - damageRadius);
-        let rightTileAffected = RetroGameScene.getTileXAt(hitX + damageRadius);
-        let bottomTileAffected = RetroGameScene.getTileYAt(hitY - damageRadius);
-        let topTileAffected = RetroGameScene.getTileYAt(hitY + damageRadius);
+        let leftTileAffected = WTLGameScene.getTileXAt(hitX - damageRadius);
+        let rightTileAffected = WTLGameScene.getTileXAt(hitX + damageRadius);
+        let bottomTileAffected = WTLGameScene.getTileYAt(hitY - damageRadius);
+        let topTileAffected = WTLGameScene.getTileYAt(hitY + damageRadius);
 
         // Set up cannon damage
         let humanMultiplier = RETRO_GAME_DATA["cannon"]["human_damage_multiplier"];

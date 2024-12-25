@@ -136,8 +136,8 @@ class SkirmishHuman extends SkirmishCharacter {
         if (canvasX < 0 || canvasX >= this.getScene().getWidth() || canvasY < 0 || canvasY >= this.getScene().getHeight()){ return; }
         let engineX = canvasX / gameZoom + this.getScene().getLX();
         let engineY = canvasY / gameZoom + this.getScene().getBY();
-        let newPlacerTileX = RetroGameScene.getTileXAt(engineX);
-        let newPlacerTileY = RetroGameScene.getTileYAt(engineY);
+        let newPlacerTileX = WTLGameScene.getTileXAt(engineX);
+        let newPlacerTileY = WTLGameScene.getTileYAt(engineY);
         let tryingToToggleMode = USER_INPUT_MANAGER.isActivated("m_ticked");
         let toggleMode = tryingToToggleMode && this.toggleModeLock.isUnlocked();
         if (!tryingToToggleMode){

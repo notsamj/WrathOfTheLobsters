@@ -14,7 +14,7 @@ class Gamemode {
         Method Return: Constructor
     */    
     constructor(){
-        this.scene = new RetroGameScene();
+        this.scene = new WTLGameScene();
         this.eventHandler = new NSEventHandler();
     }
 

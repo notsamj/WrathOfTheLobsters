@@ -900,8 +900,8 @@ class TurnBasedSkirmish extends Gamemode {
         let numRivers = 3;
 
         let makeRiver = (riverAngleRAD, riverStartX, riverStartY, currentWidth, riverType, minRiverWidth, maxRiverWidth) => {
-            let startingTileX = Math.min(size, Math.max(0, RetroGameScene.getTileXAt(riverStartX)));
-            let startingTileY = Math.min(size, Math.max(0, RetroGameScene.getTileXAt(riverStartY)));
+            let startingTileX = Math.min(size, Math.max(0, WTLGameScene.getTileXAt(riverStartX)));
+            let startingTileY = Math.min(size, Math.max(0, WTLGameScene.getTileXAt(riverStartY)));
 
             let range = size*RETRO_GAME_DATA["general"]["tile_size"];
             let finalOffsetX = range * Math.cos(riverAngleRAD);
@@ -910,11 +910,11 @@ class TurnBasedSkirmish extends Gamemode {
             let endX = riverStartX + finalOffsetX;
             let endY = riverStartY + finalOffsetY;
 
-            let endTileX = Math.max(0, Math.min(size, RetroGameScene.getTileXAt(endX)));
-            let endTileY = Math.max(0, Math.min(size, RetroGameScene.getTileYAt(endY)));
+            let endTileX = Math.max(0, Math.min(size, WTLGameScene.getTileXAt(endX)));
+            let endTileY = Math.max(0, Math.min(size, WTLGameScene.getTileYAt(endY)));
 
-            let tileX = RetroGameScene.getTileXAt(riverStartX);
-            let tileY = RetroGameScene.getTileYAt(riverStartY);
+            let tileX = WTLGameScene.getTileXAt(riverStartX);
+            let tileY = WTLGameScene.getTileYAt(riverStartY);
             let widthDir = Math.abs(Math.cos(riverAngleRAD)) > Math.abs(Math.sin(riverAngleRAD)) ? "y" : "x";
 
             // While not at end 

@@ -1,4 +1,4 @@
-class RetroGameScene {
+class WTLGameScene {
     constructor(){
         this.objects = [];
         this.entities = new NotSamLinkedList();
@@ -13,8 +13,8 @@ class RetroGameScene {
     }
 
     findInstantCollisionForProjectile(startX, startY, angleRAD, range=Number.MAX_SAFE_INTEGER, entityExceptionFunction=(entity) => { return false; }){
-        let startingTileX = RetroGameScene.getTileXAt(startX);
-        let startingTileY = RetroGameScene.getTileYAt(startY);
+        let startingTileX = WTLGameScene.getTileXAt(startX);
+        let startingTileY = WTLGameScene.getTileYAt(startY);
 
         let finalOffsetX = range * Math.cos(angleRAD);
         let finalOffsetY = range * Math.sin(angleRAD);
@@ -43,8 +43,8 @@ class RetroGameScene {
             }
         }
 
-        let endTileX = RetroGameScene.getTileXAt(endX);
-        let endTileY = RetroGameScene.getTileYAt(endY);
+        let endTileX = WTLGameScene.getTileXAt(endX);
+        let endTileY = WTLGameScene.getTileYAt(endY);
 
         // Loop through each tile x, tile y
         let x = startX;
@@ -65,8 +65,8 @@ class RetroGameScene {
 
         let physicalTileCollision = null;
 
-        let tileX = RetroGameScene.getTileXAt(x);
-        let tileY = RetroGameScene.getTileYAt(y);
+        let tileX = WTLGameScene.getTileXAt(x);
+        let tileY = WTLGameScene.getTileYAt(y);
         let tileEntrySide;
 
         // Come up with initial values (incase shooting from inside a physical tile)
@@ -140,8 +140,8 @@ class RetroGameScene {
             x += Math.cos(angleRAD) * time;
             y += Math.sin(angleRAD) * time;
             // Add an extra 1 in whatever direction to 
-            tileX = RetroGameScene.getTileXAt(x + additionalX);
-            tileY = RetroGameScene.getTileYAt(y + additionalY);
+            tileX = WTLGameScene.getTileXAt(x + additionalX);
+            tileY = WTLGameScene.getTileYAt(y + additionalY);
         }
         // Located a physical tile (if any) that collides with the projectile
         let collidesWithAPhysicalTile = physicalTileCollision != null;
@@ -956,13 +956,13 @@ class Chunk {
     }
 
     touchesRegion(lX, rX, bY, tY){
-        let lChunkX = Chunk.tileToChunkCoordinate(RetroGameScene.getTileXAt(lX));
-        let rChunkX = Chunk.tileToChunkCoordinate(RetroGameScene.getTileXAt(rX));
+        let lChunkX = Chunk.tileToChunkCoordinate(WTLGameScene.getTileXAt(lX));
+        let rChunkX = Chunk.tileToChunkCoordinate(WTLGameScene.getTileXAt(rX));
         let myRightChunkX = Chunk.tileToChunkCoordinate(this.getRightX());
         let myLeftChunkX = Chunk.tileToChunkCoordinate(this.getLeftX());
         if (myRightChunkX < lChunkX || myLeftChunkX > rChunkX){ return false; }
-        let bChunkY = Chunk.tileToChunkCoordinate(RetroGameScene.getTileYAt(bY));
-        let tChunkY = Chunk.tileToChunkCoordinate(RetroGameScene.getTileYAt(tY));
+        let bChunkY = Chunk.tileToChunkCoordinate(WTLGameScene.getTileYAt(bY));
+        let tChunkY = Chunk.tileToChunkCoordinate(WTLGameScene.getTileYAt(tY));
         let myTopChunkY = Chunk.tileToChunkCoordinate(this.getTopY());
         let myBottomChunkY = Chunk.tileToChunkCoordinate(this.getBottomY());
         if (myTopChunkY < bChunkY || myBottomChunkY > tChunkY){ return false; }

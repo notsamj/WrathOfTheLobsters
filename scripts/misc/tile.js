@@ -83,11 +83,11 @@ class Tile extends VisualItem {
     }
 
     touchesRegion(lX, rX, bY, tY){
-        let lTileX = RetroGameScene.getTileXAt(lX);
-        let rTileX = RetroGameScene.getTileXAt(rX);
+        let lTileX = WTLGameScene.getTileXAt(lX);
+        let rTileX = WTLGameScene.getTileXAt(rX);
         if (this.getRightX() < lTileX || this.getLeftX() > rTileX){ return false; }
-        let bTileY = RetroGameScene.getTileYAt(bY);
-        let tTileY = RetroGameScene.getTileYAt(tY);
+        let bTileY = WTLGameScene.getTileYAt(bY);
+        let tTileY = WTLGameScene.getTileYAt(tY);
         if (this.getTopY() < bTileY || this.getBottomY() > tTileY){ return false; }
         return true;
     }

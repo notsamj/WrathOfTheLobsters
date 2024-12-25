@@ -38,6 +38,7 @@ async function setup() {
     try {
         await loadToImages("page_background");
         await loadToImages("crosshair");
+        await loadToImages("logo");
         await CharacterAnimationManager.loadAllImages();
         await Musket.loadAllImages();
         await Sword.loadAllImages();
@@ -301,7 +302,7 @@ window.addEventListener("load", () => {
 });
 
 function startGame(){
-    //GAMEMODE_MANAGER.setActiveGamemode(new RetroGame());
+    //GAMEMODE_MANAGER.setActiveGamemode(new WTLGame());
     let gameDetails = RETRO_GAME_DATA["test_settings"]["duel"];
     GAMEMODE_MANAGER.setActiveGamemode(new Duel(gameDetails));
 }
@@ -310,7 +311,7 @@ function startGameMaker(){
     GAMEMODE_MANAGER.setActiveGamemode(new GameMaker());
 }
 
-class RetroGame extends Gamemode {
+class WTLGame extends Gamemode {
     constructor(){
         super();
 

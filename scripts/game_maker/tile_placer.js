@@ -69,8 +69,8 @@ class TilePlacer extends Entity {
         if (canvasX < 0 || canvasX >= this.getScene().getWidth() || canvasY < 0 || canvasY >= this.getScene().getHeight()){ return; }
         let engineX = canvasX + this.getScene().getLX();
         let engineY = canvasY + this.getScene().getBY();
-        let newPlacerTileX = RetroGameScene.getTileXAt(engineX);
-        let newPlacerTileY = RetroGameScene.getTileYAt(engineY);
+        let newPlacerTileX = WTLGameScene.getTileXAt(engineX);
+        let newPlacerTileY = WTLGameScene.getTileYAt(engineY);
         // If the new placer tile has moved
         if (this.placerTileX != newPlacerTileX || this.placerTileY != newPlacerTileY){
             this.readyToPlaceLock.unlock();

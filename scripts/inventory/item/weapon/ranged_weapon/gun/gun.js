@@ -8,7 +8,13 @@ class Gun extends RangedWeapon {
         this.reloading = false;
         this.reloadLock = new TickLock(RETRO_GAME_DATA["gun_data"][this.model]["reload_time_ms"] / RETRO_GAME_DATA["general"]["ms_between_ticks"]);
     
-        this.swayConstant = objectHasKey(details, "sway_constant") ? details["sway_constant"] : 0;
+        this.swayAccelerationConstant = objectHasKey(details, "sway_acceleration_constant") ? details["sway_acceleration_constant"] : 0;
+        this.swayDeclineA = objectHasKey(details, "sway_decline_a") ? details["sway_decline_a"] : RETRO_GAME_DATA["gun_data"][this.getModel()]["sway_decline_a"];
+        this.swayDeclineB = objectHasKey(details, "sway_decline_b") ? details["sway_decline_b"] : RETRO_GAME_DATA["gun_data"][this.getModel()]["sway_decline_b"];
+        this.swayVelocityMinCapCoefficient = 1 / (objectHasKey(details, "min_sway_velocity_cap_seconds") ? details["min_sway_velocity_cap_seconds"] : RETRO_GAME_DATA["gun_data"][this.getModel()]["min_sway_velocity_cap_seconds"]);
+        this.swayVelocityCoefficient = 1 / (objectHasKey(details, "max_sway_velocity_seconds") ? details["max_sway_velocity_seconds"] : RETRO_GAME_DATA["gun_data"][this.getModel()]["max_sway_velocity_seconds"]);
+        this.swayMinCapAngleRAD = toRadians(objectHasKey(details, "sway_min_cap_angle_deg") ? details["sway_min_cap_angle_deg"] : RETRO_GAME_DATA["gun_data"][this.getModel()]["sway_min_cap_angle_deg"]);
+        this.swayMaxAngleRAD = toRadians(objectHasKey(details, "sway_max_angle_deg") ? details["sway_max_angle_deg"] : RETRO_GAME_DATA["gun_data"][this.getModel()]["sway_max_angle_deg"]);
         this.currentAngleOffsetRAD = 0;
         this.currentAngleOffsetVelocity = 0;
         this.swaying = false;
@@ -82,17 +88,21 @@ class Gun extends RangedWeapon {
                 this.startSwaying();
             }
             let newAngleOffset = this.currentAngleOffsetRAD;
-            let acceleration = this.player.getRandom().getFloatInRange(-1 * this.swayConstant, this.swayConstant);
+            let acceleration = this.player.getRandom().getFloatInRange(-1 * this.swayAccelerationConstant, this.swayAccelerationConstant);
 
             let declineConstA = this.getSwayConstantA();
             let declineConstB = this.getSwayConstantB();
             let swayMaxAngleRAD = this.getSwayMaxAngleRAD();
-            let maxVelocity = swayMaxAngleRAD / RETRO_GAME_DATA["general"]["ms_between_ticks"] * this.getSwayVelocityCoefficient();
+            let minSwayAngle = this.getSwayMinCapAngleRAD();
+            let swayAngleDifference = swayMaxAngleRAD - minSwayAngle;
+            let minSwayVelocityCoefficient = this.getSwayVelocityMinCapCoefficient();
+            let swayVelocityDifferenceCoefficient = this.getSwayVelocityCoefficient() - minSwayVelocityCoefficient;
+            let maxVelocityDifference = swayMaxAngleRAD / RETRO_GAME_DATA["general"]["ms_between_ticks"] * swayVelocityDifferenceCoefficient;
 
             let secondsSinceSwayStarted = RETRO_GAME_DATA["general"]["ms_between_ticks"] * (this.player.getGamemode().getCurrentTick() - this.swayStartTick) / 1000; 
 
-            let maxVelocityAtTime = getDeclining1OverXOf(declineConstA, declineConstB, secondsSinceSwayStarted) / 1 * maxVelocity;
-            let swayMaxAngleAtTimeRAD = getDeclining1OverXOf(declineConstA, declineConstB, secondsSinceSwayStarted) / 1 * swayMaxAngleRAD;
+            let maxVelocityAtTime = getDeclining1OverXOf(declineConstA, declineConstB, secondsSinceSwayStarted) / 1 * maxVelocityDifference + minSwayVelocityCoefficient;
+            let swayMaxAngleAtTimeRAD = getDeclining1OverXOf(declineConstA, declineConstB, secondsSinceSwayStarted) / 1 * swayAngleDifference + minSwayAngle;
 
             //  Make sure velocity in bounds
             let newVelocity = this.currentAngleOffsetVelocity + acceleration;
@@ -105,30 +115,40 @@ class Gun extends RangedWeapon {
             newOffset = Math.min(newOffset, swayMaxAngleAtTimeRAD);
             newOffset = Math.max(newOffset, swayMaxAngleAtTimeRAD * -1);
             this.currentAngleOffsetRAD = newOffset;
+
+            console.log(this.currentAngleOffsetVelocity, this.currentAngleOffsetRAD, swayMaxAngleAtTimeRAD, acceleration)
         }else{
             // Reset angle offset if not aiming
             this.resetSway();
         }
     }
 
+    getSwayedAngleRAD(){
+        return fixRadians(this.getDecidedAngleRAD() + this.currentAngleOffsetRAD);
+    }
+
     getSwayConstantA(){
-        return RETRO_GAME_DATA["gun_data"][this.getModel()]["sway_decline_a"];
+        return this.swayDeclineA;
     }
 
     getSwayConstantB(){
-        return RETRO_GAME_DATA["gun_data"][this.getModel()]["sway_decline_b"];
+        return this.swayDeclineB;
+    }
+
+    getSwayVelocityMinCapCoefficient(){
+        return this.swayVelocityMinCapCoefficient;
     }
 
     getSwayVelocityCoefficient(){
-        return 1 / RETRO_GAME_DATA["gun_data"][this.getModel()]["max_sway_velocity_seconds"];
+        return this.swayVelocityCoefficient;
+    }
+
+    getSwayMinCapAngleRAD(){
+        return this.swayMinCapAngleRAD;
     }
 
     getSwayMaxAngleRAD(){
-        return toRadians(RETRO_GAME_DATA["gun_data"][this.getModel()]["sway_max_angle_deg"]);
-    }
-
-    getSwayedAngleRAD(){
-        return fixRadians(this.getDecidedAngleRAD() + this.currentAngleOffsetRAD);
+        return this.swayMaxAngleRAD;
     }
 
     tick(){

@@ -25,6 +25,11 @@ const RETRO_GAME_DATA = {
                     }
                 }
             ]
+        },
+
+        "turn_based_skirmish": {
+            "british_are_human": false,
+            "americans_are_human": false
         }
     },
     "game_maker": {
@@ -56,8 +61,8 @@ const RETRO_GAME_DATA = {
         "stab_damage": 1,
         "max_seed": 100000, // Self-explanatory
         "seed": 51596,  // null for random seed, 24873 is good (on 10 size)
-        "pistol_sway_constant": 0.2,
-        "musket_sway_constant": 0.2,
+        "pistol_sway_acceleration_constant": 0.4,
+        "musket_sway_acceleration_constant": 0.4,
         "camera": {
             "move_speed": 64*16  
         },
@@ -212,11 +217,6 @@ const RETRO_GAME_DATA = {
         "max_rows_of_kills_to_display": 5,
         "text_size": 24,
         "kill_text_colour": "#ffffff"
-    },
-
-    "run": {
-        "british_are_human": true,
-        "americans_are_human": true
     },
 
     "bot": {
@@ -492,8 +492,10 @@ const RETRO_GAME_DATA = {
                     "y_offset": 32-28 // 32-28
                 }
             },
-            "sway_max_angle_deg": 70, // [0,360]
-            "max_sway_velocity_seconds": 0.7, // Seconds to sway by the max sway offset
+            "sway_min_cap_angle_deg": 5, // [0,360] Minimum angle to cap the sway after the decline
+            "sway_max_angle_deg": 70, // [0,360] Maximum angle it can sway
+            "min_sway_velocity_cap_seconds": 0.1, // Seconds to sway by the max sway offset BUT this limit will be used after the gun has rested. It will not achieve a lower cap than this
+            "max_sway_velocity_seconds": 0.7, // Seconds to sway by the max sway offset WHEN gun has not rested at all
             "sway_decline_a": 1.3, // 1 / [(x+b)^a]
             "sway_decline_b": 0.8 // 1 / [(x+b)^a]
         },
@@ -510,8 +512,10 @@ const RETRO_GAME_DATA = {
             },
             "handle_offset_x": 70-512/2,
             "handle_offset_y": 512/2-369,
-            "sway_max_angle_deg": 60, // [0,360]
-            "max_sway_velocity_seconds": 0.5, // Seconds to sway by the max sway offset
+            "sway_min_cap_angle_deg": 10, // [0,360] Minimum angle to cap the sway after the decline
+            "sway_max_angle_deg": 60, // [0,360] Maximum angle it can sway
+            "min_sway_velocity_cap_seconds": 0.4, // Seconds to sway by the max sway offset BUT this limit will be used after the gun has rested. It will not achieve a lower cap than this
+            "max_sway_velocity_seconds": 0.5, // Seconds to sway by the max sway offset WHEN gun has not rested at all
             "sway_decline_a": 1.9, // 1 / [(x+b)^a]
             "sway_decline_b": 0.5 // 1 / [(x+b)^a]
         }

@@ -8,12 +8,14 @@ class Gun extends RangedWeapon {
         this.reloading = false;
         this.reloadLock = new TickLock(RETRO_GAME_DATA["gun_data"][this.model]["reload_time_ms"] / RETRO_GAME_DATA["general"]["ms_between_ticks"]);
     
-        this.swayAccelerationConstant = objectHasKey(details, "sway_acceleration_constant") ? details["sway_acceleration_constant"] : 0;
+        this.maxSwayVelocityRAD = 1 / getTickRate() * toRadians(objectHasKey(details, "max_sway_velocity_deg") ? details["max_sway_velocity_deg"] : RETRO_GAME_DATA["gun_data"][this.getModel()]["max_sway_velocity_deg"]);
+        this.swingMaxRandomConstant = 1 / getTickRate() * toRadians(objectHasKey(details, "maximum_random_sway_acceleration_deg") ? details["maximum_random_sway_acceleration_deg"] : RETRO_GAME_DATA["gun_data"][this.getModel()]["maximum_random_sway_acceleration_deg"]);
+        this.swingMinRandomConstant = 1 / getTickRate() * toRadians(objectHasKey(details, "minimum_random_sway_acceleration_deg") ? details["minimum_random_sway_acceleration_deg"] : RETRO_GAME_DATA["gun_data"][this.getModel()]["minimum_random_sway_acceleration_deg"]);
+        this.swayCompensationConstant = 1 / getTickRate() * toRadians(objectHasKey(details, "corrective_sway_acceleration_deg") ? details["corrective_sway_acceleration_deg"] : RETRO_GAME_DATA["gun_data"][this.getModel()]["corrective_sway_acceleration_deg"]);
         this.swayDeclineA = objectHasKey(details, "sway_decline_a") ? details["sway_decline_a"] : RETRO_GAME_DATA["gun_data"][this.getModel()]["sway_decline_a"];
         this.swayDeclineB = objectHasKey(details, "sway_decline_b") ? details["sway_decline_b"] : RETRO_GAME_DATA["gun_data"][this.getModel()]["sway_decline_b"];
-        this.swayVelocityMinCapCoefficient = 1 / (objectHasKey(details, "min_sway_velocity_cap_seconds") ? details["min_sway_velocity_cap_seconds"] : RETRO_GAME_DATA["gun_data"][this.getModel()]["min_sway_velocity_cap_seconds"]);
-        this.swayVelocityCoefficient = 1 / (objectHasKey(details, "max_sway_velocity_seconds") ? details["max_sway_velocity_seconds"] : RETRO_GAME_DATA["gun_data"][this.getModel()]["max_sway_velocity_seconds"]);
-        this.swayMinCapAngleRAD = toRadians(objectHasKey(details, "sway_min_cap_angle_deg") ? details["sway_min_cap_angle_deg"] : RETRO_GAME_DATA["gun_data"][this.getModel()]["sway_min_cap_angle_deg"]);
+        this.swayConstantC = objectHasKey(details, "corrective_sway_acceleration_constant_c") ? details["corrective_sway_acceleration_constant_c"] : RETRO_GAME_DATA["gun_data"][this.getModel()]["corrective_sway_acceleration_constant_c"];
+        this.swayConstantD = objectHasKey(details, "corrective_sway_acceleration_constant_d") ? details["corrective_sway_acceleration_constant_d"] : RETRO_GAME_DATA["gun_data"][this.getModel()]["corrective_sway_acceleration_constant_d"];
         this.swayMaxAngleRAD = toRadians(objectHasKey(details, "sway_max_angle_deg") ? details["sway_max_angle_deg"] : RETRO_GAME_DATA["gun_data"][this.getModel()]["sway_max_angle_deg"]);
         this.currentAngleOffsetRAD = 0;
         this.currentAngleOffsetVelocity = 0;
@@ -67,7 +69,7 @@ class Gun extends RangedWeapon {
             return;
         }
         let swayMaxAngleRAD = this.getSwayMaxAngleRAD();
-        let maxVelocity = swayMaxAngleRAD / RETRO_GAME_DATA["general"]["ms_between_ticks"] * this.getSwayVelocityCoefficient();
+        let maxVelocity = this.getMaxSwayVelocityRAD();
         this.currentAngleOffsetRAD = this.player.getRandom().getFloatInRange(-1 * swayMaxAngleRAD, swayMaxAngleRAD);
         this.currentAngleOffsetVelocity = this.player.getRandom().getFloatInRange(-1 * maxVelocity, maxVelocity);
         this.swaying = false;
@@ -82,41 +84,48 @@ class Gun extends RangedWeapon {
         return this.swaying;
     }
 
+    getRandom(){
+        return this.player.getRandom();
+    }
+
     updateSway(){
         if (this.isAiming()){
             if (!this.isSwaying()){
                 this.startSwaying();
             }
             let newAngleOffset = this.currentAngleOffsetRAD;
-            let acceleration = this.player.getRandom().getFloatInRange(-1 * this.swayAccelerationConstant, this.swayAccelerationConstant);
+            let correctiveAcceleration = this.currentAngleOffsetRAD * -1 * this.swayConstantC + this.currentAngleOffsetVelocity * -1 * this.swayConstantD;
+            correctiveAcceleration = Math.min(correctiveAcceleration, this.swayCompensationConstant);
+            correctiveAcceleration = Math.max(correctiveAcceleration, this.swayCompensationConstant * -1);
+            let maxVelocity = this.getMaxSwayVelocityRAD();
+            let swayMaxAngleRAD = this.getSwayMaxAngleRAD();
 
             let declineConstA = this.getSwayConstantA();
             let declineConstB = this.getSwayConstantB();
-            let swayMaxAngleRAD = this.getSwayMaxAngleRAD();
-            let minSwayAngle = this.getSwayMinCapAngleRAD();
-            let swayAngleDifference = swayMaxAngleRAD - minSwayAngle;
-            let minSwayVelocityCoefficient = this.getSwayVelocityMinCapCoefficient();
-            let swayVelocityDifferenceCoefficient = this.getSwayVelocityCoefficient() - minSwayVelocityCoefficient;
-            let maxVelocityDifference = swayMaxAngleRAD / RETRO_GAME_DATA["general"]["ms_between_ticks"] * swayVelocityDifferenceCoefficient;
 
-            let secondsSinceSwayStarted = RETRO_GAME_DATA["general"]["ms_between_ticks"] * (this.player.getGamemode().getCurrentTick() - this.swayStartTick) / 1000; 
+            let secondsSinceSwayStarted = calculateMSBetweenTicks() * (this.player.getGamemode().getCurrentTick() - this.swayStartTick) / 1000; 
 
-            let maxVelocityAtTime = getDeclining1OverXOf(declineConstA, declineConstB, secondsSinceSwayStarted) / 1 * maxVelocityDifference + minSwayVelocityCoefficient;
-            let swayMaxAngleAtTimeRAD = getDeclining1OverXOf(declineConstA, declineConstB, secondsSinceSwayStarted) / 1 * swayAngleDifference + minSwayAngle;
+            let randomAccelerationOverTimeMultiplier = getDeclining1OverXOf(declineConstA, declineConstB, secondsSinceSwayStarted);
+            let maxRandom = this.swingMaxRandomConstant;
+            let minRandom = this.swingMinRandomConstant;
+            let randomAccelerationAtTime = minRandom + (maxRandom - minRandom) * randomAccelerationOverTimeMultiplier;
+            let randomlyGeneratedMultiplier = this.getRandom().getFloatInRange(-1, 1);
+            randomAccelerationAtTime *= randomlyGeneratedMultiplier;
+
+            let acceleration = correctiveAcceleration + randomAccelerationAtTime;
 
             //  Make sure velocity in bounds
             let newVelocity = this.currentAngleOffsetVelocity + acceleration;
-            newVelocity = Math.min(newVelocity, maxVelocityAtTime);
-            newVelocity = Math.max(newVelocity, maxVelocityAtTime * -1);
+            newVelocity = Math.min(newVelocity, maxVelocity);
+            newVelocity = Math.max(newVelocity, maxVelocity * -1);
             this.currentAngleOffsetVelocity = newVelocity;
 
             // Make sure offset in bounds
             let newOffset = this.currentAngleOffsetRAD + this.currentAngleOffsetVelocity;
-            newOffset = Math.min(newOffset, swayMaxAngleAtTimeRAD);
-            newOffset = Math.max(newOffset, swayMaxAngleAtTimeRAD * -1);
+            newOffset = Math.min(newOffset, swayMaxAngleRAD);
+            newOffset = Math.max(newOffset, swayMaxAngleRAD * -1);
+            //console.log(this.currentAngleOffsetVelocity, acceleration, newOffset)
             this.currentAngleOffsetRAD = newOffset;
-
-            console.log(this.currentAngleOffsetVelocity, this.currentAngleOffsetRAD, swayMaxAngleAtTimeRAD, acceleration)
         }else{
             // Reset angle offset if not aiming
             this.resetSway();
@@ -135,16 +144,8 @@ class Gun extends RangedWeapon {
         return this.swayDeclineB;
     }
 
-    getSwayVelocityMinCapCoefficient(){
-        return this.swayVelocityMinCapCoefficient;
-    }
-
-    getSwayVelocityCoefficient(){
-        return this.swayVelocityCoefficient;
-    }
-
-    getSwayMinCapAngleRAD(){
-        return this.swayMinCapAngleRAD;
+    getMaxSwayVelocityRAD(){
+        return this.maxSwayVelocityRAD;
     }
 
     getSwayMaxAngleRAD(){

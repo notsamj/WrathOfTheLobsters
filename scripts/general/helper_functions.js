@@ -170,7 +170,11 @@ function angleToBestFaceDirection(angleRAD){
 }
 
 function calculateMSBetweenTicks(){
-    return 1000 / RETRO_GAME_DATA["general"]["tick_rate"];
+    return 1000 / getTickRate();
+}
+
+function getTickRate(){
+    return RETRO_GAME_DATA["general"]["tick_rate"];
 }
 
 function roundUpToNearestMultipleOf(numberToRound, base){

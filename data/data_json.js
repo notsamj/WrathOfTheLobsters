@@ -492,12 +492,15 @@ const RETRO_GAME_DATA = {
                     "y_offset": 32-28 // 32-28
                 }
             },
-            "sway_min_cap_angle_deg": 5, // [0,360] Minimum angle to cap the sway after the decline
             "sway_max_angle_deg": 70, // [0,360] Maximum angle it can sway
-            "min_sway_velocity_cap_seconds": 0.1, // Seconds to sway by the max sway offset BUT this limit will be used after the gun has rested. It will not achieve a lower cap than this
-            "max_sway_velocity_seconds": 0.7, // Seconds to sway by the max sway offset WHEN gun has not rested at all
+            "max_sway_velocity_deg": 20, // Max degrees to sway in a second
             "sway_decline_a": 1.3, // 1 / [(x+b)^a]
-            "sway_decline_b": 0.8 // 1 / [(x+b)^a]
+            "sway_decline_b": 0.8, // 1 / [(x+b)^a]
+            "maximum_random_sway_acceleration_deg": 5,  // Maximum Random sway acceleration deg/second^2
+            "minimum_random_sway_acceleration_deg": 1.2, // Minimum Random sway acceleration deg/second^2
+            "corrective_sway_acceleration_deg": 0.5, // Corrective sway acceleration deg/second^2
+            "corrective_sway_acceleration_constant_c": 0.35, // Constant for slowing down based on angle offset
+            "corrective_sway_acceleration_constant_d": 1.5 // Constant for slowing down based on angular velocity
         },
         "flintlock": {
             "type": "pistol",
@@ -512,12 +515,15 @@ const RETRO_GAME_DATA = {
             },
             "handle_offset_x": 70-512/2,
             "handle_offset_y": 512/2-369,
-            "sway_min_cap_angle_deg": 10, // [0,360] Minimum angle to cap the sway after the decline
-            "sway_max_angle_deg": 60, // [0,360] Maximum angle it can sway
-            "min_sway_velocity_cap_seconds": 0.4, // Seconds to sway by the max sway offset BUT this limit will be used after the gun has rested. It will not achieve a lower cap than this
-            "max_sway_velocity_seconds": 0.5, // Seconds to sway by the max sway offset WHEN gun has not rested at all
+            "sway_max_angle_deg": 35, // [0,360] Maximum angle it can sway
+            "max_sway_velocity_deg": 35, // Max degrees to sway in a second
             "sway_decline_a": 1.9, // 1 / [(x+b)^a]
-            "sway_decline_b": 0.5 // 1 / [(x+b)^a]
+            "sway_decline_b": 0.5, // 1 / [(x+b)^a]
+            "maximum_random_sway_acceleration_deg": 5,  // Maximum Random sway acceleration deg/second^2
+            "minimum_random_sway_acceleration_deg": 3.2, // Minimum Random sway acceleration deg/second^2
+            "corrective_sway_acceleration_deg": 0.75, // Corrective sway acceleration deg/second^2
+            "corrective_sway_acceleration_constant_c": 0.35, // Constant for slowing down based on angle offset
+            "corrective_sway_acceleration_constant_d": 2.75 // Constant for slowing down based on angular velocity
         }
     },
 

@@ -639,11 +639,13 @@ class TurnBasedSkirmish extends Gamemode {
         // Equip officers
         for (let officer of officers){
             officer.getInventory().add(new SkirmishPistol("flintlock", {
-                "player": officer
+                "player": officer,
+                "sway_acceleration_constant": 0
             }));
 
             officer.getInventory().add(new SkirmishSword("cavalry_sword", {
-                "player": officer
+                "player": officer,
+                "sway_acceleration_constant": 0
             }));
 
             officer.getInventory().add(new PointToMove({
@@ -687,7 +689,8 @@ class TurnBasedSkirmish extends Gamemode {
         // Equip privates
         for (let privateTroop of privates){
             privateTroop.getInventory().add(new SkirmishMusket("brown_bess", {
-                "player": privateTroop
+                "player": privateTroop,
+                "sway_acceleration_constant": 0
             }));
 
             privateTroop.getInventory().add(new SkirmishSword("clever", {

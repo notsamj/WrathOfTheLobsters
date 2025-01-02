@@ -1,13 +1,14 @@
+const DATA_TILE_SIZE = 64;
 const RETRO_GAME_DATA = {
     "test_settings": {
         "duel": {
             "participants": [
                 {
-                    "human": true,
+                    "human": false,
                     "model": "british_officer",
-                    "swords": ["cavalry_sword"],
+                    "swords": [],
                     "pistols": ["flintlock"],
-                    "muskets": ["brown_bess"],
+                    "muskets": [],
                     "bot_extra_details": {
                         "disabled": false,
                         "reaction_time_ms": 50
@@ -16,11 +17,11 @@ const RETRO_GAME_DATA = {
                 {
                     "human": false,
                     "model": "usa_officer",
-                    "swords": ["cavalry_sword"],
-                    "pistols": [],
+                    "swords": [],
+                    "pistols": ["flintlock"],
                     "muskets": [],
                     "bot_extra_details": {
-                        "disabled": true,
+                        "disabled": false,
                         "reaction_time_ms": 500
                     }
                 }
@@ -64,7 +65,7 @@ const RETRO_GAME_DATA = {
         "pistol_sway_acceleration_constant": 0.4,
         "musket_sway_acceleration_constant": 0.4,
         "camera": {
-            "move_speed": 64*16  
+            "move_speed": DATA_TILE_SIZE*16  
         },
         "ai": {
             //"search_path_max_length": 15, // A path up to this length will be made when looking for the enemy. Once reached a new one will be made
@@ -395,7 +396,7 @@ const RETRO_GAME_DATA = {
         "shot_damage": 0.75,
         "stab_damage": 1,
         "camera": {
-            "move_speed": 64*16
+            "move_speed": DATA_TILE_SIZE*16
         },
         "max_seed": 100000, // Self-explanatory
         "good_seeds": [78518, 39352, 3833, 4216, 93276],
@@ -480,8 +481,8 @@ const RETRO_GAME_DATA = {
             "type": "musket",
             "reload_time_ms": 5000,
             "stab_time_ms": 600,
-            "stab_range": 1.2*64,
-            "range": 25*64,
+            "stab_range": 1.2*DATA_TILE_SIZE,
+            "range": 25*DATA_TILE_SIZE,
             "display": {
                 "left": {
                     "x_offset": 2-32,
@@ -497,15 +498,15 @@ const RETRO_GAME_DATA = {
             "sway_decline_a": 1.3, // 1 / [(x+b)^a]
             "sway_decline_b": 0.8, // 1 / [(x+b)^a]
             "maximum_random_sway_acceleration_deg": 5,  // Maximum Random sway acceleration deg/second^2
-            "minimum_random_sway_acceleration_deg": 1.2, // Minimum Random sway acceleration deg/second^2
-            "corrective_sway_acceleration_deg": 0.5, // Corrective sway acceleration deg/second^2
+            "minimum_random_sway_acceleration_deg": 3.2, // Minimum Random sway acceleration deg/second^2
+            "corrective_sway_acceleration_deg": 0.75, // Corrective sway acceleration deg/second^2
             "corrective_sway_acceleration_constant_c": 0.35, // Constant for slowing down based on angle offset
-            "corrective_sway_acceleration_constant_d": 1.5 // Constant for slowing down based on angular velocity
+            "corrective_sway_acceleration_constant_d": 2.75 // Constant for slowing down based on angular velocity
         },
         "flintlock": {
             "type": "pistol",
             "reload_time_ms": 2500, // 2500
-            "range": 12*64,
+            "range": 12*DATA_TILE_SIZE,
             "image_width": 512,
             "image_height": 512,
             "image_scale": 1/16,
@@ -568,7 +569,7 @@ const RETRO_GAME_DATA = {
     "general": {
         "tick_rate": 20, // Tick rate of 20 is expected, keep in mind that if the user moves > 1 tile per tick it will cause issues
         "frame_rate": 60,
-        "tile_size": 64,
+        "tile_size": DATA_TILE_SIZE, // 64
         "walk_speed": 120,
         "sprint_multiplier": 2.0,
         "animation_frame_time": 100,

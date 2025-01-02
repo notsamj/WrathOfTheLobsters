@@ -82,6 +82,8 @@ class DuelBot extends DuelCharacter {
             let enemyHoldingAnItem = enemyInventory.hasSelectedItem();
             let enemyHoldingAWeapon = false;
             let enemyHoldingARangedWeapon = false;
+            let enemyHoldingAGun = false;
+            let enemyHoldingALoadedGun = false;
             let enemyHoldingAMeleeWeapon = false;
             let enemyHoldingASword = false;
             let enemyItem;
@@ -89,11 +91,15 @@ class DuelBot extends DuelCharacter {
                 enemyItem = enemyInventory.getSelectedItem();
                 enemyHoldingAWeapon = enemyItem instanceof Weapon;
                 enemyHoldingARangedWeapon = enemyHoldingAWeapon && (enemyItem instanceof RangedWeapon);
+                enemyHoldingAGun = enemyHoldingARangedWeapon && (enemyItem instanceof Gun);
+                enemyHoldingALoadedGun = enemyHoldingAGun && (enemyItem.isLoaded());
                 enemyHoldingAMeleeWeapon = enemyHoldingAWeapon && (enemyItem instanceof MeleeWeapon);
                 enemyHoldingASword = enemyHoldingAMeleeWeapon && (enemyItem instanceof Sword);
             }
             this.inputPerceptionData("enemy_holding_a_weapon", enemyHoldingAWeapon);
             this.inputPerceptionData("enemy_holding_a_ranged_weapon", enemyHoldingARangedWeapon);
+            this.inputPerceptionData("enemy_holding_a_gun", enemyHoldingAGun);
+            this.inputPerceptionData("enemy_holding_a_loaded_gun", enemyHoldingALoadedGun);
             this.inputPerceptionData("enemy_holding_a_melee_weapon", enemyHoldingAMeleeWeapon);
             this.inputPerceptionData("enemy_holding_a_sword", enemyHoldingASword);
 
@@ -411,13 +417,34 @@ class DuelBot extends DuelCharacter {
         throw new Error("DuelBot failed to find enemy.");
     }
 
-    makeFightingDecisions(){
-        // TODO: Movement and stuff
-        // TODO: Determine other stuff
-        let equippedWeaponType = "sword"; // TODO: Determine this (also maybe change weapons)
+    considerChangingWeapons(){
+        // TODO
+        return {"change": false}
+    }
 
-        if (equippedWeaponType === "sword"){
+    makeFightingDecisions(){
+        // TODO: Movement and stuff?
+
+        let equippedItem = this.getInventory().getSelectedItem();
+        if (equippedItem === null){ throw new Error("DuelBot failed to find equipped item"); }
+
+
+        // TODO: Determine other stuff
+
+        // TODO: Chance weapon if needed
+        let changeWeaponResult = this.considerChangingWeapons();
+        if (changeWeaponResult["change"]){
+            // TODO: Change weapon
+            return;
+        }
+
+        // Determine what to do with held weapon
+        if (equippedItem instanceof Sword){
             this.makeSwordFightingDecisions();
+        }else if (equippedItem instanceof Gun){
+            this.makeGunFightingDecisions();
+        }else{
+            throw new Error("DuelBot has unknown weapon equipped");
         }
     }
 
@@ -503,11 +530,76 @@ class DuelBot extends DuelCharacter {
         });
     }
 
+    speculateOnHittingEnemy(enemyCenterX, enemyCenterY, gunEndX, gunEndY){
+        let anglesToCheck = [];
+
+        let distance = calculateEuclideanDistance(enemyCenterX, enemyCenterY, gunEndX, gunEndY);
+
+        let directAngleRAD = displacementToRadians(enemyCenterX - gunEndX, enemyCenterY-gunEndY);
+        // Add angle directly to enemy center
+        anglesToCheck.push(directAngleRAD);
+
+        /*
+            TODO
+            leftAngle;
+            rightAngle;
+            If angle is 0->90 or angle is 181->270
+                leftAngle = angleToTopLeft()
+                rightAngle = angleToBottomRight()
+            If angle is 91->180 or angle is 271->359
+                leftAngle = angleToBottomLeft()
+                rightAngle = angleToTopRight()
+
+            Take samples (random?) but about equally spaced between the left and right maybe 1 pixel padding so you can check the far left and right 
+            If any of the samples can hit then return true;
+
+        */
+    }
+
+    makeGunFightingDecisions(){
+        // No decisions to be made when not at rest
+        if (this.isBetweenTiles()){ return; }
+
+        // Nothing to do if you can't see the enemy
+        if (!this.hasDataToReactTo("enemy_location")){ return; }
+
+        let enemyLocation = this.getDataToReactTo("enemy_location");
+        let enemyInterpolatedTickCenterX = this.getDataToReactTo("enemy_interpolated_tick_center_x");
+        let enemyInterpolatedTickCenterY = this.getDataToReactTo("enemy_interpolated_tick_center_y");
+
+        let myGun = this.getInventory().getSelectedItem();
+
+        // Make decisions based on if my gun is loaded
+        if (myGun.isLoaded()){
+
+            // Check if I can hit the enemy were I to aim (WITHOUT MOVING)
+            let canHitEnemyIfIAimAndShoot = this.speculateOnHittingEnemy(enemyInterpolatedTickCenterX, enemyInterpolatedTickCenterY, myGun.getEndOfGunX(), myGun.getEndOfGunY());
+
+
+            // If I am aiming
+            if (myGun.isAiming()){
+
+            }
+
+            // Check the opponent is holding a loaded gun
+            let enemyHoldingALoadedGun = this.getDataToReactTo("enemy_holding_a_loaded_gun");
+
+            // If they are holding a loaded gun
+            if (enemyHoldingALoadedGun){
+
+            }
+
+        }
+        // Gun is NOT loaded
+        else{
+
+
+
+        }
+    }
+
     makeSwordFightingDecisions(){
         let mySword = this.getInventory().getSelectedItem();
-        if (!(mySword instanceof Sword)){
-            throw new Error("Failed to find sword");
-        }
 
         // Nothing to do if you can't see the enemy
         if (!this.hasDataToReactTo("enemy_location")){ return; }
@@ -524,16 +616,11 @@ class DuelBot extends DuelCharacter {
         // In tile units
         let estimatedCombatDistance = RETRO_GAME_DATA["duel"]["ai"]["estimated_melee_distance"];
 
-        //let estimatedCombatDistance = RETRO_GAME_DATA["duel"]["ai"]["estimated_melee_distance"] * RETRO_GAME_DATA["general"]["tile_size"];
-
         let myTileX = this.getTileX();
         let myTileY = this.getTileY();
-        //let myInterpolatedTickCenterX = this.getInterpolatedTickCenterX();
-        //let myInterpolatedTickCenterY = this.getInterpolatedTickCenterY();
 
         let enemyXDisplacement = enemyTileX - myTileX;
         let enemyYDisplacement = enemyTileY - myTileY;
-        //let enemyDistance = calculateEuclideanDistance(myInterpolatedTickCenterX, myInterpolatedTickCenterY, enemyInterpolatedTickCenterX, enemyInterpolatedTickCenterY);
         let enemyDistance = calculateEuclideanDistance(myTileX, myTileY, enemyTileX, enemyTileY);
         // If enemy is outside of reasonable fighting distance
         if (enemyDistance > estimatedCombatDistance){

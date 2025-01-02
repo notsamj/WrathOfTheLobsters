@@ -23,6 +23,11 @@ class Gun extends RangedWeapon {
         this.swayStartTick = -1;
     }
 
+    breakAction(){
+        this.cancelReload();
+        this.resetSway();
+    }
+
     drawCrosshair(lX, bY){
         let mouseX = window.mouseX;
         let mouseY = window.mouseY;

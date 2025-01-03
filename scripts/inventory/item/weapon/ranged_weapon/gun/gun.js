@@ -137,8 +137,12 @@ class Gun extends RangedWeapon {
         }
     }
 
+    getCurrentAngleOffsetRAD(){
+        return this.currentAngleOffsetRAD;
+    }
+
     getSwayedAngleRAD(){
-        return fixRadians(this.getDecidedAngleRAD() + this.currentAngleOffsetRAD);
+        return fixRadians(this.getDecidedAngleRAD() + this.getCurrentAngleOffsetRAD());
     }
 
     getSwayConstantA(){

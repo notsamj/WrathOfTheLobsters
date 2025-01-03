@@ -3,6 +3,47 @@ if (typeof window === "undefined"){
     RETRO_GAME_DATA = require("../../data/data_json.js");
 }
 
+function calculateRangeOverlapProportion(coveringRangeLow, coveringRangeHigh, coveredRangeLow, coveredRangeHigh){
+    // Check for one source of error
+    if (coveredRangeHigh === coveredRangeLow){
+        throw new Error("Invalid covered range supplied:" + coveredRangeLow.toString() + ',' + coveredRangeHigh.toString());
+    }
+    // 6 cases handed in overlapping_ranges_problem.png
+
+    // Case 7 - Both equal
+    if (coveringRangeLow === coveredRangeLow && coveringRangeHigh === coveredRangeHigh){
+        return 1;
+    }
+    // Case 3 - Covering range covers completely
+    else if (coveringRangeLow <= coveredRangeLow && coveringRangeHigh >= coveredRangeHigh){
+        return 1;
+    }
+    // Case 4 - Covering range is fully closed by covered range
+    else if (coveringRangeLow >= coveredRangeLow && coveringRangeHigh <= coveredRangeHigh){
+        return (coveringRangeHigh - coveringRangeLow) / (coveredRangeHigh - coveredRangeLow);
+    }
+    // Case 1 - Covering range is completely distinct (to the left)
+    else if (coveringRangeHigh <= coveredRangeLow){
+        return 0;
+    }
+    // Case 6 - Covering range is completely distinct (to the right)
+    else if (coveringRangeLow <= coveredRangeHigh){
+        return 0;
+    }
+    // Case 2 - Covering range partially covers from the left
+    else if (coveringRangeLow < coveredRangeLow && coveringRangeHigh > coveredRangeLow){
+        return (coveredRangeHigh - coveringRangeHigh) / (coveredRangeHigh - coveredRangeLow);
+    }
+    // Case 5 - Covering range partially covers from the right
+    else if (coveringRangeLow > coveredRangeLow && coveringRangeHigh > coveredRangeHigh){
+        return (coveredRangeHigh - coveringRangeLow) / (coveredRangeHigh - coveredRangeLow);
+    }
+    // Unknown case
+    else{
+        throw new Error("Unhandled case:" + coveredRangeLow.toString() + ',' + coveredRangeHigh.toString() + ',' + coveringRangeLow + ',' + coveringRangeHigh);
+    }
+}
+
 /*
     Method Name: modifyDataJSONValue
     Method Parameters:

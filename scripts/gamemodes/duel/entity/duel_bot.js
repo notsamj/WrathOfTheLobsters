@@ -58,6 +58,8 @@ class DuelBot extends DuelCharacter {
     }
 
     perceieve(){
+        // Focused on enemy
+
         let enemy = this.getEnemy();
         let canSeeEnemy = this.canSee(enemy);
 
@@ -530,8 +532,15 @@ class DuelBot extends DuelCharacter {
         });
     }
 
-    speculateOnHittingEnemy(enemyCenterX, enemyCenterY, gunEndX, gunEndY){
+    speculateOnHittingEnemy(bulletRange, enemyCenterX, enemyCenterY, gunEndX, gunEndY){
         let anglesToCheck = [];
+
+        let result = {
+            "can_hit": false,
+            "left_angle": null,
+            "right_angle": null,
+            "best_angle": null
+        }
 
         let distance = calculateEuclideanDistance(enemyCenterX, enemyCenterY, gunEndX, gunEndY);
 
@@ -539,10 +548,29 @@ class DuelBot extends DuelCharacter {
         // Add angle directly to enemy center
         anglesToCheck.push(directAngleRAD);
 
+        let inQ1 = angleBetweenCCWRAD(directAngleRAD, toRadians(0), toRadians(90));
+        let inQ3 = angleBetweenCCWRAD(directAngleRAD, toRadians(180), toRadians(270));
+        
+        let leftAngle;
+        let rightAngle;
+        let paddingSize = 1;
+        let leftSideX = enemyCenterX - RETRO_GAME_DATA["general"]["tile_size"] + paddingSize; // 1 padding;
+        let rightSideX = enemyCenterX + RETRO_GAME_DATA["general"]["tile_size"] - paddingSize; // 1 padding;
+        let bottomSideY = enemyCenterY - RETRO_GAME_DATA["general"]["tile_size"] + paddingSize; // 1 padding;
+        let topSideY = enemyCenterY + RETRO_GAME_DATA["general"]["tile_size"] - paddingSize; // 1 padding;
+       
+        // If the direct angle is in quadrant 1 or quadrant 3
+        if (inQ1 || inQ3){
+            leftAngle = displacementToRadians(leftSideX-gunEndX, topSideY-gunEndY);
+            rightAngle = displacementToRadians(rightSideX-gunEndX, bottomSideY-gunEndY);
+        }
+        // Else its in quadrant 2 or 4
+        else{
+            leftAngle = displacementToRadians(leftSideX-gunEndX, bottomSideY-gunEndY);
+            rightAngle = displacementToRadians(rightSideX-gunEndX, topSideY-gunEndY);
+        }
+
         /*
-            TODO
-            leftAngle;
-            rightAngle;
             If angle is 0->90 or angle is 181->270
                 leftAngle = angleToTopLeft()
                 rightAngle = angleToBottomRight()
@@ -552,8 +580,55 @@ class DuelBot extends DuelCharacter {
 
             Take samples (random?) but about equally spaced between the left and right maybe 1 pixel padding so you can check the far left and right 
             If any of the samples can hit then return true;
-
         */
+
+        // Add left and right angles
+        anglesToCheck.push(leftAngle);
+        anglesToCheck.push(rightAngle);
+
+        // Check for errors (in case I screwed up)
+        if (leftAngle-rightAngle < 0){
+            throw new Error("I must've broke something: " + leftAngle + " " + rightAngle);
+        }
+
+        let samplePrecision = toRadians(RETRO_GAME_DATA["duel"]["ai"]["aiming_precision_degrees"]);
+
+        let sampleAngle = rightAngle + samplePrecision;
+
+        // Add the sample angles
+        while (sampleAngle < leftAngle){
+            anglesToCheck.push(sampleAngle);
+            sampleAngle += samplePrecision;
+        }
+
+        // Check all the angles
+        let canHit = false;
+        let bestAngle = null;
+
+        // Sort the angles best to worst (most middle)
+        let sortFunction = (angle1, angle2) => {
+          return Math.abs(angle1 - directAngleRAD) - Math.abs(angle2 - directAngleRAD);
+        }
+        anglesToCheck.sort(sortFunction);
+
+        // Loop through the angle
+        for (let angle of anglesToCheck){
+            let collision = this.getScene().findInstantCollisionForProjectile(gunEndX, gunEndY, angle, bulletRange, (entity) => { return entity.getID() === myID; });
+            if (collision["collision_type"] === "entity"){
+                canHit = true;
+                bestAngle = angle; // Assuming this loop goes through angles best to worst
+                break;
+            }
+        }
+
+        // Set result values
+        result["can_hit"] = canHit;
+        result["best_angle"] = bestAngle;
+        result["left_angle"] = leftAngle;
+        result["right_angle"] = rightAngle;
+
+        // No possibility of collision found
+        return result;
     }
 
     makeGunFightingDecisions(){
@@ -573,12 +648,18 @@ class DuelBot extends DuelCharacter {
         if (myGun.isLoaded()){
 
             // Check if I can hit the enemy were I to aim (WITHOUT MOVING)
-            let canHitEnemyIfIAimAndShoot = this.speculateOnHittingEnemy(enemyInterpolatedTickCenterX, enemyInterpolatedTickCenterY, myGun.getEndOfGunX(), myGun.getEndOfGunY());
+            let speculationResult = this.speculateOnHittingEnemy(myGun.getBulletRange(), enemyInterpolatedTickCenterX, enemyInterpolatedTickCenterY, myGun.getEndOfGunX(), myGun.getEndOfGunY());
+            let canHitEnemyIfIAimAndShoot = speculationResult["can_hit"];
 
 
             // If I am aiming
             if (myGun.isAiming()){
+                // Allow bot to see the magnitude of current offset
+                let mySwayOffsetMagnitude = Math.abs(this.getCurrentAngleOffsetRAD());
 
+
+                let myChanceOfHittingAShot = calculateRangeOverlapProportion(speculationResult["right"], speculationResult["left_angle"], speculationResult["best_angle"] - mySwayOffsetMagnitude/2, speculationResult["best_angle"] + mySwayOffsetMagnitude/2);
+                // TODO: Use this proportion chance of hitting the shot (not a perfect estimate for multiple reasons) to decide whether or not to shoot 
             }
 
             // Check the opponent is holding a loaded gun

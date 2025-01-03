@@ -73,7 +73,8 @@ const RETRO_GAME_DATA = {
             "regular_deflect_attempt_probability": 0.6, // [0,1] the proability that a bot will attempt to perform a regular deflect (as opposed to no deflect or stun deflect)
             "expected_swing_delay_ms": 150, // The bot has the ability to swing it's sword at the enemy. This is the expected delay used to calculate probability of swing attmempt per tick
             "adjust_close_duel_delay_ms": 500, // The bots are locked too close. Expected delay before making a pivot.
-            "expected_adjacent_pivot_ms": 100 // The bots are probably diagonal to one another. They can hit but it's better to move closer
+            "expected_adjacent_pivot_ms": 100, // The bots are probably diagonal to one another. They can hit but it's better to move closer
+            "aiming_precision_degrees": 3 // The number of degrees the bot is able to adjust between two angles when searching for targets 
         }
     },
 

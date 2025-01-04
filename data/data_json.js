@@ -74,7 +74,17 @@ const RETRO_GAME_DATA = {
             "expected_swing_delay_ms": 150, // The bot has the ability to swing it's sword at the enemy. This is the expected delay used to calculate probability of swing attmempt per tick
             "adjust_close_duel_delay_ms": 500, // The bots are locked too close. Expected delay before making a pivot.
             "expected_adjacent_pivot_ms": 100, // The bots are probably diagonal to one another. They can hit but it's better to move closer
-            "aiming_precision_degrees": 3 // The number of degrees the bot is able to adjust between two angles when searching for targets 
+            "aiming_precision_degrees": 3, // The number of degrees the bot is able to adjust between two angles when searching for targets
+            "shot_take_function_a_constant": 5, // 'a' constant for determine how long a bot expects to wait before firing a shot giving a hit probability
+            "shot_take_function_b_constant": 0.2, // 'b' constant for determine how long a bot expects to wait before firing a shot giving a hit probability
+            "stop_aiming_no_target_ms": 2000, // The bot is expected to stop aiming after some time if it cannot hit the enemy
+            "good_shot_try_to_aim_delay_ms": 100, // Expected time to wait to start aiming when you have a good shot
+            "multi_cover_search_route_distance": 10, // Max route distance to search for multi cover from a tile
+            "single_cover_search_route_distance": 10, // Max route distance to search for single cover from a tile
+            "physical_cover_search_route_distance": 10, // Max route distance to search for a physically blocked location from a tile
+            "shoot_tile_selection_x_start": 0.25, // x start for function 1 / x^f for biasing a random selection
+            "shoot_tile_selection_x_end": 3, // x end for function 1 / x^f for biasing a random selection
+            "shoot_tile_selection_f": 5 // f value for function 1 / x^f for biasing a random selection
         }
     },
 

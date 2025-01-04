@@ -21,6 +21,11 @@ class DuelBot extends DuelCharacter {
                     "sword": { 
                         "trying_to_swing_sword": false,
                         "trying_to_block": false
+                    },
+                    "gun": {
+                        "trying_to_aim": false,
+                        "trying_to_shoot": false,
+                        "trying_to_reload": false
                     }
                 }
             }
@@ -485,13 +490,7 @@ class DuelBot extends DuelCharacter {
         }
 
         let updateFromMoveDecisions = (moveObj) => {
-            let directions = ["up", "down", "left", "right"];
-            for (let direction of directions){
-                if (objectHasKey(moveObj, direction)){
-                    this.botDecisionDetails["decisions"][direction] = moveObj[direction];
-                    return;
-                }
-            }
+            return this.updateFromRouteDecision(moveObj)
         }
         // Move according to the route
         updateFromMoveDecisions(route.getDecisionAt(this.getTileX(), this.getTileY()));
@@ -631,6 +630,10 @@ class DuelBot extends DuelCharacter {
         return result;
     }
 
+    getRandomEventManager(){
+        return this.randomEventManager;
+    }
+
     makeGunFightingDecisions(){
         // No decisions to be made when not at rest
         if (this.isBetweenTiles()){ return; }
@@ -638,9 +641,15 @@ class DuelBot extends DuelCharacter {
         // Nothing to do if you can't see the enemy
         if (!this.hasDataToReactTo("enemy_location")){ return; }
 
-        let enemyLocation = this.getDataToReactTo("enemy_location");
+        // Assume if currently aiming I'd like to continue unless disabled elsewhere
+        this.botDecisionDetails["gun"]["trying_to_aim"] = this.isAiming();
+
+        
         let enemyInterpolatedTickCenterX = this.getDataToReactTo("enemy_interpolated_tick_center_x");
         let enemyInterpolatedTickCenterY = this.getDataToReactTo("enemy_interpolated_tick_center_y");
+        let enemyLocation = this.getDataToReactTo("enemy_location");
+        let enemyTileX = enemyLocation["tile_x"];
+        let enemyTileY = enemyLocation["tile_y"];
 
         let myGun = this.getInventory().getSelectedItem();
 
@@ -648,19 +657,113 @@ class DuelBot extends DuelCharacter {
         if (myGun.isLoaded()){
 
             // Check if I can hit the enemy were I to aim (WITHOUT MOVING)
-            let speculationResult = this.speculateOnHittingEnemy(myGun.getBulletRange(), enemyInterpolatedTickCenterX, enemyInterpolatedTickCenterY, myGun.getEndOfGunX(), myGun.getEndOfGunY());
+            let angleToEnemyTileCenter = displacementToRadians(enemyTileX - this.getTileX(), enemyTileY - this.getTileY());
+            let bestVisualDirection = angleToBestFaceDirection(angleToEnemyTileCenter);
+            let bestMovementDirection = getMovementDirectionOf(bestVisualDirection);
+            let playerLeftX = scene.getXOfTile(this.getTileX());
+            let playerTopY = scene.getYOfTile(this.getTileY());
+            let pos = myGun.getSimulatedGunEndPosition(playerLeftX, playerTopY, bestVisualDirection, angleToEnemyTileCenter);
+            let gunEndX = pos["x"];
+            let gunEndY = pos["y"];
+            let speculationResult = this.speculateOnHittingEnemy(myGun.getBulletRange(), enemyInterpolatedTickCenterX, enemyInterpolatedTickCenterY, gunEndX, gunEndY);
             let canHitEnemyIfIAimAndShoot = speculationResult["can_hit"];
 
 
             // If I am aiming
             if (myGun.isAiming()){
-                // Allow bot to see the magnitude of current offset
-                let mySwayOffsetMagnitude = Math.abs(this.getCurrentAngleOffsetRAD());
+                if (canHitEnemyIfIAimAndShoot){
+                    // Turn to proper direction
+                    if (this.getFacingDirection() != bestVisualDirection){
+                        this.botDecisionDetails["decisions"][bestMovementDirection] = true;
+                        // Just turning not moving
+                        this.botDecisionDetails["decisions"]["breaking_stride"] = true;
+                    }
 
-
-                let myChanceOfHittingAShot = calculateRangeOverlapProportion(speculationResult["right"], speculationResult["left_angle"], speculationResult["best_angle"] - mySwayOffsetMagnitude/2, speculationResult["best_angle"] + mySwayOffsetMagnitude/2);
-                // TODO: Use this proportion chance of hitting the shot (not a perfect estimate for multiple reasons) to decide whether or not to shoot 
+                    // Allow bot to see the magnitude of current offset
+                    let mySwayOffsetMagnitude = Math.abs(this.getCurrentAngleOffsetRAD());
+                    let myChanceOfHittingAShot = calculateRangeOverlapProportion(speculationResult["right_angle"], speculationResult["left_angle"], speculationResult["best_angle"] - mySwayOffsetMagnitude/2, speculationResult["best_angle"] + mySwayOffsetMagnitude/2);
+                    let shotAConstant = RETRO_GAME_DATA["duel"]["ai"]["shot_take_function_a_constant"];
+                    let shotBConstant = RETRO_GAME_DATA["duel"]["ai"]["shot_take_function_b_constant"];
+                    let secondsToShootWithThisChance = getDeclining1OverXOf(shotAConstant, shotBConstant, myChanceOfHittingAShot);
+                    let decideToShoot = this.getRandomEventManager().getResultExpectedMS(secondsToShootWithThisChance * 1000);
+                    this.botDecisionDetails["gun"]["trying_to_shoot"] = decideToShoot;
+                }else{
+                    // I am aiming but I can't hit so I will stop
+                    this.botDecisionDetails["gun"]["trying_to_aim"] = this.getRandomEventManager().getResultExpectedMS(RETRO_GAME_DATA["duel"]["ai"]["stop_aiming_no_target_ms"]);
+                }
             }
+            // Else I am not aiming currently
+            else{
+
+                /*
+                    Quick note
+                    So I have a gun
+                    either I am standing and shooting OR I am moving to a better position OR I am reloading
+                    So check here if I am moving 
+                */
+                let stateDataJSON = this.getStateData();
+                let movingToBetterPosition = objectHasKey(stateDataJSON, "current_objective") && stateDataJSON["current_objective"] === "move_to_shooting_position";
+                // Next ones are only calculated conditionally
+                let betterPositionIsBasedOnCurrentData = movingToBetterPosition && stateDataJSON["relevant_enemy_tile_x"] === enemyTileX && stateDataJSON["relevant_enemy_tile_y"] === enemyTileY;
+                let routeLastTile = betterPositionIsBasedOnCurrentData ? (stateDataJSON["route"].getLastTile()) : null;
+                let notAtEndOfRoute = betterPositionIsBasedOnCurrentData && (routeLastTile["tile_x"] != this.getTileX() || routeLastTile["tile_y"] != this.getTileY());
+
+                // If our current objective is to move to a better shooting position
+                if (movingToBetterPosition && betterPositionIsBasedOnCurrentData && notAtEndOfRoute){
+                    this.updateFromRouteDecision(stateDataJSON["route"].getDecisionAt(this.getTileX(), this.getTileY()));
+                }
+                // We are not currently persuing a pre-determined route
+                else{
+                    /*
+                        - Get a weighted value map of shooting spots (say maybe X path distance from me and X path distance from victim)
+                            - Linear combination of:
+                                - Route Distance from me (negative)
+                                - Route Distance from enemy (positive)
+                                - Distance from enemy (positive)
+                                - Angle range to hit enemy (positive)
+                                - Route distance to nearest single cover that is outside of enemy view range (negative)
+                                - Route distance to nearest multicover (negative)
+                                - Route distance to nearest physical cover (like a rock to hide behind) (negative)
+                        - Select best tile
+                            - If my tile -> stay and start aiming
+                            - If not my tile ->
+                                - Add apply a random function to select (like in Skirmish choosing a move)
+                                    -> Move to new tile
+                    */
+
+                    let newTile = this.determineTileToStandAndShootFrom(enemyTileX, enemyTileY, myGun);
+
+                    let newTileIsTheSame = newTile["tile_x"] === this.getTileX() && newTile["tile_y"] === this.getTileY();
+                    
+                    // I can hit the enemy if I start aiming
+                    if (canHitEnemyIfIAimAndShoot && newTileIsTheSame){
+                        // Turn to proper direction
+                        if (this.getFacingDirection() != bestVisualDirection){
+                            this.botDecisionDetails["decisions"][bestMovementDirection] = true;
+                            // Just turning not moving
+                            this.botDecisionDetails["decisions"]["breaking_stride"] = true;
+                        }
+
+                        // Set angle
+                        this.botDecisionDetails["gun"]["aiming_angle_rad"] = speculationResult["best_angle"];
+                        this.botDecisionDetails["gun"]["trying_to_aim"] = this.getRandomEventManager().getResultExpectedMS(RETRO_GAME_DATA["duel"]["ai"]["good_shot_try_to_aim_delay_ms"]);
+                    }
+                    // Move to new tile
+                    else{
+                        // Create a new route
+                        stateDataJSON["current_objective"] = "move_to_shooting_position";
+                        stateDataJSON["relevant_enemy_tile_x"] = enemyTileX;
+                        stateDataJSON["relevant_enemy_tile_y"] = enemyTileY;
+                        stateDataJSON["route"] = Route.fromPath(newTile["shortest_path"]);
+
+                        // Move based on this new route
+                        this.updateFromRouteDecision(stateDataJSON["route"].getDecisionAt(this.getTileX(), this.getTileY()));
+                    }
+                }
+            }
+
+            /*
+            // TODO Keep this? Figure out how to augment current plans?
 
             // Check the opponent is holding a loaded gun
             let enemyHoldingALoadedGun = this.getDataToReactTo("enemy_holding_a_loaded_gun");
@@ -668,14 +771,277 @@ class DuelBot extends DuelCharacter {
             // If they are holding a loaded gun
             if (enemyHoldingALoadedGun){
 
-            }
+            }*/
 
         }
         // Gun is NOT loaded
         else{
 
+            // TODO: Find a place to reload
 
+        }
+    }
 
+    determineTileToStandAndShootFrom(enemyTileX, enemyTileY, gun){
+        let allTiles = this.exploreAvailableTiles(this.getMaxSearchPathLength());
+
+        let distanceToSearchForMultiCover = RETRO_GAME_DATA["duel"]["ai"]["multi_cover_search_route_distance"];
+        let distanceToSearchForSingleCover = RETRO_GAME_DATA["duel"]["ai"]["single_cover_search_route_distance"];
+        let distanceToSearchForPhysicalCover = RETRO_GAME_DATA["duel"]["ai"]["physical_cover_search_route_distance"];
+
+        // Combination scores
+        let fromMeRouteMult = RETRO_GAME_DATA["duel"]["ai"]["from_me_route_mult"];
+        let fromEnemyRouteMult = RETRO_GAME_DATA["duel"]["ai"]["from_enemy_route_mult"];
+        let fromEnemyMult = RETRO_GAME_DATA["duel"]["ai"]["from_enemy_mult"];
+        let angleRangeMult = RETRO_GAME_DATA["duel"]["ai"]["angle_range_mult"];
+        let nearestSingleCoverMult = RETRO_GAME_DATA["duel"]["ai"]["nearest_single_cover_mult"];
+        let nearestMultiCoverMult = RETRO_GAME_DATA["duel"]["ai"]["nearest_multi_cover_mult"];
+        let nearestPhysicalCoverMult = RETRO_GAME_DATA["duel"]["ai"]["nearest_physical_cover_mult"];
+
+        let scene = this.getScene();
+        let playerLeftX = scene.getXOfTile(this.getTileX());
+        let playerTopY = scene.getYOfTile(this.getTileY());
+        let enemyCenterXAtTile = scene.getCenterXOfTile(enemyTileX);
+        let enemyCenterYAtTile = scene.getCenterYOfTile(enemyTileY);
+
+        let enemyVisibilityDistance = this.getGamemode().getEnemyVisibilityDistance();
+
+        let singleCoverFunction = (tileX, tileY) => {
+            return this.getScene().tileAtLocationHasAttribute(tileX, tileY, "single_cover") && calculateEuclideanDistance(enemyTileX, enemyTileY, tileX, tileY) > enemyVisibilityDistance;
+        }
+
+        let multiCoverFunction = (tileX, tileY) => {
+            return this.getScene().tileAtLocationHasAttribute(tileX, tileY, "multi_cover");
+        }
+
+        let myID = this.getID();
+
+        // If direct line from enemyTile to tile hits a physical tile then this applies
+        let physicalCoverFunction = (tileX, tileY) => {
+            return this.getScene().findInstantCollisionForProjectile(enemyCenterXAtTile, enemyCenterYAtTile, displacementToRadians(tileX-enemyTileX, tileY-enemyTileY), enemyVisibilityDistance, (entity) => { return entity.getID() === myID; })["collision_type"] === "physical_tile";
+        }
+
+        // Score each tile
+        for (let tile of allTiles){
+            let distanceFromMe = tile["shortest_path"].length;
+            let tileX = tile["tile_x"];
+            let tileY = tile["tile_y"];
+            let tileCenterX = scene.getCenterXOfTile(tileX);
+            let tileCenterY = scene.getCenterYOfTile(tileY);
+
+            let routeDistanceFromEnemy = this.getScene().generateShortestRouteFromPointToPoint(tileX, tileY, enemyTileX, enemyTileY);
+
+            let realDistanceFromEnemy = calculateEuclideanDistance(enemyCenterXAtTile, enemyCenterYAtTile, tileCenterX, tileCenterY);
+
+            let angleToTileCenter = displacementToRadians(enemyTileX - tileX, enemyTileY - tileY);
+            // Note: Assuming they will face the estimated best way
+            let visualDirectionToFace = angleToBestFaceDirection(angleToTileCenter);
+            let pos = gun.getSimulatedGunEndPosition(playerLeftX, playerTopY, visualDirectionToFace, angleToTileCenter);
+            let x = pos["x"];
+            let y = pos["y"];
+            let bulletRange = gun.getBulletRange();
+            let speculation = this.speculateOnHittingEnemy(bulletRange, x, y, tileCenterX, tileCenterY);
+            let angleRangeToHitEnemy = speculation["left_angle"] - speculation["right_angle"];
+
+            // Single cover outside of enemy visibility
+            let shorestDistanceToMultiCover = this.calculateShortestDistanceToAttributedTile(tileX, tileY, singeCoverFunction, distanceToSearchForMultiCover);
+
+            let shorestDistanceToMultiCover = this.calculateShortestDistanceToAttributedTile(tileX, tileY, multiCoverFunction, distanceToSearchForSingleCover);
+        
+            // Physical cover distance
+            let shorestDistanceToPhyiscalCover = this.calculateShortestDistanceToAttributedTile(tileX, tileY, physicalCoverFunction, distanceToSearchForPhysicalCover);
+        
+            let score = 0;
+
+            // Add linear combination
+
+            score += distanceFromMe * fromMeRouteMult;
+            score += routeDistanceFromEnemy * fromEnemyRouteMult;
+            score += realDistanceFromEnemy * fromEnemyMult;
+            score += angleRangeToHitEnemy * angleRangeMult;
+            score += shorestDistanceToMultiCover * nearestSingleCoverMult;
+            score += shorestDistanceToMultiCover * nearestMultiCoverMult;
+            score += shorestDistanceToPhyiscalCover * nearestPhysicalCoverMult;
+
+            // Add the score
+            tile["score"] = score;
+        }
+
+        let biggestToSmallestScore = (tile1, tile2) => {
+            return tile2["score"] - tile1["score"];
+        }
+
+        // Sort scores big to small
+        allTiles.sort(biggestToSmallestScore);
+
+        let chosenTile = allTiles[0];
+
+        // If we are on the best one then return it
+        if (chosenTile["tile_x"] === this.getTileX() && chosenTile["tile_y"] === this.getTileY()){
+            return chosenTile;
+        }
+
+        // Else from current tile and pick randomly
+        let xStart = RETRO_GAME_DATA["duel"]["ai"]["shoot_tile_selection_x_start"];
+        let xEnd = RETRO_GAME_DATA["duel"]["ai"]["shoot_tile_selection_x_end"];
+        let f = RETRO_GAME_DATA["duel"]["ai"]["shoot_tile_selection_f"];
+        let randomIndex = biasedIndexSelection(xStart, xEnd, f, allTiles.length, this.getRandom());
+        chosenTile = allTiles[randomIndex];
+
+        return chosenTile;
+    }
+
+    calculateShortestDistanceToAttributedTile(startTileX, startTileY, allowanceFunction, distanceToSearch){
+        let tiles = [];
+
+        // Assume max distance
+        let solutionDistance = distanceToSearch;
+
+        let addAdjacentTilesAsUnchecked = (tileX, tileY, pathToTile, startToEnd) => {
+            tryToAddTile(tileX+1, tileY, pathToTile, startToEnd);
+            tryToAddTile(tileX-1, tileY, pathToTile, startToEnd);
+            tryToAddTile(tileX, tileY+1, pathToTile, startToEnd);
+            tryToAddTile(tileX, tileY-1, pathToTile, startToEnd);
+        }
+
+        let getTileIndex = (tileX, tileY) => {
+            for (let i = 0; i < tiles.length; i++){
+                if (tiles[i]["tile_x"] == tileX && tiles[i]["tile_y"] == tileY){
+                    return i;
+                }
+            }
+            return -1;
+        }
+
+        let tileAlreadyChecked = (tileX, tileY, startToEnd) => {
+            let tileIndex = getTileIndex(tileX, tileY);
+            if (tileIndex == -1){ return false; }
+            return tiles[tileIndex]["checked"][startToEnd.toString()];
+        }
+
+        let tileCanBeWalkedOn = (tileX, tileY) => {
+            return !this.getScene().tileAtLocationHasAttribute(tileX, tileY, "no_walk");
+        }
+
+        let tileTooFar = (pathToTileLength) => {
+            return pathToTileLength + 1 > distanceToSearch;
+        }
+
+        // Solution is found if we have a distance lower than default 
+        let solutionIsFound = () => {
+            return this.solutionDistance < distanceToSearch;
+        }
+
+        let tryToAddTile = (tileX, tileY, pathToTile, startToEnd=true) => {
+            if (!tileCanBeWalkedOn(tileX, tileY)){ return; }
+            if (tileAlreadyChecked(tileX, tileY, startToEnd)){ return; }
+            if (tileTooFar(pathToTile.length)){ return; }
+            // If we have a solution then
+            if (solutionIsFound()){ return; }
+            let tileIndex = getTileIndex(tileX, tileY);
+            let newPath;
+            if (startToEnd){
+                newPath = appendLists(pathToTile, [{"tile_x": tileX, "tile_y": tileY}]);
+            }else{
+                newPath = appendLists([{"tile_x": tileX, "tile_y": tileY}], pathToTile);
+            }
+            // If the new path is the max distance then don't bother
+            if (newPath.length === distanceToSearch){
+                return;
+            }
+            // If the tile has not been found then add
+            if (tileIndex == -1){
+                tiles.push({
+                    "tile_x": tileX,
+                    "tile_y": tileY,
+                    "checked": {
+                        "true": false,
+                        "false": false
+                    },
+                    "path_direction": startToEnd,
+                    "shortest_path": newPath
+                });
+            }else{
+                let tileObj = tiles[tileIndex];
+                if (tileObj["path_direction"] != startToEnd){
+                    tileObj["checked"][startToEnd.toString()] = true;
+                    let forwardPath;
+                    let backwardPath;
+                    // If function called on a forward path
+                    if (startToEnd){
+                        forwardPath = copyArray(newPath);
+                        backwardPath = copyArray(tileObj["shortest_path"]);
+                    }else{
+                        forwardPath = copyArray(tileObj["shortest_path"]);
+                        backwardPath = copyArray(newPath);
+                    }
+
+                    // Shift the first element out from backward path to avoid having the same tile twice
+                    backwardPath.shift();
+
+                    let combinedPath = appendLists(forwardPath, backwardPath);
+                    let bestPath = getBestPath();
+                    let newLength = combinedPath.length;
+                    if (bestPath == null || bestPath.length > newLength){
+                        // Set start tile path
+                        startTile["path_direction"] = false; 
+                        startTile["shortest_path"] = combinedPath;
+                        // Set end tile path
+                        endTile["path_direction"] = true; 
+                        endTile["shortest_path"] = combinedPath;
+                    }
+                }
+                // see if the path is worth replacing
+                if (tileObj["shortest_path"].length > newPath.length){
+                    tileObj["shortest_path"] = newPath;
+                    tileObj["path_direction"] = startToEnd;
+                }
+            }
+        }
+
+        let hasUncheckedTiles = () => {
+            for (let tile of tiles){
+                // if tile hasn't been checked in its current direction
+                if (!tile["checked"][tile["path_direction"].toString()]){
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        let pickTile = () => {
+            let chosenTile = null;
+            for (let tile of tiles){
+                // If tick is not checked and this is better than the best tile then pick it
+                if (!tile["checked"][tile["path_direction"].toString()] && (chosenTile === null || chosenTile["shortest_path"].length > tile["shortest_path"].length)){
+                    chosenTile = tile;
+                }
+            }
+            return chosenTile;
+        }
+
+        // Add first tile
+        tryToAddTile(startTileX, startTileY, []);
+        let startTile = tiles[0];
+        while (hasUncheckedTiles()){
+            let currentTile = pickTile();
+            currentTile["checked"][currentTile["path_direction"].toString()] = true;
+            addAdjacentTilesAsUnchecked(currentTile["tile_x"], currentTile["tile_y"], currentTile["shortest_path"], currentTile["path_direction"]);
+            // If solutinn is found then break so it can be returned
+            if (solutionIsFound()){
+                break;
+            }
+        }
+        return solutionDistance;
+    }
+
+    updateFromRouteDecision(routeDecision){
+        let directions = ["up", "down", "left", "right"];
+        for (let direction of directions){
+            if (objectHasKey(routeDecision, direction)){
+                this.botDecisionDetails["decisions"][direction] = moveObj[direction];
+                return;
+            }
         }
     }
 
@@ -714,16 +1080,7 @@ class DuelBot extends DuelCharacter {
             if (!this.isBetweenTiles()){
                 let routeToEnemy = this.generateShortestRouteToPoint(enemyTileX, enemyTileY);
                 let routeDecision = routeToEnemy.getDecisionAt(this.getTileX(), this.getTileY());
-                if (objectHasKey(routeDecision, "up")){
-                    this.botDecisionDetails["decisions"]["up"] = routeDecision["up"];
-                }else if (objectHasKey(routeDecision, "down")){
-                    this.botDecisionDetails["decisions"]["down"] = routeDecision["down"];
-                }else if (objectHasKey(routeDecision, "left")){
-                    this.botDecisionDetails["decisions"]["left"] = routeDecision["left"];
-                }else if (objectHasKey(routeDecision, "right")){
-                    this.botDecisionDetails["decisions"]["right"] = routeDecision["right"];
-                }
-
+                this.updateFromRouteDecision(routeDecision);
             }
             
             return;
@@ -865,15 +1222,7 @@ class DuelBot extends DuelCharacter {
                         if (!this.isBetweenTiles()){
                             let routeToEnemy = this.generateShortestRouteToPoint(enemyTileX, enemyTileY);
                             let routeDecision = routeToEnemy.getDecisionAt(this.getTileX(), this.getTileY());
-                            if (objectHasKey(routeDecision, "up")){
-                                this.botDecisionDetails["decisions"]["up"] = routeDecision["up"];
-                            }else if (objectHasKey(routeDecision, "down")){
-                                this.botDecisionDetails["decisions"]["down"] = routeDecision["down"];
-                            }else if (objectHasKey(routeDecision, "left")){
-                                this.botDecisionDetails["decisions"]["left"] = routeDecision["left"];
-                            }else if (objectHasKey(routeDecision, "right")){
-                                this.botDecisionDetails["decisions"]["right"] = routeDecision["right"];
-                            }
+                            this.updateFromRouteDecision(routeDecision);
                         }
                     }
 

@@ -3,7 +3,7 @@ class WTLGameScene {
         this.objects = [];
         this.entities = new NotSamLinkedList();
         this.focusedEntity = null;
-        this.chunks = new NotSamLinkedList();
+        this.chunks = new NotSamArrayList();
         this.expiringVisuals = new NotSamLinkedList();
         this.displayingPhyiscalLayer = false;
     }

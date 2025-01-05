@@ -3,7 +3,7 @@ class WTLGameScene {
         this.objects = [];
         this.entities = new NotSamLinkedList();
         this.focusedEntity = null;
-        this.chunks = new NotSamArrayList();
+        this.chunks = new NotSamXYSortedArrayList();
         this.expiringVisuals = new NotSamLinkedList();
         this.displayingPhyiscalLayer = false;
     }
@@ -39,17 +39,18 @@ class WTLGameScene {
         // Note: This is useful so it doesn't go to check tile x=500 when no tiles exist after x=10
         let chunkXEnd = startX;
         let chunkYEnd = startY;
-        for (let [chunk, chunkIndex] of this.chunks){
-            if (xDirection > 0){
-                chunkXEnd = Math.max(chunkXEnd, chunk.getNaturalRightX() * RETRO_GAME_DATA["general"]["tile_size"]);
-            }else{
-                chunkXEnd = Math.min(chunkXEnd, chunk.getNaturalLeftX() * RETRO_GAME_DATA["general"]["tile_size"]);
-            }
 
-            if (yDirection > 0){
-                chunkYEnd = Math.max(chunkYEnd, chunk.getNaturalTopY() * RETRO_GAME_DATA["general"]["tile_size"]);
+        // Update based on chunks
+        if (!this.chunks.isEmpty()){
+            if (xDirection > 0){
+                chunkXEnd = Math.max(chunkXEnd, Chunk.getNaturalRightX(this.chunks.getMaxX()) * RETRO_GAME_DATA["general"]["tile_size"]);
             }else{
-                chunkYEnd = Math.min(chunkYEnd, chunk.getNaturalBottomY() * RETRO_GAME_DATA["general"]["tile_size"]);
+                chunkXEnd = Math.min(chunkXEnd, Chunk.getNaturalLeftX(this.chunks.getMinX()) * RETRO_GAME_DATA["general"]["tile_size"]);
+            }
+            if (yDirection > 0){
+                chunkYEnd = Math.max(chunkYEnd, Chunk.getNaturalTopY(this.chunks.getMaxY()) * RETRO_GAME_DATA["general"]["tile_size"]);
+            }else{
+                chunkYEnd = Math.min(chunkYEnd, Chunk.getNaturalBottomY(this.chunks.getMinY()) * RETRO_GAME_DATA["general"]["tile_size"]);
             }
         }
 
@@ -488,7 +489,7 @@ class WTLGameScene {
         tileJSON["visual_tiles"] = [];
         tileJSON["physical_tiles"] = [];
         // Save Visual Chunks to JSON
-        for (let [chunk, cI] of this.chunks){
+        for (let [chunk, chunkX, chunkY] of this.chunks){
             for (let [tile, tI] of chunk.getVisualTiles()){
                 let material = tile.getMaterial();
                 let materialExists = false;
@@ -512,7 +513,7 @@ class WTLGameScene {
         }
 
         // Save Physical Chunks to JSON
-        for (let [chunk, cI] of this.chunks){
+        for (let [chunk, chunkX, chunkY] of this.chunks){
             for (let [tile, tI] of chunk.getPhysicalTiles()){
                 let material = tile.getMaterial();
                 let materialExists = false;
@@ -634,7 +635,8 @@ class WTLGameScene {
 
 
     getVisualTileCoveringLocation(tileX, tileY){
-        for (let [chunk, cI] of this.chunks){
+        // TODO: Speed this up by not looping through chunks that have the left end right of this tile and a top end below
+        for (let [chunk, chunkX, chunkY] of this.chunks){
             if (chunk.covers(tileX, tileY)){
                 return chunk.getVisualTileCoveringLocation(tileX, tileY);
             }
@@ -650,39 +652,46 @@ class WTLGameScene {
         let existingChunk = this.getChunkAtLocation(tileX, tileY);
         // Create if not existing
         if (existingChunk == null){
-            existingChunk = new Chunk(this, Chunk.tileToChunkCoordinate(tileX), Chunk.tileToChunkCoordinate(tileY));
-            this.chunks.push(existingChunk);
+            let chunkX = Chunk.tileToChunkCoordinate(tileX);
+            let chunkY = Chunk.tileToChunkCoordinate(tileY);
+            existingChunk = new Chunk(this, chunkX, chunkY);
+            this.chunks.set(chunkX, chunkY, existingChunk);
         }
         return existingChunk;
     }
 
     getChunkAtLocation(tileX, tileY){
-        for (let [chunk, chunkIndex] of this.chunks){
-            if (chunk.coversNaturally(tileX, tileY)){
-                return chunk;
-            }
-        }
-        return null;
+        let chunkX = Chunk.tileToChunkCoordinate(tileX);
+        let chunkY = Chunk.tileToChunkCoordinate(tileY);
+        return this.chunks.get(chunkX, chunkY);
     }
 
     // Note: This is only tiles naturally at location not just covering
     getPhysicalTileAtLocation(tileX, tileY){
-        for (let [chunk, chunkIndex] of this.chunks){
-            if (chunk.coversNaturally(tileX, tileY)){
-                return chunk.getPhysicalTileAtLocation(tileX, tileY);
-            }
-        }
-        return null;
+        let chunkX = Chunk.tileToChunkCoordinate(tileX);
+        let chunkY = Chunk.tileToChunkCoordinate(tileY);
+
+        let chunk = this.chunks.get(chunkX, chunkY);
+        
+        // If chunk doesn't exist
+        if (chunk === null){ return null; }
+
+        // Check if the chunk has a physical tile there
+        return chunk.getPhysicalTileAtLocation(tileX, tileY);
     }
 
     // Note: This is only tiles naturally at location not just covering
     getVisualTileAtLocation(tileX, tileY){
-        for (let [chunk, chunkIndex] of this.chunks){
-            if (chunk.coversNaturally(tileX, tileY)){
-                return chunk.getVisualTileAtLocation(tileX, tileY);
-            }
-        }
-        return null;
+        let chunkX = Chunk.tileToChunkCoordinate(tileX);
+        let chunkY = Chunk.tileToChunkCoordinate(tileY);
+
+        let chunk = this.chunks.get(chunkX, chunkY);
+        
+        // If chunk doesn't exist
+        if (chunk === null){ return null; }
+
+        // Check if the chunk has a visual tile there
+        return chunk.getVisualTileAtLocation(tileX, tileY);
     }
 
     hasChunkAtLocation(tileX, tileY){
@@ -824,6 +833,8 @@ class WTLGameScene {
         this.displayPageBackground();
 
         // Display Tiles
+
+        // TODO: Speed this up by ignoring chunks outside of the region
         for (let [chunk, cI] of this.chunks){
             chunk.display(lX, rX, bY, tY, this.isDisplayingPhysicalLayer());
         }
@@ -1018,20 +1029,36 @@ class Chunk {
         this.topY = (this.chunkY + 1) * RETRO_GAME_DATA["general"]["chunk_size"] - 1;
     }
 
+    static getNaturalLeftX(chunkX){
+        return chunkX * RETRO_GAME_DATA["general"]["chunk_size"]
+    }
+
     getNaturalLeftX(){
         return this.getLeftX();
     }
 
+    static getChunkNaturalRightX(chunkX){
+        return (chunkX + 1) * RETRO_GAME_DATA["general"]["chunk_size"] - 1;
+    }
+
     getNaturalRightX(){
-        return (this.chunkX + 1) * RETRO_GAME_DATA["general"]["chunk_size"] - 1;
+        return Chunk.getNaturalRightX(this.chunkX);
+    }
+
+    static getNaturalTopY(chunkY){
+        return (chunkY + 1) * RETRO_GAME_DATA["general"]["chunk_size"] - 1;
     }
 
     getNaturalTopY(){
         return this.getTopY();
     }
 
+    static getNaturalBottomY(chunkY){
+        return chunkY * RETRO_GAME_DATA["general"]["chunk_size"];
+    }
+
     getNaturalBottomY(){
-        return this.chunkY * RETRO_GAME_DATA["general"]["chunk_size"];
+        return Chunk.getNaturalBottomY(this.chunkY);
     }
 
     covers(tileX, tileY){

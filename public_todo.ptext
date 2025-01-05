@@ -1,4 +1,7 @@
 Right now:
+	Finish TODOs in WTL_GAME_SCENE
+	Add XYSortedArrayList to tiles within chunks
+
 	Make findInstantCollisionForProjectileWithTargets as efficient as possible
 		Mostly chunk lookups
 		You can organize the this.chunks and stuff too

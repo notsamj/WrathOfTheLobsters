@@ -82,7 +82,7 @@ const RETRO_GAME_DATA = {
             "multi_cover_search_route_distance": 10, // Max route distance to search for multi cover from a tile
             "single_cover_search_route_distance": 10, // Max route distance to search for single cover from a tile
             "physical_cover_search_route_distance": 10, // Max route distance to search for a physically blocked location from a tile
-            "shoot_tile_seleciton": {
+            "shoot_tile_selection": {
                 "shoot_tile_selection_x_start": 0.25, // x start for function 1 / x^f for biasing a random selection
                 "shoot_tile_selection_x_end": 3, // x end for function 1 / x^f for biasing a random selection
                 "shoot_tile_selection_f": 5, // f value for function 1 / x^f for biasing a random selection

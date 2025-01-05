@@ -1,5 +1,9 @@
 Right now:
-
+	Make findInstantCollisionForProjectileWithTargets as efficient as possible
+		Mostly chunk lookups
+		You can organize the this.chunks and stuff too
+			So you also make the scene class more efficient
+	Make determineTileToStandAndShootFrom optimized
 	Add cancel reload decision like the break_stride
 
 	Route types

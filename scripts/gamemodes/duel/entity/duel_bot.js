@@ -531,7 +531,7 @@ class DuelBot extends DuelCharacter {
         });
     }
 
-    speculateOnHittingEnemy(bulletRange, enemyCenterX, enemyCenterY, gunEndX, gunEndY){
+    speculateOnHittingEnemy(bulletRange, enemyCenterX, enemyCenterY, gunEndX, gunEndY, shooterID){
         let anglesToCheck = [];
 
         let result = {
@@ -776,27 +776,161 @@ class DuelBot extends DuelCharacter {
         }
         // Gun is NOT loaded
         else{
+            if (!myGun.isReloading()){
+                let stateDataJSON = this.getStateData();
+                let movingToReloadPosition = objectHasKey(stateDataJSON, "current_objective") && stateDataJSON["current_objective"] === "move_to_reload_position";
+                // Next ones are only calculated conditionally
+                let reloadPositionIsBasedOnCurrentData = movingToReloadPosition && stateDataJSON["relevant_enemy_tile_x"] === enemyTileX && stateDataJSON["relevant_enemy_tile_y"] === enemyTileY;
+                let routeLastTile = reloadPositionIsBasedOnCurrentData ? (stateDataJSON["route"].getLastTile()) : null;
+                let notAtEndOfRoute = reloadPositionIsBasedOnCurrentData && (routeLastTile["tile_x"] != this.getTileX() || routeLastTile["tile_y"] != this.getTileY());
 
-            // TODO: Find a place to reload
+                // If our current objective is to move to a reload position
+                if (movingToBetterPosition && betterPositionIsBasedOnCurrentData && notAtEndOfRoute){
+                    this.updateFromRouteDecision(stateDataJSON["route"].getDecisionAt(this.getTileX(), this.getTileY()));
+                }
+                // We are not currently persuing a pre-determined route
+                else{
+                    let newTile = this.determineTileToReloadFrom(enemyTileX, enemyTileY);
+
+                    let newTileIsTheSame = newTile["tile_x"] === this.getTileX() && newTile["tile_y"] === this.getTileY();
+                    
+                    // If new tile is where we currently are then start reloading
+                    if (newTileIsTheSame){
+                        // Start reloading
+                        this.botDecisionDetails["gun"]["reload"] = true;
+                    }else{
+                        // Create a new route
+                        stateDataJSON["current_objective"] = "move_to_reload_position";
+                        stateDataJSON["relevant_enemy_tile_x"] = enemyTileX;
+                        stateDataJSON["relevant_enemy_tile_y"] = enemyTileY;
+                        stateDataJSON["route"] = Route.fromPath(newTile["shortest_path"]);
+
+                        // Move based on this new route
+                        this.updateFromRouteDecision(stateDataJSON["route"].getDecisionAt(this.getTileX(), this.getTileY()));
+                    }
+                }
+            }else{
+                // TODO: Decide whether to cancel reload
+            }
 
         }
+    }
+
+    determineTileToReloadFrom(enemyTileX, enemyTileY){
+        let allTiles = this.exploreAvailableTiles(this.getMaxSearchPathLength());
+
+        // Combination scores
+        let fromEnemyRouteMult = RETRO_GAME_DATA["duel"]["ai"]["route_tile_section"]["from_enemy_route_mult"]; // positive
+        let fromEnemyMult = RETRO_GAME_DATA["duel"]["ai"]["route_tile_section"]["from_enemy_mult"]; // positive
+        let canHitMult = RETRO_GAME_DATA["duel"]["ai"]["route_tile_section"]["can_hit_mult"]; // negative
+        let angleRangeMult = RETRO_GAME_DATA["duel"]["ai"]["route_tile_section"]["angle_range_mult"]; // negative
+        let inSingleCoverMult = RETRO_GAME_DATA["duel"]["ai"]["route_tile_section"]["in_single_cover_mult"]; // positive 
+        let inMultiCoverMult = RETRO_GAME_DATA["duel"]["ai"]["route_tile_section"]["in_multi_cover_mult"]; // positive
+
+        let scene = this.getScene();
+        let enemyLeftX = scene.getXOfTile(enemyTileX);
+        let enemyTopY = scene.getYOfTile(enemyTileY);
+        let enemyCenterXAtTile = scene.getCenterXOfTile(enemyTileX);
+        let enemyCenterYAtTile = scene.getCenterYOfTile(enemyTileY);
+
+        let enemyVisibilityDistance = this.getGamemode().getEnemyVisibilityDistance();
+
+        let singleCoverFunction = (tileX, tileY) => {
+            return this.getScene().tileAtLocationHasAttribute(tileX, tileY, "single_cover") && calculateEuclideanDistance(enemyTileX, enemyTileY, tileX, tileY) > enemyVisibilityDistance;
+        }
+
+        let multiCoverFunction = (tileX, tileY) => {
+            return this.getScene().tileAtLocationHasAttribute(tileX, tileY, "multi_cover");
+        }
+
+        let myID = this.getID();
+
+        // Score each tile
+        for (let tile of allTiles){
+            let tileX = tile["tile_x"];
+            let tileY = tile["tile_y"];
+            let tileCenterX = scene.getCenterXOfTile(tileX);
+            let tileCenterY = scene.getCenterYOfTile(tileY);
+
+            let routeDistanceFromEnemy = this.getScene().generateShortestRouteFromPointToPoint(tileX, tileY, enemyTileX, enemyTileY);
+
+            let realDistanceFromEnemy = calculateEuclideanDistance(enemyCenterXAtTile, enemyCenterYAtTile, tileCenterX, tileCenterY);
+
+            let angleToTileCenter = displacementToRadians(tileX - enemyTileX, tileY - enemyTileY);
+            // Note: Assuming they will face the estimated best way
+            let visualDirectionToFace = angleToBestFaceDirection(angleToTileCenter);
+            let pos = gun.getSimulatedGunEndPosition(enemyLeftX, enemyTopY, visualDirectionToFace, angleToTileCenter);
+            let x = pos["x"];
+            let y = pos["y"];
+            let bulletRange = gun.getBulletRange();
+            let speculation = this.speculateOnHittingEnemy(bulletRange, x, y, tileCenterX, tileCenterY);
+            let angleRangeToHitEnemy = 0;
+            let canBeHitByEnemyValue = 0;
+            if (speculation["can_hit"]){
+                canBeHitByEnemyValue = 1;
+                angleRangeToHitEnemy = speculation["left_angle"] - speculation["right_angle"];
+            }
+
+            // Single cover outside of enemy visibility
+            let inSingleCoverValue = (this.getScene().tileAtLocationHasAttribute(tileX, tileY, "single_cover") ? 1 : 0);
+
+            let inMutliCoverValue = (this.getScene().tileAtLocationHasAttribute(tileX, tileY, "multi_cover") ? 1 : 0);
+        
+            let score = 0;
+
+            // Add linear combination
+
+            score += routeDistanceFromEnemy * fromEnemyRouteMult;
+            score += realDistanceFromEnemy * fromEnemyMult;
+            score += angleRangeToHitEnemy * angleRangeMult;
+            score += canBeHitByEnemyValue * canHitMult;
+            score += shorestDistanceToMultiCover * inSingleCoverMult;
+            score += inMutliCoverValue * inMultiCoverMult;
+
+            // Add the score
+            tile["score"] = score;
+        }
+
+        let biggestToSmallestScore = (tile1, tile2) => {
+            return tile2["score"] - tile1["score"];
+        }
+
+        // Sort scores big to small
+        allTiles.sort(biggestToSmallestScore);
+
+        let chosenTile = allTiles[0];
+
+        // If we are on the best one then return it
+        if (chosenTile["tile_x"] === this.getTileX() && chosenTile["tile_y"] === this.getTileY()){
+            return chosenTile;
+        }
+
+        // Else from current tile and pick randomly
+        let xStart = RETRO_GAME_DATA["duel"]["ai"]["route_tile_section"]["shoot_tile_selection_x_start"];
+        let xEnd = RETRO_GAME_DATA["duel"]["ai"]["route_tile_section"]["shoot_tile_selection_x_end"];
+        let f = RETRO_GAME_DATA["duel"]["ai"]["route_tile_section"]["shoot_tile_selection_f"];
+        let randomIndex = biasedIndexSelection(xStart, xEnd, f, allTiles.length, this.getRandom());
+        chosenTile = allTiles[randomIndex];
+
+        return chosenTile;
     }
 
     determineTileToStandAndShootFrom(enemyTileX, enemyTileY, gun){
         let allTiles = this.exploreAvailableTiles(this.getMaxSearchPathLength());
 
-        let distanceToSearchForMultiCover = RETRO_GAME_DATA["duel"]["ai"]["multi_cover_search_route_distance"];
-        let distanceToSearchForSingleCover = RETRO_GAME_DATA["duel"]["ai"]["single_cover_search_route_distance"];
-        let distanceToSearchForPhysicalCover = RETRO_GAME_DATA["duel"]["ai"]["physical_cover_search_route_distance"];
+        let distanceToSearchForMultiCover = RETRO_GAME_DATA["duel"]["ai"]["shoot_tile_seleciton"]["multi_cover_search_route_distance"];
+        let distanceToSearchForSingleCover = RETRO_GAME_DATA["duel"]["ai"]["shoot_tile_seleciton"]["single_cover_search_route_distance"];
+        let distanceToSearchForPhysicalCover = RETRO_GAME_DATA["duel"]["ai"]["shoot_tile_seleciton"]["physical_cover_search_route_distance"];
 
-        // Combination scores
-        let fromMeRouteMult = RETRO_GAME_DATA["duel"]["ai"]["from_me_route_mult"];
-        let fromEnemyRouteMult = RETRO_GAME_DATA["duel"]["ai"]["from_enemy_route_mult"];
-        let fromEnemyMult = RETRO_GAME_DATA["duel"]["ai"]["from_enemy_mult"];
-        let angleRangeMult = RETRO_GAME_DATA["duel"]["ai"]["angle_range_mult"];
-        let nearestSingleCoverMult = RETRO_GAME_DATA["duel"]["ai"]["nearest_single_cover_mult"];
-        let nearestMultiCoverMult = RETRO_GAME_DATA["duel"]["ai"]["nearest_multi_cover_mult"];
-        let nearestPhysicalCoverMult = RETRO_GAME_DATA["duel"]["ai"]["nearest_physical_cover_mult"];
+        // Combination multipliers
+        let fromMeRouteMult = RETRO_GAME_DATA["duel"]["ai"]["shoot_tile_seleciton"]["from_me_route_mult"];
+        let fromEnemyRouteMult = RETRO_GAME_DATA["duel"]["ai"]["shoot_tile_seleciton"]["from_enemy_route_mult"];
+        let fromEnemyMult = RETRO_GAME_DATA["duel"]["ai"]["shoot_tile_seleciton"]["from_enemy_mult"];
+        let angleRangeMult = RETRO_GAME_DATA["duel"]["ai"]["shoot_tile_seleciton"]["angle_range_mult"];
+        let nearestSingleCoverMult = RETRO_GAME_DATA["duel"]["ai"]["shoot_tile_seleciton"]["nearest_single_cover_mult"];
+        let nearestMultiCoverMult = RETRO_GAME_DATA["duel"]["ai"]["shoot_tile_seleciton"]["nearest_multi_cover_mult"];
+        let nearestPhysicalCoverMult = RETRO_GAME_DATA["duel"]["ai"]["shoot_tile_seleciton"]["nearest_physical_cover_mult"];
+        let canHitMult = RETRO_GAME_DATA["duel"]["ai"]["shoot_tile_seleciton"]["can_hit_mult"];
 
         let scene = this.getScene();
         let playerLeftX = scene.getXOfTile(this.getTileX());
@@ -841,15 +975,20 @@ class DuelBot extends DuelCharacter {
             let y = pos["y"];
             let bulletRange = gun.getBulletRange();
             let speculation = this.speculateOnHittingEnemy(bulletRange, x, y, tileCenterX, tileCenterY);
-            let angleRangeToHitEnemy = speculation["left_angle"] - speculation["right_angle"];
+            let angleRangeToHitEnemy = 0;
+            let canHitEnemyValue = 0;
+            if (speculation["can_hit"]){
+                canHitEnemyValue = 1;
+                angleRangeToHitEnemy = speculation["left_angle"] - speculation["right_angle"];
+            }
 
             // Single cover outside of enemy visibility
-            let shorestDistanceToMultiCover = this.calculateShortestDistanceToAttributedTile(tileX, tileY, singeCoverFunction, distanceToSearchForMultiCover);
+            let shorestDistanceToMultiCover = this.calculateShortestDistanceToTileWithAttribute(tileX, tileY, singeCoverFunction, distanceToSearchForMultiCover);
 
-            let shorestDistanceToMultiCover = this.calculateShortestDistanceToAttributedTile(tileX, tileY, multiCoverFunction, distanceToSearchForSingleCover);
+            let shorestDistanceToMultiCover = this.calculateShortestDistanceToTileWithAttribute(tileX, tileY, multiCoverFunction, distanceToSearchForSingleCover);
         
             // Physical cover distance
-            let shorestDistanceToPhyiscalCover = this.calculateShortestDistanceToAttributedTile(tileX, tileY, physicalCoverFunction, distanceToSearchForPhysicalCover);
+            let shorestDistanceToPhyiscalCover = this.calculateShortestDistanceToTileWithAttribute(tileX, tileY, physicalCoverFunction, distanceToSearchForPhysicalCover);
         
             let score = 0;
 
@@ -858,6 +997,7 @@ class DuelBot extends DuelCharacter {
             score += distanceFromMe * fromMeRouteMult;
             score += routeDistanceFromEnemy * fromEnemyRouteMult;
             score += realDistanceFromEnemy * fromEnemyMult;
+            score += canHitEnemyValue * canHitMult;
             score += angleRangeToHitEnemy * angleRangeMult;
             score += shorestDistanceToMultiCover * nearestSingleCoverMult;
             score += shorestDistanceToMultiCover * nearestMultiCoverMult;
@@ -882,16 +1022,16 @@ class DuelBot extends DuelCharacter {
         }
 
         // Else from current tile and pick randomly
-        let xStart = RETRO_GAME_DATA["duel"]["ai"]["shoot_tile_selection_x_start"];
-        let xEnd = RETRO_GAME_DATA["duel"]["ai"]["shoot_tile_selection_x_end"];
-        let f = RETRO_GAME_DATA["duel"]["ai"]["shoot_tile_selection_f"];
+        let xStart = RETRO_GAME_DATA["duel"]["ai"]["shoot_tile_seleciton"]["shoot_tile_selection_x_start"];
+        let xEnd = RETRO_GAME_DATA["duel"]["ai"]["shoot_tile_seleciton"]["shoot_tile_selection_x_end"];
+        let f = RETRO_GAME_DATA["duel"]["ai"]["shoot_tile_seleciton"]["shoot_tile_selection_f"];
         let randomIndex = biasedIndexSelection(xStart, xEnd, f, allTiles.length, this.getRandom());
         chosenTile = allTiles[randomIndex];
 
         return chosenTile;
     }
 
-    calculateShortestDistanceToAttributedTile(startTileX, startTileY, allowanceFunction, distanceToSearch){
+    calculateShortestDistanceToTileWithAttribute(startTileX, startTileY, allowanceFunction, distanceToSearch){
         let tiles = [];
 
         // Assume max distance

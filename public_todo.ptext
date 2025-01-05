@@ -1,5 +1,15 @@
 Right now:
+	
+	Add shooterID parameter to speculateOnHittingEnemy and change all usages
+	Add a collision thing where you supply entity positions because right now you're using up to date data when checking even through bot has a reaction time
+	Finish function for determining locations to reload at
 
+	Add cancel reload decision like the break_stride
+
+	Route types
+		Shortest
+		Safest
+			When taking a safest route use a a probability function to determine whether you should be sprinting (based on current stamina and distance to enemy)
 	Work on pistol fighting
 	Merge pistol and sword fighting to have both at once  
 

@@ -82,9 +82,22 @@ const RETRO_GAME_DATA = {
             "multi_cover_search_route_distance": 10, // Max route distance to search for multi cover from a tile
             "single_cover_search_route_distance": 10, // Max route distance to search for single cover from a tile
             "physical_cover_search_route_distance": 10, // Max route distance to search for a physically blocked location from a tile
-            "shoot_tile_selection_x_start": 0.25, // x start for function 1 / x^f for biasing a random selection
-            "shoot_tile_selection_x_end": 3, // x end for function 1 / x^f for biasing a random selection
-            "shoot_tile_selection_f": 5 // f value for function 1 / x^f for biasing a random selection
+            "shoot_tile_seleciton": {
+                "shoot_tile_selection_x_start": 0.25, // x start for function 1 / x^f for biasing a random selection
+                "shoot_tile_selection_x_end": 3, // x end for function 1 / x^f for biasing a random selection
+                "shoot_tile_selection_f": 5, // f value for function 1 / x^f for biasing a random selection
+                "can_hit_mult": 1, // multiplier for shooting-tiles where you can hit the enemies
+                "from_me_route_mult": -1, // multiplier for shooting-tiles that are further from the bot
+                "from_enemy_route_mult": 1, // multiplier for shooting-tiles that have a longer route from the enemy of the bot
+                "from_enemy_mult": 1, // multiplier for shooting-tiles that are further from the enemy of the bot
+                "angle_range_mult": 1, // multiplier for shooting-tiles that have a larger breadth which which to aim at an enemy
+                "nearest_single_cover_mult": -1, // multiplier for shooting-tiles that are far from single cover
+                "nearest_multi_cover_mult": -1, // multiplier for shooting-tiles that are far from mutli cover
+                "nearest_physical_cover_mult": -1 // multiplier for shooting-tiles that are far from physical cover
+            },
+            "route_tile_section": {
+                
+            }
         }
     },
 

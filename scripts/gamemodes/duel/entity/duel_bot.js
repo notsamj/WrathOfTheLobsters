@@ -32,6 +32,10 @@ class DuelBot extends DuelCharacter {
         }
     }
 
+    getEnemyID(){
+        return this.getEnemy().getID();
+    }
+
     notifyOfGunshot(shooterTileX, shooterTileY){
         this.inputPerceptionData("enemy_location", {"tile_x": shooterTileX, "tile_y": shooterTileY});
     }
@@ -531,7 +535,7 @@ class DuelBot extends DuelCharacter {
         });
     }
 
-    speculateOnHittingEnemy(bulletRange, enemyCenterX, enemyCenterY, gunEndX, gunEndY, shooterID){
+    speculateOnHittingEnemy(bulletRange, enemyCenterX, enemyCenterY, gunEndX, gunEndY){
         let anglesToCheck = [];
 
         let result = {
@@ -611,8 +615,9 @@ class DuelBot extends DuelCharacter {
         anglesToCheck.sort(sortFunction);
 
         // Loop through the angle
+        let targets = [{"center_x": enemyCenterX, "center_y": enemyCenterY, "width": enemy.getWidth(), "height": enemy.getHeight(), "entity": null}];
         for (let angle of anglesToCheck){
-            let collision = this.getScene().findInstantCollisionForProjectile(gunEndX, gunEndY, angle, bulletRange, (entity) => { return entity.getID() === myID; });
+            let collision = this.getScene().findInstantCollisionForProjectileWithTargets(gunEndX, gunEndY, angle, bulletRange, targets);
             if (collision["collision_type"] === "entity"){
                 canHit = true;
                 bestAngle = angle; // Assuming this loop goes through angles best to worst
@@ -836,14 +841,13 @@ class DuelBot extends DuelCharacter {
         let enemyVisibilityDistance = this.getGamemode().getEnemyVisibilityDistance();
 
         let singleCoverFunction = (tileX, tileY) => {
-            return this.getScene().tileAtLocationHasAttribute(tileX, tileY, "single_cover") && calculateEuclideanDistance(enemyTileX, enemyTileY, tileX, tileY) > enemyVisibilityDistance;
+            return scene.tileAtLocationHasAttribute(tileX, tileY, "single_cover") && calculateEuclideanDistance(enemyTileX, enemyTileY, tileX, tileY) > enemyVisibilityDistance;
         }
 
         let multiCoverFunction = (tileX, tileY) => {
-            return this.getScene().tileAtLocationHasAttribute(tileX, tileY, "multi_cover");
+            // Return true if this is multi cover and the enemy IS NOT in it
+            return scene.tileAtLocationHasAttribute(tileX, tileY, "multi_cover") && !(scene.tileAtLocationHasAttribute(enemyTileX, enemyTileY, "multi_cover") && scene.tilesInSameMultiCover(enemyTileX, enemyTileY, tileX, tileY));
         }
-
-        let myID = this.getID();
 
         // Score each tile
         for (let tile of allTiles){
@@ -860,10 +864,10 @@ class DuelBot extends DuelCharacter {
             // Note: Assuming they will face the estimated best way
             let visualDirectionToFace = angleToBestFaceDirection(angleToTileCenter);
             let pos = gun.getSimulatedGunEndPosition(enemyLeftX, enemyTopY, visualDirectionToFace, angleToTileCenter);
-            let x = pos["x"];
-            let y = pos["y"];
+            let gunEndX = pos["x"];
+            let gunEndY = pos["y"];
             let bulletRange = gun.getBulletRange();
-            let speculation = this.speculateOnHittingEnemy(bulletRange, x, y, tileCenterX, tileCenterY);
+            let speculation = this.speculateOnHittingEnemy(bulletRange, tileCenterX, tileCenterY, gunEndX, gunEndY);
             let angleRangeToHitEnemy = 0;
             let canBeHitByEnemyValue = 0;
             if (speculation["can_hit"]){
@@ -884,7 +888,7 @@ class DuelBot extends DuelCharacter {
             score += realDistanceFromEnemy * fromEnemyMult;
             score += angleRangeToHitEnemy * angleRangeMult;
             score += canBeHitByEnemyValue * canHitMult;
-            score += shorestDistanceToMultiCover * inSingleCoverMult;
+            score += inSingleCoverValue * inSingleCoverMult;
             score += inMutliCoverValue * inMultiCoverMult;
 
             // Add the score
@@ -952,7 +956,10 @@ class DuelBot extends DuelCharacter {
 
         // If direct line from enemyTile to tile hits a physical tile then this applies
         let physicalCoverFunction = (tileX, tileY) => {
-            return this.getScene().findInstantCollisionForProjectile(enemyCenterXAtTile, enemyCenterYAtTile, displacementToRadians(tileX-enemyTileX, tileY-enemyTileY), enemyVisibilityDistance, (entity) => { return entity.getID() === myID; })["collision_type"] === "physical_tile";
+            let targetPositionX = scene.getCenterXOfTile(tileX);
+            let targetPositionY = scene.getCenterYOfTile(tileY);
+            let targets = let targets = [{"center_x": targetPositionX, "center_y": targetPositionY, "width": RETRO_GAME_DATA["general"]["tile_size"], "height": RETRO_GAME_DATA["general"]["tile_size"], "entity": null}];
+            return this.getScene().findInstantCollisionForProjectileWithTargets(enemyCenterXAtTile, enemyCenterYAtTile, displacementToRadians(tileX-enemyTileX, tileY-enemyTileY), enemyVisibilityDistance, targets)["collision_type"] === "physical_tile";
         }
 
         // Score each tile
@@ -971,10 +978,10 @@ class DuelBot extends DuelCharacter {
             // Note: Assuming they will face the estimated best way
             let visualDirectionToFace = angleToBestFaceDirection(angleToTileCenter);
             let pos = gun.getSimulatedGunEndPosition(playerLeftX, playerTopY, visualDirectionToFace, angleToTileCenter);
-            let x = pos["x"];
-            let y = pos["y"];
+            let gunEndX = pos["x"];
+            let gunEndY = pos["y"];
             let bulletRange = gun.getBulletRange();
-            let speculation = this.speculateOnHittingEnemy(bulletRange, x, y, tileCenterX, tileCenterY);
+            let speculation = this.speculateOnHittingEnemy(bulletRange, tileCenterX, tileCenterY, gunEndX, gunEndY);
             let angleRangeToHitEnemy = 0;
             let canHitEnemyValue = 0;
             if (speculation["can_hit"]){

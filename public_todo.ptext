@@ -1,8 +1,4 @@
 Right now:
-	
-	Add shooterID parameter to speculateOnHittingEnemy and change all usages
-	Add a collision thing where you supply entity positions because right now you're using up to date data when checking even through bot has a reaction time
-	Finish function for determining locations to reload at
 
 	Add cancel reload decision like the break_stride
 

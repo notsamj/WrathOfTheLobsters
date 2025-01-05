@@ -12,7 +12,17 @@ class WTLGameScene {
         return this.entities;
     }
 
-    findInstantCollisionForProjectile(startX, startY, angleRAD, range=Number.MAX_SAFE_INTEGER, entityExceptionFunction=(entity) => { return false; }){
+    findInstantCollisionForProjectileWithTargets(startX, startY, angleRAD, range=Number.MAX_SAFE_INTEGER, entityExceptionFunction=(entity) => { return false; }){
+        let targetEntities = [];
+        for (let [entity, entityIndex] of this.entities){
+            if (entity.isDead()){ continue; }
+            if (entityExceptionFunction(entity)){ continue; }
+            targetEntities.push({"center_x": entity.getInterpolatedTickCenterX(), "center_y": entity.getInterpolatedTickCenterY(), "width": entity.getWidth(), "height": entity.getHeight(), "entity": entity});
+        }
+        return this.findInstantCollisionForProjectileWithTargets(startX, startY, angleRAD, range, targetEntities);
+    }
+
+    findInstantCollisionForProjectileWithTargets(startX, startY, angleRAD, range=Number.MAX_SAFE_INTEGER, targetEntities=[]){
         let startingTileX = WTLGameScene.getTileXAt(startX);
         let startingTileY = WTLGameScene.getTileYAt(startY);
 
@@ -148,13 +158,12 @@ class WTLGameScene {
 
         // Check all entities for collision
         let hitEntityDetails = null;
-        for (let [entity, entityIndex] of this.entities){
-            if (entity.isDead()){ continue; }
-            if (entityExceptionFunction(entity)){ continue; }
-            let entityX = entity.getInterpolatedTickCenterX();
-            let entityY = entity.getInterpolatedTickCenterY();
-            let entityWidth = entity.getWidth();
-            let entityHeight = entity.getHeight();
+        for (let targetEntity of targetEntities){
+            let entity = targetEntity["entity"];
+            let entityX = targetEntity["center_x"];
+            let entityY = targetEntity["center_y"];
+            let entityWidth = targetEntity["width"];
+            let entityHeight = targetEntity["height"];
             let entityLeftX = entityX - entityWidth/2;
             let entityRightX = entityX + entityWidth/2;
             let entityBottomY = entityY - entityHeight/2;

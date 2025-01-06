@@ -665,7 +665,7 @@ class WTLGameScene {
 
             let xValueAtIndex = xArray[chunkXExpectedIndex]["x"];
             // We only want <=
-            if (xValueAtIndex > rightChunkX){
+            if (xValueAtIndex > chunkX){
                 continue;
             }
 
@@ -987,8 +987,8 @@ class Chunk {
         this.scene = scene;
         this.chunkX = chunkX;
         this.chunkY = chunkY;
-        this.visualTiles = new NotSamLinkedList();
-        this.physicalTiles = new NotSamLinkedList();
+        this.visualTiles = new NotSamXYSortedArrayList();
+        this.physicalTiles = new NotSamXYSortedArrayList();
         this.recalculateBoundaries();
     }
 
@@ -1009,27 +1009,53 @@ class Chunk {
     }
 
     getVisualTileAtLocation(tileX, tileY){
-        for (let [tile, tileI] of this.visualTiles){
-            if (tile.getTileX() == tileX && tile.getTileY() == tileY){
-                return tile;
-            }
-        }
-        return null;
+        return this.visualTiles.get(tileX, tileY);
     }
 
     getPhysicalTileAtLocation(tileX, tileY){
-        for (let [tile, tileI] of this.physicalTiles){
-            if (tile.getTileX() == tileX && tile.getTileY() == tileY){
-                return tile;
-            }
-        }
-        return null;
+        return this.physicalTiles.get(tileX, tileY);
     }
 
     getVisualTileCoveringLocation(tileX, tileY){
-        for (let [tile, tileI] of this.visualTiles){
-            if (tile.covers(tileX, tileY)){
-                return tile;
+        let tileYExpectedIndex = this.visualTiles.findYActualOrWouldBeLocation(tileX);
+
+        // Ignore if the index suggests it should be inserted at the end
+        if (tileYExpectedIndex === this.visualTiles.getYLength()){
+            return null;
+        }
+
+        let yAxis = this.visualTiles.grabYAxis();
+        let yValueAtIndex = yAxis[tileYExpectedIndex]["y"];
+
+        // We only want <=
+        if (yValueAtIndex > tileY){
+            return null;
+        }
+
+        // Loop from the highest index with a y <= tileY
+        for (let yIndex = tileYExpectedIndex; yIndex >= 0; yIndex--){
+            let xArrayObj = yAxis[yIndex];
+            let xArray = xArrayObj["array"];
+            let xArrayLength = xArrayObj["length"];
+            let tileXExpectedIndex = this.visualTiles.findXActualOrWouldBeLocation(tileX, xArrayObj);
+            
+            // If the right tile belongs at the end of the list then loop from the last valid one 
+            if (tileXExpectedIndex === xArrayLength){
+                tileXExpectedIndex = xArrayLength - 1;
+            }
+
+            let xValueAtIndex = xArray[tileXExpectedIndex]["x"];
+            // We only want <=
+            if (xValueAtIndex > tileX){
+                continue;
+            }
+
+            // Loop through lower x values
+            for (let xIndex = tileXExpectedIndex; xIndex >= 0; xIndex--){
+                let tile = xArray[xIndex]["value"];
+                if (tile.covers(tileX, tileY)){
+                    return tile;
+                }
             }
         }
         return null;
@@ -1042,12 +1068,12 @@ class Chunk {
     display(lX, rX, bY, tY, displayPhysicalTiles){
         if (!this.touchesRegion(lX, rX, bY, tY)){ return; }
         // Display all tiles
-        for (let [tile, tileI] of this.visualTiles){
+        for (let [tile, tileX, tileY] of this.visualTiles){
             tile.display(lX, rX, bY, tY);
         }
         if (displayPhysicalTiles){
             // Display all tiles
-            for (let [tile, tileI] of this.physicalTiles){
+            for (let [tile, tileX, tileY] of this.physicalTiles){
                 tile.display(lX, rX, bY, tY);
             }
         }
@@ -1087,7 +1113,7 @@ class Chunk {
 
     recalculateBoundaries(){
         let bottomY = this.chunkY * RETRO_GAME_DATA["general"]["chunk_size"];
-        for (let [tile, tI] of this.visualTiles){
+        for (let [tile, tileX, tileY] of this.visualTiles){
             let tileBottomY = tile.getBottomY();
             if (tileBottomY < bottomY){
                 bottomY = tileBottomY;
@@ -1096,7 +1122,7 @@ class Chunk {
         this.bottomY = bottomY;
 
         let rightX = (this.chunkX + 1) * RETRO_GAME_DATA["general"]["chunk_size"] - 1;
-        for (let [tile, tI] of this.visualTiles){
+        for (let [tile, tileX, tileY] of this.visualTiles){
             let tileRightX = tile.getRightX();
             if (tileRightX > rightX){
                 rightX = tileRightX;
@@ -1115,7 +1141,7 @@ class Chunk {
         return this.getLeftX();
     }
 
-    static getChunkNaturalRightX(chunkX){
+    static getNaturalRightX(chunkX){
         return (chunkX + 1) * RETRO_GAME_DATA["general"]["chunk_size"] - 1;
     }
 
@@ -1151,7 +1177,7 @@ class Chunk {
         // If above it then no
         if (tileY > chunkTopY){ return false; }
         // Check all tiles
-        for (let [tile, tileI] of this.visualTiles){
+        for (let [tile, tileX, tileY] of this.visualTiles){
             if (tile.covers(tileX, tileY)){ return true; }
         }
         return false;
@@ -1166,7 +1192,7 @@ class Chunk {
         // If tile doesn't exist, add it
         if (!tile){
             tile = new VisualTile(this.scene, this, material, tileX, tileY);
-            this.visualTiles.push(tile);
+            this.visualTiles.set(tileX, tileY, tile);
         }
         // If same tile do nothing
         else if (tile.getMaterialName() == material["name"]){
@@ -1178,7 +1204,7 @@ class Chunk {
         }else{
             tile.delete();
             tile = new VisualTile(this.scene, this, material, tileX, tileY);
-            this.visualTiles.push(tile);
+            this.visualTiles.set(tileX, tileY, tile);
         }
         this.recalculateBoundaries();
     }
@@ -1188,7 +1214,7 @@ class Chunk {
         // If tile doesn't exist, add it
         if (!tile){
             tile = new PhysicalTile(this.scene, this, material, tileX, tileY);
-            this.physicalTiles.push(tile);
+            this.physicalTiles.set(tileX, tileY, tile);
         }
         // Else if the tile exists but has a different material then change
         else if (tile.getTileX() == tileX && tile.getTileY() == tileY && tile.getMaterialName() != material["name"]){
@@ -1196,7 +1222,7 @@ class Chunk {
         }else{
             tile.delete();
             tile = new PhysicalTile(this.scene, this, material, tileX, tileY);
-            this.physicalTiles.push(tile);
+            this.physicalTiles.set(tileX, tileY, tile);
         }
     }
 
@@ -1204,9 +1230,7 @@ class Chunk {
         let tX = tile.getTileX();
         let tY = tile.getTileY();
         // Find and delete the specified tile
-        this.visualTiles.deleteWithCondition((tileToDelete) => {
-            return tileToDelete.getTileX() == tX && tileToDelete.getTileY() == tY;
-        });
+        this.visualTiles.set(tX, tY, null);
         this.recalculateBoundaries();
     }
 
@@ -1214,14 +1238,8 @@ class Chunk {
         let tX = tile.getTileX();
         let tY = tile.getTileY();
         // Find and delete the specified tile
-        this.physicalTiles.deleteWithCondition((tileToDelete) => {
-            return tileToDelete.getTileX() == tX && tileToDelete.getTileY() == tY;
-        });
+        this.physicalTiles.set(tX, tY, null);
         this.recalculateBoundaries();
-    }
-
-    hasNativeVisualTiles(){
-        return this.visualTiles.isEmpty();
     }
 
     static tileToChunkCoordinate(coordinate){

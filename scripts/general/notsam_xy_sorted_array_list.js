@@ -335,9 +335,11 @@ class NotSamXYSortedArrayList {
             let xArrayObj = this.yAxis[yIndex];
             let xArray = xArrayObj["array"];
             let xArrayLength = xArrayObj["length"];
-            for (let xIndex = 0 ; xIndex < xArrayLength; i++){
+            for (let xIndex = 0 ; xIndex < xArrayLength; xIndex++){
                 let xObj = xArray[xIndex];
-                yield [xObj["value"], xObj["x"], xArrayObj["y"]];
+                let value = xObj["value"];
+                if (value === null){ continue; }
+                yield [value, xObj["x"], xArrayObj["y"]];
             }
         }
     }

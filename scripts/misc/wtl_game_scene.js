@@ -296,9 +296,7 @@ class WTLGameScene {
         let tilesToCheck = [{"checked": false, "x": entity1TileX, "y": entity1TileY}];
         let tilesLeftToCheck = true;
 
-        //console.log("Starting", copyArray(tilesToCheck))
         while (tilesLeftToCheck){
-            //console.log("while", copyArray(tilesToCheck))
             tilesLeftToCheck = false;
             let currentTile = null;
 
@@ -635,10 +633,48 @@ class WTLGameScene {
 
 
     getVisualTileCoveringLocation(tileX, tileY){
-        // TODO: Speed this up by not looping through chunks that have the left end right of this tile and a top end below
-        for (let [chunk, chunkX, chunkY] of this.chunks){
-            if (chunk.covers(tileX, tileY)){
-                return chunk.getVisualTileCoveringLocation(tileX, tileY);
+        let chunkX = Chunk.tileToChunkCoordinate(tileX);
+        let chunkY = Chunk.tileToChunkCoordinate(tileY);
+
+        let chunkYExpectedIndex = this.chunks.findYActualOrWouldBeLocation(chunkY);
+
+        // Ignore if the index suggests it should be inserted at the end
+        if (chunkYExpectedIndex === this.chunks.getYLength()){
+            return null;
+        }
+
+        let yAxis = this.chunks.grabYAxis();
+        let yValueAtIndex = yAxis[chunkYExpectedIndex]["y"];
+
+        // We only want <=
+        if (yValueAtIndex > chunkY){
+            return null;
+        }
+
+        // Loop from the highest index with a y <= chunkY
+        for (let yIndex = chunkYExpectedIndex; yIndex >= 0; yIndex--){
+            let xArrayObj = yAxis[yIndex];
+            let xArray = xArrayObj["array"];
+            let xArrayLength = xArrayObj["length"];
+            let chunkXExpectedIndex = this.chunks.findXActualOrWouldBeLocation(chunkX, xArrayObj);
+            
+            // If the right chunk belongs at the end of the list then loop from the last valid one 
+            if (chunkXExpectedIndex === xArrayLength){
+                chunkXExpectedIndex = xArrayLength - 1;
+            }
+
+            let xValueAtIndex = xArray[chunkXExpectedIndex]["x"];
+            // We only want <=
+            if (xValueAtIndex > rightChunkX){
+                continue;
+            }
+
+            // Loop through lower x values
+            for (let xIndex = chunkXExpectedIndex; xIndex >= 0; xIndex--){
+                let chunk = xArray[xIndex]["value"];
+                if (chunk.covers(tileX, tileY)){
+                    return chunk.getVisualTileCoveringLocation(tileX, tileY);
+                }
             }
         }
         return null;
@@ -820,6 +856,51 @@ class WTLGameScene {
         return bY;
     }
 
+    displayTiles(lX, rX, bY, tY){
+        let rightChunkX = Chunk.tileToChunkCoordinate(WTLGameScene.getTileXAt(rX));
+        let bottomChunkY = Chunk.tileToChunkCoordinate(WTLGameScene.getTileXAt(bY));
+
+        let chunkYExpectedIndex = this.chunks.findYActualOrWouldBeLocation(bottomChunkY);
+
+        // Ignore if the index suggests it should be inserted at the end
+        if (chunkYExpectedIndex === this.chunks.getYLength()){
+            return null;
+        }
+
+        let yAxis = this.chunks.grabYAxis();
+        let yValueAtIndex = yAxis[chunkYExpectedIndex]["y"];
+
+        // We only want >=
+        if (yValueAtIndex < bottomChunkY){
+            return null;
+        }
+
+        // Loop from the lowest index to the highest
+        for (let yIndex = chunkYExpectedIndex; yIndex < this.chunks.getYLength(); yIndex++){
+            let xArrayObj = yAxis[yIndex];
+            let xArray = xArrayObj["array"];
+            let xArrayLength = xArrayObj["length"];
+            let chunkXExpectedIndex = this.chunks.findXActualOrWouldBeLocation(rightChunkX, xArrayObj);
+            
+            // If the right chunk belongs at the end of the list then loop from the last valid one 
+            if (chunkXExpectedIndex === xArrayLength){
+                chunkXExpectedIndex = xArrayLength - 1;
+            }
+
+            let xValueAtIndex = xArray[chunkXExpectedIndex]["x"];
+            // We only want <=
+            if (xValueAtIndex > rightChunkX){
+                continue;
+            }
+
+            // Loop through lower x values
+            for (let xIndex = chunkXExpectedIndex; xIndex >= 0; xIndex--){
+                let chunk = xArray[xIndex]["value"];
+                chunk.display(lX, rX, bY, tY, this.isDisplayingPhysicalLayer());
+            }
+        }
+    }
+
     display(){
         let lX = this.getLX(); // Bottom left x
         let bY = this.getBY(); // Bottom left y
@@ -834,10 +915,7 @@ class WTLGameScene {
 
         // Display Tiles
 
-        // TODO: Speed this up by ignoring chunks outside of the region
-        for (let [chunk, cI] of this.chunks){
-            chunk.display(lX, rX, bY, tY, this.isDisplayingPhysicalLayer());
-        }
+        this.displayTiles(lX, rX, bY, tY);
 
         // Delete expired visuals
         this.expiringVisuals.deleteWithCondition((visual) => {

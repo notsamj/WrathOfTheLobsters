@@ -61,7 +61,7 @@ class NotSamXYSortedArrayList {
 
         // Move elements to new array
         for (let i = 0; i < this.yLength; i++){
-            newYAxis.push(this.yAxis[i]);
+            newYAxis[i] = this.yAxis[i];
         }
 
         this.yAxis = newYAxis;
@@ -78,11 +78,11 @@ class NotSamXYSortedArrayList {
 
         // Move elements to new array
         for (let i = 0; i < length; i++){
-            newXArray.push(currentArray[i]);
+            newXArray[i] = currentArray[i];
         }
 
         // Move all to the object
-        xArrayObj["size"] = newYSize;
+        xArrayObj["size"] = newXSize;
         xArrayObj["array"] = newXArray;
     }
 
@@ -122,12 +122,17 @@ class NotSamXYSortedArrayList {
         }
         // End point is in the second half of the array
         else if (comparisonResult > 0){
-            return binarySearch(y, mid+1, end);
+            return this.findYIndex(y, mid+1, end);
         }
         // End point is in the first half of the array
         else{
-            return binarySearch(y, start, mid-1);
+            return this.findYIndex(y, start, mid-1);
         }
+    }
+
+    // Note: Be careful with this function. Say you want index of 5 so you can find all < 5 but array only has 6 this will return index of 6. May cause problems. 
+    findYActualOrWouldBeLocation(y){
+        return this.findYInsertionPoint(y);
     }
 
     findYInsertionPoint(y, start=0, end=this.yLength, hardEnd=this.yLength){
@@ -140,7 +145,7 @@ class NotSamXYSortedArrayList {
         }
 
         let mid = Math.floor((start + end)/2);
-        let comparisonResult = y - array[mid]["y"];
+        let comparisonResult = y - this.yAxis[mid]["y"];
 
         let midMinusOneIsLess = (mid -1 < 0 || y - this.yAxis[mid-1]["y"] > 0);
         let midIsEqualOrMore = comparisonResult <= 0;
@@ -151,11 +156,11 @@ class NotSamXYSortedArrayList {
         }
         // End point is in the second half of the array
         else if (comparisonResult > 0){
-            return findInsertionPoint(y, mid, end, hardEnd);
+            return this.findYInsertionPoint(y, mid, end, hardEnd);
         }
         // End point is in the first half of the array
         else{
-            return findInsertionPoint(y, start, mid, hardEnd);
+            return this.findYInsertionPoint(y, start, mid, hardEnd);
         }
     }
 
@@ -165,7 +170,7 @@ class NotSamXYSortedArrayList {
 
     addToYAxis(y, insertionIndex){
         // If the y axis needs expansion then expand it
-        if (this.getYLength() + 1 === this.getYSize()){
+        if (this.getYLength() === this.getYSize()){
             this.resizeYAxis();
         }
         // Move everything up (if not at end)
@@ -186,7 +191,7 @@ class NotSamXYSortedArrayList {
     addToXAxis(x, insertionIndex, xArrayObj){
         // If the y axis needs expansion then expand it
         let xArrayLength = xArrayObj["length"];
-        if (xArrayLength + 1 === xArrayObj["size"]){
+        if (xArrayLength === xArrayObj["size"]){
             this.resizeXAxis(xArrayObj);
         }
         // Move everything up (if not at end)
@@ -195,7 +200,6 @@ class NotSamXYSortedArrayList {
             xArray[xIndex] = xArray[xIndex-1];
         }
         // Insert
-        let startingSize = 1;
         xArray[insertionIndex] = {"x": x, "value": null};
 
         // Update stats
@@ -209,9 +213,12 @@ class NotSamXYSortedArrayList {
         // If empty return -1
         if (end < 0 || start > end){ return -1; }
         let mid = Math.floor((start + end)/2);
-        let comparisonResult = y - xArray[mid]["x"];
+        if (xArray[mid] === undefined){
+            debugger;
+        }
+        let comparisonResult = x - xArray[mid]["x"];
 
-        // If we found the y value
+        // If we found the x value
         if (comparisonResult == 0){
             return mid;
         }
@@ -221,27 +228,32 @@ class NotSamXYSortedArrayList {
         }
         // End point is in the second half of the array
         else if (comparisonResult > 0){
-            return binarySearch(x, xArray,  mid+1, end);
+            return this.findXIndex(x, xArray,  mid+1, end);
         }
         // End point is in the first half of the array
         else{
-            return binarySearch(x, xArray,  start, mid-1);
+            return this.findXIndex(x, xArray,  start, mid-1);
         }
+    }
+
+    // Note: Be careful with this function. Say you want index of 5 so you can find all < 5 but array only has 6 this will return index of 6. May cause problems. 
+    findXActualOrWouldBeLocation(x, xArrayObj){
+        return this.findXInsertionPoint(x, xArrayObj["array"], 0, xArrayObj["length"], xArrayObj["length"]);
     }
 
     findXInsertionPoint(x, xArray, start, end, hardEnd){
         // Handle empty case
         if (end === 0){ return 0; }
 
-        // If the y value belongs at the back
-        if (end === hardEnd && end > 0 && y - xArray[end-1]["x"] > 0){
+        // If the x value belongs at the back
+        if (end === hardEnd && end > 0 && x - xArray[end-1]["x"] > 0){
             return end;
         }
 
         let mid = Math.floor((start + end)/2);
-        let comparisonResult = y - array[mid]["x"];
+        let comparisonResult = x - xArray[mid]["x"];
 
-        let midMinusOneIsLess = (mid -1 < 0 || y - xArray[mid-1]["x"] > 0);
+        let midMinusOneIsLess = (mid -1 < 0 || x - xArray[mid-1]["x"] > 0);
         let midIsEqualOrMore = comparisonResult <= 0;
         
         // If we found a valid spot
@@ -250,11 +262,11 @@ class NotSamXYSortedArrayList {
         }
         // End point is in the second half of the array
         else if (comparisonResult > 0){
-            return findInsertionPoint(x, xArray,  mid, end, hardEnd);
+            return this.findXInsertionPoint(x, xArray, mid, end, hardEnd);
         }
         // End point is in the first half of the array
         else{
-            return findInsertionPoint(x, xArray,  start, mid, hardEnd);
+            return this.findXInsertionPoint(x, xArray, start, mid, hardEnd);
         }
     }
 
@@ -270,9 +282,9 @@ class NotSamXYSortedArrayList {
         }
 
         let xArrayObj = this.yAxis[yIndex];
-        let xArray = xArray["array"];
+        let xArray = xArrayObj["array"];
 
-        let xIndex = this.findXIndex(x, xArray, 0, xArrayObj["length"]);
+        let xIndex = this.findXIndex(x, xArray, 0, xArrayObj["length"]-1);
         // If x is not found
         if (xIndex === -1){
             let insertionIndex = this.findXInsertionPoint(x, xArray, 0, xArrayObj["length"], xArrayObj["length"]);
@@ -298,7 +310,7 @@ class NotSamXYSortedArrayList {
 
         let xArrayObj = this.yAxis[yIndex];
         let xArray = xArrayObj["array"];
-        let xIndex = this.findXIndex(x, xArray, 0, xArrayObj["length"]);
+        let xIndex = this.findXIndex(x, xArray, 0, xArrayObj["length"]-1);
         // If x index is not found
         if (xIndex === -1){
             return null;
@@ -306,6 +318,10 @@ class NotSamXYSortedArrayList {
 
         // Return found value
         return xArray[xIndex]["value"];
+    }
+
+    grabYAxis(){
+        return this.yAxis;
     }
 
     has(x, y){

@@ -664,20 +664,22 @@ function planeModelToType(model){
     Method Parameters:
         array:
             An array to copy
+        limit:
+            Index limit for copying
     Method Description: Creates a copy of an array
     Method Return: void
 */
-function copyArray(array){
+function copyArray(array, limit=array.length){
     let newArray = [];
-    for (let i = 0; i < array.length; i++){
+    for (let i = 0; i < Math.min(array.length, limit); i++){
         newArray.push(array[i]);
     }
     return newArray;
 }
 
-function copyArrayOfJSONObjects(array){
+function copyArrayOfJSONObjects(array, limit=array.length){
     let newArray = [];
-    for (let i = 0; i < array.length; i++){
+    for (let i = 0; i < Math.min(array.length, limit); i++){
         newArray.push(copyObject(array[i]));
     }
     return newArray;

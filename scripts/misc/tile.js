@@ -115,9 +115,9 @@ class PhysicalTile extends Tile {
 
     hasAttribute(attribute){
         for (let physicalTile of RETRO_GAME_DATA["physical_tiles"]){
-            if (physicalTile["name"] == this.getMaterialName()){
+            if (physicalTile["name"] === this.getMaterialName()){
                 for (let foundAttribute of physicalTile["attributes"]){
-                    if (foundAttribute == attribute){
+                    if (foundAttribute === attribute){
                         return true;
                     }
                 }

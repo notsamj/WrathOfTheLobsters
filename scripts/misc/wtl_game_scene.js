@@ -78,6 +78,10 @@ class WTLGameScene {
 
         let tileX = WTLGameScene.getTileXAt(x);
         let tileY = WTLGameScene.getTileYAt(y);
+
+        let currentChunkX = Chunk.tileToChunkCoordinate(tileX);
+        let currentChunkY = Chunk.tileToChunkCoordinate(tileY);
+        let currentChunk = this.chunks.get(chunkX, chunkY);
         let tileEntrySide;
 
         // Come up with initial values (incase shooting from inside a physical tile)
@@ -97,22 +101,34 @@ class WTLGameScene {
         if (isRDebugging()){
             debugger;
         }
+        // Loop through the path
         while (lessThanEQDir(tileX, endTileX, xDirection) && lessThanEQDir(tileY, endTileY, yDirection) && lessThanEQDir(x, chunkXEnd, xDirection) && lessThanEQDir(y, chunkYEnd, yDirection)){
-            if (this.hasPhysicalTileCoveringLocation(tileX, tileY)){
-                let tile = this.getPhysicalTileCoveringLocation(tileX, tileY);
+            // Update physical tile position
+            let chunkX = Chunk.tileToChunkCoordinate(tileX);
+            let chunkY = Chunk.tileToChunkCoordinate(tileY);
+            let sameChunk = currentChunkX === chunkX && currentChunkY === chunkY;
+
+            // Same chunk saves a tiny bit of processing
+            if (!sameChunk){
+                currentChunk = this.chunks.get(chunkX, chunkY);
+            }
+            let tile = currentChunk.getPhysicalTileCoveringLocation(tileX, tileY);
+
+            let physicalTileIsPresent = tile != null;
+            if (physicalTileIsPresent){
                 if (tile.hasAttribute("solid")){
                     let hitX;
                     let hitY;
-                    if (tileEntrySide == "left"){
+                    if (tileEntrySide === "left"){
                         hitX = tileX * RETRO_GAME_DATA["general"]["tile_size"];
                         hitY = startY + Math.abs(safeDivide((hitX - startX), Math.cos(angleRAD), 1e-7, 0)) * Math.sin(angleRAD);
-                    }else if (tileEntrySide == "right"){
+                    }else if (tileEntrySide === "right"){
                         hitX = (tileX+1) * RETRO_GAME_DATA["general"]["tile_size"];
                         hitY = startY + Math.abs(safeDivide((hitX - startX), Math.cos(angleRAD), 1e-7, 0)) * Math.sin(angleRAD);
-                    }else if (tileEntrySide == "top"){
+                    }else if (tileEntrySide === "top"){
                         hitY = this.getYOfTile(tileY); // Note: This is because tile y is the bottom left, the display is weird, sorry
                         hitX = startX + Math.abs(safeDivide((hitY - startY), Math.sin(angleRAD), 1e-7, 0)) * Math.cos(angleRAD);
-                    }else{ // tileEntrySide == "bottom"
+                    }else{ // tileEntrySide === "bottom"
                         hitY = this.getYOfTile(tileY) - RETRO_GAME_DATA["general"]["tile_size"];
                         hitX = startX + Math.abs(safeDivide((hitY - startY), Math.sin(angleRAD), 1e-7, 0)) * Math.cos(angleRAD);
                     }
@@ -317,7 +333,6 @@ class WTLGameScene {
 
             // Explore tiles around current location
             let pairs = [[currentTile["x"], currentTile["y"]+1], [currentTile["x"], currentTile["y"]-1], [currentTile["x"]+1, currentTile["y"]], [currentTile["x"]-1, currentTile["y"]]];
-            //console.log("pairs", copyArray(pairs))
             for (let pair of pairs){
                 let tileX = pair[0];
                 let tileY = pair[1];
@@ -338,7 +353,6 @@ class WTLGameScene {
                 // Found a new tile
                 if (!alreadyExists){
                     tilesLeftToCheck = true;
-                    //console.log("pushing", tileX, tileY)
                     tilesToCheck.push({
                         "checked": false,
                         "x": tileX,
@@ -429,8 +443,9 @@ class WTLGameScene {
     }
 
     tileAtLocationHasAttribute(tileX, tileY, attribute){
-        if (!this.hasPhysicalTileCoveringLocation(tileX, tileY)){ return false; }
         let tileAtLocation = this.getPhysicalTileCoveringLocation(tileX, tileY);
+        let tileDoesNotExist = tileAtLocation === null;
+        if (tileDoesNotExist){ return false; }
         return tileAtLocation.hasAttribute(attribute);
     }
 
@@ -700,6 +715,10 @@ class WTLGameScene {
         let chunkX = Chunk.tileToChunkCoordinate(tileX);
         let chunkY = Chunk.tileToChunkCoordinate(tileY);
         return this.chunks.get(chunkX, chunkY);
+    }
+
+    getChunks(){
+        return this.chunks;
     }
 
     // Note: This is only tiles naturally at location not just covering

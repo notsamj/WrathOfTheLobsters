@@ -3,6 +3,59 @@ if (typeof window === "undefined"){
     RETRO_GAME_DATA = require("../../data/data_json.js");
 }
 
+function binarySearch(value, array, comparisonFunction, start=0, end=array.length-1){
+    // If empty return -1
+    if (end < 0 || start > end){ return -1; }
+    let mid = Math.floor((start + end)/2);
+    let comparisonResult = comparisonFunction(value, array[mid]);
+
+    // If we found the value
+    if (comparisonResult == 0){
+        return mid;
+    }
+    // If region too small
+    else if (end === start){
+        return -1;
+    }
+    // End point is in the second half of the array
+    else if (comparisonResult > 0){
+        return binarySearch(value, array, mid+1, end);
+    }
+    // End point is in the first half of the array
+    else{
+        return binarySearch(value, array, start, mid-1);
+    }
+}
+
+function findInsertionPoint(value, array, comparisonFunction, start=0, end=array.length, hardEnd=array.length){
+    // Handle empty case
+    if (end === 0){ return 0; }
+
+    // If the value belongs at the back
+    if (end === hardEnd && end > 0 && comparisonFunction(value, array[end-1]) > 0){
+        return end;
+    }
+
+    let mid = Math.floor((start + end)/2);
+    let comparisonResult = comparisonFunction(value, array[mid]);
+
+    let midMinusOneIsLess = (mid -1 < 0 || comparisonFunction(value, array[mid-1]) > 0);
+    let midIsEqualOrMore = comparisonResult <= 0;
+    
+    // If we found a valid spot
+    if (midMinusOneIsLess && midIsEqualOrMore){
+        return mid;
+    }
+    // End point is in the second half of the array
+    else if (comparisonResult > 0){
+        return findInsertionPoint(value, array, mid, end, hardEnd);
+    }
+    // End point is in the first half of the array
+    else{
+        return findInsertionPoint(value, array, start, mid, hardEnd);
+    }
+}
+
 function calculateRangeOverlapProportion(coveringRangeLow, coveringRangeHigh, coveredRangeLow, coveredRangeHigh){
     // Check for one source of error
     if (coveredRangeHigh === coveredRangeLow){

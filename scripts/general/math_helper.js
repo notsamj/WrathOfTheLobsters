@@ -12,3 +12,7 @@ function biasedIndexSelection(xStart, xEnd, f, n, random){
     let chosenIndex = Math.floor(n * (1 - progressionInY));
     return chosenIndex;
 }
+
+function calculateManhattanDistance(x1, y1, x2, y2){
+    return Math.abs(x1 - x2) + Math.abs(x2 - y2);
+}

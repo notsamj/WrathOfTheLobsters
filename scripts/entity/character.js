@@ -123,8 +123,8 @@ class Character extends Entity {
 
 
         let tryToAddTile = (tileX, tileY, pathToTile, startToEnd=true) => {
-            if (!tileCanBeWalkedOn(tileX, tileY)){ return; }
             if (tileAlreadyChecked(tileX, tileY, startToEnd)){ return; }
+            if (!tileCanBeWalkedOn(tileX, tileY)){ return; }
             let tileIndex = getTileIndex(tileX, tileY);
             let newPath;
             if (startToEnd){

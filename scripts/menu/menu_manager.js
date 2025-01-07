@@ -177,7 +177,7 @@ class MenuManager {
             if (TICK_SCHEDULER.isPaused()){
                 TICK_SCHEDULER.unpause();
             }
-            enableCursor = false;
+            enableCursor = true; // TEMP NORMALLY FALSE
             this.activeMenu = null;
         }else if (newMenu == "game_maker"){
             this.activeMenu = this.gameMakerMenu;
@@ -186,7 +186,7 @@ class MenuManager {
         }else if (newMenu == "extraSettings"){
             this.activeMenu = this.extraSettingsMenu;
         }else{
-            enableCursor = false;
+            enableCursor = true; // TEMP NORMALLY FALSE
             this.activeMenu = null;
         }
         document.getElementById("canvas").style.cursor = (enableCursor ? "" : "none");

@@ -81,7 +81,7 @@ class WTLGameScene {
 
         let currentChunkX = Chunk.tileToChunkCoordinate(tileX);
         let currentChunkY = Chunk.tileToChunkCoordinate(tileY);
-        let currentChunk = this.chunks.get(chunkX, chunkY);
+        let currentChunk = this.chunks.get(currentChunkX, currentChunkY);
         let tileEntrySide;
 
         // Come up with initial values (incase shooting from inside a physical tile)

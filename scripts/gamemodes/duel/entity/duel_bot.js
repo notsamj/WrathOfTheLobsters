@@ -974,8 +974,7 @@ class DuelBot extends DuelCharacter {
             let targetPositionX = scene.getCenterXOfTile(tileX);
             let targetPositionY = scene.getCenterYOfTile(tileY);
             let targets = [{"center_x": targetPositionX, "center_y": targetPositionY, "width": RETRO_GAME_DATA["general"]["tile_size"], "height": RETRO_GAME_DATA["general"]["tile_size"], "entity": null}];
-            return false;
-            //return this.getScene().findInstantCollisionForProjectileWithTargets(enemyCenterXAtTile, enemyCenterYAtTile, displacementToRadians(tileX-enemyTileX, tileY-enemyTileY), enemyVisibilityDistance, targets)["collision_type"] === "physical_tile";
+            return this.getScene().findInstantCollisionForProjectileWithTargets(enemyCenterXAtTile, enemyCenterYAtTile, displacementToRadians(tileX-enemyTileX, tileY-enemyTileY), enemyVisibilityDistance, targets)["collision_type"] === "physical_tile";
         }
 
         // Score each tile
@@ -1008,14 +1007,13 @@ class DuelBot extends DuelCharacter {
             }
 
             // Single cover outside of enemy visibility
-            // TODO: Take into account calculateShortestRouteDistanceToTileWithCondition can return null
-            //let shorestDistanceToSingleCover = this.calculateShortestRouteDistanceToTileWithCondition(tileX, tileY, singleCoverFunction, distanceToSearchForMultiCover);
-            let shorestDistanceToSingleCover = 0;
-            //let shorestDistanceToMultiCover = this.calculateShortestRouteDistanceToTileWithCondition(tileX, tileY, multiCoverFunction, distanceToSearchForSingleCover);
-            let shorestDistanceToMultiCover = 0;
+            let shortestDistanceToSingleCover = this.calculateShortestRouteDistanceToTileWithCondition(tileX, tileY, singleCoverFunction, distanceToSearchForSingleCover);
+            if (shortestDistanceToSingleCover === null){ shortestDistanceToSingleCover = distanceToSearchForSingleCover; }
+            let shortestDistanceToMultiCover = this.calculateShortestRouteDistanceToTileWithCondition(tileX, tileY, multiCoverFunction, distanceToSearchForMultiCover);
+            if (shortestDistanceToMultiCover === null){ shortestDistanceToMultiCover = distanceToSearchForMultiCover; }
             // Physical cover distance
-            //let shorestDistanceToPhyiscalCover = this.calculateShortestRouteDistanceToTileWithCondition(tileX, tileY, physicalCoverFunction, distanceToSearchForPhysicalCover);
-            let shorestDistanceToPhyiscalCover = 0;
+            let shortestDistanceToPhyiscalCover = this.calculateShortestRouteDistanceToTileWithCondition(tileX, tileY, physicalCoverFunction, distanceToSearchForPhysicalCover);
+            if (shortestDistanceToPhyiscalCover === null){ shortestDistanceToPhyiscalCover = distanceToSearchForPhysicalCover; }
             let score = 0;
 
             // Add linear combination
@@ -1025,9 +1023,9 @@ class DuelBot extends DuelCharacter {
             score += realDistanceFromEnemy * fromEnemyMult;
             score += canHitEnemyValue * canHitMult;
             score += angleRangeToHitEnemy * angleRangeMult;
-            score += shorestDistanceToSingleCover * nearestSingleCoverMult;
-            score += shorestDistanceToMultiCover * nearestMultiCoverMult;
-            score += shorestDistanceToPhyiscalCover * nearestPhysicalCoverMult;
+            score += shortestDistanceToSingleCover * nearestSingleCoverMult;
+            score += shortestDistanceToMultiCover * nearestMultiCoverMult;
+            score += shortestDistanceToPhyiscalCover * nearestPhysicalCoverMult;
 
             // Add the score
             tile["score"] = score;
@@ -1058,11 +1056,16 @@ class DuelBot extends DuelCharacter {
     }
 
     calculateShortestRouteDistanceToTileWithCondition(startTileX, startTileY, conditionFunction, maxRouteLength){
+        if (maxRouteLength === undefined){
+            debugger;
+            throw new Error("Please supply a valid max route length.");
+        }
+
         let scene = this.getScene();
         let chunks = scene.getChunks();
 
-        let startingChunkX = Chunk.tileToChunkCoordinate(tileX);
-        let startingChunkY = Chunk.tileToChunkCoordinate(tileY);
+        let startingChunkX = Chunk.tileToChunkCoordinate(startTileX);
+        let startingChunkY = Chunk.tileToChunkCoordinate(startTileY);
         let startingChunk = chunks.get(startingChunkX, startingChunkY);
 
         let CHUNK_SIZE = RETRO_GAME_DATA["general"]["chunk_size"];
@@ -1079,6 +1082,7 @@ class DuelBot extends DuelCharacter {
         let chunksToCheck = [startingChunk];
         let pathsWithAttribute = [];
         let pathsFromStart = [{"tile_x": startTileX, "tile_y": startTileY, "path": [], "from_start": true, "checked": false}];
+        let discardedTiles = new NotSamXYSortedArrayList();
 
         let hasMoreChunksToCheck = true;
         let distanceToNextChunkSet = 1;
@@ -1121,24 +1125,28 @@ class DuelBot extends DuelCharacter {
             // Remove checked tiles from both lists
 
             for (let i = pathsFromStart.length - 1; i >= 0; i--){
-                if (pathsFromStart[i]["checked"]){
-                    pathsFromStart[pathsFromStart.length - 1] = pathsFromStart[i];
+                let pathFromStart = pathsFromStart[i];
+                if (pathFromStart["checked"]){
+                    // Add an unimportant value to indicate that this tile has been discarded
+                    discardedTiles.set(pathsFromStart[i]["tile_x"], pathsFromStart[i]["tile_y"], null);
+
+                    pathsFromStart[i] = pathsFromStart[pathsWithAttribute.length - 1];
                     pathsFromStart.pop();
                 }
             }
             for (let i = pathsWithAttribute.length - 1; i >= 0; i--){
                 let pathWithAttribute = pathsWithAttribute[i];
                 if (pathWithAttribute["checked"]){
-                    pathsWithAttribute[pathsWithAttribute.length - 1] = pathsWithAttribute[i];
+                    // Add an unimportant value to indicate that this tile has been discarded
+                    discardedTiles.set(pathsWithAttribute[i]["tile_x"], pathsWithAttribute[i]["tile_y"], null);
+
+                    pathsWithAttribute[i] = pathsWithAttribute[pathsWithAttribute.length - 1];
                     pathsWithAttribute.pop();
                 }
             }
-            return bestM;
         }
 
-        let selectBestPath = () => {
-            // Just don't bother if they are 
-
+        let selectBestPath = (bestPossibleLengthSoFar) => {
             /*
                 Strategy:
                     Find path with attribute closest to the start name it pEnd
@@ -1150,35 +1158,40 @@ class DuelBot extends DuelCharacter {
             */
             let pEnd = null;
             let pStart = null;
+            let bestM = null;
+            let bestMinTraversal = null;
 
-            /*for (let path of pathsWithAttribute){
-                let tileX = path["tile_x"];
-                let tileY = path["tile_y"];
-                // TODO: Add something here to the distance where you calculate the flaw in its own path
-                // TODO: Start here next line
-                // SO like mathhattendistancetoend = MathhattanDistance() + myPathLength - myManhattenDistanceToStart() but make sure myPathLength is the proper number such that if it were no falw it would equal myManHattanDistanceToStart() 
-                let distance = calculateManhattanDistance(tileX, tileY, startTileX, startTileY) + path["path"].length + 1;
-                if (pEnd === null || pEnd["manhattan_distance"] > distance){
-                    pEnd = {
-                        "tile_x": tileX,
-                        "tile_y": tileY,
-                        "manhattan_distance": distance
+            let foundBestPossibleDistance = false;
+
+            // Find the two tiles that could connect and form the shortest possible path
+            for (let endPath of pathsWithAttribute){
+                let endPathLength = endPath["path"].length;
+                let endPathTileX = endPath["tile_x"];
+                let endPathTileY = endPath["tile_y"];
+                for (let startPath of pathsFromStart){
+                    let startPathTileX = startPath["tile_x"];
+                    let startPathTileY = startPath["tile_y"];
+                    let startPathLength = startPath["path"].length;
+                    let minTraversal = calculateManhattanDistance(startPathTileX, startPathTileY, endPathTileX, endPathTileY);
+                    let startToEndDistance = startPathLength + endPathLength + 1 + minTraversal;
+                    if (bestM === null || startToEndDistance < bestM){
+                        pEnd = endPath;
+                        pStart = startPath;
+                        bestM = startToEndDistance;
+                        bestMinTraversal = minTraversal;
                     }
+
+                    // If this is the best possible length then no need to search further
+                    foundBestPossibleDistance = bestPossibleLengthSoFar != null && startToEndDistance === bestPossibleLengthSoFar;
+                    if (foundBestPossibleDistance){
+                        break;
+                    }
+                }
+                // If this is the best possible length then no need to search further
+                if (foundBestPossibleDistance){
+                    break;
                 }
             }
-
-            for (let path of pathsFromStart){
-                let tileX = path["tile_x"];
-                let tileY = path["tile_y"];
-                let distance = calculateManhattanDistance(tileX, tileY, pEnd["tile_x"], pEnd["tile_y"]);
-                if (pStart === null || pStart["manhattan_distance"] > distance){
-                    pStart = {
-                        "tile_x": tileX,
-                        "tile_y": tileY,
-                        "manhattan_distance": distance
-                    }
-                }
-            }*/
 
             let bestPath;
             if (pStart["manhattan_distance"] <= pEnd["manhattan_distance"]){
@@ -1189,27 +1202,73 @@ class DuelBot extends DuelCharacter {
 
             // Mark as checked
             bestPath["checked"] = true;
-
-            // The best possible manhattan distance should be the distance from pStart to pEnd
-            let bestM = pStart["manhattan_distance"];
             
-            let bestPathData = {"path": bestPath, "best_m": bestM};
+            let bestPathData = {"path": bestPath, "best_m": bestM, "best_min_traversal": bestMinTraversal};
             return bestPathData;
         }
 
+        let inUncheckedTiles = (tileX, tileY) => {
+            for (let tile of pathsFromStart){
+                if (tile["tile_x"] === tileX && tile["tile_y"] === tileY){
+                    return true;
+                }
+            }
+
+            for (let tile of pathsWithAttribute){
+                if (tile["tile_x"] === tileX && tile["tile_y"] === tileY){
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        let exploreTiles = (bestPath) => {
+            let bPTileX = bestPath["tile_x"];
+            let bPTileY = bestPath["tile_y"];
+            let options = [[bPTileX+1,bPTileY], [bPTileX-1, bPTileY], [bPTileX, bPTileY+1], [bPTileX, bPTileY-1]];
+
+            for (let option of options){
+                let optionTileX = option[0];
+                let optionTileY = option[1];
+                // Check if discarded
+                if (discardedTiles.has(optionTileX, optionTileY)){ continue; }
+
+                // In-unchecked tiles
+                if (inUncheckedTiles(optionTileX, optionTileY)){ continue; }
+
+                // Check if walkable
+                if (this.getScene().tileAtLocationHasAttribute(optionTileX, optionTileY, "no_walk")){ continue; }
+
+                // It's valid
+
+                let newPath = appendLists(bestPath["path"], [{"tile_x": bPTileX, "tile_y": bPTileY}]);
+
+                if (bestPath["from_start"]){
+                    pathsFromStart.push({"tile_x": optionTileX, "tile_y": optionTileY, "path": newPath, "from_start": true, "checked": false});
+                }else{
+                    if (pathsWithAttribute.length > 50){
+                        debugger;
+                    }
+                    pathsWithAttribute.push({"tile_x": optionTileX, "tile_y": optionTileY, "path": newPath, "from_start": false, "checked": false, "origin_tile_x": bestPath["origin_tile_x"], "origin_tile_y": bestPath["origin_tile_y"]});
+                }
+            }
+        }
+
         // Loop through chunks looking for tiles with this attribute until they get too far away
+        let infCount = 0;
         while (hasMoreChunksToCheck){
             // Add a ring of chunks around the original chunk at a specified distance
             addMoreChunks();
             // Increase distance for next ring
             distanceToNextChunkSet += 1;
+            if (infCount++ > 5000){ debugger; }
 
             // Loop through all chunks to check
             for (let i = 0; i < chunksToCheck.length; i++){
-                let tilesInChunk = chunksToCheck.getPhysicalTiles();
+                let chunkToCheck = chunksToCheck[i];
+                let tilesInChunk = chunkToCheck.getPhysicalTiles();
                 // Look at all tiles in 
                 for (let [tile, tileX, tileY] of tilesInChunk){
-                    let routeDistanceWithinRange = 
                     // Note: Assumes tile is walkable as well...
                     if (conditionFunction(tile)){
                         pathsWithAttribute.push({"tile_x": tileX, "tile_y": tileY, "from_start": false, "origin_tile_x": tileX, "origin_tile_y": tileY, "path": [], "checked": false});
@@ -1217,11 +1276,18 @@ class DuelBot extends DuelCharacter {
                 }
             }
 
+            // Reset chunks to check
+            chunksToCheck = [];
+
             // Create paths until it seems that more chunks are needed
             let considerCurrentChunksSufficient = true;
             let newChunkMinDistanceX = (distanceToNextChunkSet - 1) * CHUNK_SIZE + xDistanceToChunkSide;
             let newChunkMinDistanceY = (distanceToNextChunkSet - 1) * CHUNK_SIZE + yDistanceToChunkSide;
             let bestPossibleMDistanceWithNewChunks = newChunkMinDistanceX + newChunkMinDistanceY;
+
+            // Captures the best possible length so far to reduce effort
+            let bestPossibleLengthSoFar = null;
+
             while (considerCurrentChunksSufficient){
                 // Remove checked paths
                 prunePaths();
@@ -1234,22 +1300,21 @@ class DuelBot extends DuelCharacter {
                 }
                 // Else, if there are no paths from attribute tiles then
                 else if (pathsWithAttribute.length > 0){
-                    let bestPathData = selectBestPath();
-                    let bestPath = bestPathData["path"];
+                    let bestPathData = selectBestPath(bestPossibleLengthSoFar);
 
                     // Update best m
                     bestPossibleMDistanceWithCurrentChunks = bestPathData["best_m"];
-                    
-                    // Explore
-                    
-                    // If we have a start path and an end path adjacent
-                    if (bestPossibleMDistanceWithNewChunks === 1){
-                        return 
-                    }
-                    // Else just regular exploration
-                    else{
+                    // Update the best possible length with this set of chunks
+                    bestPossibleLengthSoFar = bestPossibleMDistanceWithCurrentChunks;
 
+                    // If the two paths met then distance is found. Note: With current design, the first full path is always the best possible path
+                    if (bestPathData["best_min_traversal"] === 1){
+                        return bestPossibleMDistanceWithCurrentChunks;
                     }
+                    let bestPath = bestPathData["path"];
+
+                    // Explore
+                    exploreTiles(bestPath);
                 }
 
                 // If we can only get a better possible path by adding more chunks then do it

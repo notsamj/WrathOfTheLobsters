@@ -302,6 +302,12 @@ class NotSamXYSortedArrayList {
     }
 
     get(x, y){
+        let node = this.getNode(x, y);
+        if (node === null){ return null; }
+        return node["value"];
+    }
+
+    getNode(x, y){
         let yIndex = this.findYIndex(y);
         // If y index is not found
         if (yIndex === -1){
@@ -317,7 +323,7 @@ class NotSamXYSortedArrayList {
         }
 
         // Return found value
-        return xArray[xIndex]["value"];
+        return xArray[xIndex];
     }
 
     grabYAxis(){
@@ -325,7 +331,7 @@ class NotSamXYSortedArrayList {
     }
 
     has(x, y){
-        return this.get(x,y) != null;
+        return this.getNode(x,y) != null;
     }
 
     isEmpty(){ return this.getYLength() == 0; }

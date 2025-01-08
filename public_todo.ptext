@@ -1,4 +1,8 @@
 Right now:
+	Optimize notSamLinkedList
+	Implement in currently worked on function
+
+
 	Make hiding cursor an option in settings
 	Make all pathfinding functions more efficient especially with lookups
 		Also lots of binary search

@@ -425,6 +425,7 @@ class DuelBot extends DuelCharacter {
             }
         }
 
+        debugger;
         throw new Error("DuelBot failed to find enemy.");
     }
 
@@ -935,7 +936,7 @@ class DuelBot extends DuelCharacter {
 
     determineTileToStandAndShootFrom(enemyTileX, enemyTileY, gun){
         let pathLength = this.getMaxSearchPathLength();
-        let allTiles = this.exploreAvailableTiles(pathLength);
+        //let allTiles = this.exploreAvailableTiles(pathLength);
 
         let distanceToSearchForMultiCover = RETRO_GAME_DATA["duel"]["ai"]["shoot_tile_selection"]["multi_cover_search_route_distance"];
         let distanceToSearchForSingleCover = RETRO_GAME_DATA["duel"]["ai"]["shoot_tile_selection"]["single_cover_search_route_distance"];
@@ -1080,10 +1081,11 @@ class DuelBot extends DuelCharacter {
         // Start by finding all the tiles with attribute in nearby chunks
 
         let chunksToCheck = [startingChunk];
-        let pathsWithAttribute = [];
-        let pathsFromStart = [{"tile_x": startTileX, "tile_y": startTileY, "path": [], "from_start": true, "checked": false}];
-        let discardedTiles = new NotSamXYSortedArrayList();
-
+        let knownPathsFromStart = new NotSamXYSortedArrayList();
+        let knownPathsFromEnd = new NotSamXYSortedArrayList();
+        let pathsWithAttribute = new NotSamLinkedList();
+        let pathsFromStart = new NotSamLinkedList([{"tile_x": startTileX, "tile_y": startTileY, "from_start": true}]);
+        knownPathsFromStart.set(startTileX, startTileY, {"previous_tile_x": null, "previous_tile_y": null, "path_length": 0});
         let hasMoreChunksToCheck = true;
         let distanceToNextChunkSet = 1;
 
@@ -1121,31 +1123,6 @@ class DuelBot extends DuelCharacter {
             }
         }
 
-        let prunePaths = () => {
-            // Remove checked tiles from both lists
-
-            for (let i = pathsFromStart.length - 1; i >= 0; i--){
-                let pathFromStart = pathsFromStart[i];
-                if (pathFromStart["checked"]){
-                    // Add an unimportant value to indicate that this tile has been discarded
-                    discardedTiles.set(pathsFromStart[i]["tile_x"], pathsFromStart[i]["tile_y"], null);
-
-                    pathsFromStart[i] = pathsFromStart[pathsWithAttribute.length - 1];
-                    pathsFromStart.pop();
-                }
-            }
-            for (let i = pathsWithAttribute.length - 1; i >= 0; i--){
-                let pathWithAttribute = pathsWithAttribute[i];
-                if (pathWithAttribute["checked"]){
-                    // Add an unimportant value to indicate that this tile has been discarded
-                    discardedTiles.set(pathsWithAttribute[i]["tile_x"], pathsWithAttribute[i]["tile_y"], null);
-
-                    pathsWithAttribute[i] = pathsWithAttribute[pathsWithAttribute.length - 1];
-                    pathsWithAttribute.pop();
-                }
-            }
-        }
-
         let selectBestPath = (bestPossibleLengthSoFar) => {
             /*
                 Strategy:
@@ -1160,25 +1137,31 @@ class DuelBot extends DuelCharacter {
             let pStart = null;
             let bestM = null;
             let bestMinTraversal = null;
+            let pStartIndex = null;
+            let pEndIndex = null;
 
             let foundBestPossibleDistance = false;
 
             // Find the two tiles that could connect and form the shortest possible path
-            for (let endPath of pathsWithAttribute){
-                let endPathLength = endPath["path"].length;
+            for (let i = pathsWithAttribute.getLength() - 1; i >= 0; i--){
+                let endPath = pathsWithAttribute.get(i);
                 let endPathTileX = endPath["tile_x"];
                 let endPathTileY = endPath["tile_y"];
-                for (let startPath of pathsFromStart){
+                let endPathLength = knownPathsFromEnd.get(endPathTileX, endPathTileY)["path_length"];
+                for (let j = pathsFromStart.getLength() - 1; j >= 0; j--){
+                    let startPath = pathsFromStart.get(j);
                     let startPathTileX = startPath["tile_x"];
                     let startPathTileY = startPath["tile_y"];
-                    let startPathLength = startPath["path"].length;
+                    let startPathLength = knownPathsFromStart.get(startPathTileX, startPathTileY)["path_length"];
                     let minTraversal = calculateManhattanDistance(startPathTileX, startPathTileY, endPathTileX, endPathTileY);
-                    let startToEndDistance = startPathLength + endPathLength + 1 + minTraversal;
+                    let startToEndDistance = startPathLength + endPathLength + minTraversal + 1; // the +1 is because both path lengths do not include the start tile and the end tile should be included in the total length
                     if (bestM === null || startToEndDistance < bestM){
                         pEnd = endPath;
                         pStart = startPath;
                         bestM = startToEndDistance;
                         bestMinTraversal = minTraversal;
+                        pEndIndex = i;
+                        pStartIndex = j;
                     }
 
                     // If this is the best possible length then no need to search further
@@ -1194,14 +1177,14 @@ class DuelBot extends DuelCharacter {
             }
 
             let bestPath;
-            if (pStart["manhattan_distance"] <= pEnd["manhattan_distance"]){
+            // If distance from start of path to current point is lower on the path from the "startTile" then select it
+            if (calculateManhattanDistance(pStart["tile_x"], pStart["tile_y"], startTileX, startTileY) <= calculateManhattanDistance(pEnd["tile_x"], pEnd["tile_y"], pEnd["origin_tile_x"], pEnd["origin_tile_y"])){
                 bestPath = pStart;
+                pathsFromStart.pop(pStartIndex);
             }else{
                 bestPath = pEnd;
+                pathsWithAttribute.pop(pEndIndex);
             }
-
-            // Mark as checked
-            bestPath["checked"] = true;
             
             let bestPathData = {"path": bestPath, "best_m": bestM, "best_min_traversal": bestMinTraversal};
             return bestPathData;
@@ -1222,34 +1205,75 @@ class DuelBot extends DuelCharacter {
             return false;
         }
 
+        let updateKnownPathIfBetter = (knownPathsList, previousTileX, previousTileY, newPathLength) => {
+            let adjacentTiles = [[adjacentTileX+1,adjacentTileY], [adjacentTileX-1, adjacentTileY], [adjacentTileX, adjacentTileY+1], [adjacentTileX, adjacentTileY-1]];
+            let previousTileInfo = knownPathsList.get(previousTileX, previousTileY);
+            let exists = previousTileInfo != null;
+            // If this doesn't exist then do nothing and return false
+            if (!exists){
+                return false;
+            }
+
+            let oldPathLength = previousTileInfo["path_length"];
+
+            // If old path length was longer then replace it
+            if (oldPathLength > newPathLength){
+                // Update path length
+                previousTileInfo["path_length"] = newPathLength;
+
+                // Update previous tile
+                previousTileInfo["previous_tile_x"] = previousTileX;
+                previousTileInfo["previous_tile_y"] = previousTileY;
+
+                // Alert all paths that may be based on this one
+                for (adjacentTile of adjacentTiles){
+                    let adjacentTileX = adjacentTile[0];
+                    let adjacentTileY = adjacentTile[1];
+                    updateKnownPathIfBetter(knownPathsList, adjacentTileX, adjacentTileY, newPathLength + 1);
+                }
+            }
+            return true;
+        }
+
         let exploreTiles = (bestPath) => {
             let bPTileX = bestPath["tile_x"];
             let bPTileY = bestPath["tile_y"];
-            let options = [[bPTileX+1,bPTileY], [bPTileX-1, bPTileY], [bPTileX, bPTileY+1], [bPTileX, bPTileY-1]];
+            let adjacentTiles = [[bPTileX+1,bPTileY], [bPTileX-1, bPTileY], [bPTileX, bPTileY+1], [bPTileX, bPTileY-1]];
 
-            for (let option of options){
-                let optionTileX = option[0];
-                let optionTileY = option[1];
-                // Check if discarded
-                if (discardedTiles.has(optionTileX, optionTileY)){ continue; }
-
-                // In-unchecked tiles
-                if (inUncheckedTiles(optionTileX, optionTileY)){ continue; }
-
+            for (let adjacentTile of adjacentTiles){
+                let adjacentTileX = adjacentTile[0];
+                let adjacentTileY = adjacentTile[1];
                 // Check if walkable
-                if (this.getScene().tileAtLocationHasAttribute(optionTileX, optionTileY, "no_walk")){ continue; }
+                if (this.getScene().tileAtLocationHasAttribute(adjacentTileX, adjacentTileY, "no_walk")){ continue; }
 
                 // It's valid
 
-                let newPath = appendLists(bestPath["path"], [{"tile_x": bPTileX, "tile_y": bPTileY}]);
+                let knownPathsList;
+                let activePathsList;
+                let tileInfo;
 
+                // Determine which is applicable
                 if (bestPath["from_start"]){
-                    pathsFromStart.push({"tile_x": optionTileX, "tile_y": optionTileY, "path": newPath, "from_start": true, "checked": false});
+                    knownPathsList = knownPathsFromStart;
+                    activePathsList = pathsFromStart;
+                    tileInfo = {"tile_x": adjacentTileX, "tile_y": adjacentTileY, "from_start": true};
                 }else{
-                    if (pathsWithAttribute.length > 50){
-                        debugger;
-                    }
-                    pathsWithAttribute.push({"tile_x": optionTileX, "tile_y": optionTileY, "path": newPath, "from_start": false, "checked": false, "origin_tile_x": bestPath["origin_tile_x"], "origin_tile_y": bestPath["origin_tile_y"]});
+                    knownPathsList = knownPathsFromEnd;
+                    activePathsList = pathsWithAttribute;
+                    tileInfo = {"tile_x": adjacentTileX, "tile_y": adjacentTileY, "from_start": false, "origin_tile_x": bestPath["origin_tile_x"], "origin_tile_y": bestPath["origin_tile_y"]};
+                }
+
+                let newPathLength = knownPathsList.get(bPTileX, bPTileY)["path_length"] + 1;
+
+                // This is known then update
+                let known = updateKnownPathIfBetter(knownPathsList, adjacentTileX, adjacentTileY, newPathLength);
+
+                // If it wasn't known then add
+                if (!known){
+                    // Add it to known paths
+                    knownPathsList.set(adjacentTileX, adjacentTileY, {"previous_tile_x": bPTileX, "previous_tile_y": bPTileY, "path_length": newPathLength});
+                    // Add to active path list
+                    activePathsList.push(tileInfo);
                 }
             }
         }
@@ -1271,7 +1295,8 @@ class DuelBot extends DuelCharacter {
                 for (let [tile, tileX, tileY] of tilesInChunk){
                     // Note: Assumes tile is walkable as well...
                     if (conditionFunction(tile)){
-                        pathsWithAttribute.push({"tile_x": tileX, "tile_y": tileY, "from_start": false, "origin_tile_x": tileX, "origin_tile_y": tileY, "path": [], "checked": false});
+                        pathsWithAttribute.push({"tile_x": tileX, "tile_y": tileY, "from_start": false, "origin_tile_x": tileX, "origin_tile_y": tileY});
+                        knownPathsFromEnd.set(tileX, tileY, {"previous_tile_x": null, "previous_tile_y": null, "path_length": 0});
                     }
                 }
             }
@@ -1289,17 +1314,14 @@ class DuelBot extends DuelCharacter {
             let bestPossibleLengthSoFar = null;
 
             while (considerCurrentChunksSufficient){
-                // Remove checked paths
-                prunePaths();
-
                 // Assume this is the biggest number possible as a safety vlaue
                 let bestPossibleMDistanceWithCurrentChunks = Number.MAX_SAFE_INTEGER;
                 // If I can find no path from start then just quit
-                if (pathsFromStart.length === 0){
+                if (pathsFromStart.getLength() === 0){
                     return null;
                 }
                 // Else, if there are no paths from attribute tiles then
-                else if (pathsWithAttribute.length > 0){
+                else if (pathsWithAttribute.getLength() > 0){
                     let bestPathData = selectBestPath(bestPossibleLengthSoFar);
 
                     // Update best m
@@ -1330,150 +1352,6 @@ class DuelBot extends DuelCharacter {
         // If no solution found
         return null;
     }
-
-    /*calculateShortestDistanceToTileWithAttribute(startTileX, startTileY, allowanceFunction, distanceToSearch){
-        let tiles = [];
-
-        // Assume max distance
-        let solutionDistance = distanceToSearch;
-
-        let addAdjacentTilesAsUnchecked = (tileX, tileY, pathToTile, startToEnd) => {
-            tryToAddTile(tileX+1, tileY, pathToTile, startToEnd);
-            tryToAddTile(tileX-1, tileY, pathToTile, startToEnd);
-            tryToAddTile(tileX, tileY+1, pathToTile, startToEnd);
-            tryToAddTile(tileX, tileY-1, pathToTile, startToEnd);
-        }
-
-        let getTileIndex = (tileX, tileY) => {
-            for (let i = 0; i < tiles.length; i++){
-                if (tiles[i]["tile_x"] == tileX && tiles[i]["tile_y"] == tileY){
-                    return i;
-                }
-            }
-            return -1;
-        }
-
-        let tileAlreadyChecked = (tileX, tileY, startToEnd) => {
-            let tileIndex = getTileIndex(tileX, tileY);
-            if (tileIndex == -1){ return false; }
-            return tiles[tileIndex]["checked"][startToEnd.toString()];
-        }
-
-        let tileCanBeWalkedOn = (tileX, tileY) => {
-            return !this.getScene().tileAtLocationHasAttribute(tileX, tileY, "no_walk");
-        }
-
-        let tileTooFar = (pathToTileLength) => {
-            return pathToTileLength + 1 > distanceToSearch;
-        }
-
-        // Solution is found if we have a distance lower than default 
-        let solutionIsFound = () => {
-            return this.solutionDistance < distanceToSearch;
-        }
-
-        let tryToAddTile = (tileX, tileY, pathToTile, startToEnd=true) => {
-            if (!tileCanBeWalkedOn(tileX, tileY)){ return; }
-            if (tileAlreadyChecked(tileX, tileY, startToEnd)){ return; }
-            if (tileTooFar(pathToTile.length)){ return; }
-            // If we have a solution then
-            if (solutionIsFound()){ return; }
-            let tileIndex = getTileIndex(tileX, tileY);
-            let newPath;
-            if (startToEnd){
-                newPath = appendLists(pathToTile, [{"tile_x": tileX, "tile_y": tileY}]);
-            }else{
-                newPath = appendLists([{"tile_x": tileX, "tile_y": tileY}], pathToTile);
-            }
-            // If the new path is the max distance then don't bother
-            if (newPath.length === distanceToSearch){
-                return;
-            }
-            // If the tile has not been found then add
-            if (tileIndex == -1){
-                tiles.push({
-                    "tile_x": tileX,
-                    "tile_y": tileY,
-                    "checked": {
-                        "true": false,
-                        "false": false
-                    },
-                    "path_direction": startToEnd,
-                    "shortest_path": newPath
-                });
-            }else{
-                let tileObj = tiles[tileIndex];
-                if (tileObj["path_direction"] != startToEnd){
-                    tileObj["checked"][startToEnd.toString()] = true;
-                    let forwardPath;
-                    let backwardPath;
-                    // If function called on a forward path
-                    if (startToEnd){
-                        forwardPath = copyArray(newPath);
-                        backwardPath = copyArray(tileObj["shortest_path"]);
-                    }else{
-                        forwardPath = copyArray(tileObj["shortest_path"]);
-                        backwardPath = copyArray(newPath);
-                    }
-
-                    // Shift the first element out from backward path to avoid having the same tile twice
-                    backwardPath.shift();
-
-                    let combinedPath = appendLists(forwardPath, backwardPath);
-                    let bestPath = getBestPath();
-                    let newLength = combinedPath.length;
-                    if (bestPath == null || bestPath.length > newLength){
-                        // Set start tile path
-                        startTile["path_direction"] = false; 
-                        startTile["shortest_path"] = combinedPath;
-                        // Set end tile path
-                        endTile["path_direction"] = true; 
-                        endTile["shortest_path"] = combinedPath;
-                    }
-                }
-                // see if the path is worth replacing
-                if (tileObj["shortest_path"].length > newPath.length){
-                    tileObj["shortest_path"] = newPath;
-                    tileObj["path_direction"] = startToEnd;
-                }
-            }
-        }
-
-        let hasUncheckedTiles = () => {
-            for (let tile of tiles){
-                // if tile hasn't been checked in its current direction
-                if (!tile["checked"][tile["path_direction"].toString()]){
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        let pickTile = () => {
-            let chosenTile = null;
-            for (let tile of tiles){
-                // If tick is not checked and this is better than the best tile then pick it
-                if (!tile["checked"][tile["path_direction"].toString()] && (chosenTile === null || chosenTile["shortest_path"].length > tile["shortest_path"].length)){
-                    chosenTile = tile;
-                }
-            }
-            return chosenTile;
-        }
-
-        // Add first tile
-        tryToAddTile(startTileX, startTileY, []);
-        let startTile = tiles[0];
-        while (hasUncheckedTiles()){
-            let currentTile = pickTile();
-            currentTile["checked"][currentTile["path_direction"].toString()] = true;
-            addAdjacentTilesAsUnchecked(currentTile["tile_x"], currentTile["tile_y"], currentTile["shortest_path"], currentTile["path_direction"]);
-            // If solutinn is found then break so it can be returned
-            if (solutionIsFound()){
-                break;
-            }
-        }
-        return solutionDistance;
-    }*/
 
     updateFromRouteDecision(routeDecision){
         let directions = ["up", "down", "left", "right"];

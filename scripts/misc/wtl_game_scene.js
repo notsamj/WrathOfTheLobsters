@@ -992,7 +992,9 @@ class WTLGameScene {
     }
 
     addEntity(entity){
-        entity.setID(this.entities.getLength());
+        if (entity.getID() === null){
+            entity.setID(this.entities.getLength());
+        } 
         this.entities.push(entity);
     }
 

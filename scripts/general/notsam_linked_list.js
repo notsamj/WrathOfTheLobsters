@@ -5,7 +5,7 @@
     Copy of NotSamSinglyLinkedList but made doubly.
     Also I haven't made a doubly linked list in many many years so this may have many errors because I haven't tested it :)
 */
-class NotSamLinkedList{
+class NotSamLinkedList {
         /*
         Method Name: constructor
         Method Parameters:
@@ -17,6 +17,11 @@ class NotSamLinkedList{
     constructor(array=null){
         this.head = null;
         this.end = null;
+        this.size = 0;
+
+        this.lastAccessedIndex = -1;
+        this.lastAccessedNode = null;
+
         if (array != null){
             this.convertFromArray(array);
         }
@@ -80,13 +85,12 @@ class NotSamLinkedList{
         // Note: Inefficient
         let size = this.getSize();
         if (index > size || index < 0){
-            console.error(`Invalid insertion index! (${index})`);
-            return; 
+            throw new Error(`Invalid insertion index! (${index})`);
         }
         let newNode = new DLLNode(null, value);
 
         // If empty list
-        if (size == 0){
+        if (size === 0){
             this.head = newNode;
             this.end = newNode;
             return;
@@ -98,14 +102,14 @@ class NotSamLinkedList{
         // Go through the list to a proper insertion index
         while (i < index){
             // Only need to set previous once we get to the index
-            if (i == index - 1){
+            if (i === index - 1){
                 previous = current;
             }
             current = current.next;
             i++;
         }
         // This is only the case when at the end of the list
-        if (index == size){
+        if (index === size){
             this.end = newNode;
             previous.next = newNode;
             newNode.next = null;
@@ -119,6 +123,13 @@ class NotSamLinkedList{
             }
             newNode.next = current;
         }
+
+        // Increase size
+        this.size++;
+
+        // Reset last access info
+        this.lastAccessedIndex = -1;
+        this.lastAccessedNode = null;
     }
 
     /*
@@ -151,14 +162,7 @@ class NotSamLinkedList{
      *   Method Return: int (Size of the list)
      */
     getSize(){
-        let current = this.head;
-        let size = 0;
-        // Loop through the list
-        while (current != null){
-            current = current.next;
-            size += 1;
-        }
-        return size;
+        return this.size;
     }
 
     /*
@@ -220,19 +224,52 @@ class NotSamLinkedList{
      */
     getNode(index){
         // If the index is out of bounds
-        if (this.getSize() < index + 1 || index < 0){
-            console.error(`Issue @ Index: ${index} (List Size: ${this.getSize()})`);
-            return;
+        let size = this.getSize();
+        if (size < index + 1 || index < 0){
+            throw new Error(`Issue @ Index: ${index} (List Size: ${this.getSize()})`);
         }
 
-        let i = 0;
-        let current = this.head;
-        // Loop until desired index
-        while(i < index){
-            current = current.next;
-            i++;
+        let distanceToBottom = index;
+        let distanceToTop = size - distanceToBottom - 1;
+        let displacementToLastAccessed = index - this.lastAccessedIndex;
+        let distanceToLastAccessed = Math.abs(displacementToLastAccessed);
+            
+        // If distance to bottom is the lowest
+        let i;
+        let goingUp;
+
+        // Determine starting point and direction
+        if (distanceToBottom <= distanceToTop && distanceToBottom <= distanceToLastAccessed){
+            i = 0;
+            goingUp = true;
+        }else if (distanceToTop <= distanceToBottom && distanceToTop <= distanceToLastAccessed){
+            i = size - 1;
+            goingUp = false;
+        }else{
+            i = this.lastAccessedIndex;
+            goingUp = (displacementToLastAccessed >= 0) ? 1 : -1;
         }
-        return current;
+
+        let iFunction;
+        let nodeFunction;
+
+        if (goingUp){
+            iFunction = (value) => { return value + 1; }
+            nodeFunction = (node) => { return node.next; }
+        }
+        // Else going down
+        else{
+            iFunction = (value) => { return value - 1; }
+            nodeFunction = (node) => { return node.previous; }
+        }
+
+        let currentNode = this.head;
+        // Loop until desired index
+        while(i != index){
+            currentNode = nodeFunction(currentNode);
+            i = iFunction(i);
+        }
+        return currentNode;
     }
 
     /*
@@ -281,7 +318,7 @@ class NotSamLinkedList{
     remove(index){
         let size = this.getSize();
         if (!((index >= 0 && index < size))){
-            return;
+            throw new Error("Index invalid given Linked List size.");
         }
 
         if (index == 0){
@@ -303,6 +340,13 @@ class NotSamLinkedList{
         if (node.next != null){
             node.next.previous = previous;
         }
+
+        // Decrease size
+        this.size--;
+
+        // Reset last access info
+        this.lastAccessedIndex = -1;
+        this.lastAccessedNode = null;
     }
 
     /*
@@ -397,10 +441,16 @@ class NotSamLinkedList{
                 }else{ // Else this is the head
                     this.head = current.next;
                 }
+                // Decrease size
+                this.size--;
             }
             // Move to next
             current = current.previous;
         }
+
+        // Reset last access info
+        this.lastAccessedIndex = -1;
+        this.lastAccessedNode = null;
     }
 }
 

@@ -77,270 +77,256 @@ class Character extends Entity {
         return calculateEuclideanDistance(this.getInterpolatedTickCenterX(), this.getInterpolatedTickCenterY(), this.getScene().getCenterXOfTile(tileX), this.getScene().getCenterYOfTile(tileY));
     }
 
-    generateShortestRouteToPoint(endTileX, endTileY, stepLimit=Number.MAX_SAFE_INTEGER){
-        return this.generateShortestRouteFromPointToPoint(this.getTileX(), this.getTileY(), endTileX, endTileY, stepLimit);
+    generateShortestRouteToPoint(endTileX, endTileY, routeLengthLimit=Number.MAX_SAFE_INTEGER){
+        return this.generateShortestRouteFromPointToPoint(this.getTileX(), this.getTileY(), endTileX, endTileY, routeLengthLimit);
     }
 
     canWalkOnTile(tileX, tileY){
         return !this.getScene().tileAtLocationHasAttribute(tileX, tileY, "no_walk");
     }
 
-    generateShortestRouteFromPointToPoint(startTileX, startTileY, endTileX, endTileY, stepLimit=Number.MAX_SAFE_INTEGER){
-        let tiles = [];
+    generateShortestRouteFromPointToPoint(startTileX, startTileY, endTileX, endTileY, routeLengthLimit=Number.MAX_SAFE_INTEGER){
         if (startTileX === endTileX && startTileY === endTileY){ return Route.fromPath([{"tile_x": startTileX, "tile_y": startTileY}]); }
+        if (!this.canWalkOnTile(startTileX, startTileY)){ throw new Error("Invalid start tile."); }
+        if (!this.canWalkOnTile(endTileX, endTileY)){ throw new Error("Invalid end tile."); }
 
-        let tileCanBeWalkedOn = (tileX, tileY) => {
-            return this.canWalkOnTile(tileX, tileY);
-        }
+        let knownPathsFromStart = new NotSamXYSortedArrayList();
+        let knownPathsFromEnd = new NotSamXYSortedArrayList();
 
-        if (!tileCanBeWalkedOn(startTileX, startTileY)){ return null; }
-        if (!tileCanBeWalkedOn(endTileX, endTileY)){ return null; }
+        let edgeTilesFromStart = new NotSamLinkedList([{"tile_x": startTileX, "tile_y": startTileY, "from_start": true}]);
+        let edgeTilesFromEnd = new NotSamLinkedList([{"tile_x": endTileX, "tile_y": endTileY, "from_start": false}]);
 
-        let addAdjacentTilesAsUnchecked = (tileX, tileY, pathToTile, startToEnd) => {
-            let stepsInPath = pathToTile.length - 1;
-            // Stop exploring from a path that is at max length
-            if (stepsInPath >= stepLimit){ return; }
-            tryToAddTile(tileX+1, tileY, pathToTile, startToEnd);
-            tryToAddTile(tileX-1, tileY, pathToTile, startToEnd);
-            tryToAddTile(tileX, tileY+1, pathToTile, startToEnd);
-            tryToAddTile(tileX, tileY-1, pathToTile, startToEnd);
-        }
+        knownPathsFromStart.set(startTileX, startTileY, {"path_length": 0, "previous_tile_x": null, "previous_tile_y": null});
+        knownPathsFromEnd.set(endTileX, endTileY, {"path_length": 0, "previous_tile_x": null, "previous_tile_y": null});
 
-        let getTileIndex = (tileX, tileY) => {
-            for (let i = 0; i < tiles.length; i++){
-                if (tiles[i]["tile_x"] == tileX && tiles[i]["tile_y"] == tileY){
-                    return i;
-                }
-            }
-            return -1;
-        }
-
-        let tileAlreadyChecked = (tileX, tileY, startToEnd) => {
-            let tileIndex = getTileIndex(tileX, tileY);
-            if (tileIndex == -1){ return false; }
-            return tiles[tileIndex]["checked"][startToEnd.toString()];
-        }
-
-
-        let tryToAddTile = (tileX, tileY, pathToTile, startToEnd=true) => {
-            if (tileAlreadyChecked(tileX, tileY, startToEnd)){ return; }
-            if (!tileCanBeWalkedOn(tileX, tileY)){ return; }
-            let tileIndex = getTileIndex(tileX, tileY);
-            let newPath;
-            if (startToEnd){
-                newPath = appendLists(pathToTile, [{"tile_x": tileX, "tile_y": tileY}]);
-            }else{
-                newPath = appendLists([{"tile_x": tileX, "tile_y": tileY}], pathToTile);
-            }
-            // If the tile has not been found then add
-            if (tileIndex == -1){
-                tiles.push({
-                    "tile_x": tileX,
-                    "tile_y": tileY,
-                    "checked": {
-                        "true": false,
-                        "false": false
-                    },
-                    "path_direction": startToEnd,
-                    "shortest_path": newPath
-                });
-            }else{
-                let tileObj = tiles[tileIndex];
-                if (tileObj["path_direction"] != startToEnd){
-                    tileObj["checked"][startToEnd.toString()] = true;
-                    let forwardPath;
-                    let backwardPath;
-                    // If function called on a forward path
-                    if (startToEnd){
-                        forwardPath = copyArray(newPath);
-                        backwardPath = copyArray(tileObj["shortest_path"]);
-                    }else{
-                        forwardPath = copyArray(tileObj["shortest_path"]);
-                        backwardPath = copyArray(newPath);
-                    }
-
-                    // Shift the first element out from backward path to avoid having the same tile twice
-                    backwardPath.shift();
-
-                    let combinedPath = appendLists(forwardPath, backwardPath);
-                    let bestPath = getBestPath();
-                    let newLength = combinedPath.length;
-                    if (bestPath == null || bestPath.length > newLength){
-                        // Set start tile path
-                        startTile["path_direction"] = false; 
-                        startTile["shortest_path"] = combinedPath;
-                        // Set end tile path
-                        endTile["path_direction"] = true; 
-                        endTile["shortest_path"] = combinedPath;
-                    }
-                }
-                // see if the path is worth replacing
-                if (tileObj["shortest_path"].length > newPath.length){
-                    tileObj["shortest_path"] = newPath;
-                    tileObj["path_direction"] = startToEnd;
-                }
-            }
-        }
-
-        let hasUncheckedTiles = () => {
-            for (let tile of tiles){
-                // if tile hasn't been checked in its current direction
-                if (!tile["checked"][tile["path_direction"].toString()]){
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        let hasFoundTheBestPossiblePath = () => {
+        let selectBestPath = (bestPossibleLengthSoFar) => {
             /*
-                Note: This will return true when:
-                    An optimal path is found
-                    OR
-                    A path has found that has a length where all paths with optimal distance to end are <= that path's length (so like say 15 but then theres a tile that is 13 to reach but optimally 3 away from the end it can AT BEST be 16 if followed)
+                Strategy:
+                    Find path with attribute closest to the start name it eStart
+                    Then find path from start closest to eStart and name it eStart
+                    If calculateManhattanDistance(eStart, start) <= calculateManhattanDistance(eStart, end)
+                        return eStart
+                    else:
+                        return eEnd
             */
-            let optimalPathLength = Math.abs(endTileX - startTileX) + Math.abs(endTileY - startTileY) + 1; // + 1 because say start 00 end 01 it would be 2 length not 1 but abs(dx) + abs(dy) = 1
-            let bestFoundPathLength = Number.MAX_SAFE_INTEGER;
-            let bestPossibleUndiscoveredPathLength = Number.MAX_SAFE_INTEGER;
+            let eStart = null;
+            let eEnd = null;
+            let bestM = null;
+            let bestMinTraversal = null;
+            let eStartIndex = null;
+            let eEndIndex = null;
 
-            let pathOfStartTile = startTile["shortest_path"];
-            let pathOfEndTile = endTile["shortest_path"];
-            
-            let lastTileOnStartPath = pathOfStartTile[pathOfStartTile.length-1];
-            let startTileHasCompletedPath = lastTileOnStartPath["tile_x"] == endTile["tile_x"] && lastTileOnStartPath["tile_y"] == endTile["tile_y"];
-            
-            let firstTileOnEndPath = pathOfEndTile[0];
-            let endTileHasCompletedPath = firstTileOnEndPath["tile_x"] == startTile["tile_x"] && firstTileOnEndPath["tile_y"] == startTile["tile_y"];
+            let foundBestPossibleDistance = false;
 
-            // Check for known paths
-            if (startTileHasCompletedPath){
-                bestFoundPathLength = pathOfStartTile.length;
-            }
-            if (endTileHasCompletedPath){
-                bestFoundPathLength = Math.min(bestFoundPathLength, pathOfEndTile.length);
-            }
+            // Find the two tiles that could connect and form the shortest possible path
+            for (let i = edgeTilesFromEnd.getLength() - 1; i >= 0; i--){
+                let edgeTileFromEnd = edgeTilesFromEnd.get(i);
+                let edgeTileFromEndTileX = edgeTileFromEnd["tile_x"];
+                let edgeTileFromEndTileY = edgeTileFromEnd["tile_y"];
+                let edgeTileFromEndLength = knownPathsFromEnd.get(edgeTileFromEndTileX, edgeTileFromEndTileY)["path_length"];
+                for (let j = edgeTilesFromStart.getLength() - 1; j >= 0; j--){
+                    let edgeTileFromStart = edgeTilesFromStart.get(j);
+                    let edgeTileFromStartTileX = edgeTileFromStart["tile_x"];
+                    let edgeTileFromStartTileY = edgeTileFromStart["tile_y"];
+                    let edgeTileFromStartLength = knownPathsFromStart.get(edgeTileFromStartTileX, edgeTileFromStartTileY)["path_length"];
+                    let minTraversal = calculateManhattanDistance(edgeTileFromStartTileX, edgeTileFromStartTileY, edgeTileFromEndTileX, edgeTileFromEndTileY);
+                    let startToEndDistance = edgeTileFromStartLength + edgeTileFromEndLength + minTraversal + 1; // the +1 is because both path lengths do not include the start tile and the end tile should be included in the total length
+                    if (bestM === null || startToEndDistance < bestM){
+                        eStart = edgeTileFromStart;
+                        eEnd = edgeTileFromEnd;
+                        bestM = startToEndDistance;
+                        bestMinTraversal = minTraversal;
+                        eEndIndex = i;
+                        eStartIndex = j;
+                    }
 
-            // Check for undiscovered potential paths
-            for (let tile of tiles){
-                let effectiveEndX = endTileX;
-                let effectiveEndY = endTileY;
-                if (!tile["path_direction"]){
-                    effectiveEndX = startTileX;
-                    effectiveEndY = startTileY;
-                }
-                // If found the a path
-                let tileDistanceToEnd = Math.abs(effectiveEndX - tile["tile_x"]) + Math.abs(effectiveEndY - tile["tile_y"]);
-                // If this tile hasn't been explored from this direction, check the best possible path length that could result from this path
-                if (!tile["checked"][tile["path_direction"].toString()]){
-                    let bestPossibleUndiscoveredPathLengthFromThisTile = tile["shortest_path"].length + tileDistanceToEnd;
-                    // Update record, if better
-                    bestPossibleUndiscoveredPathLength = Math.min(bestPossibleUndiscoveredPathLengthFromThisTile, bestPossibleUndiscoveredPathLength);
-                }
-            }
-
-            // If the best possible undiscovered path *would be* worse or the same as the best found one then return that the best one has been found
-            return bestPossibleUndiscoveredPathLength >= bestFoundPathLength;
-        }
-
-        let pickBestTile = () => {
-            // Note: Assume at least one unchecked tile
-            let chosenTileDistanceToEnd = Number.MAX_SAFE_INTEGER; 
-            let chosenTile = null;
-            for (let tile of tiles){
-                if (!tile["checked"][tile["path_direction"].toString()]){
-                    let distanceInTiles = Math.sqrt(Math.pow(tile["tile_x"] - endTileX, 2) + Math.pow(tile["tile_y"] - endTileY, 2));
-                    // If this tile is better than the previous best tile to choose
-                    if (distanceInTiles < chosenTileDistanceToEnd){
-                        chosenTile = tile;
-                        chosenTileDistanceToEnd = distanceInTiles;
+                    // If this is the best possible length then no need to search further
+                    foundBestPossibleDistance = bestPossibleLengthSoFar != null && startToEndDistance === bestPossibleLengthSoFar;
+                    if (foundBestPossibleDistance){
+                        break;
                     }
                 }
+                // If this is the best possible length then no need to search further
+                if (foundBestPossibleDistance){
+                    break;
+                }
             }
-            return chosenTile;
+
+            let bestEdgeTile;
+            let connectedTile;
+            // If distance from start of path to current point is lower on the path from the "startTile" then select it
+            if (calculateManhattanDistance(eStart["tile_x"], eStart["tile_y"], startTileX, startTileY) <= calculateManhattanDistance(eEnd["tile_x"], eEnd["tile_y"], endTileX, endTileY)){
+                bestEdgeTile = eStart;
+                connectedTile = eEnd;
+                edgeTilesFromStart.pop(eStartIndex);
+            }else{
+                bestEdgeTile = eEnd;
+                connectedTile = eStart;
+                edgeTilesFromEnd.pop(eEndIndex);
+            }
+
+            let bestPathData = {"edge_tile": bestEdgeTile, "best_m": bestM, "best_min_traversal": bestMinTraversal, "has_complete_path": false, "connected_path": null};
+            let completePath = bestMinTraversal === 1; 
+            if (completePath){
+                bestPathData["has_complete_path"] = true;
+                bestPathData["connected_tile"] = connectedTile;
+            }
+            return bestPathData;
         }
 
-        let getBestPath = () => {
-            if (!startAndEndPresent){ return null; }
-            let pathOfStartTile = startTile["shortest_path"];
-            let pathOfEndTile = endTile["shortest_path"];
-            
-            let lastTileOnStartPath = pathOfStartTile[pathOfStartTile.length-1];
-            let startTileHasCompletedPath = lastTileOnStartPath["tile_x"] == endTile["tile_x"] && lastTileOnStartPath["tile_y"] == endTile["tile_y"];
-            
-            let firstTileOnEndPath = pathOfEndTile[0];
-            let endTileHasCompletedPath = firstTileOnEndPath["tile_x"] == startTile["tile_x"] && firstTileOnEndPath["tile_y"] == startTile["tile_y"];
+        let updateKnownPathIfBetter = (knownPathsList, previousTileX, previousTileY, newPathLength, potentialPreviousTileX, potentialPreviousTileY) => {
+            let previousTileInfo = knownPathsList.get(previousTileX, previousTileY);
+            let exists = previousTileInfo != null;
+            // If this doesn't exist then do nothing and return false
+            if (!exists){
+                return false;
+            }
 
-            // If both have full paths
-            if (startTileHasCompletedPath && endTileHasCompletedPath){
-                if (pathOfStartTile.length < pathOfEndTile.length){
-                    return pathOfStartTile;
+            let oldPathLength = previousTileInfo["path_length"];
+            // If old path length was longer then replace it
+            if (oldPathLength > newPathLength){
+                // Update path length
+                previousTileInfo["path_length"] = newPathLength;
+                previousTileInfo["previous_tile_x"] = potentialPreviousTileX;
+                previousTileInfo["previous_tile_y"] = potentialPreviousTileY;
+
+                // Alert all paths that may be based on this one
+                let adjacentTiles = [[previousTileX+1,previousTileY], [previousTileX-1, previousTileY], [previousTileX, previousTileY+1], [previousTileX, previousTileY-1]];
+                for (let adjacentTile of adjacentTiles){
+                    let adjacentTileX = adjacentTile[0];
+                    let adjacentTileY = adjacentTile[1];
+                    updateKnownPathIfBetter(knownPathsList, adjacentTileX, adjacentTileY, newPathLength + 1, previousTileX, previousTileY);
+                }
+            }
+            return true;
+        }
+
+        let exploreTiles = (bestEdgeTile) => {
+            let bETileX = bestEdgeTile["tile_x"];
+            let bETileY = bestEdgeTile["tile_y"];
+            let adjacentTiles = [[bETileX+1,bETileY], [bETileX-1, bETileY], [bETileX, bETileY+1], [bETileX, bETileY-1]];
+            for (let adjacentTile of adjacentTiles){
+                let adjacentTileX = adjacentTile[0];
+                let adjacentTileY = adjacentTile[1];
+                // Check if walkable
+                if (!this.canWalkOnTile(adjacentTileX, adjacentTileY, "no_walk")){ continue; }
+
+                // It's valid
+
+                let knownPathsList;
+                let activePathsList;
+                let tileInfo;
+
+                // Determine which is applicable
+                if (bestEdgeTile["from_start"]){
+                    knownPathsList = knownPathsFromStart;
+                    activePathsList = edgeTilesFromStart;
+                    tileInfo = {"tile_x": adjacentTileX, "tile_y": adjacentTileY, "from_start": true};
                 }else{
-                    return pathOfEndTile;
+                    knownPathsList = knownPathsFromEnd;
+                    activePathsList = edgeTilesFromEnd;
+                    tileInfo = {"tile_x": adjacentTileX, "tile_y": adjacentTileY, "from_start": false};
+                }
+
+                let newPathLength = knownPathsList.get(bETileX, bETileY)["path_length"] + 1;
+                // This is known then update
+                let known = updateKnownPathIfBetter(knownPathsList, adjacentTileX, adjacentTileY, newPathLength, bETileX, bETileY);
+                // If it wasn't known then add
+                if (!known){
+                    // Add it to known paths
+                    knownPathsList.set(adjacentTileX, adjacentTileY, {"path_length": newPathLength, "previous_tile_x": bETileX, "previous_tile_y": bETileY});
+                    // Add to active path list
+                    activePathsList.push(tileInfo);
                 }
             }
-            // If only start tile has a full path
-            else if (startTileHasCompletedPath){
-                return pathOfStartTile;
-            }
-            // Else only end tile has a full path
-            else if (endTileHasCompletedPath){
-                return pathOfEndTile;
-            }
-            // Else neither have completed return null
-            else{
-                return null;
-            } 
         }
 
-        let hasPathsInBothDirections = () => {
-            // Check if it has paths forward
-            let pathsForward = false;
-            let pathsBackwards = false;
-            for (let tile of tiles){
-                if (tile["path_direction"] && !tile["checked"]["true"]){
-                    pathsForward = true;
-                }else if (!tile["path_direction"] && !tile["checked"]["false"]){
-                    pathsBackwards = true;
-                }
-                if (pathsForward && pathsBackwards){
-                    return true;
-                }
-            }
-            return false;
-        }
+        // takes two touching tiles and creates a path
+        let createPath = (touchingTile1, touchingTile2) => {
+            let tileFromStart = touchingTile1["from_start"] ? touchingTile1 : touchingTile2;
+            let tileFromEnd = touchingTile1["from_start"] ? touchingTile2 : touchingTile1;
 
-        let hasFoundAPath = () => {
-            let pathOfStartTile = startTile["shortest_path"];
-            let pathOfEndTile = endTile["shortest_path"];
+            let startPath = [];
+            let endPath = [];
             
-            let lastTileOnStartPath = pathOfStartTile[pathOfStartTile.length-1];
-            let startTileHasCompletedPath = lastTileOnStartPath["tile_x"] === endTile["tile_x"] && lastTileOnStartPath["tile_y"] ===endTile["tile_y"];
-            if (startTileHasCompletedPath){ return true;}
 
-            let firstTileOnEndPath = pathOfEndTile[0];
-            let endTileHasCompletedPath = firstTileOnEndPath["tile_x"] === startTile["tile_x"] && firstTileOnEndPath["tile_y"] === startTile["tile_y"];
-            if (endTileHasCompletedPath){ return true;}
-            return false;
+            // Add tile to front of the list
+            startPath.unshift({"tile_x": tileFromStart["tile_x"], "tile_y": tileFromStart["tile_y"]})
+
+            // Add tiles from start forwards
+            let previousData = knownPathsFromStart.get(tileFromStart["tile_x"], tileFromStart["tile_y"]);
+
+            let previousTileX = previousData["previous_tile_x"];
+            let previousTileY = previousData["previous_tile_y"];
+
+            let hasPreviousTile = true;
+            while (hasPreviousTile){
+                // Add tile to front of the list
+                startPath.unshift({"tile_x": previousTileX, "tile_y": previousTileY});
+
+                // Go to next
+                previousData = knownPathsFromStart.get(previousTileX, previousTileY);
+                previousTileX = previousData["previous_tile_x"];
+                previousTileY = previousData["previous_tile_y"];
+
+                hasPreviousTile = (previousTileX != null && previousTileY != null);
+            }
+
+            // Add tile to back of the list
+            endPath.unshift({"tile_x": tileFromEnd["tile_x"], "tile_y": tileFromEnd["tile_y"]})
+
+            // Add tiles from start forwards
+            previousData = knownPathsFromEnd.get(tileFromEnd["tile_x"], tileFromEnd["tile_y"]);
+            previousTileX = previousData["previous_tile_x"];
+            previousTileY = previousData["previous_tile_y"];
+
+            hasPreviousTile = true;
+            while (hasPreviousTile){
+                // Add tile to back of the list
+                endPath.push({"tile_x": previousTileX, "tile_y": previousTileY});
+
+                // Go to next
+                previousData = knownPathsFromEnd.get(previousTileX, previousTileY);
+                previousTileX = previousData["previous_tile_x"];
+                previousTileY = previousData["previous_tile_y"];
+
+                hasPreviousTile = (previousTileX != null && previousTileY != null);
+            }
+            return Route.fromPath(appendLists(startPath, endPath)); 
         }
 
-        // Add first tile
-        let startAndEndPresent = false;
-        tryToAddTile(startTileX, startTileY, []);
-        tryToAddTile(endTileX, endTileY, [], false);
-        let startTile = tiles[0];
-        let endTile = tiles[1];
-        startAndEndPresent = true;
-        while (hasUncheckedTiles() && !hasFoundTheBestPossiblePath() && hasPathsInBothDirections()){
-            let currentTile = pickBestTile();
-            currentTile["checked"][currentTile["path_direction"].toString()] = true;
-            addAdjacentTilesAsUnchecked(currentTile["tile_x"], currentTile["tile_y"], currentTile["shortest_path"], currentTile["path_direction"]);
+        let bestPossibleRouteLength = calculateManhattanDistance(startTileX, startTileY, endTileX, endTileY);
+        let bestFoundPathLengthSoFar = null;
+
+        // While it is possible to create a path from
+        while (bestPossibleRouteLength < routeLengthLimit){
+            // If I can find no path from start then stop
+            if (edgeTilesFromStart.getLength() === 0){
+                break;
+            }
+            // If I can find no path from end then stop
+            if (edgeTilesFromEnd.getLength() === 0){
+                break;
+            }
+
+            let bestPathData = selectBestPath(bestPossibleRouteLength);
+
+            // Update best m
+            bestPossibleRouteLength = bestPathData["best_m"];
+
+            // If the two paths met then distance is found. Note: With current design, the first full path is always the best possible path
+            if (bestPathData["has_complete_path"]){
+                return createPath(bestPathData["edge_tile"], bestPathData["connected_tile"]);
+            }
+
+            let bestEdgeTile = bestPathData["edge_tile"];
+
+            // Explore
+            exploreTiles(bestEdgeTile);
         }
 
-        if (hasFoundAPath()){
-            return Route.fromPath(getBestPath());
-        }else{
-            return null;
-        }
+        // None found
+        return null;
     }
 
     getSelectedItem(){

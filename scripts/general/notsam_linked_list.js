@@ -1,11 +1,21 @@
 // Note: This code has been tested with a comprehensive suite. JavaScript_REUSEABLE\Linked List Array List. Caution: May have been modified since testing.
 class NotSamLinkedList {
-    constructor(){
+    constructor(providedList=null){
         this.head = null;
         this.end = null;
         this.storedLength = 0;
         this.lastAccessed = null;
         this.lastAccessedIndex = -1;
+
+        if (providedList != null){
+            this.updateFromList(providedList);
+        }
+    }
+
+    updateFromList(list){
+        for (let element of list){
+            this.push(element);
+        }
     }
 
     print(){

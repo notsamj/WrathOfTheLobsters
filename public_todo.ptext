@@ -1,11 +1,9 @@
 Right now:
-	Optimize notSamLinkedList
-	Implement in currently worked on function
+	Fix why pathfinding old vs new different results
 
-
-	Make hiding cursor an option in settings
 	Make all pathfinding functions more efficient especially with lookups
 		Also lots of binary search
+	Make hiding cursor an option in settings
 	Make explore tiles more efficient
 	Make determineTileToStandAndShootFrom optimized
 	Add cancel reload decision like the break_stride
@@ -20,7 +18,7 @@ Right now:
 	Add pistol features to musket
 	Add musket stabbing
 
-	Add run away mechanic for unarmed
+	Add run away mechanic for unarmeds
 	Make menu
 	Add settings pages
 	Review current_todo.txt

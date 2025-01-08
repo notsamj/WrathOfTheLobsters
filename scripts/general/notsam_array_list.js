@@ -1,12 +1,4 @@
-/*
-    Class Name: NotSamArrayList
-    Description: An implementation of the ArrayList pattern.
-    Note:
-    This implementation was initially created in 2020 / 2021 by Samuel
-    using the moniker NotSam for reasons that I chose not to disclose.
-    It has been reappropriated for this program in 2023 and keeps the 'NotSam' to differentiate it 
-    from a non-custom ArrayList.
-*/
+// Note: This code has been tested with a comprehensive suite. JavaScript_REUSEABLE\Linked List Array List. Caution: May have been modified since testing.
 class NotSamArrayList {
     /*
         Method Name: constructor
@@ -22,7 +14,7 @@ class NotSamArrayList {
     */
     constructor(array=null, size=1, size_inc=(size) => size * 2){
         this.size_inc = size_inc;
-        if (array == null){
+        if (array === null){
             this.size = size;
             this.array = new Array(this.size);
             this.length = 0;
@@ -48,7 +40,7 @@ class NotSamArrayList {
         Method Return: void
     */
     convert_from_array(array){
-        for (var i = 0; i < array.length; i++){
+        for (let i = 0; i < array.length; i++){
             this.add(array[i]);
         }
     }
@@ -61,10 +53,11 @@ class NotSamArrayList {
     */
     resize(){
         this.size = this.size_inc(this.size);
-        var newArray = new Array(this.size);
-        for (var i = 0; i < this.length; i++){
+        let newArray = new Array(this.size);
+        for (let i = 0; i < this.length; i++){
             newArray[i] = this.array[i];
         }
+        //console.log("Resize", this.size, this.size_inc(this.size))
         this.array = newArray;
     }
 
@@ -87,12 +80,29 @@ class NotSamArrayList {
         Method Return: void
     */
     add(value){
-        if (this.getLength() == this.getSize()){
+        this.insert(value, this.getLength());
+    }
+
+    insert(value, index){
+        let length = this.getLength();
+        if (index > length || index < 0){
+            throw new Error("Invalid insertion index");
+        }
+
+        // Resize if needed
+        if (length === this.getSize()){
             this.resize();
         }
 
-        this.array[this.getLength()] = value;
+        // Copy everything up
+        for (let i = length; i > index; i--){
+            this.array[i] = this.array[i-1];
+        }
+        //this.print();
+        // Place in slot
+        this.array[index] = value;
         this.length++;
+        //this.print();
     }
 
     /*
@@ -121,7 +131,7 @@ class NotSamArrayList {
         Method Return: boolean, true -> array list has the value, false -> array list does NOT have the value
     */
     has(value){
-        var index = this.search(value);
+        let index = this.search(value);
         return !(index == -1);
     }
 
@@ -134,7 +144,7 @@ class NotSamArrayList {
         Method Return: int
     */
     search(value){
-        for (var i = 0; i < this.getLength(); i++){
+        for (let i = 0; i < this.getLength(); i++){
             if (this.array[i] === value){
                 return i;
             }  
@@ -165,7 +175,7 @@ class NotSamArrayList {
         CAUTION DO NOT USE (but I won't bother to delete it)
     */
     getElement(e){
-        var index = this.search(e);
+        let index = this.search(e);
         return this.get(index)
     }
 
@@ -185,22 +195,33 @@ class NotSamArrayList {
     }
 
     /*
-        Method Name: remove
+        Method Name: pop
         Method Parameters:
             index:
                 Index at which to find element that is being looked for
         Method Description: Remove the element @ index {index}
-        Method Return: void
+        Method Return: Value
     */
-    remove(index){
+    pop(index){
         if (!((index >= 0 && index < this.getLength()))){
-            return;
+            throw new Error("Invalid removal index.");
         }
-        this.array[index] = null;
-        for (var i = index; i < this.getLength(); i++){
+
+        let returnValue = this.array[index];
+        
+        // Shift down
+        for (let i = index; i < this.getLength() - 1; i++){
             this.array[i] = this.array[i+1];
         }
+
+        // Decrease length
         this.length -= 1;
+
+        return returnValue;
+    }
+
+    remove(index){
+        this.pop(index);
     }
 
     /*
@@ -210,25 +231,20 @@ class NotSamArrayList {
         Method Return: NotSamArrayList
     */
     copy(){
-        var newArr = new NotSamArrayList();
-        for (var i = 0; i < this.getLength(); i++){
+        let newArr = new NotSamArrayList();
+        for (let i = 0; i < this.getLength(); i++){
             newArr.add(this.array[i]);
         }
         return newArr;
     }
 
-    /*
-        Method Name: print
-        Method Parameters: None
-        Method Description: Print out all the elements of the array list
-        Method Return: void
-    */
     print(){
-        console.log("s")
-        for (var i = 0; i < this.getLength(); i++){
-            console.log(i, this.get(i));
+        console.log("Array List");
+        console.log("Size", this.getSize());
+        console.log("Length", this.getLength());
+        for (let [element, elementIndex] of this){
+            console.log("@ Index", elementIndex, "has", element);
         }
-        console.log("f")
     }
 
     /*

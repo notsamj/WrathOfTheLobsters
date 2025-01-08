@@ -314,13 +314,14 @@ class DuelBot extends DuelCharacter {
         }
 
         let tileTooFar = (pathToTileLength) => {
-            return pathToTileLength + 1 > range;
+            return pathToTileLength - 1 > range;
         }
 
         let tryToAddTile = (tileX, tileY, pathToTile, startToEnd=true) => {
             if (!tileCanBeWalkedOn(tileX, tileY)){ return; }
             if (tileAlreadyChecked(tileX, tileY, startToEnd)){ return; }
-            if (tileTooFar(pathToTile.length)){ return; }
+            let newLength = pathToTile.length + 1;
+            if (tileTooFar(newLength)){ return; }
             let tileIndex = getTileIndex(tileX, tileY);
             let newPath;
             if (startToEnd){
@@ -442,12 +443,12 @@ class DuelBot extends DuelCharacter {
                 let edgeTile = edgeTiles.get(i);
                 let edgeTileX = edgeTile["tile_x"];
                 let edgeTileY = edgeTile["tile_y"];
-                let pathLength = knownTiles.get(edgeTileX, edgeTileY)["shortest_path"].length;
+                let pathLength = knownTiles.get(edgeTileX, edgeTileY)["shortest_path"].length - 1;
                 if (bestPathLength === null || pathLength < bestPathLength){
+                    bestPathLength = pathLength;
                     chosenIndex = i;
                 }
             }
-            console.log("Popping", edgeTiles.get(chosenIndex))
             return edgeTiles.pop(chosenIndex);
         }
 
@@ -455,10 +456,9 @@ class DuelBot extends DuelCharacter {
             let bestTileX = bestTile["tile_x"];
             let bestTileY = bestTile["tile_y"];
             let bestTilePath = knownTiles.get(bestTileX, bestTileY)["shortest_path"];
-            console.log("Exploring", bestTileX, bestTileY)
+            let bestTilePathLength = bestTilePath.length - 1;
             // If we can't add any tiles without exceeding the best path length then don't continue
-            if (bestTilePath.length === maxRouteLength){
-                console.log("stopping", bestTileX, bestTileY, bestTilePath, bestTilePath.length)
+            if (bestTilePathLength === maxRouteLength){
                 return;
             }
 
@@ -469,21 +469,17 @@ class DuelBot extends DuelCharacter {
                 let adjacentTileY = adjacentTile[1];
                 // Check if walkable
                 if (this.getScene().tileAtLocationHasAttribute(adjacentTileX, adjacentTileY, "no_walk")){
-                    console.log("nowalk", adjacentTileX, adjacentTileY )
                     continue;
                 }
                 // If it is known then ignore
                 if (knownTiles.has(adjacentTileX, adjacentTileY)){
-                    console.log("no", adjacentTileX, adjacentTileY)
                     continue;
                 }
 
                 // Add to known tiles
-                //console.log("new path", appendLists(bestTilePath, [{"tile_x": bestTile["tile_x"], "tile_y": bestTile["tile_y"]}]))
-                knownTiles.set(adjacentTileX, adjacentTileY, {"tile_x": adjacentTileX, "tile_y": adjacentTileY, "shortest_path": appendLists(bestTilePath, [{"tile_x": bestTile["tile_x"], "tile_y": bestTile["tile_y"]}])});
+                knownTiles.set(adjacentTileX, adjacentTileY, {"tile_x": adjacentTileX, "tile_y": adjacentTileY, "shortest_path": appendLists(bestTilePath, [{"tile_x": adjacentTileX, "tile_y": adjacentTileY}])});
 
                 // Add to edge tiles
-                console.log("adding", adjacentTileX, adjacentTileY)
                 edgeTiles.push({"tile_x": adjacentTileX, "tile_y": adjacentTileY});
             }
         }
@@ -493,7 +489,6 @@ class DuelBot extends DuelCharacter {
             let currentTile = selectTile();
             exploreTiles(currentTile);
         }
-        debugger;
         return knownTiles.toList();
     }
 
@@ -597,11 +592,31 @@ class DuelBot extends DuelCharacter {
         let tileRange = this.getMaxSearchPathLength();
         let tilesToEndAt = this.exploreAvailableTiles(tileRange, this.getTileX(), this.getTileY());
         let tilesToEndAtOld = this.exploreAvailableTilesOld(tileRange, this.getTileX(), this.getTileY());
-        console.log("new")
-        console.log(tilesToEndAt)
-        console.log("old")
-        console.log(tilesToEndAtOld)
-        stop();
+
+
+        let differ = (arr1, arr2) => {
+            let different = false;
+            for (let item of arr1){
+                let tileX = item["tile_x"];
+                let tileY = item["tile_y"];
+                let found = false;
+                for (let item2 of arr2){
+                    if (item2["tile_x"] === tileX && item2["tile_y"] === tileY){
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found){
+                    different = true;
+                }
+            }
+            return different;
+        }
+        let d1 = differ(tilesToEndAt, tilesToEndAtOld)
+        if (d1 || d2){
+            debugger;
+            stop();
+        }
         // If no tiles to move to (including current)
         if (tilesToEndAt.length === 0){
             throw new Error("Unable to generate paths.")

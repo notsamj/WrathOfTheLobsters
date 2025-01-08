@@ -2,9 +2,17 @@
 class NotSamXYSortedArrayList {
     constructor(size=1, size_inc=(size) => size * 2){
         this.size_inc = size_inc;
+        this.ySize = 1;
         this.clear();
     }
 
+    toList(){
+        let outputList = [];
+        for (let [item, x, y] of this){
+            outputList.push(item);
+        }
+        return outputList;
+    }
     getMaxX(){
         return this.maxX;
     }
@@ -22,7 +30,6 @@ class NotSamXYSortedArrayList {
     }
 
     clear(){
-        this.ySize = 0;
         this.yLength = 0;
         this.yAxis = new Array(this.ySize);
 

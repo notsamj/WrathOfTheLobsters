@@ -82,7 +82,6 @@ class NotSamLinkedList {
      *   Method Return: None
      */
     insert(value, index=this.getSize()){
-        // Note: Inefficient
         let size = this.getSize();
         if (index > size || index < 0){
             throw new Error(`Invalid insertion index! (${index})`);
@@ -93,35 +92,34 @@ class NotSamLinkedList {
         if (size === 0){
             this.head = newNode;
             this.end = newNode;
-            return;
-        }
-
-        let current = this.head;
-        let previous = null;
-        let i = 0;
-        // Go through the list to a proper insertion index
-        while (i < index){
-            // Only need to set previous once we get to the index
-            if (i === index - 1){
-                previous = current;
-            }
-            current = current.next;
-            i++;
-        }
-        // This is only the case when at the end of the list
-        if (index === size){
-            this.end = newNode;
-            previous.next = newNode;
-            newNode.next = null;
-            newNode.previous = previous;
         }else{
-            // If the list is 1 long
-            if (previous != null){
-                previous.next = newNode;
-            }else{
-                this.head = newNode;
+            let current = this.head;
+            let previous = null;
+            let i = 0;
+            // Go through the list to a proper insertion index
+            while (i < index){
+                // Only need to set previous once we get to the index
+                if (i === index - 1){
+                    previous = current;
+                }
+                current = current.next;
+                i++;
             }
-            newNode.next = current;
+            // This is only the case when at the end of the list
+            if (index === size){
+                this.end = newNode;
+                previous.next = newNode;
+                newNode.next = null;
+                newNode.previous = previous;
+            }else{
+                // If the list is 1 long
+                if (previous != null){
+                    previous.next = newNode;
+                }else{
+                    this.head = newNode;
+                }
+                newNode.next = current;
+            }
         }
 
         // Increase size
@@ -321,24 +319,24 @@ class NotSamLinkedList {
             throw new Error("Index invalid given Linked List size.");
         }
 
-        if (index == 0){
+        if (index === 0){
             this.head = this.head.next;
             if (this.head != null){
                 this.head.previous = null;
-            } 
-            return;
-        }else if (index == size){
+            }
+        }else if (index === size){
             this.end = this.end.previous;
             if (this.end != null){
                 this.end.next = null;
             }
-        }
-        let node = this.getNode(index);
-        let previous = node.previous; // MUST NOT BE NULL OR ERROR
-        previous.next = node.next;
-        // If this is the last node then it would be null
-        if (node.next != null){
-            node.next.previous = previous;
+        }else{
+            let node = this.getNode(index);
+            let previous = node.previous; // MUST NOT BE NULL OR ERROR
+            previous.next = node.next;
+            // If this is the last node then it would be null
+            if (node.next != null){
+                node.next.previous = previous;
+            }
         }
 
         // Decrease size
@@ -382,9 +380,9 @@ class NotSamLinkedList {
         Method Description: Remove the element and return it
         Method Return: Object (Unknown type)
     */
-    pop(index){
-        if (!((index >= 0 && index < this.getSize()))){
-            return null;
+    pop(index=0){
+        if (!(index >= 0 && index < this.getSize())){
+            throw new Error("Invalid index provided.");
         }
         let element = this.get(index);
         this.remove(index);

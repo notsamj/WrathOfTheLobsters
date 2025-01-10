@@ -49,7 +49,8 @@ class Pistol extends Gun {
             "trying_to_aim": false,
             "trying_to_shoot": false,
             "trying_to_reload": false,
-            "aiming_angle_rad": null
+            "aiming_angle_rad": null,
+            "cancel_reload": false
         });
     }
 
@@ -62,6 +63,8 @@ class Pistol extends Gun {
         let tryingToReload = this.getDecision("trying_to_reload");
         if (tryingToReload && !this.isLoaded() && !this.player.isMoving() && !this.isReloading()){
             this.reload();
+        }else if (this.isReloading() && this.getDecision("cancel_reload")){
+            this.cancelReload();
         }
     }
 
@@ -112,7 +115,7 @@ class Pistol extends Gun {
 
     tick(){
         super.tick();
-        this.resetDecisions();
+        // Removed 2025-01-10 this.resetDecisions();
         if (this.isReloading()){
             if (this.player.isMoving()){
                 this.cancelReload();

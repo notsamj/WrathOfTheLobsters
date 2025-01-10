@@ -1,6 +1,5 @@
 Right now:
-	Make hiding cursor an option in settings
-	Test determineTileToStandAndShootFrom optimization
+	Make 
 	Add cancel reload decision like the break_stride
 
 	Route types

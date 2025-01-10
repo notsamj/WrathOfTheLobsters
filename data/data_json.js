@@ -61,7 +61,7 @@ const RETRO_GAME_DATA = {
         "shot_damage": 0.75,
         "stab_damage": 1,
         "max_seed": 100000, // Self-explanatory
-        "seed": 51596,  // null for random seed, 24873 is good (on 10 size)
+        "seed": 91102,  // null for random seed, 24873 is good (on 10 size)
         "pistol_sway_acceleration_constant": 0.4,
         "musket_sway_acceleration_constant": 0.4,
         "camera": {
@@ -88,8 +88,8 @@ const RETRO_GAME_DATA = {
                 "shoot_tile_selection_f": 5, // f value for function 1 / x^f for biasing a random selection
                 "can_hit_mult": 1, // multiplier for shooting-tiles where you can hit the enemies
                 "from_me_route_mult": -1/15, // multiplier for shooting-tiles that are further from the bot
-                "from_enemy_route_mult": 1/15, // multiplier for shooting-tiles that have a longer route from the enemy of the bot
-                "from_enemy_mult": 1/21, // multiplier for shooting-tiles that are further from the enemy of the bot
+                "from_enemy_route_mult": 1/15 * 0.5, // multiplier for shooting-tiles that have a longer route from the enemy of the bot
+                "from_enemy_mult": 1/64 * 1/21 * 0.25, // multiplier for shooting-tiles that are further from the enemy of the bot
                 "angle_range_mult": 1/60, // multiplier for shooting-tiles that have a larger breadth which which to aim at an enemy
                 "nearest_single_cover_mult": -1/15, // multiplier for shooting-tiles that are far from single cover
                 "nearest_multi_cover_mult": -1/15, // multiplier for shooting-tiles that are far from mutli cover
@@ -615,7 +615,8 @@ const RETRO_GAME_DATA = {
     },
 
     "user_chosen_settings": {
-        "gore": false // Off by default
+        "gore": false, // Off by default,
+        "cursor_enabled": true // On by default
     },
 
     "extra_settings": [
@@ -628,7 +629,12 @@ const RETRO_GAME_DATA = {
             "name": "active_sound_display",
             "path": ["sound_data", "active_sound_display", "enabled"],
             "type": "on_off"
-        }
+        },
+        {
+            "name": "cursor_enabled",
+            "path": ["user_chosen_settings", "cursor_enabled"],
+            "type": "on_off"
+        },
     ],
 
     "inventory": {

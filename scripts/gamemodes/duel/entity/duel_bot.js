@@ -25,7 +25,8 @@ class DuelBot extends DuelCharacter {
                     "gun": {
                         "trying_to_aim": false,
                         "trying_to_shoot": false,
-                        "trying_to_reload": false
+                        "trying_to_reload": false,
+                        "cancel_reload": false
                     }
                 }
             }
@@ -134,18 +135,28 @@ class DuelBot extends DuelCharacter {
         this.botDecisionDetails["decisions"]["right"] = false;
         this.botDecisionDetails["decisions"]["sprint"] = false;
         this.botDecisionDetails["decisions"]["breaking_stride"] = false;
+
         this.botDecisionDetails["decisions"]["weapons"]["sword"]["trying_to_swing_sword"] = false;
         this.botDecisionDetails["decisions"]["weapons"]["sword"]["trying_to_block"] = false;
+
+        this.botDecisionDetails["decisions"]["weapons"]["gun"]["trying_to_aim"] = false;
+        this.botDecisionDetails["decisions"]["weapons"]["gun"]["trying_to_shoot"] = false;
+        this.botDecisionDetails["decisions"]["weapons"]["gun"]["trying_to_reload"] = false;
+        this.botDecisionDetails["decisions"]["weapons"]["gun"]["cancel_reload"] = false;
     }
     
     makeDecisions(){
         if (this.getGamemode().isOver()){ return; }
         if (this.isDisabled()){ return; }
-        this.resetDecisions();
+        // Reset then make bot decisions
         this.resetBotDecisions();
         this.botDecisions();
+
+        // Reset then make decisions (based on bot decisions)
+        this.resetDecisions();
         this.makeMovementDecisions();
         this.inventory.makeDecisions();
+        // Make decisions foe held item
         if (this.inventory.hasSelectedItem()){
             this.inventory.getSelectedItem().makeDecisions();
         }
@@ -597,6 +608,10 @@ class DuelBot extends DuelCharacter {
     }
 
     makeGunFightingDecisions(){
+        console.log("got to mgfd", this.getCurrentTick(), this.getModel())
+        if (GENERAL_DEBUGGER.getOrCreateValue("debug_active") && GENERAL_DEBUGGER.getOrCreateValue("debug_model") === this.getModel()){
+            debugger;
+        }
         // No decisions to be made when not at rest
         if (this.isBetweenTiles()){ return; }
 
@@ -605,6 +620,7 @@ class DuelBot extends DuelCharacter {
 
         // Assume if currently aiming I'd like to continue unless disabled elsewhere
         let myGun = this.getInventory().getSelectedItem();
+        console.log("Is aiming", myGun.isAiming(), myGun.getDecision("trying_to_aim"), myGun.directionToAimIsOk(),!myGun.player.isMoving() , !myGun.isReloading())
         this.botDecisionDetails["decisions"]["weapons"]["gun"]["trying_to_aim"] = myGun.isAiming();
 
         let scene = this.getScene();
@@ -633,6 +649,7 @@ class DuelBot extends DuelCharacter {
 
             // If I am aiming
             if (myGun.isAiming()){
+                console.log("Yes I am aiming")
                 if (canHitEnemyIfIAimAndShoot){
                     // Turn to proper direction
                     if (this.getFacingDirection() != bestVisualDirection){
@@ -692,11 +709,12 @@ class DuelBot extends DuelCharacter {
                                 - Add apply a random function to select (like in Skirmish choosing a move)
                                     -> Move to new tile
                     */
-                    let b4 = Date.now();
+                    //let b4 = Date.now();
                     let newTile = this.determineTileToStandAndShootFrom(enemyTileX, enemyTileY, myGun);
-                    console.log("after", Date.now()-b4)
-                    let newTileIsTheSame = newTile["tile_x"] === this.getTileX() && newTile["tile_y"] === this.getTileY();
+                    //console.log("after", Date.now()-b4)
                     
+                    let newTileIsTheSame = newTile["tile_x"] === this.getTileX() && newTile["tile_y"] === this.getTileY();
+                    console.log("Going to", newTile, canHitEnemyIfIAimAndShoot, newTileIsTheSame)
                     // I can hit the enemy if I start aiming
                     if (canHitEnemyIfIAimAndShoot && newTileIsTheSame){
                         // Turn to proper direction
@@ -709,6 +727,7 @@ class DuelBot extends DuelCharacter {
                         // Set angle
                         this.botDecisionDetails["decisions"]["weapons"]["gun"]["aiming_angle_rad"] = speculationResult["best_angle"];
                         this.botDecisionDetails["decisions"]["weapons"]["gun"]["trying_to_aim"] = this.getRandomEventManager().getResultExpectedMS(RETRO_GAME_DATA["duel"]["ai"]["good_shot_try_to_aim_delay_ms"]);
+                        //console.log("working on aiming", this.botDecisionDetails["decisions"]["weapons"]["gun"]["trying_to_aim"], RETRO_GAME_DATA["duel"]["ai"]["good_shot_try_to_aim_delay_ms"])
                     }
                     // Move to new tile
                     else{
@@ -813,7 +832,7 @@ class DuelBot extends DuelCharacter {
             let tileCenterX = scene.getCenterXOfTile(tileX);
             let tileCenterY = scene.getCenterYOfTile(tileY);
 
-            let routeDistanceFromEnemy = this.generateShortestRouteFromPointToPoint(tileX, tileY, enemyTileX, enemyTileY);
+            let routeDistanceFromEnemy = this.generateShortestRouteFromPointToPoint(tileX, tileY, enemyTileX, enemyTileY).getMovementDistance();
 
             let realDistanceFromEnemy = calculateEuclideanDistance(enemyCenterXAtTile, enemyCenterYAtTile, tileCenterX, tileCenterY);
 
@@ -850,6 +869,9 @@ class DuelBot extends DuelCharacter {
 
             // Add the score
             tile["score"] = score;
+            if (isNaN(score)){
+                debugger;
+            }
         }
 
         let biggestToSmallestScore = (tile1, tile2) => {
@@ -929,7 +951,7 @@ class DuelBot extends DuelCharacter {
             let tileCenterY = scene.getCenterYOfTile(tileY);
 
             //let routeDistanceFromEnemy = 0;
-            let routeDistanceFromEnemy = this.generateShortestRouteFromPointToPoint(tileX, tileY, enemyTileX, enemyTileY);
+            let routeDistanceFromEnemy = this.generateShortestRouteFromPointToPoint(tileX, tileY, enemyTileX, enemyTileY).getMovementDistance();
 
             let realDistanceFromEnemy = calculateEuclideanDistance(enemyCenterXAtTile, enemyCenterYAtTile, tileCenterX, tileCenterY);
 
@@ -972,6 +994,9 @@ class DuelBot extends DuelCharacter {
 
             // Add the score
             tile["score"] = score;
+            if (isNaN(score)){
+                debugger;
+            }
         }
 
         let biggestToSmallestScore = (tile1, tile2) => {
@@ -1522,15 +1547,26 @@ class DuelBot extends DuelCharacter {
     isHuman(){return true;}
 
     makePistolDecisions(){
-        let tryingToAim = false;
-        let tryingToShoot = false;
-        let tryingToReload = false;
+        let tryingToAim = this.botDecisionDetails["decisions"]["weapons"]["gun"]["trying_to_aim"];
+        let tryingToShoot = this.botDecisionDetails["decisions"]["weapons"]["gun"]["trying_to_shoot"];
+        let tryingToReload = this.botDecisionDetails["decisions"]["weapons"]["gun"]["trying_to_reload"];
+        let tryingToCancelReload = this.botDecisionDetails["decisions"]["weapons"]["gun"]["cancel_reload"];
+        let aimingAngleRAD = this.botDecisionDetails["decisions"]["weapons"]["gun"]["aiming_angle_rad"];
+        console.log("Transferring aiming", tryingToAim, this.getCurrentTick(), this.getModel());
+        if (tryingToAim){
+            GENERAL_DEBUGGER.setValue("debug_model", this.getModel());
+            GENERAL_DEBUGGER.setValue("debug_active", true);
+        }
         this.amendDecisions({
             "trying_to_aim": tryingToAim,
             "trying_to_shoot": tryingToShoot,
             "trying_to_reload": tryingToReload,
-            "aiming_angle_rad": 0
+            "aiming_angle_rad": aimingAngleRAD,
+            "cancel_reload": tryingToCancelReload
         });
+        if (tryingToAim){
+            console.log("Did it work", this.getInventory().getSelectedItem().getDecision("trying_to_aim"));
+        }
     }
 
     makeMusketDecisions(){

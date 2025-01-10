@@ -177,7 +177,7 @@ class MenuManager {
             if (TICK_SCHEDULER.isPaused()){
                 TICK_SCHEDULER.unpause();
             }
-            enableCursor = true; // TEMP NORMALLY FALSE
+            enableCursor = RETRO_GAME_DATA["user_chosen_settings"]["cursor_enabled"];
             this.activeMenu = null;
         }else if (newMenu == "game_maker"){
             this.activeMenu = this.gameMakerMenu;
@@ -186,7 +186,7 @@ class MenuManager {
         }else if (newMenu == "extraSettings"){
             this.activeMenu = this.extraSettingsMenu;
         }else{
-            enableCursor = true; // TEMP NORMALLY FALSE
+            enableCursor = RETRO_GAME_DATA["user_chosen_settings"]["cursor_enabled"];
             this.activeMenu = null;
         }
         document.getElementById("canvas").style.cursor = (enableCursor ? "" : "none");

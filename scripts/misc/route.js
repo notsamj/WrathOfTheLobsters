@@ -36,6 +36,10 @@ class Route {
         return this.tileSequence.length;
     }
 
+    getMovementDistance(){
+        return this.getLength() - 1;
+    }
+
     isEmpty(){
         return this.getLength() === 0;
     }

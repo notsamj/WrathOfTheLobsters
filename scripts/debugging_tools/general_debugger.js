@@ -1,6 +1,7 @@
 class GeneralDebugger {
     constructor(){
         this.switches = [];
+        this.values = [];
     }
 
 
@@ -13,6 +14,28 @@ class GeneralDebugger {
         let newSwitch = new GeneralDebuggerSwitch(switchName);
         this.switches.push(newSwitch);
         return newSwitch;
+    }
+
+    getOrCreateValueJSON(jsonValueName){
+        for (let valueObj of this.values){
+            if (valueObj["name"] === jsonValueName){
+                return valueObj;
+            }
+        }
+        let newValue = { "name": jsonValueName };
+        newValue["value"] = undefined;
+        this.values.push(newValue);
+        return newValue;
+    }
+
+    getOrCreateValue(jsonValueName){
+        let valueObj = this.getOrCreateValueJSON(jsonValueName);
+        return valueObj["value"];
+    }
+
+    setValue(jsonValueName, value){
+        let valueObj = this.getOrCreateValueJSON(jsonValueName);
+        valueObj["value"] = value;
     }
 }
 

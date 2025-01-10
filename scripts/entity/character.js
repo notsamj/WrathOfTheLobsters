@@ -85,6 +85,85 @@ class Character extends Entity {
         return !this.getScene().tileAtLocationHasAttribute(tileX, tileY, "no_walk");
     }
 
+    exploreAvailableTiles(maxRouteLength, startTileX, startTileY){
+        if (maxRouteLength === undefined){
+            throw new Error("Please supply a valid max route length.");
+        }
+
+        if (startTileX === undefined){
+            debugger;
+            throw new Error("Please supply a start tile x.");
+        }
+
+        if (startTileY === undefined){
+            throw new Error("Please supply a start tile y.");
+        }
+
+        let knownTiles = new NotSamXYSortedArrayList();
+        let edgeTiles = new NotSamLinkedList();
+            
+        // Init
+        edgeTiles.push({"tile_x": startTileX, "tile_y": startTileY});
+        knownTiles.set(startTileX, startTileY, {"tile_x": startTileX, "tile_y": startTileY, "shortest_path": [{"tile_x": startTileX, "tile_y": startTileY}]});
+
+        let selectTile = () => {
+            let chosenIndex = null;
+            let bestPathLength = null;
+
+            // Find the tile with the lowest path length
+            for (let i = 0; i < edgeTiles.getLength(); i++){
+                let edgeTile = edgeTiles.get(i);
+                let edgeTileX = edgeTile["tile_x"];
+                let edgeTileY = edgeTile["tile_y"];
+                let pathLength = knownTiles.get(edgeTileX, edgeTileY)["shortest_path"].length - 1;
+                if (bestPathLength === null || pathLength < bestPathLength){
+                    bestPathLength = pathLength;
+                    chosenIndex = i;
+                }
+            }
+            return edgeTiles.pop(chosenIndex);
+        }
+
+        let exploreTiles = (bestTile) => {
+            let bestTileX = bestTile["tile_x"];
+            let bestTileY = bestTile["tile_y"];
+            let bestTilePath = knownTiles.get(bestTileX, bestTileY)["shortest_path"];
+            let bestTilePathLength = bestTilePath.length - 1;
+            // If we can't add any tiles without exceeding the best path length then don't continue
+            if (bestTilePathLength === maxRouteLength){
+                return;
+            }
+
+            let adjacentTiles = [[bestTileX+1,bestTileY], [bestTileX-1, bestTileY], [bestTileX, bestTileY+1], [bestTileX, bestTileY-1]];
+
+            for (let adjacentTile of adjacentTiles){
+                let adjacentTileX = adjacentTile[0];
+                let adjacentTileY = adjacentTile[1];
+                // Check if walkable
+                if (this.getScene().tileAtLocationHasAttribute(adjacentTileX, adjacentTileY, "no_walk")){
+                    continue;
+                }
+                // If it is known then ignore
+                if (knownTiles.has(adjacentTileX, adjacentTileY)){
+                    continue;
+                }
+
+                // Add to known tiles
+                knownTiles.set(adjacentTileX, adjacentTileY, {"tile_x": adjacentTileX, "tile_y": adjacentTileY, "shortest_path": appendLists(bestTilePath, [{"tile_x": adjacentTileX, "tile_y": adjacentTileY}])});
+
+                // Add to edge tiles
+                edgeTiles.push({"tile_x": adjacentTileX, "tile_y": adjacentTileY});
+            }
+        }
+
+        // Keep looping while edge tiles exist
+        while (edgeTiles.getLength() > 0){
+            let currentTile = selectTile();
+            exploreTiles(currentTile);
+        }
+        return knownTiles.toList();
+    }
+
     generateShortestRouteFromPointToPoint(startTileX, startTileY, endTileX, endTileY, routeLengthLimit=Number.MAX_SAFE_INTEGER){
         if (startTileX === endTileX && startTileY === endTileY){ return Route.fromPath([{"tile_x": startTileX, "tile_y": startTileY}]); }
         if (!this.canWalkOnTile(startTileX, startTileY)){ throw new Error("Invalid start tile."); }
@@ -259,13 +338,16 @@ class Character extends Entity {
             let previousTileX = previousData["previous_tile_x"];
             let previousTileY = previousData["previous_tile_y"];
 
-            let hasPreviousTile = true;
+            let hasPreviousTile = (previousTileX != null && previousTileY != null);
             while (hasPreviousTile){
                 // Add tile to front of the list
                 startPath.unshift({"tile_x": previousTileX, "tile_y": previousTileY});
 
                 // Go to next
                 previousData = knownPathsFromStart.get(previousTileX, previousTileY);
+                if (previousData === null){
+                    debugger;
+                }
                 previousTileX = previousData["previous_tile_x"];
                 previousTileY = previousData["previous_tile_y"];
 
@@ -280,13 +362,16 @@ class Character extends Entity {
             previousTileX = previousData["previous_tile_x"];
             previousTileY = previousData["previous_tile_y"];
 
-            hasPreviousTile = true;
+            hasPreviousTile = (previousTileX != null && previousTileY != null);
             while (hasPreviousTile){
                 // Add tile to back of the list
                 endPath.push({"tile_x": previousTileX, "tile_y": previousTileY});
 
                 // Go to next
                 previousData = knownPathsFromEnd.get(previousTileX, previousTileY);
+                if (previousData === null){
+                    debugger;
+                }
                 previousTileX = previousData["previous_tile_x"];
                 previousTileY = previousData["previous_tile_y"];
 

@@ -282,84 +282,6 @@ class DuelBot extends DuelCharacter {
         stateDataJSON["last_checked_enemy_y"] = null;
     }
 
-    exploreAvailableTiles(maxRouteLength, startTileX, startTileY){
-        if (maxRouteLength === undefined){
-            throw new Error("Please supply a valid max route length.");
-        }
-
-        if (startTileX === undefined){
-            debugger;
-            throw new Error("Please supply a start tile x.");
-        }
-
-        if (startTileY === undefined){
-            throw new Error("Please supply a start tile y.");
-        }
-
-        let knownTiles = new NotSamXYSortedArrayList();
-        let edgeTiles = new NotSamLinkedList();
-            
-        // Init
-        edgeTiles.push({"tile_x": startTileX, "tile_y": startTileY});
-        knownTiles.set(startTileX, startTileY, {"tile_x": startTileX, "tile_y": startTileY, "shortest_path": [{"tile_x": startTileX, "tile_y": startTileY}]});
-
-        let selectTile = () => {
-            let chosenIndex = null;
-            let bestPathLength = null;
-
-            // Find the tile with the lowest path length
-            for (let i = 0; i < edgeTiles.getLength(); i++){
-                let edgeTile = edgeTiles.get(i);
-                let edgeTileX = edgeTile["tile_x"];
-                let edgeTileY = edgeTile["tile_y"];
-                let pathLength = knownTiles.get(edgeTileX, edgeTileY)["shortest_path"].length - 1;
-                if (bestPathLength === null || pathLength < bestPathLength){
-                    bestPathLength = pathLength;
-                    chosenIndex = i;
-                }
-            }
-            return edgeTiles.pop(chosenIndex);
-        }
-
-        let exploreTiles = (bestTile) => {
-            let bestTileX = bestTile["tile_x"];
-            let bestTileY = bestTile["tile_y"];
-            let bestTilePath = knownTiles.get(bestTileX, bestTileY)["shortest_path"];
-            let bestTilePathLength = bestTilePath.length - 1;
-            // If we can't add any tiles without exceeding the best path length then don't continue
-            if (bestTilePathLength === maxRouteLength){
-                return;
-            }
-
-            let adjacentTiles = [[bestTileX+1,bestTileY], [bestTileX-1, bestTileY], [bestTileX, bestTileY+1], [bestTileX, bestTileY-1]];
-
-            for (let adjacentTile of adjacentTiles){
-                let adjacentTileX = adjacentTile[0];
-                let adjacentTileY = adjacentTile[1];
-                // Check if walkable
-                if (this.getScene().tileAtLocationHasAttribute(adjacentTileX, adjacentTileY, "no_walk")){
-                    continue;
-                }
-                // If it is known then ignore
-                if (knownTiles.has(adjacentTileX, adjacentTileY)){
-                    continue;
-                }
-
-                // Add to known tiles
-                knownTiles.set(adjacentTileX, adjacentTileY, {"tile_x": adjacentTileX, "tile_y": adjacentTileY, "shortest_path": appendLists(bestTilePath, [{"tile_x": adjacentTileX, "tile_y": adjacentTileY}])});
-
-                // Add to edge tiles
-                edgeTiles.push({"tile_x": adjacentTileX, "tile_y": adjacentTileY});
-            }
-        }
-
-        // Keep looping while edge tiles exist
-        while (edgeTiles.getLength() > 0){
-            let currentTile = selectTile();
-            exploreTiles(currentTile);
-        }
-        return knownTiles.toList();
-    }
 
     getEnemy(){
         // If I've already saved the enemy in storage then just return it
@@ -498,9 +420,21 @@ class DuelBot extends DuelCharacter {
             "best_angle": null
         }
 
+        let directAngleRAD = displacementToRadians(enemyCenterX - gunEndX, enemyCenterY-gunEndY);
+
+        let enemy = this.getEnemy();
+        // if gun end is inside enemy hitbox
+        if (pointInRectangle(gunEndX, gunEndY, enemyCenterX - enemy.getWidth()/2, enemyCenterX + enemy.getWidth()/2, enemyCenterY - enemy.getHeight()/2, enemyCenterY + enemy.getHeight()/2)){
+            return {
+                "can_hit": true,
+                "left_angle": 0,
+                "right_angle": 2 * Math.PI,
+                "best_angle": directAngleRAD
+            }
+        }
+
         let distance = calculateEuclideanDistance(enemyCenterX, enemyCenterY, gunEndX, gunEndY);
 
-        let directAngleRAD = displacementToRadians(enemyCenterX - gunEndX, enemyCenterY-gunEndY);
         // Add angle directly to enemy center
         anglesToCheck.push(directAngleRAD);
 
@@ -791,12 +725,12 @@ class DuelBot extends DuelCharacter {
         let allTiles = this.exploreAvailableTiles(this.getMaxSearchPathLength(), this.getTileX(), this.getTileY());
 
         // Combination scores
-        let fromEnemyRouteMult = RETRO_GAME_DATA["duel"]["ai"]["route_tile_section"]["from_enemy_route_mult"]; // positive
-        let fromEnemyMult = RETRO_GAME_DATA["duel"]["ai"]["route_tile_section"]["from_enemy_mult"]; // positive
-        let canHitMult = RETRO_GAME_DATA["duel"]["ai"]["route_tile_section"]["can_hit_mult"]; // negative
-        let angleRangeMult = RETRO_GAME_DATA["duel"]["ai"]["route_tile_section"]["angle_range_mult"]; // negative
-        let inSingleCoverMult = RETRO_GAME_DATA["duel"]["ai"]["route_tile_section"]["in_single_cover_mult"]; // positive 
-        let inMultiCoverMult = RETRO_GAME_DATA["duel"]["ai"]["route_tile_section"]["in_multi_cover_mult"]; // positive
+        let fromEnemyRouteMult = RETRO_GAME_DATA["duel"]["ai"]["reload_tile_selection"]["from_enemy_route_mult"]; // positive
+        let fromEnemyMult = RETRO_GAME_DATA["duel"]["ai"]["reload_tile_selection"]["from_enemy_mult"]; // positive
+        let canHitMult = RETRO_GAME_DATA["duel"]["ai"]["reload_tile_selection"]["can_hit_mult"]; // negative
+        let angleRangeMult = RETRO_GAME_DATA["duel"]["ai"]["reload_tile_selection"]["angle_range_mult"]; // negative
+        let inSingleCoverMult = RETRO_GAME_DATA["duel"]["ai"]["reload_tile_selection"]["in_single_cover_mult"]; // positive 
+        let inMultiCoverMult = RETRO_GAME_DATA["duel"]["ai"]["reload_tile_selection"]["in_multi_cover_mult"]; // positive
 
         let scene = this.getScene();
         let enemyLeftX = scene.getXOfTile(enemyTileX);
@@ -876,9 +810,9 @@ class DuelBot extends DuelCharacter {
         }
 
         // Else from current tile and pick randomly
-        let xStart = RETRO_GAME_DATA["duel"]["ai"]["route_tile_section"]["shoot_tile_selection_x_start"];
-        let xEnd = RETRO_GAME_DATA["duel"]["ai"]["route_tile_section"]["shoot_tile_selection_x_end"];
-        let f = RETRO_GAME_DATA["duel"]["ai"]["route_tile_section"]["shoot_tile_selection_f"];
+        let xStart = RETRO_GAME_DATA["duel"]["ai"]["reload_tile_selection"]["shoot_tile_selection_x_start"];
+        let xEnd = RETRO_GAME_DATA["duel"]["ai"]["reload_tile_selection"]["shoot_tile_selection_x_end"];
+        let f = RETRO_GAME_DATA["duel"]["ai"]["reload_tile_selection"]["shoot_tile_selection_f"];
         let randomIndex = biasedIndexSelection(xStart, xEnd, f, allTiles.length, this.getRandom());
         chosenTile = allTiles[randomIndex];
 
@@ -939,11 +873,6 @@ class DuelBot extends DuelCharacter {
 
             //let routeDistanceFromEnemy = 0;
             let routeDistanceFromEnemy = this.generateShortestRouteFromPointToPoint(tileX, tileY, enemyTileX, enemyTileY);
-            let old = this.generateShortestRouteFromPointToPointOld(tileX, tileY, enemyTileX, enemyTileY);
-            console.log(routeDistanceFromEnemy, old);
-            if ((old === null) != (routeDistanceFromEnemy === null) || (routeDistanceFromEnemy.getLength() != old.getLength())){
-                debugger;
-            }
 
             let realDistanceFromEnemy = calculateEuclideanDistance(enemyCenterXAtTile, enemyCenterYAtTile, tileCenterX, tileCenterY);
 
@@ -1184,7 +1113,7 @@ class DuelBot extends DuelCharacter {
                 let adjacentTileY = adjacentTile[1];
                 // Check if walkable
                 if (this.getScene().tileAtLocationHasAttribute(adjacentTileX, adjacentTileY, "no_walk")){ continue; }
-                
+
                 // It's valid
 
                 let knownPathsList;

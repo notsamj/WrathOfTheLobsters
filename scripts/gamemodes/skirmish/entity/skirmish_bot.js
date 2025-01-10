@@ -49,134 +49,6 @@ class SkirmishBot extends SkirmishCharacter {
         }
     }
 
-    exploreAvailableTiles(range=this.walkingBar.getMaxValue()){
-        let tiles = [];
-        let startTileX = this.tileX;
-        let startTileY = this.tileY;
-
-        let addAdjacentTilesAsUnchecked = (tileX, tileY, pathToTile, startToEnd) => {
-            tryToAddTile(tileX+1, tileY, pathToTile, startToEnd);
-            tryToAddTile(tileX-1, tileY, pathToTile, startToEnd);
-            tryToAddTile(tileX, tileY+1, pathToTile, startToEnd);
-            tryToAddTile(tileX, tileY-1, pathToTile, startToEnd);
-        }
-
-        let getTileIndex = (tileX, tileY) => {
-            for (let i = 0; i < tiles.length; i++){
-                if (tiles[i]["tile_x"] == tileX && tiles[i]["tile_y"] == tileY){
-                    return i;
-                }
-            }
-            return -1;
-        }
-
-        let tileAlreadyChecked = (tileX, tileY, startToEnd) => {
-            let tileIndex = getTileIndex(tileX, tileY);
-            if (tileIndex == -1){ return false; }
-            return tiles[tileIndex]["checked"][startToEnd.toString()];
-        }
-
-        let tileCanBeWalkedOn = (tileX, tileY) => {
-            return !this.getScene().tileAtLocationHasAttribute(tileX, tileY, "no_walk");
-        }
-
-        let tileTooFar = (pathToTileLength) => {
-            return pathToTileLength + 1 > range;
-        }
-
-        let tryToAddTile = (tileX, tileY, pathToTile, startToEnd=true) => {
-            if (!tileCanBeWalkedOn(tileX, tileY)){ return; }
-            if (tileAlreadyChecked(tileX, tileY, startToEnd)){ return; }
-            if (tileTooFar(pathToTile.length)){ return; }
-            let tileIndex = getTileIndex(tileX, tileY);
-            let newPath;
-            if (startToEnd){
-                newPath = appendLists(pathToTile, [{"tile_x": tileX, "tile_y": tileY}]);
-            }else{
-                newPath = appendLists([{"tile_x": tileX, "tile_y": tileY}], pathToTile);
-            }
-            // If the tile has not been found then add
-            if (tileIndex == -1){
-                tiles.push({
-                    "tile_x": tileX,
-                    "tile_y": tileY,
-                    "checked": {
-                        "true": false,
-                        "false": false
-                    },
-                    "path_direction": startToEnd,
-                    "shortest_path": newPath
-                });
-            }else{
-                let tileObj = tiles[tileIndex];
-                if (tileObj["path_direction"] != startToEnd){
-                    tileObj["checked"][startToEnd.toString()] = true;
-                    let forwardPath;
-                    let backwardPath;
-                    // If function called on a forward path
-                    if (startToEnd){
-                        forwardPath = copyArray(newPath);
-                        backwardPath = copyArray(tileObj["shortest_path"]);
-                    }else{
-                        forwardPath = copyArray(tileObj["shortest_path"]);
-                        backwardPath = copyArray(newPath);
-                    }
-
-                    // Shift the first element out from backward path to avoid having the same tile twice
-                    backwardPath.shift();
-
-                    let combinedPath = appendLists(forwardPath, backwardPath);
-                    let bestPath = getBestPath();
-                    let newLength = combinedPath.length;
-                    if (bestPath == null || bestPath.length > newLength){
-                        // Set start tile path
-                        startTile["path_direction"] = false; 
-                        startTile["shortest_path"] = combinedPath;
-                        // Set end tile path
-                        endTile["path_direction"] = true; 
-                        endTile["shortest_path"] = combinedPath;
-                    }
-                }
-                // see if the path is worth replacing
-                if (tileObj["shortest_path"].length > newPath.length){
-                    tileObj["shortest_path"] = newPath;
-                    tileObj["path_direction"] = startToEnd;
-                }
-            }
-        }
-
-        let hasUncheckedTiles = () => {
-            for (let tile of tiles){
-                // if tile hasn't been checked in its current direction
-                if (!tile["checked"][tile["path_direction"].toString()]){
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        let pickTile = () => {
-            let chosenTile = null;
-            for (let tile of tiles){
-                if (!tile["checked"][tile["path_direction"].toString()]){
-                    chosenTile = tile;
-                    break;
-                }
-            }
-            return chosenTile;
-        }
-
-        // Add first tile
-        tryToAddTile(startTileX, startTileY, []);
-        let startTile = tiles[0];
-        while (hasUncheckedTiles()){
-            let currentTile = pickTile();
-            currentTile["checked"][currentTile["path_direction"].toString()] = true;
-            addAdjacentTilesAsUnchecked(currentTile["tile_x"], currentTile["tile_y"], currentTile["shortest_path"], currentTile["path_direction"]);
-        }
-        return tiles;
-    }
-
     generateSelectedTroopsSets(possibleEndTiles){
         let troopSetsData = [];
         // Note: Using "lots" of storage but really not much its kinda wasteful though
@@ -229,7 +101,7 @@ class SkirmishBot extends SkirmishCharacter {
     async generatePlan(){
         // Indicate that the plan is being created
         this.planLock.lock();
-        let possibleEndTiles = this.exploreAvailableTiles();
+        let possibleEndTiles = this.exploreAvailableTiles(this.walkingBar.getRange(), this.getStartX(), this.getStartY());
 
         let comparisonFunction = (element1, element2) => {
             if (element1["value"] < element2["value"]){

@@ -1,9 +1,7 @@
 Right now:
-	Make all pathfinding functions more efficient especially with lookups
-		Also lots of binary search
+	Overhaul program to consider that squares DO NOT HAVE CENTERS
 	Make hiding cursor an option in settings
-	Make explore tiles more efficient
-	Make determineTileToStandAndShootFrom optimized
+	Test determineTileToStandAndShootFrom optimization
 	Add cancel reload decision like the break_stride
 
 	Route types

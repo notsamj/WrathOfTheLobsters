@@ -12,7 +12,7 @@ class WTLGameScene {
         return this.entities;
     }
 
-    findInstantCollisionForProjectileWithTargets(startX, startY, angleRAD, range=Number.MAX_SAFE_INTEGER, entityExceptionFunction=(entity) => { return false; }){
+    findInstantCollisionForProjectile(startX, startY, angleRAD, range=Number.MAX_SAFE_INTEGER, entityExceptionFunction=(entity) => { return false; }){
         let targetEntities = [];
         for (let [entity, entityIndex] of this.entities){
             if (entity.isDead()){ continue; }
@@ -770,11 +770,11 @@ class WTLGameScene {
     }
 
     getCenterXOfTile(tileX){
-        return this.getXOfTile(tileX) + RETRO_GAME_DATA["general"]["tile_size"]/2;
+        return this.getXOfTile(tileX) + (RETRO_GAME_DATA["general"]["tile_size"]-1)/2;
     }
 
     getCenterYOfTile(tileY){
-        return this.getYOfTile(tileY) - RETRO_GAME_DATA["general"]["tile_size"]/2;
+        return this.getYOfTile(tileY) - (RETRO_GAME_DATA["general"]["tile_size"]-1)/2;
     }
 
     getDisplayYFromTileY(bY, tileY){

@@ -309,38 +309,6 @@ function getNumKeys(obj){
 }
 
 /*
-    Method Name: angleBetweenCCWDEG
-    Method Parameters:
-        angle:
-            An angle in degrees
-        eAngle1:
-            An angle on one edge of a range
-        eAngle2:
-            An angle on the other edge of a range
-    Method Description: Determines if angle is between eAngle1 and eAngle2 in the counter clockwise direction (inclusive)
-    Method Return: boolean, true -> angle is between, false -> angle is not between
-*/
-function angleBetweenCCWDEG(angle, eAngle1, eAngle2){
-    angle = fixDegrees(Math.floor(angle));
-    eAngle1 = fixDegrees(Math.floor(eAngle1));
-    eAngle2 = fixDegrees(Math.floor(eAngle2));
-    let tAngle = eAngle1;
-    if (tAngle == eAngle2){
-        return true;
-    }
-    while (tAngle != eAngle2){
-        if (tAngle == angle){
-            return true;
-        }
-        tAngle += 1;
-        if (tAngle == 360){
-            tAngle = 0;
-        }
-    }
-    return false;
-}
-
-/*
     Method Name: angleBetweenCCWRAD
     Method Parameters:
         angle:
@@ -661,55 +629,12 @@ function getScreenHeight(){
     return window.innerHeight;
 }
 
-/*
-    Method Name: getDegreesFromDisplacement
-    Method Parameters:
-        dX:
-            Displacement in x
-        dY:
-            Displacement in y
-    Method Description: Determines the angle [0,359] from a x and y displacement
-    Method Return: int
-*/
-function getDegreesFromDisplacement(dX, dY){
-    let dXAbs = Math.abs(dX);
-    let dYAbs = Math.abs(dY);
-    if (dXAbs < 1){
-        return dY > 0 ? 90 : 270;
-    }else if (dYAbs < 1){
-        return dX > 0 ? 0 : 180;
-    }
-    let angle = Math.atan(dYAbs / dXAbs);
-    let angleDEG = toDegrees(angle);
-    if (dX < 0 && dY > 0){ // Quadrant 2
-        return fixDegrees(180 - angleDEG);
-    }else if (dX < 0 && dY < 0){ // Quadrant 3
-        return fixDegrees(180 + angleDEG);
-    }else if (dX > 0 && dY < 0){ // Quadrant 4
-        return fixDegrees(360 - angleDEG);
-    }else{ // Quadrant 1
-        return fixDegrees(angleDEG);
-    }
-}
-
 function reverseList(myList){
     let newList = [];
     for (let i = myList.length - 1; i >= 0; i--){
         newList.push(myList[i]);
     }
     return newList;
-}
-
-/*
-    Method Name: planeModelToType
-    Method Parameters:
-        model:
-            The model of a plane
-    Method Description: Determines the type of plane, given a model
-    Method Return: String
-*/
-function planeModelToType(model){
-    return RETRO_GAME_DATA["plane_data"][model]["type"];
 }
 
 /*
@@ -867,20 +792,6 @@ function fixRadians(angle){
 }
 
 /*
-    Method Name: displacementToDegrees
-    Method Parameters:
-        dX:
-            The displacement in x
-        dY:
-            The displacement in y
-    Method Description: Creates a copy of an array
-    Method Return: int
-*/
-function displacementToDegrees(dX, dY){
-    return fixDegrees(toDegrees(displacementToRadians(dX, dY)));
-}
-
-/*
     Method Name: displacementToRadians
     Method Parameters:
         dX:
@@ -940,101 +851,6 @@ function randomNumber(maxExclusive){
     return randomNumberInclusive(0, maxExclusive-1);
 }
 
-/*
-    Method Name: onSameTeam
-    Method Parameters:
-        class1:
-            Plane type of the first plane
-        class2:
-            Plane type of the second plane
-    Method Description: Determines if two planes are on the same team
-    Method Return: boolean, True -> On same team, False -> Not on the same team
-*/
-function onSameTeam(class1, class2){
-    return countryToAlliance(RETRO_GAME_DATA["plane_data"][class1]["country"]) == countryToAlliance(RETRO_GAME_DATA["plane_data"][class2]["country"]);
-}
-
-/*
-    Method Name: calculateAngleDiffDEG
-    Method Parameters:
-        angle1:
-            An angle in degrees
-        angle2:
-            An angle in degrees
-    Method Description: Calculates the difference between two angles in degrees
-    Method Return: int
-*/
-function calculateAngleDiffDEG(angle1, angle2){
-    let diff = Math.max(angle1, angle2) - Math.min(angle1, angle2);
-    if (diff > 180){
-        diff = 360 - diff;
-    }
-    return diff;
-}
-
-/*
-    Method Name: calculateAngleDiffDEGCCW
-    Method Parameters:
-        angle1:
-            An angle in degrees
-        angle2:
-            An angle in degrees
-    Method Description: Calculates the difference between two angles in degrees (in the counter clockwise direction)
-    Method Return: int
-*/
-function calculateAngleDiffDEGCCW(angle1, angle2){
-    angle1 = Math.floor(angle1);
-    angle2 = Math.floor(angle2);
-    let diff = 0;
-    while (angle1 != Math.floor(angle2)){
-        angle1 += 1;
-        diff += 1;
-        while (angle1 >= 360){
-            angle1 -= 360;
-        }
-    }
-
-    return diff;
-}
-
-/*
-    Method Name: calculateAngleDiffDEGCW
-    Method Parameters:
-        angle1:
-            An angle in degrees
-        angle2:
-            An angle in degrees
-    Method Description: Calculates the difference between two angles in degrees (in the clockwise direction)
-    Method Return: int
-*/
-function calculateAngleDiffDEGCW(angle1, angle2){
-    angle1 = Math.floor(angle1);
-    angle2 = Math.floor(angle2);
-    let diff = 0;
-    while (angle1 != Math.floor(angle2)){
-        angle1 -= 1;
-        diff += 1;
-        while (angle1 < 0){
-            angle1 += 360;
-        }
-    }
-
-    return diff;
-}
-
-/*
-    Method Name: rotateCWDEG
-    Method Parameters:
-        angle:
-            Angle to rotate
-        amount:
-            Amount to rotate by
-    Method Description: Rotates an angle clockwise by an amount
-    Method Return: int
-*/
-function rotateCWDEG(angle, amount){
-    return fixDegrees(angle - amount);
-}
 
 /*
     Method Name: rotateCWRAD
@@ -1064,83 +880,6 @@ function rotateCCWRAD(angle, amount){
     return fixRadians(angle + amount);
 }
 
-/*
-    Method Name: rotateCCWDEG
-    Method Parameters:
-        angle:
-            Angle to rotate
-        amount:
-            Amount to rotate by
-    Method Description: Rotates an angle counter clockwise by an amount
-    Method Return: int
-*/
-function rotateCCWDEG(angle, amount){
-    return fixDegrees(angle + amount);
-}
-
-/*
-    Method Name: angleBetweenCCWDEG
-    Method Parameters:
-        angle:
-            An angle in degrees
-        eAngle1:
-            An angle on one edge of a range
-        eAngle2:
-            An angle on the other edge of a range
-    Method Description: Determines if angle is between eAngle1 and eAngle2 in the clockwise direction (inclusive)
-    Method Return: boolean, true -> angle is between, false -> angle is not between
-*/
-function angleBetweenCCWDEG(angle, eAngle1, eAngle2){
-    angle = fixDegrees(Math.floor(angle));
-    eAngle1 = fixDegrees(Math.floor(eAngle1));
-    eAngle2 = fixDegrees(Math.floor(eAngle2));
-    let tAngle = eAngle1;
-    if (tAngle == eAngle2){
-        return true;
-    }
-    while (tAngle != eAngle2){
-        if (tAngle == angle){
-            return true;
-        }
-        tAngle += 1;
-        if (tAngle == 360){
-            tAngle = 0;
-        }
-    }
-    return false;
-}
-
-/*
-    Method Name: angleBetweenCWDEG
-    Method Parameters:
-        angle:
-            An angle in degrees
-        eAngle1:
-            An angle on one edge of a range
-        eAngle2:
-            An angle on the other edge of a range
-    Method Description: Determines if angle is between eAngle1 and eAngle2 in the clockwise direction (inclusive)
-    Method Return: boolean, true -> angle is between, false -> angle is not between
-*/
-function angleBetweenCWDEG(angle, eAngle1, eAngle2){
-    angle = fixDegrees(Math.floor(angle));
-    eAngle1 = fixDegrees(Math.floor(eAngle1));
-    eAngle2 = fixDegrees(Math.floor(eAngle2));
-    let tAngle = eAngle1
-    if (tAngle == eAngle2){
-        return true;
-    }
-    while (tAngle != eAngle2){
-        if (tAngle == angle){
-            return true;
-        }
-        tAngle -= 1;
-        if (tAngle == -1){
-            tAngle = 359;
-        }
-    }
-    return false;
-}
 
 /*
     Method Name: lessThanDir
@@ -1212,40 +951,48 @@ function randomFloatBetween(lowerBound, upperBound){
     return Math.random() * (upperBound - lowerBound) + lowerBound;
 }
 
-/*
-    Method Name: countryToAlliance
-    Method Parameters:
-        country:
-            A string representing a country name
-    Method Description: Find the alliance for a given country
-    Method Return: String
-*/
-function countryToAlliance(country){
-    return RETRO_GAME_DATA["country_to_alliance"][country];
+function calculateAngleDiffRAD(angle1, angle2){
+    let diff = Math.max(angle1, angle2) - Math.min(angle1, angle2);
+    if (diff > Math.PI){
+        diff = 2*Math.PI - diff;
+    }
+    return diff;
 }
 
 /*
-    Method Name: planeModelToCountry
+    Method Name: calculateAngleDiffCWRAD
     Method Parameters:
-        planeModel:
-            A string representing a plane type
-    Method Description: Find the country for a given plane model
-    Method Return: String
+        angle1:
+            An angle in radians
+        angle2:
+            An angle in radians
+    Method Description: Calculate the distance in radians from angle1 to angle2
+    Method Return: Float
 */
-function planeModelToCountry(planeModel){
-    return RETRO_GAME_DATA["plane_data"][planeModel]["country"];
+function calculateAngleDiffCWRAD(angle1, angle2){
+    if (angle2 > angle1){
+        angle2 -= 2 * Math.PI;
+    }
+    let difference = (angle2 - angle1) / -1;
+    return difference;
 }
 
 /*
-    Method Name: planeModelToAlliance
+    Method Name: calculateAngleDiffCCWRAD
     Method Parameters:
-        planeModel:
-            A string representing a plane type
-    Method Description: Find the alliance for a given plane model
-    Method Return: String
+        angle1:
+            An angle in radians
+        angle2:
+            An angle in radians
+    Method Description: Calculate the distance in radians from angle1 to angle2
+    Method Return: Float
 */
-function planeModelToAlliance(planeModel){
-    return countryToAlliance(planeModelToCountry(planeModel));
+function calculateAngleDiffCCWRAD(angle1, angle2){
+    if (angle2 < angle1){
+        angle2 += 2 * Math.PI;
+    }
+    let difference = angle2 - angle1;
+    return difference;
 }
 
 /*
@@ -1268,25 +1015,13 @@ if (typeof window === "undefined"){
         toDegrees,
         fixDegrees,
         fixRadians,
-        displacementToDegrees,
         displacementToRadians,
         randomNumberInclusive,
         randomNumber,
-        onSameTeam,
-        calculateAngleDiffDEG,
-        calculateAngleDiffDEGCW,
-        calculateAngleDiffDEGCCW,
-        rotateCWDEG,
-        rotateCCWDEG,
-        angleBetweenCWDEG,
-        angleBetweenCCWDEG,
         lessThanDir,
         lessThanEQDir,
         nextIntInDir,
         randomFloatBetween,
-        countryToAlliance,
-        planeModelToCountry,
-        planeModelToAlliance,
         sleep,
         listMean,
         listMedian,
@@ -1303,7 +1038,6 @@ if (typeof window === "undefined"){
         getScreenWidth,
         getScreenHeight,
         getDegreesFromDisplacement,
-        planeModelToType,
         copyArray,
         getImage
     }

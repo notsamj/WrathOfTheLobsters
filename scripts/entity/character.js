@@ -680,27 +680,27 @@ class Character extends Entity {
     }
 
     getInterpolatedCenterX(){
-        return this.getInterpolatedX() + this.getImage().width / 2;
+        return this.getInterpolatedX() + (this.getImage().width - 1) / 2;
     }
 
     getInterpolatedCenterY(){
-        return this.getInterpolatedY() - this.getImage().height / 2;
+        return this.getInterpolatedY() - (this.getImage().height - 1) / 2;
     }
 
     getInterpolatedTickCenterX(){
-        return this.getInterpolatedTickX() + this.getImage().width / 2;
+        return this.getInterpolatedTickX() + (this.getImage().width - 1) / 2;
     }
 
     getInterpolatedTickCenterY(){
-        return this.getInterpolatedTickY() - this.getImage().height / 2;
+        return this.getInterpolatedTickY() - (this.getImage().height - 1) / 2;
     }
 
     getX(){
-        return this.getInterpolatedX() + this.getImage().width / 2;
+        return this.getInterpolatedCenterX();
     }
 
     getY(){
-        return this.getInterpolatedTickY() - this.getImage().height / 2;
+        return this.getInterpolatedCenterY();
     }
 
     tick(){

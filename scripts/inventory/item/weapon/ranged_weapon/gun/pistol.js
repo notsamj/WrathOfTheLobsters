@@ -128,7 +128,7 @@ class Pistol extends Gun {
 
     getEndOfGunX(){
         let playerDirection = this.player.getFacingDirection();
-        let playerAimingAngleRAD = this.getDecidedAngleRAD();
+        let playerAimingAngleRAD = this.getSwayedAngleRAD();
         let gunDirection;
 
         // Determine if using the right gun image or left gun image
@@ -161,7 +161,7 @@ class Pistol extends Gun {
 
     getEndOfGunY(){
         let playerDirection = this.player.getFacingDirection();
-        let playerAimingAngleRAD = this.getDecidedAngleRAD();
+        let playerAimingAngleRAD = this.getSwayedAngleRAD();
         let gunDirection;
 
         // Determine if using the right gun image or left gun image

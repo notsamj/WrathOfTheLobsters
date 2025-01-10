@@ -423,8 +423,17 @@ class DuelBot extends DuelCharacter {
         let directAngleRAD = displacementToRadians(enemyCenterX - gunEndX, enemyCenterY-gunEndY);
 
         let enemy = this.getEnemy();
+        let enemyHitbox = enemy.getUpdatedHitbox();
+
+        let enemyLeftX = enemyCenterX - (enemy.getWidth()-1)/2;
+        let enemyRightX = enemyLeftX + (enemy.getWidth()-1);
+        let enemyTopY = enemyCenterY + (enemy.getHeight()-1)/2;
+        let enemyBottomY = enemyTopY - (enemy.getHeight()-1);
+
+        // Update with known info
+        enemyHitbox.update(enemyLeftX, enemyTopY);
         // if gun end is inside enemy hitbox
-        if (pointInRectangle(gunEndX, gunEndY, enemyCenterX - enemy.getWidth()/2, enemyCenterX + enemy.getWidth()/2, enemyCenterY - enemy.getHeight()/2, enemyCenterY + enemy.getHeight()/2)){
+        if (enemyHitbox.coversPoint(gunEndX, gunEndY)){
             return {
                 "can_hit": true,
                 "left_angle": 0,
@@ -445,30 +454,85 @@ class DuelBot extends DuelCharacter {
         let leftAngle;
         let rightAngle;
         let paddingSize = 1;
-        let leftSideX = enemyCenterX - RETRO_GAME_DATA["general"]["tile_size"] + paddingSize; // 1 padding;
-        let rightSideX = enemyCenterX + RETRO_GAME_DATA["general"]["tile_size"] - paddingSize; // 1 padding;
-        let bottomSideY = enemyCenterY - RETRO_GAME_DATA["general"]["tile_size"] + paddingSize; // 1 padding;
-        let topSideY = enemyCenterY + RETRO_GAME_DATA["general"]["tile_size"] - paddingSize; // 1 padding;
-       
-        // If the direct angle is in quadrant 1
-        if (inQ1){
-            leftAngle = displacementToRadians(leftSideX-gunEndX, topSideY-gunEndY);
-            rightAngle = displacementToRadians(rightSideX-gunEndX, bottomSideY-gunEndY);
+
+        // Add pading
+        let paddedEnemyLeftX = enemyCenterX - (enemy.getWidth()-1)/2;
+        let paddedEnemyRightX = enemyLeftX + (enemy.getWidth()-1);
+        let paddedEnemyTopY = enemyCenterY + (enemy.getHeight()-1)/2;
+        let paddedEnemyBottomY = enemyTopY - (enemy.getHeight()-1);
+
+        let insideX = gunEndX >= enemyLeftX && gunEndX <= enemyRightX;
+        let insideY = gunEndY >= enemyBottomY && gunEndY <= enemyTopY;
+        let outside = !(insideX || insideY);
+
+        // If the gunX and gunY are totally outside enemy boundaries
+        if (outside){
+            // If the direct angle is in quadrant 1
+            if (inQ1){
+                leftAngle = displacementToRadians(paddedEnemyLeftX-gunEndX, paddedEnemyTopY-gunEndY);
+                rightAngle = displacementToRadians(paddedEnemyRightX-gunEndX, paddedEnemyBottomY-gunEndY);
+            }
+            // If the direct angle is in quadrant 2
+            else if (inQ2){
+                leftAngle = displacementToRadians(paddedEnemyLeftX-gunEndX, paddedEnemyBottomY-gunEndY);
+                rightAngle = displacementToRadians(paddedEnemyRightX-gunEndX, paddedEnemyTopY-gunEndY);
+            }
+            // If the direct angle is in quadrant 3
+            else if (inQ3){
+                leftAngle = displacementToRadians(paddedEnemyRightX-gunEndX, paddedEnemyBottomY-gunEndY);
+                rightAngle = displacementToRadians(paddedEnemyLeftX-gunEndX, paddedEnemyTopY-gunEndY);
+            }
+            // Else its in quadrant 4
+            else{
+                leftAngle = displacementToRadians(paddedEnemyRightX-gunEndX, paddedEnemyTopY-gunEndY);
+                rightAngle = displacementToRadians(paddedEnemyLeftX-gunEndX, paddedEnemyBottomY-gunEndY);
+            }
         }
-        // If the direct angle is in quadrant 2
-        else if (inQ2){
-            leftAngle = displacementToRadians(leftSideX-gunEndX, bottomSideY-gunEndY);
-            rightAngle = displacementToRadians(rightSideX-gunEndX, topSideY-gunEndY);
+        // Else if the gunX is inside the enemy x boundaries
+        else if (insideX){
+            // If the direct angle is in quadrant 1
+            if (inQ1){
+                leftAngle = displacementToRadians(paddedEnemyLeftX-gunEndX, paddedEnemyTopY-gunEndY);
+                rightAngle = displacementToRadians(paddedEnemyRightX-gunEndX, paddedEnemyTopY-gunEndY);
+            }
+            // If the direct angle is in quadrant 2
+            else if (inQ2){
+                leftAngle = displacementToRadians(paddedEnemyLeftX-gunEndX, paddedEnemyTopY-gunEndY);
+                rightAngle = displacementToRadians(paddedEnemyRightX-gunEndX, paddedEnemyTopY-gunEndY);
+            }
+            // If the direct angle is in quadrant 3
+            else if (inQ3){
+                leftAngle = displacementToRadians(paddedEnemyRightX-gunEndX, paddedEnemyBottomY-gunEndY);
+                rightAngle = displacementToRadians(paddedEnemyLeftX-gunEndX, paddedEnemyBottomY-gunEndY);
+            }
+            // Else its in quadrant 4
+            else{
+                leftAngle = displacementToRadians(paddedEnemyRightX-gunEndX, paddedEnemyBottomY-gunEndY);
+                rightAngle = displacementToRadians(paddedEnemyLeftX-gunEndX, paddedEnemyBottomY-gunEndY);
+            }
         }
-        // If the direct angle is in quadrant 3
-        else if (inQ3){
-            leftAngle = displacementToRadians(rightSideX-gunEndX, bottomSideY-gunEndY);
-            rightAngle = displacementToRadians(leftSideX-gunEndX, topSideY-gunEndY);
-        }
-        // Else its in quadrant 4
+        // Else if the gunY is inside the enemy y boundaries
         else{
-            leftAngle = displacementToRadians(rightSideX-gunEndX, topSideY-gunEndY);
-            rightAngle = displacementToRadians(leftSideX-gunEndX, bottomSideY-gunEndY);
+            // If the direct angle is in quadrant 1
+            if (inQ1){
+                leftAngle = displacementToRadians(paddedEnemyRightX-gunEndX, paddedEnemyTopY-gunEndY);
+                rightAngle = displacementToRadians(paddedEnemyRightX-gunEndX, paddedEnemyBottomY-gunEndY);
+            }
+            // If the direct angle is in quadrant 2
+            else if (inQ2){
+                leftAngle = displacementToRadians(paddedEnemyLeftX-gunEndX, paddedEnemyBottomY-gunEndY);
+                rightAngle = displacementToRadians(paddedEnemyLeftX-gunEndX, paddedEnemyTopY-gunEndY);
+            }
+            // If the direct angle is in quadrant 3
+            else if (inQ3){
+                leftAngle = displacementToRadians(paddedEnemyLeftX-gunEndX, paddedEnemyBottomY-gunEndY);
+                rightAngle = displacementToRadians(paddedEnemyLeftX-gunEndX, paddedEnemyTopY-gunEndY);
+            }
+            // Else its in quadrant 4
+            else{
+                leftAngle = displacementToRadians(paddedEnemyRightX-gunEndX, paddedEnemyTopY-gunEndY);
+                rightAngle = displacementToRadians(paddedEnemyRightX-gunEndX, paddedEnemyBottomY-gunEndY);
+            }
         }
 
         /*
@@ -486,12 +550,6 @@ class DuelBot extends DuelCharacter {
         // Add left and right angles
         anglesToCheck.push(leftAngle);
         anglesToCheck.push(rightAngle);
-
-        // Check for errors (in case I screwed up)
-        if (leftAngle-rightAngle < 0){
-            debugger;
-            throw new Error("I must've broke something: " + leftAngle + " " + rightAngle);
-        }
 
         let samplePrecision = toRadians(RETRO_GAME_DATA["duel"]["ai"]["aiming_precision_degrees"]);
 
@@ -514,7 +572,6 @@ class DuelBot extends DuelCharacter {
         anglesToCheck.sort(sortFunction);
 
         // Loop through the angle
-        let enemy = this.getEnemy();
         let targets = [{"center_x": enemyCenterX, "center_y": enemyCenterY, "width": enemy.getWidth(), "height": enemy.getHeight(), "entity": null}];
         for (let angle of anglesToCheck){
             let collision = this.getScene().findInstantCollisionForProjectileWithTargets(gunEndX, gunEndY, angle, bulletRange, targets);
@@ -772,7 +829,7 @@ class DuelBot extends DuelCharacter {
             let canBeHitByEnemyValue = 0;
             if (speculation["can_hit"]){
                 canBeHitByEnemyValue = 1;
-                angleRangeToHitEnemy = speculation["left_angle"] - speculation["right_angle"];
+                angleRangeToHitEnemy = calculateAngleDiffCCWRAD(speculation["left_angle"], speculation["right_angle"]);
             }
 
             // Single cover outside of enemy visibility
@@ -889,7 +946,7 @@ class DuelBot extends DuelCharacter {
             let canHitEnemyValue = 0;
             if (speculation["can_hit"]){
                 canHitEnemyValue = 1;
-                angleRangeToHitEnemy = speculation["left_angle"] - speculation["right_angle"];
+                angleRangeToHitEnemy = calculateAngleDiffCCWRAD(speculation["left_angle"], speculation["right_angle"]);
             }
 
             // Single cover outside of enemy visibility
@@ -1309,7 +1366,7 @@ class DuelBot extends DuelCharacter {
         let endAngle = rotateCWRAD(swingAngle, rangeRAD/2);
         let enemyWidth = this.getDataToReactTo("enemy_width");
         let enemyHeight = this.getDataToReactTo("enemy_height");
-        let enemyHitbox = new RectangleHitbox(enemyWidth, enemyHeight, enemyInterpolatedTickCenterX, enemyInterpolatedTickCenterY);
+        let enemyHitbox = new RectangleHitbox(enemyWidth, enemyHeight, enemyInterpolatedTickCenterX-(enemyWidth-1)/2, enemyInterpolatedTickCenterY+(enemyHeight-1)/2);
         let canCurrentlyHitEnemyWithSword = Sword.swordCanHitCharacter(enemyHitbox, swingHitbox, hitCenterX, hitCenterY, swingAngle, swingRange, startAngle, endAngle)
 
         let enemySwinging = this.getDataToReactTo("enemy_holding_a_sword") && this.getDataToReactTo("enemy_swinging_a_sword");

@@ -1,5 +1,4 @@
 Right now:
-	Overhaul program to consider that squares DO NOT HAVE CENTERS
 	Make hiding cursor an option in settings
 	Test determineTileToStandAndShootFrom optimization
 	Add cancel reload decision like the break_stride

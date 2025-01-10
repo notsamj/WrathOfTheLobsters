@@ -35,6 +35,12 @@ class CircleHitbox {
         this.y = y;
     }
 
+    coversPoint(x, y){
+        let xDisplacement = x - this.x;
+        let yDisplacement = y - this.y;
+        return Math.pow(xDisplacement, 2) + Math.pow(yDisplacement, 2) <= Math.pow(this.radius, 2);
+    }
+
     /*
         Method Name: collidesWith
         Method Parameters:
@@ -176,28 +182,27 @@ class RectangleHitbox {
                 The width of the rectangle hitbox
             height:
                 The height of the rectangle hitbox
-            centerX:
-                x at the center of the rectangle hitbox
-            centerY:
-                y at the center of the rectangle hitbox
+            leftX:
+                x at the left of the rectangle hitbox
+            topY:
+                y at the top of the rectangle hitbox
         Method Description: Constructor
         Method Return: Constructor
     */
-    constructor(width, height, centerX=null, centerY=null){
+    constructor(width, height, leftX=null, topY=null){
         this.x1 = -1;
         this.x2 = -1;
         this.y1 = -1;
         this.y2 = -1;
         this.width = width;
         this.height = height;
-        if (centerX != null){
-            this.x1 = centerX - this.width / 2;
-            this.x2 = centerX + this.width / 2;
+        if (leftX != null && topY != null){
+            this.update(leftX, topY);
         }
-        if (centerY != null){
-            this.y1 = centerY + this.height / 2;
-            this.y2 = centerY - this.height / 2;
-        }
+    }
+
+    coversPoint(x, y){
+        return pointInRectangle(x, y, this.x1, this.x2, this.y1, this.y2);
     }
 
     /*
@@ -227,18 +232,18 @@ class RectangleHitbox {
     /*
         Method Name: update
         Method Parameters:
-            x:
-                x value at the center of the hitbox
-            y:
-                y value at the center of the hitbox
+            leftX:
+                x value of the top left of the square
+            topY:
+                y value at the top of the square
         Method Description: Updates the position of the hitbox
         Method Return: void
     */
-    update(x, y){
-        this.x1 = x - this.width / 2;
-        this.x2 = x + this.width / 2;
-        this.y1 = y + this.height / 2;
-        this.y2 = y - this.height / 2;
+    update(leftX, topY){
+        this.x1 = leftX;
+        this.x2 = leftX + this.width - 1;
+        this.y1 = topY;
+        this.y2 = topY - this.height - 1;
     }
 
     /*

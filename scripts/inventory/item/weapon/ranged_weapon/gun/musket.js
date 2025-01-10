@@ -228,7 +228,7 @@ class Musket extends Gun {
         x += RETRO_GAME_DATA["model_positions"][this.player.getModelCategory()][this.model]["aiming"][this.player.getFacingDirection()]["x_offset"];
 
         let playerDirection = this.player.getFacingDirection();
-        let playerAimingAngleRAD = this.getDecidedAngleRAD();
+        let playerAimingAngleRAD = this.getSwayedAngleRAD();
         let gunDirection;
 
         // Determine if using the right gun image or left gun image
@@ -262,7 +262,7 @@ class Musket extends Gun {
         y += RETRO_GAME_DATA["model_positions"][this.player.getModelCategory()][this.model]["aiming"][this.player.getFacingDirection()]["y_offset"] * -1
         
         let playerDirection = this.player.getFacingDirection();
-        let playerAimingAngleRAD = this.getDecidedAngleRAD();
+        let playerAimingAngleRAD = this.getSwayedAngleRAD();
         let gunDirection;
 
         // Determine if using the right gun image or left gun image

@@ -45,9 +45,7 @@ class NotSamSortedArrayList extends NotSamArrayList {
     */
     search(value, start=0, end=this.length-1){
         // If not found
-        if (start >= end){
-            return -1;
-        }
+        if (end < 0 || start > end){ return -1; }
 
         let mid = Math.floor((start + end)/2);
         let comparisonResult = this.comparisonFunction(value, this.array[mid]);
@@ -55,6 +53,10 @@ class NotSamSortedArrayList extends NotSamArrayList {
         // If we found the value
         if (comparisonResult == 0){
             return mid;
+        }
+        // If region too small
+        else if (end === start){
+            return -1;
         }
         // End point is in the second half of the array
         else if (comparisonResult > 0){
@@ -67,8 +69,11 @@ class NotSamSortedArrayList extends NotSamArrayList {
     }
 
     findInsertionPoint(value, start=0, end=this.length){
+        // Handle empty case
+        if (end === 0){ return 0; }
+
         // If the value belongs at the back
-        if (end == this.length && end > 0 && this.comparisonFunction(value, this.array[end-1]) > 0){
+        if (end === this.length && end > 0 && this.comparisonFunction(value, this.array[end-1]) > 0){
             return end;
         }
 

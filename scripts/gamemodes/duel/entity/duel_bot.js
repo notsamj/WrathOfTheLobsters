@@ -4,6 +4,7 @@ class DuelBot extends DuelCharacter {
         this.perception = new BotPerception(this, Math.ceil(botExtraDetails["reaction_time_ms"] / calculateMSBetweenTicks()));
         this.disabled = botExtraDetails["disabled"];
         this.randomEventManager = new RandomEventManager(this.getRandom());
+        this.temporaryOperatingData = new TemporaryOperatingData();
         this.botDecisionDetails = {
             "state": "starting",
             "action" : null,
@@ -715,10 +716,41 @@ class DuelBot extends DuelCharacter {
                                     -> Move to new tile
                     */
                     //let b4 = Date.now();
-                    let newTile = this.determineTileToStandAndShootFrom(enemyTileX, enemyTileY, myGun);
+                    let newTile;
+
+                    let myTileX = this.getTileX();
+                    let myTileY = this.getTileY();
+
+                    let needToCalculate = true;
+
+                    // Check if we saved data
+                    if (this.temporaryOperatingData.has("tile_to_stand_and_shoot_from")){
+                        let dataJSON = this.temporaryOperatingData.get("tile_to_stand_and_shoot_from");
+
+                        // If the parameters are the same now as the previously calculated value
+                        if (dataJSON["enemy_tile_x"] === enemyTileX && dataJSON["enemy_tile_y"] && dataJSON["tile_x"] === myTileX && dataJSON["tile_y"] === myTileY){
+                            needToCalculate = false;
+                            newTile = dataJSON["tile"];
+                        }
+                    }
+
+                    // if I need to calculate a new tile to stand on
+                    if (needToCalculate){
+                        newTile = this.determineTileToStandAndShootFrom(enemyTileX, enemyTileY, myGun);
+                        // update saved data
+                        let dataJSON = {
+                            "tile_x": myTileX,
+                            "tile_y": myTileY,
+                            "enemy_tile_x": enemyTileX,
+                            "enemy_tile_y": enemyTileY,
+                            "tile": newTile
+                        }
+                        this.temporaryOperatingData.set("tile_to_stand_and_shoot_from", dataJSON);
+                    }
+                    
                     //console.log("after", Date.now()-b4)
                     
-                    let newTileIsTheSame = newTile["tile_x"] === this.getTileX() && newTile["tile_y"] === this.getTileY();
+                    let newTileIsTheSame = newTile["tile_x"] === myTileX && newTile["tile_y"] === myTileY;
                 
                     // I can hit the enemy if I start aiming
                     if (canHitEnemyIfIAimAndShoot && newTileIsTheSame){
@@ -743,7 +775,7 @@ class DuelBot extends DuelCharacter {
                         stateDataJSON["route"] = Route.fromPath(newTile["shortest_path"]);
 
                         // Move based on this new route
-                        this.updateFromRouteDecision(stateDataJSON["route"].getDecisionAt(this.getTileX(), this.getTileY()));
+                        this.updateFromRouteDecision(stateDataJSON["route"].getDecisionAt(myTileX, myTileY));
                     }
                 }
             }

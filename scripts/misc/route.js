@@ -17,6 +17,10 @@ class Route {
         return -1;
     }
 
+    getTile(tileIndex){
+        return this.tileSequence[tileIndex];
+    }
+
     getLastTile(){
         return this.tileSequence[this.getLength() - 1];
     }

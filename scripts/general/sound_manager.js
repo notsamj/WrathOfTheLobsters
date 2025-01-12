@@ -114,7 +114,7 @@ class SoundManager {
         let activeSounds = [];
         for (let sound of this.sounds){
             // Skip sounds that are not active
-            if (!sound.isRunning()){ continue; }
+            if (!sound.isRunning() && sound.getKeepDisplayingLock().isUnlocked()){ continue; }
             activeSounds.push({"name": sound.getName(), "play_time": sound.getCurrentTime()});
         }
 
@@ -361,12 +361,18 @@ class Sound {
         this.name = soundName;
         this.ongoing = soundType == "ongoing";
         this.lastPlayed = 0;
+        this.keepDisplayingLock = new CooldownLock(RETRO_GAME_DATA["sound_data"]["extra_display_time_ms"]);
         // Audio will be {} if opened in NodeJS
         this.audio = (typeof window != "undefined") ? new Audio(RETRO_GAME_DATA["sound_data"]["url"] + "/" + this.name + RETRO_GAME_DATA["sound_data"]["file_type"]) : {};
         this.running = false;
         this.volume = getLocalStorage(soundName, 0);
         this.adjustByMainVolume(mainVolume);
         this.preparedToPause = true;
+    }
+
+
+    getKeepDisplayingLock(){
+        return this.keepDisplayingLock;
     }
 
     /*
@@ -390,6 +396,7 @@ class Sound {
         this.lastPlayed = Date.now();
         this.preparedToPause = false;
         if (this.isRunning() || this.volume === 0){ return; }
+        this.keepDisplayingLock.lock();
         this.audio.play();
         this.running = true;
     }
@@ -468,8 +475,8 @@ class Sound {
     */
     prepareToPause(){
         if (!this.ongoing){ return; }
-        // Check if its been 1s since last played then ready to dismiss
-        if (Date.now() < this.lastPlayed + 100){ // Just using 100ms as the standard TODO: Save this in a data file
+        // Check if its been 100ms since last played then ready to dismiss
+        if (Date.now() < this.lastPlayed + RETRO_GAME_DATA["sound_data"]["last_played_delay_ms"]){ // Just using 100ms as the standard TODO: Save this in a data file
             return;
         }
         this.preparedToPause = true;

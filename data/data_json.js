@@ -11,7 +11,7 @@ const RETRO_GAME_DATA = {
                     "muskets": [],
                     "bot_extra_details": {
                         "disabled": false,
-                        "reaction_time_ms": 50
+                        "reaction_time_ms": 500
                     }
                 },
                 {
@@ -61,7 +61,7 @@ const RETRO_GAME_DATA = {
         "shot_damage": 0.75,
         "stab_damage": 1,
         "max_seed": 100000, // Self-explanatory
-        "seed": 91102,  // null for random seed, 24873 is good (on 10 size)
+        "seed": 23126,  // null for random seed, 24873 is good (on 10 size)
         "pistol_sway_acceleration_constant": 0.4,
         "musket_sway_acceleration_constant": 0.4,
         "camera": {
@@ -75,18 +75,15 @@ const RETRO_GAME_DATA = {
             "adjust_close_duel_delay_ms": 500, // The bots are locked too close. Expected delay before making a pivot.
             "expected_adjacent_pivot_ms": 100, // The bots are probably diagonal to one another. They can hit but it's better to move closer
             "aiming_precision_degrees": 3, // The number of degrees the bot is able to adjust between two angles when searching for targets
-            "shot_take_function_a_constant": 5, // 'a' constant for determine how long a bot expects to wait before firing a shot giving a hit probability
-            "shot_take_function_b_constant": 0.2, // 'b' constant for determine how long a bot expects to wait before firing a shot giving a hit probability
+            "shot_take_function_a_constant": 10, // 'a' constant for determine how long a bot expects to wait before firing a shot giving a hit probability
+            "shot_take_function_b_constant": 0.3, // 'b' constant for determine how long a bot expects to wait before firing a shot giving a hit probability
             "stop_aiming_no_target_ms": 2000, // The bot is expected to stop aiming after some time if it cannot hit the enemy
             "good_shot_try_to_aim_delay_ms": 100, // Expected time to wait to start aiming when you have a good shot
-            "multi_cover_search_route_distance": 10, // Max route distance to search for multi cover from a tile
-            "single_cover_search_route_distance": 10, // Max route distance to search for single cover from a tile
-            "physical_cover_search_route_distance": 10, // Max route distance to search for a physically blocked location from a tile
             "shoot_tile_selection": {
                 "shoot_tile_selection_x_start": 0.25, // x start for function 1 / x^f for biasing a random selection
                 "shoot_tile_selection_x_end": 3, // x end for function 1 / x^f for biasing a random selection
                 "shoot_tile_selection_f": 5, // f value for function 1 / x^f for biasing a random selection
-                "can_hit_mult": 1, // multiplier for shooting-tiles where you can hit the enemies
+                "can_hit_mult": 5, // multiplier for shooting-tiles where you can hit the enemies
                 "from_me_route_mult": -1/15, // multiplier for shooting-tiles that are further from the bot
                 "from_enemy_route_mult": 1/15 * 0.5, // multiplier for shooting-tiles that have a longer route from the enemy of the bot
                 "from_enemy_mult": 1/64 * 1/21 * 0.25, // multiplier for shooting-tiles that are further from the enemy of the bot
@@ -94,20 +91,22 @@ const RETRO_GAME_DATA = {
                 "nearest_single_cover_mult": -1/15, // multiplier for shooting-tiles that are far from single cover
                 "nearest_multi_cover_mult": -1/15, // multiplier for shooting-tiles that are far from mutli cover
                 "nearest_physical_cover_mult": -1/15, // multiplier for shooting-tiles that are far from physical cover
-                "multi_cover_search_route_distance": 7, // Max route distance when searching for multicover
-                "single_cover_search_route_distance": 7, // Max route distance when searching for singlecover
-                "physical_cover_search_route_distance": 7, // Max route distance when searching for physical cover
+                "multi_cover_search_route_distance": 5, // Max route distance when searching for multicover
+                "single_cover_search_route_distance": 5, // Max route distance when searching for singlecover
+                "physical_cover_search_route_distance": 5, // Max route distance when searching for physical cover
+                "on_tile_multiplier": 2 // multiplier for reloading-tiles that are currently stood on
             },
             "reload_tile_selection": {
-                "from_enemy_route_mult": 1, // multiplier for reloading-tiles that have a long route from the enemy
-                "from_enemy_mult": 1, // multiplier for reloading-tiles that are far from the enemy
+                "from_enemy_route_mult": 1/15 * 0.5, // multiplier for reloading-tiles that have a long route from the enemy
+                "from_enemy_mult": 1/64 * 1/21 * 0.25, // multiplier for reloading-tiles that are far from the enemy
                 "can_hit_mult": -1, // multiplier for reloading-tiles that can be hit by the enemy
-                "angle_range_mult": -1, // multiplier for reloading-tiles that have a broad range of attack for the enemy
-                "in_single_cover_mult": 1, // multiplier for reloading-tiles that are in single cover (far from the enemy)
-                "in_multi_cover_mult": 1, // multiplier for reloading-tiles that are in multi cover that the enemy is not in
+                "angle_range_mult": -1/60, // multiplier for reloading-tiles that have a broad range of attack for the enemy
+                "in_single_cover_mult": 6, // multiplier for reloading-tiles that are in single cover (far from the enemy)
+                "in_multi_cover_mult": 1.5, // multiplier for reloading-tiles that are in multi cover that the enemy is not in
                 "shoot_tile_selection_x_start": 0.25, // x start value for function 1 / x^f for biasing a random selection
                 "shoot_tile_selection_x_end": 3, // x end value for function 1 / x^f for biasing a random selection
-                "shoot_tile_selection_f": 5 // f value for function 1 / x^f for biasing a random selection
+                "shoot_tile_selection_f": 5, // f value for function 1 / x^f for biasing a random selection
+                "on_tile_multiplier": 2 // multiplier for reloading-tiles that are currently stood on
             }
         }
     },
@@ -591,6 +590,8 @@ const RETRO_GAME_DATA = {
         ],
         "url": "./sounds",
         "file_type": ".mp3",
+        "last_played_delay_ms": 100, // Extra time to wait before preparing to pause a sound
+        "extra_display_time_ms": 1000, // Min time to display a sound
         "active_sound_display": {
             "enabled": false, // off by default,
             "num_slots": 2, // Will show information for $num_slots sounds and an indicator if more sounds are active

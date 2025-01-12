@@ -421,7 +421,7 @@ class DuelBot extends DuelCharacter {
         });
     }
 
-    speculateOnHittingEnemy(bulletRange, enemyCenterX, enemyCenterY, gunEndX, gunEndY){
+    speculateOnHittingEnemy(bulletRange, enemyCenterX, enemyCenterY, gunEndX, gunEndY, visualDirectionToFace){
         let anglesToCheck = [];
 
         let result = {
@@ -430,6 +430,9 @@ class DuelBot extends DuelCharacter {
             "right_angle": null,
             "best_angle": null
         }
+
+        let lA = Gun.getLeftAngleForVisualDirection(visualDirectionToFace);
+        let rA = Gun.getRightAngleForVisualDirection(visualDirectionToFace);
 
         let directAngleRAD = displacementToRadians(enemyCenterX - gunEndX, enemyCenterY-gunEndY);
 
@@ -447,9 +450,9 @@ class DuelBot extends DuelCharacter {
         if (enemyHitbox.coversPoint(gunEndX, gunEndY)){
             return {
                 "can_hit": true,
-                "left_angle": 0,
-                "right_angle": 2 * Math.PI,
-                "best_angle": directAngleRAD
+                "left_angle": lA,
+                "right_angle": rA,
+                "best_angle": rotateCWRAD(lA, calculateAngleDiffCCWRAD(rA, lA)/2)
             }
         }
 
@@ -585,6 +588,8 @@ class DuelBot extends DuelCharacter {
         // Loop through the angle
         let targets = [{"center_x": enemyCenterX, "center_y": enemyCenterY, "width": enemy.getWidth(), "height": enemy.getHeight(), "entity": null}];
         for (let angle of anglesToCheck){
+            // if the angle isn't between the two allowable angles then skip
+            if (!angleBetweenCCWRAD(angle, rA, lA)){ continue; }
             let collision = this.getScene().findInstantCollisionForProjectileWithTargets(gunEndX, gunEndY, angle, bulletRange, targets);
             if (collision["collision_type"] === "entity"){
                 canHit = true;
@@ -608,10 +613,6 @@ class DuelBot extends DuelCharacter {
     }
 
     makeGunFightingDecisions(){
-        console.log("got to mgfd", this.getCurrentTick(), this.getModel())
-        if (GENERAL_DEBUGGER.getOrCreateValue("debug_active") && GENERAL_DEBUGGER.getOrCreateValue("debug_model") === this.getModel()){
-            debugger;
-        }
         // No decisions to be made when not at rest
         if (this.isBetweenTiles()){ return; }
 
@@ -620,7 +621,9 @@ class DuelBot extends DuelCharacter {
 
         // Assume if currently aiming I'd like to continue unless disabled elsewhere
         let myGun = this.getInventory().getSelectedItem();
-        console.log("Is aiming", myGun.isAiming(), myGun.getDecision("trying_to_aim"), myGun.directionToAimIsOk(),!myGun.player.isMoving() , !myGun.isReloading())
+        if (this.getDecision("trying_to_aim") && !myGun.isAiming() && GENERAL_DEBUGGER.getOrCreateValue("debug_active")){
+            debugger;
+        }
         this.botDecisionDetails["decisions"]["weapons"]["gun"]["trying_to_aim"] = myGun.isAiming();
 
         let scene = this.getScene();
@@ -643,13 +646,15 @@ class DuelBot extends DuelCharacter {
             let pos = myGun.getSimulatedGunEndPosition(playerLeftX, playerTopY, bestVisualDirection, angleToEnemyTileCenter);
             let gunEndX = pos["x"];
             let gunEndY = pos["y"];
-            let speculationResult = this.speculateOnHittingEnemy(myGun.getBulletRange(), enemyInterpolatedTickCenterX, enemyInterpolatedTickCenterY, gunEndX, gunEndY);
+            let speculationResult = this.speculateOnHittingEnemy(myGun.getBulletRange(), enemyInterpolatedTickCenterX, enemyInterpolatedTickCenterY, gunEndX, gunEndY, bestVisualDirection);
             let canHitEnemyIfIAimAndShoot = speculationResult["can_hit"];
 
 
             // If I am aiming
             if (myGun.isAiming()){
-                console.log("Yes I am aiming")
+                if (GENERAL_DEBUGGER.getOrCreateValue("debug_active")){
+                    debugger;
+                }
                 if (canHitEnemyIfIAimAndShoot){
                     // Turn to proper direction
                     if (this.getFacingDirection() != bestVisualDirection){
@@ -659,7 +664,7 @@ class DuelBot extends DuelCharacter {
                     }
 
                     // Allow bot to see the magnitude of current offset
-                    let mySwayOffsetMagnitude = Math.abs(this.getCurrentAngleOffsetRAD());
+                    let mySwayOffsetMagnitude = Math.abs(myGun.getCurrentAngleOffsetRAD());
                     let myChanceOfHittingAShot = calculateRangeOverlapProportion(speculationResult["right_angle"], speculationResult["left_angle"], speculationResult["best_angle"] - mySwayOffsetMagnitude/2, speculationResult["best_angle"] + mySwayOffsetMagnitude/2);
                     let shotAConstant = RETRO_GAME_DATA["duel"]["ai"]["shot_take_function_a_constant"];
                     let shotBConstant = RETRO_GAME_DATA["duel"]["ai"]["shot_take_function_b_constant"];
@@ -714,7 +719,7 @@ class DuelBot extends DuelCharacter {
                     //console.log("after", Date.now()-b4)
                     
                     let newTileIsTheSame = newTile["tile_x"] === this.getTileX() && newTile["tile_y"] === this.getTileY();
-                    console.log("Going to", newTile, canHitEnemyIfIAimAndShoot, newTileIsTheSame)
+                
                     // I can hit the enemy if I start aiming
                     if (canHitEnemyIfIAimAndShoot && newTileIsTheSame){
                         // Turn to proper direction
@@ -766,7 +771,7 @@ class DuelBot extends DuelCharacter {
                 let notAtEndOfRoute = reloadPositionIsBasedOnCurrentData && (routeLastTile["tile_x"] != this.getTileX() || routeLastTile["tile_y"] != this.getTileY());
 
                 // If our current objective is to move to a reload position
-                if (movingToBetterPosition && betterPositionIsBasedOnCurrentData && notAtEndOfRoute){
+                if (movingToReloadPosition && reloadPositionIsBasedOnCurrentData && notAtEndOfRoute){
                     this.updateFromRouteDecision(stateDataJSON["route"].getDecisionAt(this.getTileX(), this.getTileY()));
                 }
                 // We are not currently persuing a pre-determined route
@@ -774,11 +779,10 @@ class DuelBot extends DuelCharacter {
                     let newTile = this.determineTileToReloadFrom(enemyTileX, enemyTileY);
 
                     let newTileIsTheSame = newTile["tile_x"] === this.getTileX() && newTile["tile_y"] === this.getTileY();
-                    
                     // If new tile is where we currently are then start reloading
                     if (newTileIsTheSame){
                         // Start reloading
-                        this.botDecisionDetails["decisions"]["weapons"]["gun"]["reload"] = true;
+                        this.botDecisionDetails["decisions"]["weapons"]["gun"]["trying_to_reload"] = true;
                     }else{
                         // Create a new route
                         stateDataJSON["current_objective"] = "move_to_reload_position";
@@ -807,6 +811,7 @@ class DuelBot extends DuelCharacter {
         let angleRangeMult = RETRO_GAME_DATA["duel"]["ai"]["reload_tile_selection"]["angle_range_mult"]; // negative
         let inSingleCoverMult = RETRO_GAME_DATA["duel"]["ai"]["reload_tile_selection"]["in_single_cover_mult"]; // positive 
         let inMultiCoverMult = RETRO_GAME_DATA["duel"]["ai"]["reload_tile_selection"]["in_multi_cover_mult"]; // positive
+        let onTileMult = RETRO_GAME_DATA["duel"]["ai"]["shoot_tile_selection"]["on_tile_multiplier"]; // positive
 
         let scene = this.getScene();
         let enemyLeftX = scene.getXOfTile(enemyTileX);
@@ -815,6 +820,8 @@ class DuelBot extends DuelCharacter {
         let enemyCenterYAtTile = scene.getCenterYOfTile(enemyTileY);
 
         let enemyVisibilityDistance = this.getGamemode().getEnemyVisibilityDistance();
+
+        let gun = this.getInventory().getSelectedItem();
 
         let singleCoverFunction = (tileX, tileY) => {
             return scene.tileAtLocationHasAttribute(tileX, tileY, "single_cover") && calculateEuclideanDistance(enemyTileX, enemyTileY, tileX, tileY) > enemyVisibilityDistance;
@@ -843,7 +850,7 @@ class DuelBot extends DuelCharacter {
             let gunEndX = pos["x"];
             let gunEndY = pos["y"];
             let bulletRange = gun.getBulletRange();
-            let speculation = this.speculateOnHittingEnemy(bulletRange, tileCenterX, tileCenterY, gunEndX, gunEndY);
+            let speculation = this.speculateOnHittingEnemy(bulletRange, tileCenterX, tileCenterY, gunEndX, gunEndY, visualDirectionToFace);
             let angleRangeToHitEnemy = 0;
             let canBeHitByEnemyValue = 0;
             if (speculation["can_hit"]){
@@ -856,6 +863,8 @@ class DuelBot extends DuelCharacter {
 
             let inMutliCoverValue = (this.getScene().tileAtLocationHasAttribute(tileX, tileY, "multi_cover") ? 1 : 0);
         
+            let onTile = (this.getTileX() === tileX && this.getTileY() === tileY) ? 1 : 0;
+        
             let score = 0;
 
             // Add linear combination
@@ -866,6 +875,7 @@ class DuelBot extends DuelCharacter {
             score += canBeHitByEnemyValue * canHitMult;
             score += inSingleCoverValue * inSingleCoverMult;
             score += inMutliCoverValue * inMultiCoverMult;
+            score += onTile * onTileMult;
 
             // Add the score
             tile["score"] = score;
@@ -907,14 +917,15 @@ class DuelBot extends DuelCharacter {
         let distanceToSearchForPhysicalCover = RETRO_GAME_DATA["duel"]["ai"]["shoot_tile_selection"]["physical_cover_search_route_distance"];
 
         // Combination multipliers
-        let fromMeRouteMult = RETRO_GAME_DATA["duel"]["ai"]["shoot_tile_selection"]["from_me_route_mult"];
-        let fromEnemyRouteMult = RETRO_GAME_DATA["duel"]["ai"]["shoot_tile_selection"]["from_enemy_route_mult"];
-        let fromEnemyMult = RETRO_GAME_DATA["duel"]["ai"]["shoot_tile_selection"]["from_enemy_mult"];
-        let angleRangeMult = RETRO_GAME_DATA["duel"]["ai"]["shoot_tile_selection"]["angle_range_mult"];
-        let nearestSingleCoverMult = RETRO_GAME_DATA["duel"]["ai"]["shoot_tile_selection"]["nearest_single_cover_mult"];
-        let nearestMultiCoverMult = RETRO_GAME_DATA["duel"]["ai"]["shoot_tile_selection"]["nearest_multi_cover_mult"];
-        let nearestPhysicalCoverMult = RETRO_GAME_DATA["duel"]["ai"]["shoot_tile_selection"]["nearest_physical_cover_mult"];
-        let canHitMult = RETRO_GAME_DATA["duel"]["ai"]["shoot_tile_selection"]["can_hit_mult"];
+        let fromMeRouteMult = RETRO_GAME_DATA["duel"]["ai"]["shoot_tile_selection"]["from_me_route_mult"]; // positive
+        let fromEnemyRouteMult = RETRO_GAME_DATA["duel"]["ai"]["shoot_tile_selection"]["from_enemy_route_mult"]; // positive
+        let fromEnemyMult = RETRO_GAME_DATA["duel"]["ai"]["shoot_tile_selection"]["from_enemy_mult"]; // negative
+        let angleRangeMult = RETRO_GAME_DATA["duel"]["ai"]["shoot_tile_selection"]["angle_range_mult"]; // negative 
+        let nearestSingleCoverMult = RETRO_GAME_DATA["duel"]["ai"]["shoot_tile_selection"]["nearest_single_cover_mult"]; // positive
+        let nearestMultiCoverMult = RETRO_GAME_DATA["duel"]["ai"]["shoot_tile_selection"]["nearest_multi_cover_mult"]; // positive
+        let nearestPhysicalCoverMult = RETRO_GAME_DATA["duel"]["ai"]["shoot_tile_selection"]["nearest_physical_cover_mult"]; // positive
+        let canHitMult = RETRO_GAME_DATA["duel"]["ai"]["shoot_tile_selection"]["can_hit_mult"]; // negative
+        let onTileMult = RETRO_GAME_DATA["duel"]["ai"]["shoot_tile_selection"]["on_tile_multiplier"]; // positive
 
         let scene = this.getScene();
         let playerLeftX = scene.getXOfTile(this.getTileX());
@@ -942,6 +953,8 @@ class DuelBot extends DuelCharacter {
             return this.getScene().findInstantCollisionForProjectileWithTargets(enemyCenterXAtTile, enemyCenterYAtTile, displacementToRadians(tileX-enemyTileX, tileY-enemyTileY), enemyVisibilityDistance, targets)["collision_type"] === "physical_tile";
         }
 
+        let foundATileThatICanHitFrom = false;
+
         // Score each tile
         for (let tile of allTiles){
             let distanceFromMe = tile["shortest_path"].length;
@@ -963,11 +976,12 @@ class DuelBot extends DuelCharacter {
             let gunEndY = pos["y"];
             let bulletRange = gun.getBulletRange();
             //let speculation = {"can_hit": false}
-            let speculation = this.speculateOnHittingEnemy(bulletRange, enemyCenterXAtTile, enemyCenterYAtTile, gunEndX, gunEndY);
+            let speculation = this.speculateOnHittingEnemy(bulletRange, enemyCenterXAtTile, enemyCenterYAtTile, gunEndX, gunEndY, visualDirectionToFace);
             let angleRangeToHitEnemy = 0;
             let canHitEnemyValue = 0;
             if (speculation["can_hit"]){
                 canHitEnemyValue = 1;
+                foundATileThatICanHitFrom = true;
                 angleRangeToHitEnemy = calculateAngleDiffCCWRAD(speculation["left_angle"], speculation["right_angle"]);
             }
 
@@ -979,6 +993,9 @@ class DuelBot extends DuelCharacter {
             // Physical cover distance
             let shortestDistanceToPhyiscalCover = this.calculateShortestRouteDistanceToTileWithCondition(tileX, tileY, physicalCoverFunction, distanceToSearchForPhysicalCover);
             if (shortestDistanceToPhyiscalCover === null){ shortestDistanceToPhyiscalCover = distanceToSearchForPhysicalCover; }
+
+            let onTile = (this.getTileX() === tileX && this.getTileY() === tileY) ? 1 : 0;
+
             let score = 0;
 
             // Add linear combination
@@ -991,6 +1008,7 @@ class DuelBot extends DuelCharacter {
             score += shortestDistanceToSingleCover * nearestSingleCoverMult;
             score += shortestDistanceToMultiCover * nearestMultiCoverMult;
             score += shortestDistanceToPhyiscalCover * nearestPhysicalCoverMult;
+            score += onTile * onTileMult;
 
             // Add the score
             tile["score"] = score;
@@ -1007,6 +1025,18 @@ class DuelBot extends DuelCharacter {
         allTiles.sort(biggestToSmallestScore);
 
         let chosenTile = allTiles[0];
+
+        // If I can't find a tile to hit the enemy from
+        if (!foundATileThatICanHitFrom){
+            let routeToEnemy = this.generateShortestRouteToPoint(enemyTileX, enemyTileY);
+            if (routeToEnemy.getMovementDistance() >= 1){
+                // Get a tile in the path to enemy
+                let tile = routeToEnemy.getTile(1);
+                tile["shortest_path"] = [{"tile_x": this.getTileX(), "tile_y": this.getTileY()}, {"tile_x": tile["tile_x"], "tile_y": tile["tile_y"]}];
+                return tile;
+            }
+            return routeToEnemy.getMovementDistance()
+        }
 
         // If we are on the best one then return it
         if (chosenTile["tile_x"] === this.getTileX() && chosenTile["tile_y"] === this.getTileY()){
@@ -1552,11 +1582,6 @@ class DuelBot extends DuelCharacter {
         let tryingToReload = this.botDecisionDetails["decisions"]["weapons"]["gun"]["trying_to_reload"];
         let tryingToCancelReload = this.botDecisionDetails["decisions"]["weapons"]["gun"]["cancel_reload"];
         let aimingAngleRAD = this.botDecisionDetails["decisions"]["weapons"]["gun"]["aiming_angle_rad"];
-        console.log("Transferring aiming", tryingToAim, this.getCurrentTick(), this.getModel());
-        if (tryingToAim){
-            GENERAL_DEBUGGER.setValue("debug_model", this.getModel());
-            GENERAL_DEBUGGER.setValue("debug_active", true);
-        }
         this.amendDecisions({
             "trying_to_aim": tryingToAim,
             "trying_to_shoot": tryingToShoot,
@@ -1564,9 +1589,6 @@ class DuelBot extends DuelCharacter {
             "aiming_angle_rad": aimingAngleRAD,
             "cancel_reload": tryingToCancelReload
         });
-        if (tryingToAim){
-            console.log("Did it work", this.getInventory().getSelectedItem().getDecision("trying_to_aim"));
-        }
     }
 
     makeMusketDecisions(){

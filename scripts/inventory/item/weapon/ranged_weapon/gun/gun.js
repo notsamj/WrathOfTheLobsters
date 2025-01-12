@@ -257,17 +257,38 @@ class Gun extends RangedWeapon {
     }
 
     directionToAimIsOk(){
-        let angleTryingToAimAtDEG = toFixedDegrees(this.getDecidedAngleRAD());
-        let playerDirection = this.player.getFacingDirection();
-        if (playerDirection == "front"){
-            return angleTryingToAimAtDEG > 180 && angleTryingToAimAtDEG <= 359;
-        }else if (playerDirection == "left"){
-            return angleTryingToAimAtDEG > 90 && angleTryingToAimAtDEG < 270;
-        }else if (playerDirection == "right"){
-            return (angleTryingToAimAtDEG > 270 && angleTryingToAimAtDEG < 360) || (angleTryingToAimAtDEG >= 0 && angleTryingToAimAtDEG < 90);
-        }else if (playerDirection == "back"){
-            return angleTryingToAimAtDEG > 0 && angleTryingToAimAtDEG < 180;
+        let angleTryingToAimAtRAD = this.getDecidedAngleRAD();
+        let playerVisualDirection = this.player.getFacingDirection();
+        return Gun.isAngleValidForVisualDirection(angleTryingToAimAtRAD, playerVisualDirection);
+    }
+
+    static getLeftAngleForVisualDirection(visualDirection){
+        if (visualDirection === "front"){
+            return toRadians(0);
+        }else if (visualDirection === "left"){
+            return toRadians(270);
+        }else if (visualDirection === "right"){
+            return toRadians(90);
+        }else if (visualDirection === "back"){
+            return toRadians(180);
         }
-        throw new Error(`Invalid player direction: ${playerDirection}`);
+        throw new Error(`Invalid player direction: ${visualDirection}`);
+    }
+
+    static getRightAngleForVisualDirection(visualDirection){
+        if (visualDirection === "front"){
+            return toRadians(180);
+        }else if (visualDirection === "left"){
+            return toRadians(90);
+        }else if (visualDirection === "right"){
+            return toRadians(270);
+        }else if (visualDirection === "back"){
+            return toRadians(0);
+        }
+        throw new Error(`Invalid player direction: ${visualDirection}`);
+    }
+
+    static isAngleValidForVisualDirection(angleRAD, visualDirection){
+        return angleBetweenCCWRAD(angleRAD, toRadians(Gun.getRightAngleForVisualDirection(visualDirection)), Gun.getLeftAngleForVisualDirection(visualDirection));
     }
 }

@@ -45,7 +45,6 @@ class Character extends Entity {
     }
 
     resetDecisions(){
-        console.log("Resetting", this.getModel())
         this.amendDecisions({
             "up": false,
             "down": false,
@@ -60,10 +59,6 @@ class Character extends Entity {
     }
 
     amendDecisions(decisionObject){
-        console.log("Amending", this.getModel())
-        if (GENERAL_DEBUGGER.getOrCreateValue("debug_active") && GENERAL_DEBUGGER.getOrCreateValue("debug_model") === this.getModel()){
-            debugger;
-        }
         for (let key of Object.keys(decisionObject)){
             this.decisions[key] = decisionObject[key];
         }

@@ -1,6 +1,7 @@
 Right now:
-	Make 
-	Add cancel reload decision like the break_stride
+	Save some data to reduce computation
+
+	Add reload cancel
 
 	Route types
 		Shortest

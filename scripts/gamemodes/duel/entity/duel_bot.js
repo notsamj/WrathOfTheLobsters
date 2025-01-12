@@ -345,11 +345,65 @@ class DuelBot extends DuelCharacter {
         }
     }
 
+    considerReloadingWhileEnemyIsGone(){
+        // Return true -> Don't do anything I'm reloading false -> I'm not reloading 
+        let numGuns = 0;
+        let numGunsNeedingAReload = 0;
+        let firstUnloadedGunIndex = null;
+        let hasGunReloading = false;
+        // Loop through hotbar
+        let i = 0;
+        for (let item of this.getInventory().getItems()){
+            i++;
+            if (item === null){ continue; }
+            if (item instanceof Gun){
+                let gun = item;
+                if (!gun.isLoaded()){
+                    numGunsNeedingAReload += 1;
+                    // Set first gun instead if not set
+                    if (firstUnloadedGunIndex === null){
+                        firstUnloadedGunIndex = i - 1;
+                    }
+
+                    // Update has gun reloading
+                    hasGunReloading = hasGunReloading || gun.isReloading();
+                }
+                numGuns++;
+            }
+        }
+
+        // If no guns then do nothing
+        if (numGuns === 0 || numGunsNeedingAReload === 0){
+            return false;
+        }
+        // if it is reloading a gun then skip
+        else if (hasGunReloading){
+            return true;
+        }
+        
+        let equippedItem = this.getInventory().getSelectedItem();
+        if ((equippedItem instanceof Gun) && !equippedItem.isLoaded()){
+            // Start reloading
+            this.botDecisionDetails["decisions"]["weapons"]["gun"]["trying_to_reload"] = true;
+        }
+        // Else switch to an unloaded gun
+        else{
+            this.botDecisionDetails["decisions"]["select_slot"] = firstUnloadedGunIndex;
+        }
+        return true;
+    }
+
     searchForEnemy(){
         let stateDataJSON = this.getStateData();
         // Check if you can see the enemy otherwise move around
         let route = stateDataJSON["route"];
 
+        let advisableToReloadRatherThanFight = this.considerReloadingWhileEnemyIsGone();
+
+        // If it is advisable to reload rather than to fight at this moment then do so
+        if (advisableToReloadRatherThanFight){
+            return;
+        }
 
         // If there is an enemy location that may be worth checking
         if (this.hasDataToReactTo("enemy_location")){
@@ -622,9 +676,7 @@ class DuelBot extends DuelCharacter {
 
         // Assume if currently aiming I'd like to continue unless disabled elsewhere
         let myGun = this.getInventory().getSelectedItem();
-        if (this.getDecision("trying_to_aim") && !myGun.isAiming() && GENERAL_DEBUGGER.getOrCreateValue("debug_active")){
-            debugger;
-        }
+
         this.botDecisionDetails["decisions"]["weapons"]["gun"]["trying_to_aim"] = myGun.isAiming();
 
         let scene = this.getScene();
@@ -653,9 +705,6 @@ class DuelBot extends DuelCharacter {
 
             // If I am aiming
             if (myGun.isAiming()){
-                if (GENERAL_DEBUGGER.getOrCreateValue("debug_active")){
-                    debugger;
-                }
                 if (canHitEnemyIfIAimAndShoot){
                     // Turn to proper direction
                     if (this.getFacingDirection() != bestVisualDirection){
@@ -748,7 +797,6 @@ class DuelBot extends DuelCharacter {
                         this.temporaryOperatingData.set("tile_to_stand_and_shoot_from", dataJSON);
                     }
                     
-                    //console.log("after", Date.now()-b4)
                     
                     let newTileIsTheSame = newTile["tile_x"] === myTileX && newTile["tile_y"] === myTileY;
                 
@@ -764,7 +812,6 @@ class DuelBot extends DuelCharacter {
                         // Set angle
                         this.botDecisionDetails["decisions"]["weapons"]["gun"]["aiming_angle_rad"] = speculationResult["best_angle"];
                         this.botDecisionDetails["decisions"]["weapons"]["gun"]["trying_to_aim"] = this.getRandomEventManager().getResultExpectedMS(RETRO_GAME_DATA["duel"]["ai"]["good_shot_try_to_aim_delay_ms"]);
-                        //console.log("working on aiming", this.botDecisionDetails["decisions"]["weapons"]["gun"]["trying_to_aim"], RETRO_GAME_DATA["duel"]["ai"]["good_shot_try_to_aim_delay_ms"])
                     }
                     // Move to new tile
                     else{
@@ -801,7 +848,7 @@ class DuelBot extends DuelCharacter {
                 let reloadPositionIsBasedOnCurrentData = movingToReloadPosition && stateDataJSON["relevant_enemy_tile_x"] === enemyTileX && stateDataJSON["relevant_enemy_tile_y"] === enemyTileY;
                 let routeLastTile = reloadPositionIsBasedOnCurrentData ? (stateDataJSON["route"].getLastTile()) : null;
                 let notAtEndOfRoute = reloadPositionIsBasedOnCurrentData && (routeLastTile["tile_x"] != this.getTileX() || routeLastTile["tile_y"] != this.getTileY());
-
+                
                 // If our current objective is to move to a reload position
                 if (movingToReloadPosition && reloadPositionIsBasedOnCurrentData && notAtEndOfRoute){
                     this.updateFromRouteDecision(stateDataJSON["route"].getDecisionAt(this.getTileX(), this.getTileY()));
@@ -811,6 +858,7 @@ class DuelBot extends DuelCharacter {
                     let newTile = this.determineTileToReloadFrom(enemyTileX, enemyTileY);
 
                     let newTileIsTheSame = newTile["tile_x"] === this.getTileX() && newTile["tile_y"] === this.getTileY();
+                    
                     // If new tile is where we currently are then start reloading
                     if (newTileIsTheSame){
                         // Start reloading
@@ -828,6 +876,7 @@ class DuelBot extends DuelCharacter {
                 }
             }else{
                 // TODO: Decide whether to cancel reload
+                
             }
 
         }
@@ -1373,6 +1422,9 @@ class DuelBot extends DuelCharacter {
                 return;
             }
         }
+
+        // Else no instruction to move anywhere so stop
+        this.botDecisionDetails["decisions"]["breaking_stride"] = true;
     }
 
     makeSwordFightingDecisions(){

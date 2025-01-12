@@ -97,16 +97,16 @@ const RETRO_GAME_DATA = {
                 "on_tile_multiplier": 2 // multiplier for reloading-tiles that are currently stood on
             },
             "reload_tile_selection": {
-                "from_enemy_route_mult": 1/15 * 0.5, // multiplier for reloading-tiles that have a long route from the enemy
+                "from_enemy_route_mult": 1/15 * 1, // multiplier for reloading-tiles that have a long route from the enemy
                 "from_enemy_mult": 1/64 * 1/21 * 0.25, // multiplier for reloading-tiles that are far from the enemy
                 "can_hit_mult": -1, // multiplier for reloading-tiles that can be hit by the enemy
-                "angle_range_mult": -1/60, // multiplier for reloading-tiles that have a broad range of attack for the enemy
+                "angle_range_mult": -1/60 * 2, // multiplier for reloading-tiles that have a broad range of attack for the enemy
                 "in_single_cover_mult": 6, // multiplier for reloading-tiles that are in single cover (far from the enemy)
                 "in_multi_cover_mult": 1.5, // multiplier for reloading-tiles that are in multi cover that the enemy is not in
                 "shoot_tile_selection_x_start": 0.25, // x start value for function 1 / x^f for biasing a random selection
                 "shoot_tile_selection_x_end": 3, // x end value for function 1 / x^f for biasing a random selection
                 "shoot_tile_selection_f": 5, // f value for function 1 / x^f for biasing a random selection
-                "on_tile_multiplier": 2 // multiplier for reloading-tiles that are currently stood on
+                "on_tile_multiplier": 5 // multiplier for reloading-tiles that are currently stood on
             }
         }
     },

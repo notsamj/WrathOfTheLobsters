@@ -37,6 +37,15 @@ class GeneralDebugger {
         let valueObj = this.getOrCreateValueJSON(jsonValueName);
         valueObj["value"] = value;
     }
+
+    hasValue(jsonValueName){
+        for (let valueObj of this.values){
+            if (valueObj["name"] === jsonValueName){
+                return true;
+            }
+        }
+        return false;
+    }
 }
 
 class GeneralDebuggerSwitch {

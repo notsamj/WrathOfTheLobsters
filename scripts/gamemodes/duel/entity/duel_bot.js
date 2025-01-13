@@ -338,8 +338,10 @@ class DuelBot extends DuelCharacter {
         // Determine what to do with held weapon
         if (equippedItem instanceof Sword){
             this.makeSwordFightingDecisions();
-        }else if (equippedItem instanceof Gun){
-            this.makeGunFightingDecisions();
+        }else if (equippedItem instanceof Pistol){
+            this.makePistolFightingDecisions();
+        }else if (equippedItem instanceof Musket){
+            this.makeMusketFightingDecisions();
         }else{
             throw new Error("DuelBot has unknown weapon equipped");
         }
@@ -426,14 +428,10 @@ class DuelBot extends DuelCharacter {
             if (enemyTileX != stateDataJSON["last_checked_enemy_x"] || enemyTileY != stateDataJSON["last_checked_enemy_y"]){
                 stateDataJSON["last_checked_enemy_x"] = enemyTileX;
                 stateDataJSON["last_checked_enemy_y"] = enemyTileY;
-                let tilesToEndAt = this.exploreAvailableTiles(this.getMaxSearchPathLength(), this.getTileX(), this.getTileY());
-                // Try and find a path to the last enemy location
-                for (let tileToEndAt of tilesToEndAt){
-                    if (tileToEndAt["tile_x"] === enemyTileX && tileToEndAt["tile_y"] === enemyTileY){
-                        route = Route.fromPath(tileToEndAt["shortest_path"]);
-                        stateDataJSON["route"] = route;
-                        break;
-                    }
+                let newRoute = this.generateShortestRouteToPoint(enemyTileX, enemyTileY);
+                if (newRoute != null){
+                    route = newRoute;
+                    stateDataJSON["route"] = route;
                 }
             }
         }
@@ -679,7 +677,7 @@ class DuelBot extends DuelCharacter {
         return this.randomEventManager;
     }
 
-    makeGunFightingDecisions(){
+    makePistolFightingDecisions(){
         // No decisions to be made when not at rest
         if (this.isBetweenTiles()){ return; }
 
@@ -853,14 +851,15 @@ class DuelBot extends DuelCharacter {
         }
         // Gun is NOT loaded
         else{
-            if (!myGun.isReloading()){
-                this.goToReloadPositionAndReload(enemyTileX, enemyTileY);
-            }else{
-                // TODO: Decide whether to cancel reload
-                
-            }
+            // I can just use this function it will move me if circumstances change while reloading
 
+            // Note: Reloading is canceled by movement (and weapon switching) so don't need to use "cancel_reload"
+            this.goToReloadPositionAndReload(enemyTileX, enemyTileY);
         }
+    }
+
+    makeMusketFightingDecisions(){
+        // TODO
     }
 
     goToReloadPositionAndReload(enemyTileX, enemyTileY){
@@ -943,6 +942,7 @@ class DuelBot extends DuelCharacter {
             let angleToTileCenter = displacementToRadians(tileX - enemyTileX, tileY - enemyTileY);
             // Note: Assuming they will face the estimated best way
             let visualDirectionToFace = angleToBestFaceDirection(angleToTileCenter);
+            // Note: This is my gun not the enemy's gun so I'm assume they have the same one
             let pos = gun.getSimulatedGunEndPosition(enemyLeftX, enemyTopY, visualDirectionToFace, angleToTileCenter);
             let gunEndX = pos["x"];
             let gunEndY = pos["y"];

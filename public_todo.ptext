@@ -2,15 +2,13 @@ Right now:
 	
 	Add weapon switching
 
+	Set an angle that bot can compensate for with the sway. Like say 0.5rad + 0.1 compensation -> 0.4 rad
+
 	Add new terrain for the gamemode
 
-	Prior to reloading (when enemy is not visible) make sure to head to a reload spot
+	Add sprinting when appropriate
 
-	Investigate what British officer is thinking when considering shooting
-
-	Add reload cancel
-
-	Route types
+	Route types when going to enemy
 		Shortest
 		Safest
 			When taking a safest route use a a probability function to determine whether you should be sprinting (based on current stamina and distance to enemy)
@@ -25,3 +23,8 @@ Right now:
 	Add settings pages
 	Review current_todo.txt
 	Publish
+
+	Add gentlemanly duel
+
+	Skirmish
+		Set a time you can work on async functions per tick (so you add like a check it you get say 10ms every tick and if it runs out at a check then you wait until given more time)

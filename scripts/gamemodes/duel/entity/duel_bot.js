@@ -382,9 +382,21 @@ class DuelBot extends DuelCharacter {
         }
         
         let equippedItem = this.getInventory().getSelectedItem();
+
+        // If I have an unloaded gun then get ready to reload
         if ((equippedItem instanceof Gun) && !equippedItem.isLoaded()){
-            // Start reloading
-            this.botDecisionDetails["decisions"]["weapons"]["gun"]["trying_to_reload"] = true;
+            // If I have the enemy's last position then reload based on it
+            if (this.hasDataToReactTo("enemy_location")){
+                let enemyLocation = this.getDataToReactTo("enemy_location");
+                let enemyTileX = enemyLocation["tile_x"];
+                let enemyTileY = enemyLocation["tile_y"];
+                this.goToReloadPositionAndReload(enemyTileX, enemyTileY);
+            }
+            // Otherwise no idea where enemy is
+            else{
+                // Start reloading on the spot
+                this.botDecisionDetails["decisions"]["weapons"]["gun"]["trying_to_reload"] = true;
+            }
         }
         // Else switch to an unloaded gun
         else{
@@ -797,7 +809,6 @@ class DuelBot extends DuelCharacter {
                         this.temporaryOperatingData.set("tile_to_stand_and_shoot_from", dataJSON);
                     }
                     
-                    
                     let newTileIsTheSame = newTile["tile_x"] === myTileX && newTile["tile_y"] === myTileY;
                 
                     // I can hit the enemy if I start aiming
@@ -810,6 +821,7 @@ class DuelBot extends DuelCharacter {
                         }
 
                         // Set angle
+                        
                         this.botDecisionDetails["decisions"]["weapons"]["gun"]["aiming_angle_rad"] = speculationResult["best_angle"];
                         this.botDecisionDetails["decisions"]["weapons"]["gun"]["trying_to_aim"] = this.getRandomEventManager().getResultExpectedMS(RETRO_GAME_DATA["duel"]["ai"]["good_shot_try_to_aim_delay_ms"]);
                     }
@@ -842,43 +854,47 @@ class DuelBot extends DuelCharacter {
         // Gun is NOT loaded
         else{
             if (!myGun.isReloading()){
-                let stateDataJSON = this.getStateData();
-                let movingToReloadPosition = objectHasKey(stateDataJSON, "current_objective") && stateDataJSON["current_objective"] === "move_to_reload_position";
-                // Next ones are only calculated conditionally
-                let reloadPositionIsBasedOnCurrentData = movingToReloadPosition && stateDataJSON["relevant_enemy_tile_x"] === enemyTileX && stateDataJSON["relevant_enemy_tile_y"] === enemyTileY;
-                let routeLastTile = reloadPositionIsBasedOnCurrentData ? (stateDataJSON["route"].getLastTile()) : null;
-                let notAtEndOfRoute = reloadPositionIsBasedOnCurrentData && (routeLastTile["tile_x"] != this.getTileX() || routeLastTile["tile_y"] != this.getTileY());
-                
-                // If our current objective is to move to a reload position
-                if (movingToReloadPosition && reloadPositionIsBasedOnCurrentData && notAtEndOfRoute){
-                    this.updateFromRouteDecision(stateDataJSON["route"].getDecisionAt(this.getTileX(), this.getTileY()));
-                }
-                // We are not currently persuing a pre-determined route
-                else{
-                    let newTile = this.determineTileToReloadFrom(enemyTileX, enemyTileY);
-
-                    let newTileIsTheSame = newTile["tile_x"] === this.getTileX() && newTile["tile_y"] === this.getTileY();
-                    
-                    // If new tile is where we currently are then start reloading
-                    if (newTileIsTheSame){
-                        // Start reloading
-                        this.botDecisionDetails["decisions"]["weapons"]["gun"]["trying_to_reload"] = true;
-                    }else{
-                        // Create a new route
-                        stateDataJSON["current_objective"] = "move_to_reload_position";
-                        stateDataJSON["relevant_enemy_tile_x"] = enemyTileX;
-                        stateDataJSON["relevant_enemy_tile_y"] = enemyTileY;
-                        stateDataJSON["route"] = Route.fromPath(newTile["shortest_path"]);
-
-                        // Move based on this new route
-                        this.updateFromRouteDecision(stateDataJSON["route"].getDecisionAt(this.getTileX(), this.getTileY()));
-                    }
-                }
+                this.goToReloadPositionAndReload(enemyTileX, enemyTileY);
             }else{
                 // TODO: Decide whether to cancel reload
                 
             }
 
+        }
+    }
+
+    goToReloadPositionAndReload(enemyTileX, enemyTileY){
+        let stateDataJSON = this.getStateData();
+        let movingToReloadPosition = objectHasKey(stateDataJSON, "current_objective") && stateDataJSON["current_objective"] === "move_to_reload_position";
+        // Next ones are only calculated conditionally
+        let reloadPositionIsBasedOnCurrentData = movingToReloadPosition && stateDataJSON["relevant_enemy_tile_x"] === enemyTileX && stateDataJSON["relevant_enemy_tile_y"] === enemyTileY;
+        let routeLastTile = reloadPositionIsBasedOnCurrentData ? (stateDataJSON["route"].getLastTile()) : null;
+        let notAtEndOfRoute = reloadPositionIsBasedOnCurrentData && (routeLastTile["tile_x"] != this.getTileX() || routeLastTile["tile_y"] != this.getTileY());
+        
+        // If our current objective is to move to a reload position
+        if (movingToReloadPosition && reloadPositionIsBasedOnCurrentData && notAtEndOfRoute){
+            this.updateFromRouteDecision(stateDataJSON["route"].getDecisionAt(this.getTileX(), this.getTileY()));
+        }
+        // We are not currently persuing a pre-determined route
+        else{
+            let newTile = this.determineTileToReloadFrom(enemyTileX, enemyTileY);
+
+            let newTileIsTheSame = newTile["tile_x"] === this.getTileX() && newTile["tile_y"] === this.getTileY();
+            
+            // If new tile is where we currently are then start reloading
+            if (newTileIsTheSame){
+                // Start reloading
+                this.botDecisionDetails["decisions"]["weapons"]["gun"]["trying_to_reload"] = true;
+            }else{
+                // Create a new route
+                stateDataJSON["current_objective"] = "move_to_reload_position";
+                stateDataJSON["relevant_enemy_tile_x"] = enemyTileX;
+                stateDataJSON["relevant_enemy_tile_y"] = enemyTileY;
+                stateDataJSON["route"] = Route.fromPath(newTile["shortest_path"]);
+
+                // Move based on this new route
+                this.updateFromRouteDecision(stateDataJSON["route"].getDecisionAt(this.getTileX(), this.getTileY()));
+            }
         }
     }
 

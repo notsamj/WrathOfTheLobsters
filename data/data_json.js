@@ -4,7 +4,7 @@ const RETRO_GAME_DATA = {
         "duel": {
             "participants": [
                 {
-                    "human": false,
+                    "human": true,
                     "model": "british_officer",
                     "swords": [],
                     "pistols": ["flintlock"],
@@ -22,7 +22,7 @@ const RETRO_GAME_DATA = {
                     "muskets": [],
                     "bot_extra_details": {
                         "disabled": false,
-                        "reaction_time_ms": 500
+                        "reaction_time_ms": 50
                     }
                 }
             ]
@@ -61,7 +61,7 @@ const RETRO_GAME_DATA = {
         "shot_damage": 0.75,
         "stab_damage": 1,
         "max_seed": 100000, // Self-explanatory
-        "seed": 23126,  // null for random seed, 24873 is good (on 10 size)
+        "seed": null,  // null for random seed, 24873 is good (on 10 size)
         "pistol_sway_acceleration_constant": 0.4,
         "musket_sway_acceleration_constant": 0.4,
         "camera": {

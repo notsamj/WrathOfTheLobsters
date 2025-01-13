@@ -289,6 +289,6 @@ class Gun extends RangedWeapon {
     }
 
     static isAngleValidForVisualDirection(angleRAD, visualDirection){
-        return angleBetweenCCWRAD(angleRAD, toRadians(Gun.getRightAngleForVisualDirection(visualDirection)), Gun.getLeftAngleForVisualDirection(visualDirection));
+        return angleBetweenCCWRAD(angleRAD, Gun.getRightAngleForVisualDirection(visualDirection), Gun.getLeftAngleForVisualDirection(visualDirection));
     }
 }

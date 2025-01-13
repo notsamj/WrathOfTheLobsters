@@ -1,5 +1,11 @@
 Right now:
 	
+	Add weapon switching
+
+	Add new terrain for the gamemode
+
+	Prior to reloading (when enemy is not visible) make sure to head to a reload spot
+
 	Investigate what British officer is thinking when considering shooting
 
 	Add reload cancel

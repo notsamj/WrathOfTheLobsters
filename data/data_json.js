@@ -4,7 +4,7 @@ const RETRO_GAME_DATA = {
         "duel": {
             "participants": [
                 {
-                    "human": false,
+                    "human": true,
                     "model": "british_officer",
                     "swords": ["cavalry_sword"],
                     "pistols": ["flintlock"],
@@ -67,7 +67,7 @@ const RETRO_GAME_DATA = {
         "shot_damage": 0.75,
         "stab_damage": 1,
         "max_seed": 100000, // Self-explanatory
-        "seed": null,  // null for random seed, 24873 is good (on 10 size)
+        "seed": 24969,  // null for random seed, 24873 is good (on 10 size)
         "pistol_sway_acceleration_constant": 0.4,
         "musket_sway_acceleration_constant": 0.4,
         "camera": {
@@ -83,8 +83,13 @@ const RETRO_GAME_DATA = {
             "aiming_precision_degrees": 3, // The number of degrees the bot is able to adjust between two angles when searching for targets
             "shot_take_function_a_constant": 10, // 'a' constant for determine how long a bot expects to wait before firing a shot giving a hit probability
             "shot_take_function_b_constant": 0.3, // 'b' constant for determine how long a bot expects to wait before firing a shot giving a hit probability
+            "max_expected_ms_to_hold_a_shot": 20000, // Will only hold a shot for up totwenty seconds 
             "stop_aiming_no_target_ms": 2000, // The bot is expected to stop aiming after some time if it cannot hit the enemy
             "good_shot_try_to_aim_delay_ms": 100, // Expected time to wait to start aiming when you have a good shot
+            "sword_fight_min_stamina_preference": 0.6, // I would like to have 60% stamina available when I expect to start sword fighting
+            "enemy_search_min_stamina_preference": 0.4, // I would like to have 20% stamina available when I am searching for enemies
+            "positioning_for_shot_stamina_preference": 0.1, // I would like to have 10% stamina available when I am going to a spot to shoot an enemy
+            "positioning_for_reload_stamina_preference": 0.3, // I would like to have 30% stamina available when I am going to a spot to shoot an enemy
             "shoot_tile_selection": {
                 "shoot_tile_selection_x_start": 0.25, // x start for function 1 / x^f for biasing a random selection
                 "shoot_tile_selection_x_end": 3, // x end for function 1 / x^f for biasing a random selection

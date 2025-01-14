@@ -27,6 +27,10 @@ class StaminaBar {
         return this.stamina;
     }
 
+    getStaminaProportion(){
+        return this.stamina / this.maxStamina;
+    }
+
     isOutOfStamina(){
         return !this.hasStamina();
     }

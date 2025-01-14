@@ -1,7 +1,5 @@
 Right now:
 
-	Add a cap on max time to wait for a shot (sometimes both will try and shoot each other from far away and will wait almost forever)
-
 	Add sprinting when appropriate
 
 	Set an angle that bot can compensate for with the sway. Like say 0.5rad + 0.1 compensation -> 0.4 rad
@@ -20,6 +18,9 @@ Right now:
 		Add gamemode menu
 
 	Review current_todo.txt
+
+	Comment and look through code
+
 	Publish
 
 	Idea:

@@ -41,10 +41,6 @@ class BotPerception {
         else{
             dataList.push(newDataObject);
         }
-
-        if (dataList.length > 50){
-            debugger;
-        }
     }
 
     hasDataToReactTo(dataKey, tick){
@@ -53,6 +49,36 @@ class BotPerception {
             return false;
         }
         return this.getDataToReactTo(dataKey, tick) != null;
+    }
+
+    hasDataToReactToExact(dataKey, tick){
+        // Shouldn't be requesting data that hasn't been added yet
+        if (!objectHasKey(this.data, dataKey)){
+            return false;
+        }
+        return this.getDataToReactToExact(dataKey, tick) != null;
+    }
+
+    getDataToReactToExact(dataKey, tick){
+        // Shouldn't be requesting data that hasn't been added yet
+        if (!objectHasKey(this.data, dataKey)){
+            debugger;
+            throw new Error("Requesting data that has not been received: " + dataKey);
+        }
+        if (tick === undefined){ debugger; }
+
+        let dataList = this.data[dataKey];
+
+        // Search the data
+        for (let i = 0; i < dataList.length; i++){
+            let listObj = dataList[i];
+            let oldTick = listObj["tick"];
+            if (oldTick === tick){
+                return listObj["value"];
+            }
+        }
+
+        return null;
     }
 
     getDataToReactTo(dataKey, tick){

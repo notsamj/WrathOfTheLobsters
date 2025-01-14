@@ -228,7 +228,8 @@ class Gun extends RangedWeapon {
             // tbf lets just say you can sort of extrapolate the shooters location its adjacent at worse anyway
             "shooter_tile_x": this.player.getTileX(),
             "shooter_tile_y": this.player.getTileY(),
-            "shooter_id": this.player.getID()
+            "shooter_id": this.player.getID(),
+            "shooter_facing_movement_direction": this.player.getFacingUDLRDirection()
         });
         // Try to kill whenever is there
         let angleRAD = this.getSwayedAngleRAD();

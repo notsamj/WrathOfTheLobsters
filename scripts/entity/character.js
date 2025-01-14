@@ -460,8 +460,11 @@ class Character extends Entity {
         movementKeysPressed += wantsToMoveLeft ? 1 : 0;
         movementKeysPressed += wantsToMoveRight ? 1 : 0;
 
-        let numTicks = TICK_SCHEDULER.getNumTicks();
-        if (movementKeysPressed != 1){
+        let numTicks = this.getCurrentTick();
+        let allowedToMove = this.stunLock.isUnlocked();
+
+        // If not sending proper movement input or not allowed to move then stop
+        if (movementKeysPressed != 1 || !allowedToMove){
             if (this.isMoving()){
                 this.movementDetails = null;
             }
@@ -471,6 +474,8 @@ class Character extends Entity {
         let direction;
         let newTileX = this.tileX;
         let newTileY = this.tileY;
+
+        
 
         if (wantsToMoveDown){
             direction = "down";
@@ -533,8 +538,11 @@ class Character extends Entity {
         let lastLocationX = this.tileX;
         let lastLocationY = this.tileY;
         // Handle tick progress from previous
-        if (this.isMoving() && direction == this.movementDetails["direction"]){
+        if (this.isMoving() && direction === this.movementDetails["direction"]){
             tickProgressFromPrevious = Math.ceil(this.movementDetails["reached_destination_tick"]) - this.movementDetails["reached_destination_tick"];
+            if (tickProgressFromPrevious > 1){
+                debugger
+            }
             let distanceProgressFromPrevious = tickProgressFromPrevious * this.movementDetails["speed"] / 1000 * RETRO_GAME_DATA["general"]["ms_between_ticks"];
             if (direction === "down"){
                 lastLocationY -= distanceProgressFromPrevious / RETRO_GAME_DATA["general"]["tile_size"];
@@ -546,6 +554,7 @@ class Character extends Entity {
                 lastLocationY += distanceProgressFromPrevious / RETRO_GAME_DATA["general"]["tile_size"];
             }
         }
+
         this.movementDetails = {
             "direction": direction,
             "speed": desiredMoveSpeed,
@@ -726,8 +735,8 @@ class Character extends Entity {
     }
 
     actOnDecisions(){
-        if (this.stunLock.isLocked()){ return; }
         this.updateMovement();
+        if (this.stunLock.isLocked()){ return; }
         this.inventory.actOnDecisions();
         this.inventory.actOnDecisionsForSelectedItem();
     }
@@ -762,7 +771,7 @@ class Character extends Entity {
         // Else moving l/r
         let dir = this.movementDetails["direction"] == "left" ? -1 : 1;
         let x = this.gamemode.getScene().getXOfTile(this.movementDetails["last_location_x"]);
-        return x + this.movementDetails["speed"] * dir * (TICK_SCHEDULER.getNumTicks() - this.movementDetails["last_tick_number"]) * RETRO_GAME_DATA["general"]["ms_between_ticks"] / 1000;
+        return x + this.movementDetails["speed"] * dir * (this.getCurrentTick() - this.movementDetails["last_tick_number"]) * RETRO_GAME_DATA["general"]["ms_between_ticks"] / 1000;
     }
 
     getInterpolatedX(){
@@ -808,18 +817,22 @@ class Character extends Entity {
         // Else moving l/r
         let dir = this.movementDetails["direction"] == "down" ? -1 : 1;
         let y = this.gamemode.getScene().getYOfTile(this.movementDetails["last_location_y"]);
-        return y + this.movementDetails["speed"] * dir * (TICK_SCHEDULER.getNumTicks() - this.movementDetails["last_tick_number"]) * RETRO_GAME_DATA["general"]["ms_between_ticks"] / 1000;
+        return y + this.movementDetails["speed"] * dir * (this.getCurrentTick() - this.movementDetails["last_tick_number"]) * RETRO_GAME_DATA["general"]["ms_between_ticks"] / 1000;
     }
 
     getDisplayY(bY){
         return this.gamemode.getScene().changeToScreenY((this.getInterpolatedCenterY() - bY) * gameZoom);
     }
 
+    getCurrentTick(){
+        return this.gamemode.getCurrentTick();
+    }
+
     isBetweenTiles(){
         if (!this.isMoving()){
             return false;
         }
-        return Math.ceil(this.movementDetails["reached_destination_tick"]) != TICK_SCHEDULER.getNumTicks();
+        return Math.ceil(this.movementDetails["reached_destination_tick"]) > this.getCurrentTick();
     }
 
     getXVelocity(){

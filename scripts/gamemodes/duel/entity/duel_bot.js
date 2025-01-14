@@ -39,16 +39,13 @@ class DuelBot extends DuelCharacter {
         return this.getEnemy().getID();
     }
 
-    notifyOfGunshot(shooterTileX, shooterTileY){
+    notifyOfGunshot(shooterTileX, shooterTileY, enemyFacingMovementDirection){
         this.inputPerceptionData("enemy_location", {"tile_x": shooterTileX, "tile_y": shooterTileY});
+        this.inputPerceptionData("enemy_facing_movement_direction", enemyFacingMovementDirection);
     }
 
     isDisabled(){
         return this.disabled;
-    }
-
-    getCurrentTick(){
-        return this.gamemode.getCurrentTick();
     }
 
     getDataToReactTo(dataKey){
@@ -73,23 +70,30 @@ class DuelBot extends DuelCharacter {
         // Focused on enemy
 
         let enemy = this.getEnemy();
-        let canSeeNaturally = this.canSee(enemy);
-        this.inputPerceptionData("can_see_enemy_naturally", canSeeNaturally);
+        let canSeeEnemy = this.canSee(enemy);
+        let certainOfEnemyLocation = canSeeEnemy;
+        this.inputPerceptionData("can_see_enemy", canSeeEnemy);
 
-        let canSeeEnemy = canSeeNaturally;
-        let lastTick = this.getCurrentTick() - 1;
+        let currentTick = this.getCurrentTick();
+        let lastTick = currentTick - 1;
 
-        // If the enemy is an isolated spot where we can see all around them then we can modify can see
-        if (!canSeeNaturally && this.perception.hasDataToReactTo("can_see_enemy", lastTick) && this.perception.getDataToReactTo("can_see_enemy", lastTick)){
+        let hasPossibleLocation = false;
+        let hasLocationOnThisLastTick = this.perception.hasDataToReactToExact("enemy_location", lastTick);
+        let possibleTileX;
+        let possibleTileY;
+        let enemyLocation = null;
+
+        // If we could see enemy last tick but not not then see if they are stuck in their location (we can see all around them)
+        if (!canSeeEnemy && this.perception.hasDataToReactToExact("can_see_enemy", lastTick) && this.perception.getDataToReactToExact("can_see_enemy", lastTick)){
             // If we saw them previously but can't now
-            let lastLocation = this.perception.getDataToReactTo("enemy_location", lastTick);
+            let lastLocation = this.perception.getDataToReactToExact("enemy_location", lastTick);
             let lastTileX = lastLocation["tile_x"];
             let lastTileY = lastLocation["tile_y"];
 
             // Check that me moving isn't the reason I can no longer see the enemy
             let myMovementIsNotTheCause = this.couldSeeEntityIfOnTile(lastTileX, lastTileX);
             if (myMovementIsNotTheCause){
-                let enemyMovedInDirectionUDLR = this.perception.getDataToReactTo("enemy_facing_movement_direction", lastTick);
+                let enemyMovedInDirectionUDLR = this.perception.getDataToReactToExact("enemy_facing_movement_direction", lastTick);
                 let newTileX = lastTileX;
                 let newTileY = lastTileY;
                 // Determine new tile location
@@ -100,43 +104,17 @@ class DuelBot extends DuelCharacter {
                 }else if (enemyMovedInDirectionUDLR === "right"){
                     newTileX += 1;
                 }else{ // Up
-                    lastLocationY += 1;
+                    newTileY += 1;
                 }
 
-                let canSeeAll = true;
-
-                let tilesAroundEnemy = [[newTileX-1, newTileY+1], [newTileX, newTileY], [newTileX-1, newTileY+1], [newTileX-1, newTileY], [newTileX+1, newTileY], [newTileX-1, newTileY-1], [newTileX, newTileY-1], [newTileX+1, newTileY-1]];
-                for (let tileAroundEnemy of tilesAroundEnemy){
-                    // If I can't see a tile around it OR the tile is unwalkable then I can see all around it
-                    if (!this.couldSeeEntityIfOnTile(tileAroundEnemy[0], tileAroundEnemy[1]) || this.getScene().tileAtLocationHasAttribute("no_walk")){
-                        canSeeAll = false;
-                        break;
-                    }
-                }
-
-                // If i'm certain I know where the enemy is then canSee is now true
-                if (canSeeAll){
-                    canSee = true;
-                }
+                // Save the possible location
+                hasPossibleLocation = true;
+                possibleTileX = newTileX;
+                possibleTileY = newTileY;
             }
         }
 
-        this.inputPerceptionData("can_see_enemy", canSeeEnemy);
-
         if (canSeeEnemy){
-            let enemyTileX = enemy.getTileX();
-            let enemyTileY = enemy.getTileY();
-            let enemyWidth = enemy.getWidth();
-            let enemyHeight = enemy.getHeight();
-            let enemyInterpolatedTickCenterX = enemy.getInterpolatedTickCenterX();
-            let enemyInterpolatedTickCenterY = enemy.getInterpolatedTickCenterY();
-            this.inputPerceptionData("enemy_x_velocity", enemy.getXVelocity());
-            this.inputPerceptionData("enemy_y_velocity", enemy.getYVelocity());
-            this.inputPerceptionData("enemy_width", enemyWidth);
-            this.inputPerceptionData("enemy_height", enemyHeight);
-            this.inputPerceptionData("enemy_interpolated_tick_center_x", enemyInterpolatedTickCenterX);
-            this.inputPerceptionData("enemy_interpolated_tick_center_y", enemyInterpolatedTickCenterY);
-            this.inputPerceptionData("enemy_location", {"tile_x": enemyTileX, "tile_y": enemyTileY});
             this.inputPerceptionData("enemy_facing_movement_direction", enemy.getFacingUDLRDirection());
 
             let enemyInventory = enemy.getInventory();
@@ -174,6 +152,47 @@ class DuelBot extends DuelCharacter {
                 }
             }
         }
+        // Can't see enemy
+        else if (hasPossibleLocation || hasLocationOnThisLastTick){
+            // Assuming the possible location (we actually saw the enemy last tick) is the best (or only) option.
+            // If I don't have it then try this other thing
+            if (!hasPossibleLocation){
+                let loc = this.perception.getDataToReactToExact("enemy_location", lastTick);
+                possibleTileX = loc["tile_x"];
+                possibleTileY = loc["tile_y"];
+            }
+
+            let canSeeAll = true;
+
+            let tilesAroundEnemy = [[possibleTileX-1, possibleTileY+1], [possibleTileX, possibleTileY+1], [possibleTileX-1, possibleTileY+1], [possibleTileX-1, possibleTileY], [possibleTileX+1, possibleTileY], [possibleTileX-1, possibleTileY-1], [possibleTileX, possibleTileY-1], [possibleTileX+1, possibleTileY-1]];
+            for (let tileAroundEnemy of tilesAroundEnemy){
+                // If tile is non-walkable OR I can see it then its valid. If NOT then I can't see all
+                if (!(this.getScene().tileAtLocationHasAttribute(tileAroundEnemy[0], tileAroundEnemy[1], "no_walk") || this.couldSeeEntityIfOnTile(tileAroundEnemy[0], tileAroundEnemy[1]))){
+                    canSeeAll = false;
+                    break;
+                }
+            }
+
+            // If i'm certain I know where the enemy is then save this location
+            certainOfEnemyLocation = canSeeAll;
+
+        }
+
+        this.inputPerceptionData("certain_of_enemy_location", certainOfEnemyLocation);
+        if (certainOfEnemyLocation){
+            let enemyWidth = enemy.getWidth();
+            let enemyHeight = enemy.getHeight();
+            let enemyInterpolatedTickCenterX = enemy.getInterpolatedTickCenterX();
+            let enemyInterpolatedTickCenterY = enemy.getInterpolatedTickCenterY();
+            this.inputPerceptionData("enemy_x_velocity", enemy.getXVelocity());
+            this.inputPerceptionData("enemy_y_velocity", enemy.getYVelocity());
+            this.inputPerceptionData("enemy_width", enemyWidth);
+            this.inputPerceptionData("enemy_height", enemyHeight);
+            this.inputPerceptionData("enemy_interpolated_tick_center_x", enemyInterpolatedTickCenterX);
+            this.inputPerceptionData("enemy_interpolated_tick_center_y", enemyInterpolatedTickCenterY);
+            this.inputPerceptionData("enemy_location", {"tile_x": enemy.getTileX(), "tile_y": enemy.getTileY()});
+        }
+        
     }
 
     resetBotDecisions(){
@@ -288,7 +307,7 @@ class DuelBot extends DuelCharacter {
         }else if (state === "equip_a_weapon"){
             // If done equipping a weapon then start looking for the enemy
             if (this.hasWeaponEquipped()){
-                if (!this.getDataToReactTo("can_see_enemy")){
+                if (!this.getDataToReactTo("certain_of_enemy_location")){
                     this.changeToState("searching_for_enemy");
                 }else{
                     this.changeToState("fighting_enemy");
@@ -297,11 +316,11 @@ class DuelBot extends DuelCharacter {
                 this.equipAWeapon();
             }
         }else if (state === "searching_for_enemy"){
-            if (this.getDataToReactTo("can_see_enemy")){
+            if (this.getDataToReactTo("certain_of_enemy_location")){
                 this.changeToState("fighting_enemy");
             }
         }else if (state === "fighting_enemy"){
-            if (!this.getDataToReactTo("can_see_enemy")){
+            if (!this.getDataToReactTo("certain_of_enemy_location")){
                 this.changeToState("searching_for_enemy");
             }
         }
@@ -410,7 +429,7 @@ class DuelBot extends DuelCharacter {
         let enemyTileX = enemyLocation["tile_x"];
         let enemyTileY = enemyLocation["tile_y"];
         let euclidianDistanceToEnemy = calculateEuclideanDistance(this.getTileX(), this.getTileY(), enemyTileX, enemyTileY);
-        let enemySwingingAtMe = euclidianDistanceToEnemy < RETRO_GAME_DATA["duel"]["ai"]["estimated_melee_distance"] && this.getDataToReactTo("enemy_holding_a_sword") && this.getDataToReactTo("enemy_swinging_a_sword");
+        let enemySwingingAtMe = euclidianDistanceToEnemy < RETRO_GAME_DATA["duel"]["ai"]["estimated_melee_distance"] && this.getDataToReactTo("can_see_enemy") && this.getDataToReactTo("enemy_holding_a_sword") && this.getDataToReactTo("enemy_swinging_a_sword");
 
         // If the held weapon is a gun
         if (heldWeapon instanceof Gun){
@@ -597,6 +616,9 @@ class DuelBot extends DuelCharacter {
         }
         // Move according to the route
         updateFromMoveDecisions(route.getDecisionAt(this.getTileX(), this.getTileY()));
+
+        // Consider sprinting
+        this.botDecisionDetails["decisions"]["sprint"] = this.staminaBar.getStaminaProportion() > RETRO_GAME_DATA["duel"]["ai"]["enemy_search_min_stamina_preference"];
     }
 
     getMaxSearchPathLength(){
@@ -878,7 +900,10 @@ class DuelBot extends DuelCharacter {
                     let shotAConstant = RETRO_GAME_DATA["duel"]["ai"]["shot_take_function_a_constant"];
                     let shotBConstant = RETRO_GAME_DATA["duel"]["ai"]["shot_take_function_b_constant"];
                     let secondsToShootWithThisChance = getDeclining1OverXOf(shotAConstant, shotBConstant, myChanceOfHittingAShot);
-                    let decideToShoot = this.getRandomEventManager().getResultExpectedMS(secondsToShootWithThisChance * 1000);
+                    // Convert to ms and acknowledge cap
+                    let msToShootWithThisChance = Math.min(secondsToShootWithThisChance * 1000, RETRO_GAME_DATA["duel"]["ai"]["max_expected_ms_to_hold_a_shot"]);
+
+                    let decideToShoot = this.getRandomEventManager().getResultExpectedMS(msToShootWithThisChance);
                     this.botDecisionDetails["decisions"]["weapons"]["gun"]["trying_to_shoot"] = decideToShoot;
                 }else{
                     // I am aiming but I can't hit so I will stop
@@ -904,6 +929,8 @@ class DuelBot extends DuelCharacter {
                 // If our current objective is to move to a better shooting position
                 if (movingToBetterPosition && betterPositionIsBasedOnCurrentData && notAtEndOfRoute){
                     this.updateFromRouteDecision(stateDataJSON["route"].getDecisionAt(this.getTileX(), this.getTileY()));
+                    // Consider sprinting
+                    this.botDecisionDetails["decisions"]["sprint"] = this.staminaBar.getStaminaProportion() > RETRO_GAME_DATA["duel"]["ai"]["positioning_for_shot_stamina_preference"];
                 }
                 // We are not currently persuing a pre-determined route
                 else{
@@ -982,20 +1009,11 @@ class DuelBot extends DuelCharacter {
 
                         // Move based on this new route
                         this.updateFromRouteDecision(stateDataJSON["route"].getDecisionAt(myTileX, myTileY));
+                        // Consider sprinting
+                        this.botDecisionDetails["decisions"]["sprint"] = this.staminaBar.getStaminaProportion() > RETRO_GAME_DATA["duel"]["ai"]["positioning_for_shot_stamina_preference"];
                     }
                 }
             }
-
-            /*
-            // TODO Keep this? Figure out how to augment current plans?
-
-            // Check the opponent is holding a loaded gun
-            let enemyHoldingALoadedGun = this.getDataToReactTo("enemy_holding_a_loaded_gun");
-
-            // If they are holding a loaded gun
-            if (enemyHoldingALoadedGun){
-
-            }*/
 
         }
         // Gun is NOT loaded
@@ -1022,6 +1040,8 @@ class DuelBot extends DuelCharacter {
         // If our current objective is to move to a reload position
         if (movingToReloadPosition && reloadPositionIsBasedOnCurrentData && notAtEndOfRoute){
             this.updateFromRouteDecision(stateDataJSON["route"].getDecisionAt(this.getTileX(), this.getTileY()));
+            // Consider sprinting
+            this.botDecisionDetails["decisions"]["sprint"] = this.staminaBar.getStaminaProportion() > RETRO_GAME_DATA["duel"]["ai"]["positioning_for_reload_stamina_preference"];
         }
         // We are not currently persuing a pre-determined route
         else{
@@ -1042,6 +1062,8 @@ class DuelBot extends DuelCharacter {
 
                 // Move based on this new route
                 this.updateFromRouteDecision(stateDataJSON["route"].getDecisionAt(this.getTileX(), this.getTileY()));
+                // Consider sprinting
+                this.botDecisionDetails["decisions"]["sprint"] = this.staminaBar.getStaminaProportion() > RETRO_GAME_DATA["duel"]["ai"]["positioning_for_reload_stamina_preference"];
             }
         }
     }
@@ -1192,7 +1214,7 @@ class DuelBot extends DuelCharacter {
             let foundBestPossible = false;
 
             let tileHasEvasivePath = (tX, tY, pathStorage) => {
-                let pathToTile = pathStorage.get(teX, teY);
+                let pathToTile = pathStorage.get(tX, tY);
                 let previousTileX = pathToTile["previous_tile_x"];
                 let previousTileY = pathToTile["previous_tile_y"];
                 if (previousTileX === null || previousTileY === null){
@@ -1916,8 +1938,8 @@ class DuelBot extends DuelCharacter {
 
         // Otherwise -> We are in sword range
 
-        // Only continue if we can see the enemy
-        if (!this.getDataToReactTo("can_see_enemy")){ return; }
+        // Only continue if we are certain of the enemy location
+        if (!this.getDataToReactTo("certain_of_enemy_location")){ return; }
 
         let facingDirectionUDLR = this.getFacingUDLRDirection();
         let directionToFaceTheEnemyAtCloseRange;
@@ -1954,7 +1976,7 @@ class DuelBot extends DuelCharacter {
         let enemyHitbox = new RectangleHitbox(enemyWidth, enemyHeight, enemyInterpolatedTickCenterX-(enemyWidth-1)/2, enemyInterpolatedTickCenterY+(enemyHeight-1)/2);
         let canCurrentlyHitEnemyWithSword = Sword.swordCanHitCharacter(enemyHitbox, swingHitbox, hitCenterX, hitCenterY, swingAngle, swingRange, startAngle, endAngle)
 
-        let enemySwinging = this.getDataToReactTo("enemy_holding_a_sword") && this.getDataToReactTo("enemy_swinging_a_sword");
+        let enemySwinging = this.getDataToReactTo("can_see_enemy") && this.getDataToReactTo("enemy_holding_a_sword") && this.getDataToReactTo("enemy_swinging_a_sword");
 
         let mySwordTimeToSwingTicks = Math.ceil(mySword.getSwingTimeMS()/calculateMSBetweenTicks());
 
@@ -2051,6 +2073,9 @@ class DuelBot extends DuelCharacter {
                             let routeToEnemy = this.generateShortestEvasiveRouteToPoint(enemyTileX, enemyTileY);
                             let routeDecision = routeToEnemy.getDecisionAt(this.getTileX(), this.getTileY());
                             this.updateFromRouteDecision(routeDecision);
+
+                            // Consider sprinting
+                            this.botDecisionDetails["decisions"]["sprint"] = this.staminaBar.getStaminaProportion() > RETRO_GAME_DATA["duel"]["ai"]["sword_fight_min_stamina_preference"];
                         }
                     }
 
@@ -2093,6 +2118,8 @@ class DuelBot extends DuelCharacter {
             let chosenOption = options[this.getRandom().getIntInRangeInclusive(0, options.length - 1)];
             this.botDecisionDetails["decisions"][chosenOption] = true;
         }
+        // Consider sprinting
+        this.botDecisionDetails["decisions"]["sprint"] = this.staminaBar.getStaminaProportion() > RETRO_GAME_DATA["duel"]["ai"]["sword_fight_min_stamina_preference"];
     }
 
     makeSwordDecisions(){

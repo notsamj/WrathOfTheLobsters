@@ -419,7 +419,7 @@ class Character extends Entity {
     }
 
     getUpdatedHitbox(){
-        return new RectangleHitbox(this.getWidth(), this.getHeight(), this.getInterpolatedTickCenterX(), this.getInterpolatedTickCenterY());
+        return new RectangleHitbox(this.getWidth(), this.getHeight(), this.getInterpolatedTickX(), this.getInterpolatedTickY());
     }
 
     damage(amount){
@@ -536,11 +536,11 @@ class Character extends Entity {
         if (this.isMoving() && direction == this.movementDetails["direction"]){
             tickProgressFromPrevious = Math.ceil(this.movementDetails["reached_destination_tick"]) - this.movementDetails["reached_destination_tick"];
             let distanceProgressFromPrevious = tickProgressFromPrevious * this.movementDetails["speed"] / 1000 * RETRO_GAME_DATA["general"]["ms_between_ticks"];
-            if (direction == "down"){
+            if (direction === "down"){
                 lastLocationY -= distanceProgressFromPrevious / RETRO_GAME_DATA["general"]["tile_size"];
-            }else if (direction == "left"){
+            }else if (direction === "left"){
                 lastLocationX -= distanceProgressFromPrevious / RETRO_GAME_DATA["general"]["tile_size"];
-            }else if (direction == "right"){
+            }else if (direction === "right"){
                 lastLocationX += distanceProgressFromPrevious / RETRO_GAME_DATA["general"]["tile_size"];
             }else{ // Up
                 lastLocationY += distanceProgressFromPrevious / RETRO_GAME_DATA["general"]["tile_size"];

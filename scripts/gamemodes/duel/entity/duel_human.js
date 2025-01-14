@@ -1,7 +1,7 @@
 
 class DuelHuman extends DuelCharacter {
-    constructor(gamemode, model){
-        super(gamemode, model);
+    constructor(gamemode, model, extraDetails){
+        super(gamemode, model, extraDetails);
     }
 
     makeDecisions(){

@@ -1,6 +1,13 @@
 class DuelCharacter extends Character {
-    constructor(gamemode, model){
+    constructor(gamemode, model, extraDetails){
         super(gamemode, model);
+        this.invincible = extraDetails["invincible"];
+    }
+
+    damage(amount){
+        if (!this.invincible){
+            super.damage(amount);
+        }
     }
 
     getShot(model, killerID){

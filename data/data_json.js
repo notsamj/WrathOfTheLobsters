@@ -4,25 +4,31 @@ const RETRO_GAME_DATA = {
         "duel": {
             "participants": [
                 {
-                    "human": true,
+                    "human": false,
                     "model": "british_officer",
-                    "swords": [],
+                    "swords": ["cavalry_sword"],
                     "pistols": ["flintlock"],
                     "muskets": [],
+                    "extra_details": {
+                        "invincible": false,
+                    },
                     "bot_extra_details": {
                         "disabled": false,
-                        "reaction_time_ms": 500
+                        "reaction_time_ms": 250
                     }
                 },
                 {
                     "human": false,
                     "model": "usa_officer",
-                    "swords": [],
+                    "swords": ["clever"],
                     "pistols": ["flintlock"],
                     "muskets": [],
+                    "extra_details": {
+                        "invincible": false
+                    },
                     "bot_extra_details": {
                         "disabled": false,
-                        "reaction_time_ms": 50
+                        "reaction_time_ms": 250
                     }
                 }
             ]
@@ -366,7 +372,7 @@ const RETRO_GAME_DATA = {
                 "blade_length": 286/16, // = 17.875
                 "stamina_usage_for_swing": 10,
                 "swing_cooldown_ms": 200,
-                "stun_time_ms": 100
+                "stun_time_ms": 200
             },
             "white_flag": {
                 "swing_time_ms": 200, // 200
@@ -397,7 +403,7 @@ const RETRO_GAME_DATA = {
                 "blade_length": 414/8,
                 "stamina_usage_for_swing": 20,
                 "swing_cooldown_ms": 400,
-                "stun_time_ms": 200
+                "stun_time_ms": 500
             }
         }
     },

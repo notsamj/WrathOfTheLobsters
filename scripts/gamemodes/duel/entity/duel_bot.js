@@ -1,6 +1,6 @@
 class DuelBot extends DuelCharacter {
-    constructor(gamemode, model, botExtraDetails){
-        super(gamemode, model);
+    constructor(gamemode, model, extraDetails, botExtraDetails){
+        super(gamemode, model, extraDetails);
         this.perception = new BotPerception(this, Math.ceil(botExtraDetails["reaction_time_ms"] / calculateMSBetweenTicks()));
         this.disabled = botExtraDetails["disabled"];
         this.randomEventManager = new RandomEventManager(this.getRandom());
@@ -33,6 +33,7 @@ class DuelBot extends DuelCharacter {
             }
         }
     }
+
 
     getEnemyID(){
         return this.getEnemy().getID();
@@ -72,8 +73,56 @@ class DuelBot extends DuelCharacter {
         // Focused on enemy
 
         let enemy = this.getEnemy();
-        let canSeeEnemy = this.canSee(enemy);
+        let canSeeNaturally = this.canSee(enemy);
+        this.inputPerceptionData("can_see_enemy_naturally", canSeeNaturally);
 
+        let canSeeEnemy = canSeeNaturally;
+        let lastTick = this.getCurrentTick() - 1;
+        
+        // If the enemy is an isolated spot where we can see all around them then we can modify can see
+        if (!canSeeNaturally && this.perception.hasDataToReactTo("can_see_enemy", lastTick) && this.perception.getDataToReactTo("can_see_enemy", lastTick)){
+            // If we saw them previously but can't now
+            let lastLocation = this.perception.getDataToReactTo("enemy_location", lastTick);
+            let lastTileX = lastLocation["tile_x"];
+            let lastTileY = lastLocation["tile_y"];
+
+            // Check that me moving isn't the reason I can no longer see the enemy
+            let myMovementIsNotTheCause = this.couldSeeEntityIfOnTile(lastTileX, lastTileX);
+            if (myMovementIsNotTheCause){
+                let enemyMovedInDirectionUDLR = this.perception.getDataToReactTo("enemy_facing_movement_direction", lastTick);
+                let newTileX = lastTileX;
+                let newTileY = lastTileY;
+                // Determine new tile location
+                if (enemyMovedInDirectionUDLR === "down"){
+                    newTileY -= 1;
+                }else if (enemyMovedInDirectionUDLR === "left"){
+                    newTileX -= 1;
+                }else if (enemyMovedInDirectionUDLR === "right"){
+                    newTileX += 1;
+                }else{ // Up
+                    lastLocationY += 1;
+                }
+
+                let canSeeAll = true;
+
+                let tilesAroundEnemy = [[newTileX-1, newTileY+1], [newTileX, newTileY], [newTileX-1, newTileY+1], [newTileX-1, newTileY], [newTileX+1, newTileY], [newTileX-1, newTileY-1], [newTileX, newTileY-1], [newTileX+1, newTileY-1]];
+                for (let tileAroundEnemy of tilesAroundEnemy){
+                    // If I can't see a tile around it OR the tile is unwalkable then I can see all around it
+                    if (!this.couldSeeEntityIfOnTile(tileAroundEnemy[0], tileAroundEnemy[1]) || this.getScene().tileAtLocationHasAttribute("no_walk")){
+                        canSeeAll = false;
+                        break;
+                    }
+                }
+
+                // If i'm certain I know where the enemy is then canSee is now true
+                if (canSeeAll){
+                    canSee = true;
+                }
+            }
+        }
+
+
+        
         this.inputPerceptionData("can_see_enemy", canSeeEnemy);
 
         if (canSeeEnemy){
@@ -90,6 +139,7 @@ class DuelBot extends DuelCharacter {
             this.inputPerceptionData("enemy_interpolated_tick_center_x", enemyInterpolatedTickCenterX);
             this.inputPerceptionData("enemy_interpolated_tick_center_y", enemyInterpolatedTickCenterY);
             this.inputPerceptionData("enemy_location", {"tile_x": enemyTileX, "tile_y": enemyTileY});
+            this.inputPerceptionData("enemy_facing_movement_direction", enemy.getFacingUDLRDirection());
 
             let enemyInventory = enemy.getInventory();
             let enemyHoldingAnItem = enemyInventory.hasSelectedItem();
@@ -240,7 +290,7 @@ class DuelBot extends DuelCharacter {
         }else if (state === "equip_a_weapon"){
             // If done equipping a weapon then start looking for the enemy
             if (this.hasWeaponEquipped()){
-                if (this.getDataToReactTo("can_see_enemy")){
+                if (!this.getDataToReactTo("can_see_enemy")){
                     this.changeToState("searching_for_enemy");
                 }else{
                     this.changeToState("fighting_enemy");
@@ -315,23 +365,126 @@ class DuelBot extends DuelCharacter {
     }
 
     considerChangingWeapons(){
-        // TODO
-        return {"change": false}
+        let heldWeapon = this.getInventory().getSelectedItem();
+
+        // If there is no held weapon assme I have none
+        if (heldWeapon === null){
+            return;
+        }
+
+        // I should ALWAYS be holding a weapon
+        if (heldWeapon === null || !(heldWeapon instanceof Weapon)){
+            throw new Error("Failed to find weapon.");
+        }
+
+        let i = 0;
+
+        let foundSwordIndex = null;
+        let loadedGunIndex = null;
+        let unloadedGunIndex = null;
+
+        // Search through the inventory
+        for (let item of this.getInventory().getItems()){
+            let currentIndex = i++;
+            if (item === null){ continue; }
+            if (item instanceof Gun){
+                let otherGun = item;
+                if (otherGun.isLoaded()){
+                    // If none so far then save the index
+                    if (loadedGunIndex != null){
+                        loadedGunIndex = currentIndex;
+                    }
+                }else{
+                    // If none so far then save the index
+                    if (unloadedGunIndex != null){
+                        unloadedGunIndex = currentIndex;
+                    }
+                }
+            }
+            // If no swords have been found then record this
+            else if (item instanceof Sword && foundSwordIndex === null){
+                foundSwordIndex = currentIndex;
+            }
+        }
+
+        let enemyLocation = this.getDataToReactTo("enemy_location");
+        // Always will be known given this is during fighting
+        let enemyTileX = enemyLocation["tile_x"];
+        let enemyTileY = enemyLocation["tile_y"];
+        let euclidianDistanceToEnemy = calculateEuclideanDistance(this.getTileX(), this.getTileY(), enemyTileX, enemyTileY);
+        let enemySwingingAtMe = euclidianDistanceToEnemy < RETRO_GAME_DATA["duel"]["ai"]["estimated_melee_distance"] && this.getDataToReactTo("enemy_holding_a_sword") && this.getDataToReactTo("enemy_swinging_a_sword");
+
+        // If the held weapon is a gun
+        if (heldWeapon instanceof Gun){
+            let myHeldGun = heldWeapon;
+            // If my held gun isn't loaded try to find a loaded gun
+            if (!myHeldGun.isLoaded()){
+                // if I have a loaded gun somewhere then get it
+                if (loadedGunIndex != null){
+                    this.botDecisionDetails["decisions"]["select_slot"] = currentIndex;
+                    // Indicate changing weapon
+                    return true;
+                }
+
+
+                // So no loaded guns but I found a sword
+                if (foundSwordIndex != null){
+                    // If we are very close to enemy then switch to sword
+                    if (euclidianDistanceToEnemy < RETRO_GAME_DATA["duel"]["ai"]["estimated_melee_distance"]){
+                        this.botDecisionDetails["decisions"]["select_slot"] = foundSwordIndex;
+                        return true;
+                    }
+                }
+
+                // Else just stick to the weapon
+            }
+
+            // Else we have a loaded gun
+
+            // If the enemy is swinging their sword NEAR me and I have a sword to switch to then do so
+            if (foundSwordIndex != null && enemySwingingAtMe){
+                this.botDecisionDetails["decisions"]["select_slot"] = foundSwordIndex
+                return true;
+            }
+        }
+        // If I'm holding a sword
+        else if (heldWeapon instanceof Sword){
+            let myHeldSword = heldWeapon;
+            let hasLoadedGun = loadedGunIndex != null;
+
+            // if the enemy is swinging at me then keep my weapon
+            if (enemySwingingAtMe){
+                return false;
+            }
+            
+            // If I have a loaded gun I can switch to and they aren't swinging at me right now then better to shoot them
+            if (hasLoadedGun){
+                this.botDecisionDetails["decisions"]["select_slot"] = loadedGunIndex;
+                return true;
+            }
+            // Else no loaded gun and I'm not being swung at
+            else{   
+                // If enemy is out of melee range then switch to unloaded gun
+                if (euclidianDistanceToEnemy > RETRO_GAME_DATA["duel"]["ai"]["estimated_melee_distance"]){
+                    this.botDecisionDetails["decisions"]["select_slot"] = unloadedGunIndex;
+                }
+                // Otherwise close by keep the sword
+                else{
+                    return false;
+                }
+            }
+        }
+
+        // When in doubt, don't change weapons
+        return false;
     }
 
     makeFightingDecisions(){
-        // TODO: Movement and stuff?
-
         let equippedItem = this.getInventory().getSelectedItem();
-        if (equippedItem === null){ throw new Error("DuelBot failed to find equipped item"); }
 
-
-        // TODO: Determine other stuff
-
-        // TODO: Chance weapon if needed
-        let changeWeaponResult = this.considerChangingWeapons();
-        if (changeWeaponResult["change"]){
-            // TODO: Change weapon
+        // Change weapon if needed
+        let changingWeapon = this.considerChangingWeapons();
+        if (changingWeapon){
             return;
         }
 
@@ -342,8 +495,6 @@ class DuelBot extends DuelCharacter {
             this.makePistolFightingDecisions();
         }else if (equippedItem instanceof Musket){
             this.makeMusketFightingDecisions();
-        }else{
-            throw new Error("DuelBot has unknown weapon equipped");
         }
     }
 
@@ -1692,18 +1843,20 @@ class DuelBot extends DuelCharacter {
     }
 
     makeMusketDecisions(){
-        let tryingToAim = false;
-        let tryingToShoot = false;
+        let tryingToAim = this.botDecisionDetails["decisions"]["weapons"]["gun"]["trying_to_aim"];
+        let tryingToShoot = this.botDecisionDetails["decisions"]["weapons"]["gun"]["trying_to_shoot"];
+        let tryingToReload = this.botDecisionDetails["decisions"]["weapons"]["gun"]["trying_to_reload"];
+        let tryingToCancelReload = this.botDecisionDetails["decisions"]["weapons"]["gun"]["cancel_reload"];
         let togglingBayonetEquip = false;
-        let tryingToReload = false;
-        let tryingToStab = false;
+        let tryingToStab = false; // TODO
+        let aimingAngleRAD = this.botDecisionDetails["decisions"]["weapons"]["gun"]["aiming_angle_rad"];
         this.amendDecisions({
             "trying_to_aim": tryingToAim,
             "trying_to_shoot": tryingToShoot,
             "toggling_bayonet_equip": togglingBayonetEquip,
             "trying_to_reload": tryingToReload,
             "trying_to_stab": tryingToStab,
-            "aiming_angle_rad": this.getGunHoldingAngleRAD()
+            "aiming_angle_rad": aimingAngleRAD
         });
     }
 

@@ -1,19 +1,16 @@
 Right now:
-	
-	Add weapon switching
+	Route types when going to enemy
+			Shortest
+			Safest
+				When taking a safest route use a a probability function to determine whether you should be sprinting (based on current stamina and distance to enemy)
 
 	Set an angle that bot can compensate for with the sway. Like say 0.5rad + 0.1 compensation -> 0.4 rad
+
+	Add a cap on max time to wait for a shot (sometimes both will try and shoot each other from far away and will wait almost forever)
 
 	Add new terrain for the gamemode
 
 	Add sprinting when appropriate
-
-	Route types when going to enemy
-		Shortest
-		Safest
-			When taking a safest route use a a probability function to determine whether you should be sprinting (based on current stamina and distance to enemy)
-	Work on pistol fighting
-	Merge pistol and sword fighting to have both at once  
 
 	Add pistol features to musket
 	Add musket stabbing

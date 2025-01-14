@@ -78,7 +78,7 @@ class DuelBot extends DuelCharacter {
 
         let canSeeEnemy = canSeeNaturally;
         let lastTick = this.getCurrentTick() - 1;
-        
+
         // If the enemy is an isolated spot where we can see all around them then we can modify can see
         if (!canSeeNaturally && this.perception.hasDataToReactTo("can_see_enemy", lastTick) && this.perception.getDataToReactTo("can_see_enemy", lastTick)){
             // If we saw them previously but can't now
@@ -121,8 +121,6 @@ class DuelBot extends DuelCharacter {
             }
         }
 
-
-        
         this.inputPerceptionData("can_see_enemy", canSeeEnemy);
 
         if (canSeeEnemy){
@@ -579,7 +577,7 @@ class DuelBot extends DuelCharacter {
             if (enemyTileX != stateDataJSON["last_checked_enemy_x"] || enemyTileY != stateDataJSON["last_checked_enemy_y"]){
                 stateDataJSON["last_checked_enemy_x"] = enemyTileX;
                 stateDataJSON["last_checked_enemy_y"] = enemyTileY;
-                let newRoute = this.generateShortestRouteToPoint(enemyTileX, enemyTileY);
+                let newRoute = this.generateShortestEvasiveRouteToPoint(enemyTileX, enemyTileY);
                 if (newRoute != null){
                     route = newRoute;
                     stateDataJSON["route"] = route;
@@ -1156,6 +1154,287 @@ class DuelBot extends DuelCharacter {
         return chosenTile;
     }
 
+
+    generateShortestEvasiveRouteToPoint(endTileX, endTileY, routeLengthLimit=Number.MAX_SAFE_INTEGER){
+        let startTileX = this.getTileX();
+        let startTileY = this.getTileY();
+        if (startTileX === endTileX && startTileY === endTileY){ return Route.fromPath([{"tile_x": startTileX, "tile_y": startTileY}]); }
+        if (!this.canWalkOnTile(startTileX, startTileY)){ throw new Error("Invalid start tile."); }
+        if (!this.canWalkOnTile(endTileX, endTileY)){ throw new Error("Invalid end tile."); }
+
+        let knownPathsFromStart = new NotSamXYSortedArrayList();
+        let knownPathsFromEnd = new NotSamXYSortedArrayList();
+
+        let edgeTilesFromStart = new NotSamLinkedList([{"tile_x": startTileX, "tile_y": startTileY, "from_start": true}]);
+        let edgeTilesFromEnd = new NotSamLinkedList([{"tile_x": endTileX, "tile_y": endTileY, "from_start": false}]);
+
+        knownPathsFromStart.set(startTileX, startTileY, {"path_length": 0, "previous_tile_x": null, "previous_tile_y": null});
+        knownPathsFromEnd.set(endTileX, endTileY, {"path_length": 0, "previous_tile_x": null, "previous_tile_y": null});
+
+        /*
+            Note: This is just the path finding function from character.js with a minor tweak
+            The evasive score thing is used to encourage not moving in straight lines when possible
+            This is far from perfect
+        */
+
+        let selectBestPath = (bestPossibleLengthSoFar) => {
+            let eStart = null;
+            let eEnd = null;
+            let bestM = null;
+            let bestMinTraversal = null;
+            let eStartIndex = null;
+            let eEndIndex = null;
+            let bestEvasiveScore = null;
+
+            // Note: The best possibile evasive score of two just means both tiles represent path turns
+            let bestPossiblEvasiveScore = 2;
+
+            let foundBestPossible = false;
+
+            let tileHasEvasivePath = (tX, tY, pathStorage) => {
+                let pathToTile = pathStorage.get(teX, teY);
+                let previousTileX = pathToTile["previous_tile_x"];
+                let previousTileY = pathToTile["previous_tile_y"];
+                if (previousTileX === null || previousTileY === null){
+                    return true;
+                }
+                let pathToPreviousTile = pathStorage.get(previousTileX, previousTileY);
+                let secondPreviousTileX = pathToTile["previous_tile_x"];
+                let secondPreviousTileY = pathToTile["previous_tile_y"];
+                if (secondPreviousTileX === null || secondPreviousTileY === null){
+                    return true;
+                }
+                // If there is a straight line here then the path is not evasive
+                return secondPreviousTileX === tX || secondPreviousTileY === tY;
+            }
+
+            let calculateEvasiveScore = (teX, teY, tsX, tsY) => {
+                let endScore = tileHasEvasivePath(teX, teY, knownPathsFromEnd) ? 1 : 0;
+                let startScore = tileHasEvasivePath(tsX, tsY, knownPathsFromStart) ? 1 : 0;
+                return endScore + startScore;
+            }
+
+
+            // Find the two tiles that could connect and form the shortest possible path
+            for (let i = edgeTilesFromEnd.getLength() - 1; i >= 0; i--){
+                let edgeTileFromEnd = edgeTilesFromEnd.get(i);
+                let edgeTileFromEndTileX = edgeTileFromEnd["tile_x"];
+                let edgeTileFromEndTileY = edgeTileFromEnd["tile_y"];
+                let edgeTileFromEndLength = knownPathsFromEnd.get(edgeTileFromEndTileX, edgeTileFromEndTileY)["path_length"];
+                for (let j = edgeTilesFromStart.getLength() - 1; j >= 0; j--){
+                    let edgeTileFromStart = edgeTilesFromStart.get(j);
+                    let edgeTileFromStartTileX = edgeTileFromStart["tile_x"];
+                    let edgeTileFromStartTileY = edgeTileFromStart["tile_y"];
+                    let edgeTileFromStartLength = knownPathsFromStart.get(edgeTileFromStartTileX, edgeTileFromStartTileY)["path_length"];
+                    let minTraversal = calculateManhattanDistance(edgeTileFromStartTileX, edgeTileFromStartTileY, edgeTileFromEndTileX, edgeTileFromEndTileY);
+                    let startToEndDistance = edgeTileFromStartLength + edgeTileFromEndLength + minTraversal + 1; // the +1 is because both path lengths do not include the start tile and the end tile should be included in the total length
+                    let evasiveScore = calculateEvasiveScore(edgeTileFromEndTileX, edgeTileFromEndTileY, edgeTileFromStartTileX, edgeTileFromStartTileY);
+                    // Find a better one
+                    if (bestM === null || (startToEndDistance < bestM || (startToEndDistance === bestM && evasiveScore > bestEvasiveScore))){
+                        eStart = edgeTileFromStart;
+                        eEnd = edgeTileFromEnd;
+                        bestM = startToEndDistance;
+                        bestMinTraversal = minTraversal;
+                        eEndIndex = i;
+                        eStartIndex = j;
+                        bestEvasiveScore = evasiveScore;
+                    }
+
+                    // If this is the best possible length then no need to search further
+                    foundBestPossible = bestPossibleLengthSoFar != null && bestM === bestPossibleLengthSoFar && bestEvasiveScore === bestPossiblEvasiveScore;
+                    if (foundBestPossible){
+                        break;
+                    }
+                }
+                // If this is the best possible length then no need to search further
+                if (foundBestPossible){
+                    break;
+                }
+            }
+
+            let bestEdgeTile;
+            let connectedTile;
+            // If distance from start of path to current point is lower on the path from the "startTile" then select it
+            if (calculateManhattanDistance(eStart["tile_x"], eStart["tile_y"], startTileX, startTileY) <= calculateManhattanDistance(eEnd["tile_x"], eEnd["tile_y"], endTileX, endTileY)){
+                bestEdgeTile = eStart;
+                connectedTile = eEnd;
+                edgeTilesFromStart.pop(eStartIndex);
+            }else{
+                bestEdgeTile = eEnd;
+                connectedTile = eStart;
+                edgeTilesFromEnd.pop(eEndIndex);
+            }
+
+            let bestPathData = {"edge_tile": bestEdgeTile, "best_m": bestM, "best_min_traversal": bestMinTraversal, "has_complete_path": false, "connected_path": null};
+            let completePath = bestMinTraversal === 1; 
+            if (completePath){
+                bestPathData["has_complete_path"] = true;
+                bestPathData["connected_tile"] = connectedTile;
+            }
+            return bestPathData;
+        }
+
+        let updateKnownPathIfBetter = (knownPathsList, previousTileX, previousTileY, newPathLength, potentialPreviousTileX, potentialPreviousTileY) => {
+            let previousTileInfo = knownPathsList.get(previousTileX, previousTileY);
+            let exists = previousTileInfo != null;
+            // If this doesn't exist then do nothing and return false
+            if (!exists){
+                return false;
+            }
+
+            let oldPathLength = previousTileInfo["path_length"];
+            // If old path length was longer then replace it
+            if (oldPathLength > newPathLength){
+                // Update path length
+                previousTileInfo["path_length"] = newPathLength;
+                previousTileInfo["previous_tile_x"] = potentialPreviousTileX;
+                previousTileInfo["previous_tile_y"] = potentialPreviousTileY;
+
+                // Alert all paths that may be based on this one
+                let adjacentTiles = [[previousTileX+1,previousTileY], [previousTileX-1, previousTileY], [previousTileX, previousTileY+1], [previousTileX, previousTileY-1]];
+                for (let adjacentTile of adjacentTiles){
+                    let adjacentTileX = adjacentTile[0];
+                    let adjacentTileY = adjacentTile[1];
+                    updateKnownPathIfBetter(knownPathsList, adjacentTileX, adjacentTileY, newPathLength + 1, previousTileX, previousTileY);
+                }
+            }
+            return true;
+        }
+
+        let exploreTiles = (bestEdgeTile) => {
+            let bETileX = bestEdgeTile["tile_x"];
+            let bETileY = bestEdgeTile["tile_y"];
+            let adjacentTiles = [[bETileX+1,bETileY], [bETileX-1, bETileY], [bETileX, bETileY+1], [bETileX, bETileY-1]];
+            for (let adjacentTile of adjacentTiles){
+                let adjacentTileX = adjacentTile[0];
+                let adjacentTileY = adjacentTile[1];
+                // Check if walkable
+                if (!this.canWalkOnTile(adjacentTileX, adjacentTileY, "no_walk")){ continue; }
+
+                // It's valid
+
+                let knownPathsList;
+                let activePathsList;
+                let tileInfo;
+
+                // Determine which is applicable
+                if (bestEdgeTile["from_start"]){
+                    knownPathsList = knownPathsFromStart;
+                    activePathsList = edgeTilesFromStart;
+                    tileInfo = {"tile_x": adjacentTileX, "tile_y": adjacentTileY, "from_start": true};
+                }else{
+                    knownPathsList = knownPathsFromEnd;
+                    activePathsList = edgeTilesFromEnd;
+                    tileInfo = {"tile_x": adjacentTileX, "tile_y": adjacentTileY, "from_start": false};
+                }
+
+                let newPathLength = knownPathsList.get(bETileX, bETileY)["path_length"] + 1;
+                // This is known then update
+                let known = updateKnownPathIfBetter(knownPathsList, adjacentTileX, adjacentTileY, newPathLength, bETileX, bETileY);
+                // If it wasn't known then add
+                if (!known){
+                    // Add it to known paths
+                    knownPathsList.set(adjacentTileX, adjacentTileY, {"path_length": newPathLength, "previous_tile_x": bETileX, "previous_tile_y": bETileY});
+                    // Add to active path list
+                    activePathsList.push(tileInfo);
+                }
+            }
+        }
+
+        // takes two touching tiles and creates a path
+        let createPath = (touchingTile1, touchingTile2) => {
+            let tileFromStart = touchingTile1["from_start"] ? touchingTile1 : touchingTile2;
+            let tileFromEnd = touchingTile1["from_start"] ? touchingTile2 : touchingTile1;
+
+            let startPath = [];
+            let endPath = [];
+            
+
+            // Add tile to front of the list
+            startPath.unshift({"tile_x": tileFromStart["tile_x"], "tile_y": tileFromStart["tile_y"]})
+
+            // Add tiles from start forwards
+            let previousData = knownPathsFromStart.get(tileFromStart["tile_x"], tileFromStart["tile_y"]);
+
+            let previousTileX = previousData["previous_tile_x"];
+            let previousTileY = previousData["previous_tile_y"];
+
+            let hasPreviousTile = (previousTileX != null && previousTileY != null);
+            while (hasPreviousTile){
+                // Add tile to front of the list
+                startPath.unshift({"tile_x": previousTileX, "tile_y": previousTileY});
+
+                // Go to next
+                previousData = knownPathsFromStart.get(previousTileX, previousTileY);
+                if (previousData === null){
+                    debugger;
+                }
+                previousTileX = previousData["previous_tile_x"];
+                previousTileY = previousData["previous_tile_y"];
+
+                hasPreviousTile = (previousTileX != null && previousTileY != null);
+            }
+
+            // Add tile to back of the list
+            endPath.unshift({"tile_x": tileFromEnd["tile_x"], "tile_y": tileFromEnd["tile_y"]})
+
+            // Add tiles from start forwards
+            previousData = knownPathsFromEnd.get(tileFromEnd["tile_x"], tileFromEnd["tile_y"]);
+            previousTileX = previousData["previous_tile_x"];
+            previousTileY = previousData["previous_tile_y"];
+
+            hasPreviousTile = (previousTileX != null && previousTileY != null);
+            while (hasPreviousTile){
+                // Add tile to back of the list
+                endPath.push({"tile_x": previousTileX, "tile_y": previousTileY});
+
+                // Go to next
+                previousData = knownPathsFromEnd.get(previousTileX, previousTileY);
+                if (previousData === null){
+                    debugger;
+                }
+                previousTileX = previousData["previous_tile_x"];
+                previousTileY = previousData["previous_tile_y"];
+
+                hasPreviousTile = (previousTileX != null && previousTileY != null);
+            }
+            return Route.fromPath(appendLists(startPath, endPath)); 
+        }
+
+        let bestPossibleRouteLength = calculateManhattanDistance(startTileX, startTileY, endTileX, endTileY);
+        let bestFoundPathLengthSoFar = null;
+
+        // While it is possible to create a path from
+        while (bestPossibleRouteLength < routeLengthLimit){
+            // If I can find no path from start then stop
+            if (edgeTilesFromStart.getLength() === 0){
+                break;
+            }
+            // If I can find no path from end then stop
+            if (edgeTilesFromEnd.getLength() === 0){
+                break;
+            }
+
+            let bestPathData = selectBestPath(bestPossibleRouteLength);
+
+            // Update best m
+            bestPossibleRouteLength = bestPathData["best_m"];
+
+            // If the two paths met then distance is found. Note: With current design, the first full path is always the best possible path
+            if (bestPathData["has_complete_path"]){
+                return createPath(bestPathData["edge_tile"], bestPathData["connected_tile"]);
+            }
+
+            let bestEdgeTile = bestPathData["edge_tile"];
+
+            // Explore
+            exploreTiles(bestEdgeTile);
+        }
+
+        // None found
+        return null;
+    }
+
     determineTileToStandAndShootFrom(enemyTileX, enemyTileY, gun){
         let pathLength = this.getMaxSearchPathLength();
         let allTiles = this.exploreAvailableTiles(pathLength, this.getTileX(), this.getTileY());
@@ -1276,7 +1555,7 @@ class DuelBot extends DuelCharacter {
 
         // If I can't find a tile to hit the enemy from
         if (!foundATileThatICanHitFrom){
-            let routeToEnemy = this.generateShortestRouteToPoint(enemyTileX, enemyTileY);
+            let routeToEnemy = this.generateShortestEvasiveRouteToPoint(enemyTileX, enemyTileY);
             if (routeToEnemy.getMovementDistance() >= 1){
                 // Get a tile in the path to enemy
                 let tile = routeToEnemy.getTile(1);
@@ -1627,7 +1906,7 @@ class DuelBot extends DuelCharacter {
 
             // Make a route to enemy and start going along it here
             if (!this.isBetweenTiles()){
-                let routeToEnemy = this.generateShortestRouteToPoint(enemyTileX, enemyTileY);
+                let routeToEnemy = this.generateShortestEvasiveRouteToPoint(enemyTileX, enemyTileY);
                 let routeDecision = routeToEnemy.getDecisionAt(this.getTileX(), this.getTileY());
                 this.updateFromRouteDecision(routeDecision);
             }
@@ -1769,7 +2048,7 @@ class DuelBot extends DuelCharacter {
                     else{
                         // Make a route to enemy and start going along it here
                         if (!this.isBetweenTiles()){
-                            let routeToEnemy = this.generateShortestRouteToPoint(enemyTileX, enemyTileY);
+                            let routeToEnemy = this.generateShortestEvasiveRouteToPoint(enemyTileX, enemyTileY);
                             let routeDecision = routeToEnemy.getDecisionAt(this.getTileX(), this.getTileY());
                             this.updateFromRouteDecision(routeDecision);
                         }

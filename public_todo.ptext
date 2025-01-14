@@ -1,27 +1,36 @@
 Right now:
-	Route types when going to enemy
-			Shortest
-			Safest
-				When taking a safest route use a a probability function to determine whether you should be sprinting (based on current stamina and distance to enemy)
-
-	Set an angle that bot can compensate for with the sway. Like say 0.5rad + 0.1 compensation -> 0.4 rad
 
 	Add a cap on max time to wait for a shot (sometimes both will try and shoot each other from far away and will wait almost forever)
 
-	Add new terrain for the gamemode
-
 	Add sprinting when appropriate
+
+	Set an angle that bot can compensate for with the sway. Like say 0.5rad + 0.1 compensation -> 0.4 rad
+
+	Add new terrain for the gamemode
 
 	Add pistol features to musket
 	Add musket stabbing
 
 	Add run away mechanic for unarmeds
-	Make menu
-	Add settings pages
+	Make menu with only difficulty being reaction time slider on bots
+
+	Add gentlemanly duel
+		Add gamemodes menu (displays extra gamemodes)
+		Add gamemode 
+		Add gamemode menu
+
 	Review current_todo.txt
 	Publish
 
-	Add gentlemanly duel
+	Idea:
+		Partially solid tile
+			Shots fired from within are valid if shot within certain subregion
+			Shots from without are valid if hit within certain subregion
+			You can use this to give an advantage to shooting through say a gap in a wall (partial physical cover)
+
+	Duel
+		Add bot difficulties
+		Add extra settings pages
 
 	Skirmish
 		Set a time you can work on async functions per tick (so you add like a check it you get say 10ms every tick and if it runs out at a check then you wait until given more time)

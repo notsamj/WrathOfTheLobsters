@@ -583,11 +583,41 @@ class Character extends Entity {
     }
 
     isVisibleTo(observer){
-        return observer.couldSeeEntityIfOnTile(this.getTileX(), this.getTileY());
+        return observer.canSee(this);
     }
 
     canSee(entity){
-        return this.couldSeeEntityIfOnTile(entity.getTileX(), entity.getTileY());
+        let seeOnCurrentTile = this.couldSeeEntityIfOnTile(entity.getTileX(), entity.getTileY());
+        // If I can see the enemy on their current tile then yes I can see them
+        if (seeOnCurrentTile){ return true; }
+
+        // Beyond this point character only
+        if (!(entity instanceof Character)){
+            throw new Error("Unhandled entity type.");
+        }
+        let char = entity;
+
+        // If I can't see them on their current tile and they are not moving then I can't see them
+        if (!char.isMoving()){ return false; }
+
+        // Entity can't be seen on their current tile BUT they are moving
+
+        // Determine their previous tile
+        let charDirection = char.getFacingUDLRDirection();
+        let previousTileX = char.getTileX();
+        let previousTileY = char.getTileY();
+        if (charDirection === "up"){
+            previousTileY -= 1;
+        }else if (charDirection === "down"){
+            previousTileY += 1;
+        }else if (charDirection === "left"){
+            previousTileX += 1;
+        }else if (charDirection === "right"){
+            previousTileX -= 1;
+        }
+
+        // If we can see their previous tile, we can see them
+        return this.couldSeeEntityIfOnTile(previousTileX, previousTileY);
     }
 
     couldSeeEntityIfOnTile(tileX, tileY){
@@ -764,7 +794,7 @@ class Character extends Entity {
     getInterpolatedTickX(){
         let xOfTile = this.gamemode.getScene().getXOfTile(this.tileX);
         // If not moving (or moving u/d) then x is just tile x
-        if (!this.isMoving() || this.movementDetails["direction"] == "up" || this.movementDetails["direction"] == "down"){
+        if (!this.isMoving() || this.movementDetails["direction"] === "up" || this.movementDetails["direction"] === "down"){
             return xOfTile;
         }
         // Else moving l/r
@@ -779,7 +809,7 @@ class Character extends Entity {
         }
         let xOfTile = this.gamemode.getScene().getXOfTile(this.tileX);
         // If not moving (or moving u/d) then x is just tile x
-        if (!this.isMoving() || this.movementDetails["direction"] == "up" || this.movementDetails["direction"] == "down"){
+        if (!this.isMoving() || this.movementDetails["direction"] === "up" || this.movementDetails["direction"] === "down"){
             return xOfTile;
         }
         // Else moving l/r
@@ -798,11 +828,11 @@ class Character extends Entity {
         }
         let yOfTile = this.gamemode.getScene().getYOfTile(this.tileY);
         // If not moving (or moving l/r) then y is just tile y
-        if (!this.isMoving() || this.movementDetails["direction"] == "left" || this.movementDetails["direction"] == "right"){
+        if (!this.isMoving() || this.movementDetails["direction"] === "left" || this.movementDetails["direction"] === "right"){
             return yOfTile;
         }
         // Else moving l/r
-        let dir = this.movementDetails["direction"] == "down" ? -1 : 1;
+        let dir = this.movementDetails["direction"] === "down" ? -1 : 1;
         let y = this.gamemode.getScene().getYOfTile(this.movementDetails["last_location_y"]);
         return y + this.movementDetails["speed"] * dir * (FRAME_COUNTER.getLastFrameTime() - this.movementDetails["last_frame_time"]) / 1000;
     }
@@ -831,7 +861,7 @@ class Character extends Entity {
         if (!this.isMoving()){
             return false;
         }
-        return Math.ceil(this.movementDetails["reached_destination_tick"]) > this.getCurrentTick();
+        return Math.ceil(this.movementDetails["reached_destination_tick"]) != this.getCurrentTick();
     }
 
     getXVelocity(){

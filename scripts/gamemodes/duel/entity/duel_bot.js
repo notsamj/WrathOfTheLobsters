@@ -1215,8 +1215,57 @@ class DuelBot extends DuelCharacter {
             // Bayonet is equipped
             else{
                 let stateDataJSON = this.getStateData();
-                // If I am charging the enemy and have stamina then continue and the enemy is at the same position
-                if (stateDataJSON["current_objective"] === "charging_enemy" && this.staminaBar.hasStamina() && stateDataJSON["relevant_enemy_tile_x"] === enemyTileX && stateDataJSON["relevant_enemy_tile_y"] === enemyTileY){
+                // If I am charging the enemy and have stamina then continue and the enemy is at the same position (but not stabbing right now)
+                
+                let executeChargePathing = stateDataJSON["current_objective"] === "charging_enemy" && this.staminaBar.hasStamina() && stateDataJSON["relevant_enemy_tile_x"] === enemyTileX && stateDataJSON["relevant_enemy_tile_y"] === enemyTileY && !myMusket.isStabbing();
+                // If mid stab then continue in same direction
+                if (myMusket.isStabbing()){
+                    // Move in same direction
+                    this.botDecisionDetails["decisions"][this.getFacingUDLRDirection()] = true;
+                    // Consider sprinting
+                    this.botDecisionDetails["decisions"]["sprint"] = true;
+                }else if (!executeChargePathing && !this.isBetweenTiles()){
+                    let routeToEnemy = this.generateShortestEvasiveRouteToPoint(enemyTileX, enemyTileY);
+                    let routeDistanceToEnemy = routeToEnemy.getMovementDistance();
+                    let realisticTilesTraveled = routeDistanceToEnemy - 1; // Don't need to quite reach them to stab them
+                    /*
+                        The plan:
+                            1. Calculate if I can sprint all the way up to and stab given the route distance
+                            IF YES
+                                2. Set state data to "charging_enemy"
+                                3. Follow path and sprint to enemy
+                                4. If run out of stamina early (because the enemy moved) then cancel this plan
+                                IF NOT
+                                    5. Stab when close enough
+                                    6. Set plan to going_to_reload
+                    */
+                    let pixelsToTravel = realisticTilesTraveled * RETRO_GAME_DATA["general"]["tile_size"];
+                    let msToMoveDistanceWhileSprinting = pixelsToTravel / (RETRO_GAME_DATA["general"]["walk_speed"] * RETRO_GAME_DATA["general"]["sprint_multiplier"]);
+                    let staminaRecoveryPerMS = RETRO_GAME_DATA["human"]["stamina"]["max_stamina"] / RETRO_GAME_DATA["human"]["stamina"]["stamina_recovery_time_ms"];
+                    let staminaRecoveryDuringSprinting = msToMoveDistanceWhileSprinting * staminaRecoveryPerMS;
+                    let currentStamina = this.staminaBar.getStamina();
+                    let staminaUsedPerTile = RETRO_GAME_DATA["human"]["stamina"]["sprinting_stamina_per_tile"];
+                    let staminaUsedWhileSprintingDistance = realisticTilesTraveled * staminaUsedPerTile;
+                    let staminaSum = currentStamina + staminaRecoveryDuringSprinting - staminaUsedWhileSprintingDistance;
+                    
+                    // If I am currently charging (but need to update location) OR the enemy is outside charge distance then decide to charge
+                    let stabMakesSense = stateDataJSON["current_objective"] === "charging_enemy" || routeDistanceToEnemy >= RETRO_GAME_DATA["duel"]["ai"]["min_stab_charge_distance"];
+                    // If I can sprint to enemy and stab
+                    let staminaMakesSense = staminaSum > 0;
+
+                    if (staminaMakesSense && stabMakesSense){
+                        stateDataJSON["current_objective"] = "charging_enemy";
+                        stateDataJSON["relevant_enemy_tile_x"] = enemyTileX;
+                        stateDataJSON["relevant_enemy_tile_y"] = enemyTileY;
+                        stateDataJSON["route"] = routeToEnemy;
+                        executeChargePathing = true;
+                    }else{
+                        // Note: Reloading is canceled by movement (and weapon switching) so don't need to use "cancel_reload"
+                        this.goToReloadPositionAndReload(enemyTileX, enemyTileY);
+                    }
+                }
+
+                if (executeChargePathing){
                     // Move based on this new route
                     let myTileX = this.getTileX();
                     let myTileY = this.getTileY();
@@ -1245,40 +1294,13 @@ class DuelBot extends DuelCharacter {
                             this.botDecisionDetails["decisions"]["weapons"]["gun"]["aiming_angle_rad"] = toRadians(0);
                         }
                     }
-                    
-                    this.botDecisionDetails["decisions"]["weapons"]["musket"]["trying_to_stab"] = facingAndCloseToEnemy;
-                }else if (!this.isBetweenTiles()){
-                    let routeToEnemy = this.generateShortestEvasiveRouteToPoint(enemyTileX, enemyTileY);
-                    let routeDistanceToEnemy = routeToEnemy.getMovementDistance();
-                    let realisticTilesTraveled = routeDistanceToEnemy - 1;
-                    /*
-                        The plan:
-                            1. Calculate if I can sprint all the way up to and stab given the route distance
-                            IF YES
-                                2. Set state data to "charging_enemy"
-                                3. Follow path and sprint to enemy
-                                4. If run out of stamina early (because the enemy moved) then cancel this plan
-                                IF NOT
-                                    5. Stab when close enough
-                                    6. Set plan to going_to_reload
-                    */
-                    let pixelsToTravel = realisticTilesTraveled * RETRO_GAME_DATA["general"]["tile_size"];
-                    let msToMoveDistanceWhileSprinting = pixelsToTravel / (RETRO_GAME_DATA["general"]["walk_speed"] * RETRO_GAME_DATA["general"]["sprint_multiplier"]);
-                    let staminaRecoveryPerMS = RETRO_GAME_DATA["human"]["stamina"]["max_stamina"] / RETRO_GAME_DATA["human"]["stamina"]["stamina_recovery_time_ms"];
-                    let staminaRecoveryDuringSprinting = msToMoveDistanceWhileSprinting * staminaRecoveryPerMS;
-                    let currentStamina = this.staminaBar.getStamina();
-                    let staminaUsedPerTile = RETRO_GAME_DATA["human"]["stamina"]["sprinting_stamina_per_tile"];
-                    let staminaUsedWhileSprintingDistance = realisticTilesTraveled * staminaUsedPerTile;
-                    let staminaSum = currentStamina + staminaRecoveryDuringSprinting - staminaUsedWhileSprintingDistance;
-                    // If I can sprint to enemy and stab
-                    if (staminaSum > 0){
-                        stateDataJSON["current_objective"] = "charging_enemy";
-                        stateDataJSON["relevant_enemy_tile_x"] = enemyTileX;
-                        stateDataJSON["relevant_enemy_tile_y"] = enemyTileY;
-                        stateDataJSON["route"] = routeToEnemy;
-                    }else{
-                        // Note: Reloading is canceled by movement (and weapon switching) so don't need to use "cancel_reload"
-                        this.goToReloadPositionAndReload(enemyTileX, enemyTileY);
+                    // Stabbing
+                    let stabbing = facingAndCloseToEnemy;
+                    this.botDecisionDetails["decisions"]["weapons"]["musket"]["trying_to_stab"] = stabbing;
+
+                    if (stabbing){
+                        // Reset objective
+                        stateDataJSON["current_objective"] = null;
                     }
                 }
             }
@@ -1301,7 +1323,30 @@ class DuelBot extends DuelCharacter {
         }
         // We are not currently persuing a pre-determined route
         else{
-            let newTile = this.determineTileToReloadFrom(enemyTileX, enemyTileY);
+            let needToCalculate = true;
+            let newTile;
+            // Check if we saved data
+            if (this.temporaryOperatingData.has("tile_to_reload_from")){
+                let dataJSON = this.temporaryOperatingData.get("tile_to_reload_from");
+
+                // If the parameters are the same now as the previously calculated value
+                if (dataJSON["enemy_tile_x"] === enemyTileX && dataJSON["enemy_tile_y"]){
+                    needToCalculate = false;
+                    newTile = dataJSON["tile"];
+                }
+            }
+
+            // if I need to calculate a new tile to stand on
+            if (needToCalculate){
+                newTile = this.determineTileToReloadFrom(enemyTileX, enemyTileY);
+                // update saved data
+                let dataJSON = {
+                    "enemy_tile_x": enemyTileX,
+                    "enemy_tile_y": enemyTileY,
+                    "tile": newTile
+                }
+                this.temporaryOperatingData.set("tile_to_reload_from", dataJSON);
+            }
 
             let newTileIsTheSame = newTile["tile_x"] === this.getTileX() && newTile["tile_y"] === this.getTileY();
             
@@ -1383,9 +1428,9 @@ class DuelBot extends DuelCharacter {
             }
 
             // Single cover outside of enemy visibility
-            let inSingleCoverValue = (this.getScene().tileAtLocationHasAttribute(tileX, tileY, "single_cover") ? 1 : 0);
+            let inSingleCoverValue = (singleCoverFunction(tileX, tileY) ? 1 : 0);
 
-            let inMutliCoverValue = (this.getScene().tileAtLocationHasAttribute(tileX, tileY, "multi_cover") ? 1 : 0);
+            let inMutliCoverValue = (multiCoverFunction(tileX, tileY) ? 1 : 0);
         
             let onTile = (this.getTileX() === tileX && this.getTileY() === tileY) ? 1 : 0;
         

@@ -10,7 +10,7 @@ const RETRO_GAME_DATA = {
                     "pistols": [], // "flintlock"
                     "muskets": ["brown_bess"], // "brown_bess"
                     "extra_details": {
-                        "invincible": false,
+                        "invincible": true,
                         "sway_compensation_ability": 0.2 // 20% reduction in gun sway
                     },
                     "bot_extra_details": {
@@ -25,11 +25,11 @@ const RETRO_GAME_DATA = {
                     "pistols": [],
                     "muskets": ["brown_bess"],
                     "extra_details": {
-                        "invincible": false,
+                        "invincible": true,
                         "sway_compensation_ability": 0.2 // 20% reduction in gun sway
                     },
                     "bot_extra_details": {
-                        "disabled": true,
+                        "disabled": false,
                         "reaction_time_ms": 50
                     }
                 }
@@ -69,7 +69,7 @@ const RETRO_GAME_DATA = {
         "shot_damage": 0.75,
         "musket_stab_damage": 0.6,
         "max_seed": 100000, // Self-explanatory
-        "seed": null,  // null for random seed, 24873 is good (on 10 size)
+        "seed": 9662,  // null for random seed, 24873 is good (on 10 size)
         "pistol_sway_acceleration_constant": 0.4,
         "musket_sway_acceleration_constant": 0.4,
         "camera": {
@@ -92,13 +92,14 @@ const RETRO_GAME_DATA = {
             "enemy_search_min_stamina_preference": 0.4, // I would like to have 20% stamina available when I am searching for enemies
             "positioning_for_shot_stamina_preference": 0.1, // I would like to have 10% stamina available when I am going to a spot to shoot an enemy
             "positioning_for_reload_stamina_preference": 0.3, // I would like to have 30% stamina available when I am going to a spot to shoot an enemy
+            "min_stab_charge_distance": 4, // Minimum distance at which to charge
             "shoot_tile_selection": {
                 "shoot_tile_selection_x_start": 0.25, // x start for function 1 / x^f for biasing a random selection
                 "shoot_tile_selection_x_end": 3, // x end for function 1 / x^f for biasing a random selection
                 "shoot_tile_selection_f": 5, // f value for function 1 / x^f for biasing a random selection
                 "can_hit_mult": 5, // multiplier for shooting-tiles where you can hit the enemies
                 "from_me_route_mult": -1/15, // multiplier for shooting-tiles that are further from the bot
-                "from_enemy_route_mult": 1/15 * 0.5, // multiplier for shooting-tiles that have a longer route from the enemy of the bot
+                "from_enemy_route_mult": 1/15 * 1, // multiplier for shooting-tiles that have a longer route from the enemy of the bot
                 "from_enemy_mult": 1/64 * 1/21 * 0.25, // multiplier for shooting-tiles that are further from the enemy of the bot
                 "angle_range_mult": 1/60, // multiplier for shooting-tiles that have a larger breadth which which to aim at an enemy
                 "nearest_single_cover_mult": -1/15, // multiplier for shooting-tiles that are far from single cover
@@ -110,7 +111,7 @@ const RETRO_GAME_DATA = {
                 "on_tile_multiplier": 2 // multiplier for reloading-tiles that are currently stood on
             },
             "reload_tile_selection": {
-                "from_enemy_route_mult": 1/15 * 1, // multiplier for reloading-tiles that have a long route from the enemy
+                "from_enemy_route_mult": 1/15 * 4, // multiplier for reloading-tiles that have a long route from the enemy
                 "from_enemy_mult": 1/64 * 1/21 * 0.25, // multiplier for reloading-tiles that are far from the enemy
                 "can_hit_mult": -1, // multiplier for reloading-tiles that can be hit by the enemy
                 "angle_range_mult": -1/60 * 2, // multiplier for reloading-tiles that have a broad range of attack for the enemy

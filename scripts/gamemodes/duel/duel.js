@@ -174,16 +174,36 @@ class Duel extends Gamemode {
             this.scene.addEntity(participant);
 
             // Arm them
+            let participantSwayCompensationAbility = participant.getSwayCompensationAbility();
+            let participantSwayMultiplier = 1 - participantSwayCompensationAbility;
             for (let pistolModelName of participantObject["pistols"]){
                 participant.getInventory().add(new Pistol(pistolModelName, {
                     "player": participant,
-                    "sway_acceleration_constant": RETRO_GAME_DATA["duel"]["pistol_sway_acceleration_constant"]
+                    "sway_acceleration_constant": participantSwayMultiplier * RETRO_GAME_DATA["duel"]["pistol_sway_acceleration_constant"],
+                    "max_sway_velocity_deg": participantSwayMultiplier * RETRO_GAME_DATA["gun_data"][pistolModelName]["max_sway_velocity_deg"],
+                    "maximum_random_sway_acceleration_deg": participantSwayMultiplier * RETRO_GAME_DATA["gun_data"][pistolModelName]["maximum_random_sway_acceleration_deg"],
+                    "minimum_random_sway_acceleration_deg": participantSwayMultiplier * RETRO_GAME_DATA["gun_data"][pistolModelName]["minimum_random_sway_acceleration_deg"],
+                    "corrective_sway_acceleration_deg": participantSwayMultiplier * RETRO_GAME_DATA["gun_data"][pistolModelName]["corrective_sway_acceleration_deg"],
+                    "sway_decline_a": participantSwayMultiplier * RETRO_GAME_DATA["gun_data"][pistolModelName]["sway_decline_a"],
+                    "sway_decline_b": participantSwayMultiplier * RETRO_GAME_DATA["gun_data"][pistolModelName]["sway_decline_b"],
+                    "corrective_sway_acceleration_constant_c": participantSwayMultiplier * RETRO_GAME_DATA["gun_data"][pistolModelName]["corrective_sway_acceleration_constant_c"],
+                    "corrective_sway_acceleration_constant_d": participantSwayMultiplier * RETRO_GAME_DATA["gun_data"][pistolModelName]["corrective_sway_acceleration_constant_d"],
+                    "sway_max_angle_deg": participantSwayMultiplier * RETRO_GAME_DATA["gun_data"][pistolModelName]["sway_max_angle_deg"]
                 }))
             }
             for (let musketModelName of participantObject["muskets"]){
                 participant.getInventory().add(new Musket(musketModelName, {
                     "player": participant,
-                    "sway_acceleration_constant": RETRO_GAME_DATA["duel"]["musket_sway_acceleration_constant"]
+                    "sway_acceleration_constant": RETRO_GAME_DATA["duel"]["musket_sway_acceleration_constant"],
+                    "max_sway_velocity_deg": participantSwayMultiplier * RETRO_GAME_DATA["gun_data"][musketModelName]["max_sway_velocity_deg"],
+                    "maximum_random_sway_acceleration_deg": participantSwayMultiplier * RETRO_GAME_DATA["gun_data"][musketModelName]["maximum_random_sway_acceleration_deg"],
+                    "minimum_random_sway_acceleration_deg": participantSwayMultiplier * RETRO_GAME_DATA["gun_data"][musketModelName]["minimum_random_sway_acceleration_deg"],
+                    "corrective_sway_acceleration_deg": participantSwayMultiplier * RETRO_GAME_DATA["gun_data"][musketModelName]["corrective_sway_acceleration_deg"],
+                    "sway_decline_a": participantSwayMultiplier * RETRO_GAME_DATA["gun_data"][musketModelName]["sway_decline_a"],
+                    "sway_decline_b": participantSwayMultiplier * RETRO_GAME_DATA["gun_data"][musketModelName]["sway_decline_b"],
+                    "corrective_sway_acceleration_constant_c": participantSwayMultiplier * RETRO_GAME_DATA["gun_data"][musketModelName]["corrective_sway_acceleration_constant_c"],
+                    "corrective_sway_acceleration_constant_d": participantSwayMultiplier * RETRO_GAME_DATA["gun_data"][musketModelName]["corrective_sway_acceleration_constant_d"],
+                    "sway_max_angle_deg": participantSwayMultiplier * RETRO_GAME_DATA["gun_data"][musketModelName]["sway_max_angle_deg"]
                 }))
             }
             for (let swordModelName of participantObject["swords"]){
@@ -274,11 +294,11 @@ class Duel extends Gamemode {
         }
 
         let rockClusteres = 16;
-        let minRockClusterSize = 3;
-        let maxRockClusterSize = 13;
-        let smallBushes = 20;
-        let minBigBushSize = 8;
-        let maxBigBushSize = 20;
+        let minRockClusterSize = 2;
+        let maxRockClusterSize = 5;
+        let smallBushes = 25;
+        let minBigBushSize = 3;
+        let maxBigBushSize = 9;
         let bigBushes = 5;
 
         let seed = randomNumberInclusive(0,RETRO_GAME_DATA["duel"]["max_seed"]);
@@ -391,9 +411,9 @@ class Duel extends Gamemode {
         }
 
         // Place River
-        let minRiverWidth = 3;
-        let maxRiverWidth = 5;
-        let numRivers = 3;
+        let minRiverWidth = 1;
+        let maxRiverWidth = 3;
+        let numRivers = 2;
 
         let makeRiver = (riverAngleRAD, riverStartX, riverStartY, currentWidth, riverType, minRiverWidth, maxRiverWidth) => {
             let startingTileX = Math.min(size, Math.max(0, WTLGameScene.getTileXAt(riverStartX)));
@@ -635,6 +655,12 @@ class Duel extends Gamemode {
         createPath(this.spawns[0], this.spawns[1]);
         createPath(this.spawns[1], this.spawns[2]);
         createPath(this.spawns[2], this.spawns[3]);
+
+        // Create paths from top left spawn to middle and middle to bottom right spawn
+        let middleX = Math.floor(size/2) - 1;
+        let middleY = Math.floor(size/2) - 1;
+        createPath(this.spawns[0], {"x": middleX, "y": middleY});
+        createPath({"x": middleX, "y": middleY}, this.spawns[3]);
     }
 
     display(){

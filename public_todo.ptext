@@ -1,15 +1,11 @@
 Right now:
-
-	Add sprinting when appropriate
-
-	Set an angle that bot can compensate for with the sway. Like say 0.5rad + 0.1 compensation -> 0.4 rad
-
-	Add new terrain for the gamemode
-
-	Add pistol features to musket
-	Add musket stabbing
-
+	Add logic for switching to musket like how I switch to sword when I have unloaded guns
+	Add run away post musket stab?
+	Set up better stamina usage for most running in the game. I don't like sprinting -> not sprinting -> sprinting repeatedly. it's jarring
 	Add run away mechanic for unarmeds
+
+	Add trees
+
 	Make menu with only difficulty being reaction time slider on bots
 
 	Add gentlemanly duel

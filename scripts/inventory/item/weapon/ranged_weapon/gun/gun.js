@@ -23,6 +23,10 @@ class Gun extends RangedWeapon {
         this.swayStartTick = -1;
     }
 
+    getPlayer(){
+        return this.player;
+    }
+
     breakAction(){
         this.cancelReload();
         this.resetSway();

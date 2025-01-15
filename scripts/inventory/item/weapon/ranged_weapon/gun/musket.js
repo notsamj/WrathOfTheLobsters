@@ -26,12 +26,12 @@ class Musket extends Gun {
 
     actOnDecisions(){
         let tryingToShoot = this.getDecision("trying_to_shoot");
-        if (this.isAiming() && tryingToShoot && this.isLoaded() && !this.isStabbing()){
+        if (this.isAiming() && tryingToShoot && this.isLoaded() && !this.isStabbing() && !this.player.isMoving()){
             this.shoot();
         }
 
         let togglingBayonetEquip = this.getDecision("toggling_bayonet_equip");
-        if (!this.isAiming() && togglingBayonetEquip && !this.player.isMoving() && !this.isReloading() && !this.isStabbing()){
+        if (!this.isAiming() && togglingBayonetEquip && !this.player.isMoving() && !this.isStabbing()){
             if (this.hasBayonetEquipped()){
                 this.unequipBayonet();
             }else{
@@ -45,7 +45,7 @@ class Musket extends Gun {
         }
 
         let tryingToStab = this.getDecision("trying_to_stab");
-        if (this.isAiming() && tryingToStab && !this.isReloading() && this.hasBayonetEquipped() && !this.player.isMoving() && !this.isStabbing()){
+        if (this.isAiming() && tryingToStab && !this.isReloading() && this.hasBayonetEquipped() && !this.isStabbing() && this.getPlayer().getStaminaBar().hasStamina()){
             this.startStab();
         }
     }
@@ -55,6 +55,7 @@ class Musket extends Gun {
         this.stabAngle = this.getDecidedAngleRAD();
         this.stabFacing = this.player.getFacingDirection();
         this.stabLock.resetAndLock();
+        this.getPlayer().getStaminaBar().useStamina(RETRO_GAME_DATA["gun_data"][this.getModel()]["stamina_usage_for_stab"]);
     }
 
     finishStab(){
@@ -63,11 +64,11 @@ class Musket extends Gun {
         let myID = this.player.getID();
         let collision = this.getScene().findInstantCollisionForProjectile(this.getEndOfGunX(), this.getEndOfGunY(), this.stabAngle, RETRO_GAME_DATA["gun_data"][this.model]["stab_range"], (enemy) => { return enemy.getID() == myID; });
         // If it hits an entity
-        if (collision["collision_type"] == "entity"){
-            collision["entity"].getStabbed(this.getModel());
+        if (collision["collision_type"] === "entity"){
+            collision["entity"].getStabbed(this);
         }
         // If it hits a physical tile or nothing then create bullet collision particle
-        else if (collision["collision_type"] == null || collision["collision_type"] == "physical_tile"){
+        else if (collision["collision_type"] === null || collision["collision_type"] === "physical_tile"){
             // If the shot didn't hit anything alive then show particles when it hit
             this.getScene().addExpiringVisual(BulletImpact.create(collision["x"], collision["y"]));
         }
@@ -149,7 +150,7 @@ class Musket extends Gun {
     }
 
     isAiming(){
-        return super.isAiming() && !this.isStabbing();
+        return this.getDecision("trying_to_aim") && this.directionToAimIsOk() && !this.isReloading() && !this.isStabbing();
     }
 
     tick(){
@@ -165,7 +166,7 @@ class Musket extends Gun {
                 }
             }
         }else if (this.isStabbing()){
-            if (this.player.isMoving() || this.player.getFacingDirection() != this.stabFacing){
+            if (this.player.getFacingDirection() != this.stabFacing){
                 this.cancelStab();
             }else{
                 this.stabLock.tick();

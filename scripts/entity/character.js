@@ -442,7 +442,7 @@ class Character extends Entity {
         this.health = amount;
     }
 
-    getStabbed(model){
+    getStabbed(stabItem){
         this.damage(0.75);
     }
 
@@ -522,7 +522,6 @@ class Character extends Entity {
             debugger;
         }
 
-        // TODO: Check if there is a tile that I'm walking to
         let desiredMoveSpeed = RETRO_GAME_DATA["general"]["walk_speed"];
 
         // Determine if the character is going to sprint

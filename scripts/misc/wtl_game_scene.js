@@ -101,8 +101,12 @@ class WTLGameScene {
         if (isRDebugging()){
             debugger;
         }
+
+        let lastAdditionalX = 0;
+        let lastAdditionalY = 0;
+
         // Loop through the path
-        while (lessThanEQDir(tileX, endTileX, xDirection) && lessThanEQDir(tileY, endTileY, yDirection) && lessThanEQDir(x, chunkXEnd, xDirection) && lessThanEQDir(y, chunkYEnd, yDirection)){
+        while (lessThanEQDir(tileX, endTileX, xDirection) && lessThanEQDir(tileY, endTileY, yDirection) && lessThanEQDir(x + lastAdditionalX, chunkXEnd, xDirection) && lessThanEQDir(y + lastAdditionalY, chunkYEnd, yDirection)){
             // Update physical tile position
             let chunkX = Chunk.tileToChunkCoordinate(tileX);
             let chunkY = Chunk.tileToChunkCoordinate(tileY);
@@ -112,6 +116,7 @@ class WTLGameScene {
             if (!sameChunk){
                 currentChunk = this.chunks.get(chunkX, chunkY);
             }
+            if (currentChunk === null){ debugger; }
             let tile = currentChunk.getPhysicalTileCoveringLocation(tileX, tileY);
 
             let physicalTileIsPresent = tile != null;
@@ -156,6 +161,7 @@ class WTLGameScene {
             let timeToNextTileY = safeDivide(distanceToNextTileY, Math.abs(Math.sin(angleRAD)), 1e-7, Number.MAX_SAFE_INTEGER);
             let additionalX = 0;
             let additionalY = 0;
+
             let time = Math.min(timeToNextTileX, timeToNextTileY);
             if (timeToNextTileX < timeToNextTileY){
                 tileEntrySide = xDirection < 0 ? "right" : "left";
@@ -169,6 +175,9 @@ class WTLGameScene {
             // Add an extra 1 in whatever direction to 
             tileX = WTLGameScene.getTileXAt(x + additionalX);
             tileY = WTLGameScene.getTileYAt(y + additionalY);
+
+            lastAdditionalX = additionalX;
+            lastAdditionalY = additionalY;
         }
         // Located a physical tile (if any) that collides with the projectile
         let collidesWithAPhysicalTile = physicalTileCollision != null;

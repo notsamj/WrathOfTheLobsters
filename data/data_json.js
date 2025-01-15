@@ -6,29 +6,31 @@ const RETRO_GAME_DATA = {
                 {
                     "human": true,
                     "model": "british_officer",
-                    "swords": ["cavalry_sword"],
-                    "pistols": ["flintlock"],
-                    "muskets": [],
+                    "swords": [], // "cavalry_sword", "clever"
+                    "pistols": [], // "flintlock"
+                    "muskets": ["brown_bess"], // "brown_bess"
                     "extra_details": {
                         "invincible": false,
+                        "sway_compensation_ability": 0.2 // 20% reduction in gun sway
                     },
                     "bot_extra_details": {
                         "disabled": false,
-                        "reaction_time_ms": 250
+                        "reaction_time_ms": 50
                     }
                 },
                 {
                     "human": false,
                     "model": "usa_officer",
-                    "swords": ["clever"],
-                    "pistols": ["flintlock"],
-                    "muskets": [],
+                    "swords": [],
+                    "pistols": [],
+                    "muskets": ["brown_bess"],
                     "extra_details": {
-                        "invincible": false
+                        "invincible": false,
+                        "sway_compensation_ability": 0.2 // 20% reduction in gun sway
                     },
                     "bot_extra_details": {
-                        "disabled": false,
-                        "reaction_time_ms": 250
+                        "disabled": true,
+                        "reaction_time_ms": 50
                     }
                 }
             ]
@@ -65,9 +67,9 @@ const RETRO_GAME_DATA = {
         "area_size": 15, // 15?,
         "enemy_visibility_distance": 12, // 12
         "shot_damage": 0.75,
-        "stab_damage": 1,
+        "musket_stab_damage": 0.6,
         "max_seed": 100000, // Self-explanatory
-        "seed": 24969,  // null for random seed, 24873 is good (on 10 size)
+        "seed": null,  // null for random seed, 24873 is good (on 10 size)
         "pistol_sway_acceleration_constant": 0.4,
         "musket_sway_acceleration_constant": 0.4,
         "camera": {
@@ -546,7 +548,8 @@ const RETRO_GAME_DATA = {
             "minimum_random_sway_acceleration_deg": 3.2, // Minimum Random sway acceleration deg/second^2
             "corrective_sway_acceleration_deg": 0.75, // Corrective sway acceleration deg/second^2
             "corrective_sway_acceleration_constant_c": 0.35, // Constant for slowing down based on angle offset
-            "corrective_sway_acceleration_constant_d": 2.75 // Constant for slowing down based on angular velocity
+            "corrective_sway_acceleration_constant_d": 2.75, // Constant for slowing down based on angular velocity
+            "stamina_usage_for_stab": 30
         },
         "flintlock": {
             "type": "pistol",
@@ -618,7 +621,7 @@ const RETRO_GAME_DATA = {
         "frame_rate": 60,
         "tile_size": DATA_TILE_SIZE, // 64
         "walk_speed": 120,
-        "sprint_multiplier": 2.0,
+        "sprint_multiplier": 1.5,
         "animation_frame_time": 100,
         "chunk_size": 16,
         "expected_canvas_width": 1920,

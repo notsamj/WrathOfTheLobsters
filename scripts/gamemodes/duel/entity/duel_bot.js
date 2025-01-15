@@ -28,12 +28,15 @@ class DuelBot extends DuelCharacter {
                         "trying_to_shoot": false,
                         "trying_to_reload": false,
                         "cancel_reload": false
+                    },
+                    "musket": {
+                        "toggling_bayonet_equip": false,
+                        "trying_to_stab": false
                     }
                 }
             }
         }
     }
-
 
     getEnemyID(){
         return this.getEnemy().getID();
@@ -139,6 +142,7 @@ class DuelBot extends DuelCharacter {
             this.inputPerceptionData("enemy_holding_a_ranged_weapon", enemyHoldingARangedWeapon);
             this.inputPerceptionData("enemy_holding_a_gun", enemyHoldingAGun);
             this.inputPerceptionData("enemy_holding_a_loaded_gun", enemyHoldingALoadedGun);
+            this.inputPerceptionData("enemy_is_aiming_a_loaded_gun", enemyHoldingALoadedGun && enemyItem.isAiming());
             this.inputPerceptionData("enemy_holding_a_melee_weapon", enemyHoldingAMeleeWeapon);
             this.inputPerceptionData("enemy_holding_a_sword", enemyHoldingASword);
 
@@ -196,6 +200,7 @@ class DuelBot extends DuelCharacter {
     }
 
     resetBotDecisions(){
+        // TODO: Something that copies decisions are beginning and pastes it here
         this.botDecisionDetails["decisions"]["select_slot"] = null;
         this.botDecisionDetails["decisions"]["up"] = false;
         this.botDecisionDetails["decisions"]["down"] = false;
@@ -211,6 +216,9 @@ class DuelBot extends DuelCharacter {
         this.botDecisionDetails["decisions"]["weapons"]["gun"]["trying_to_shoot"] = false;
         this.botDecisionDetails["decisions"]["weapons"]["gun"]["trying_to_reload"] = false;
         this.botDecisionDetails["decisions"]["weapons"]["gun"]["cancel_reload"] = false;
+
+        this.botDecisionDetails["decisions"]["weapons"]["musket"]["toggling_bayonet_equip"] = false;
+        this.botDecisionDetails["decisions"]["weapons"]["musket"]["trying_to_stab"] = false;
     }
     
     makeDecisions(){
@@ -1026,7 +1034,255 @@ class DuelBot extends DuelCharacter {
     }
 
     makeMusketFightingDecisions(){
-        // TODO
+        // Nothing to do if you can't see the enemy
+        if (!this.hasDataToReactTo("enemy_location")){ return; }
+
+        // Assume if currently aiming I'd like to continue unless disabled elsewhere
+        let myMusket = this.getInventory().getSelectedItem();
+
+        this.botDecisionDetails["decisions"]["weapons"]["gun"]["trying_to_aim"] = myMusket.isAiming();
+        
+        // Make sure bayonet is eqipped
+        this.botDecisionDetails["decisions"]["weapons"]["musket"]["toggling_bayonet_equip"] = !myMusket.hasBayonetEquipped();
+
+        let scene = this.getScene();
+
+        let enemyInterpolatedTickCenterX = this.getDataToReactTo("enemy_interpolated_tick_center_x");
+        let enemyInterpolatedTickCenterY = this.getDataToReactTo("enemy_interpolated_tick_center_y");
+        let enemyLocation = this.getDataToReactTo("enemy_location");
+        let enemyTileX = enemyLocation["tile_x"];
+        let enemyTileY = enemyLocation["tile_y"];
+
+        // Make decisions based on if my gun is loaded
+        if (myMusket.isLoaded()){
+            if (!this.isBetweenTiles()){
+                // Check if I can hit the enemy were I to aim (WITHOUT MOVING)
+                let angleToEnemyTileCenter = displacementToRadians(enemyTileX - this.getTileX(), enemyTileY - this.getTileY());
+                let bestVisualDirection = angleToBestFaceDirection(angleToEnemyTileCenter);
+                let bestMovementDirection = getMovementDirectionOf(bestVisualDirection);
+                let playerLeftX = scene.getXOfTile(this.getTileX());
+                let playerTopY = scene.getYOfTile(this.getTileY());
+                let pos = myMusket.getSimulatedGunEndPosition(playerLeftX, playerTopY, bestVisualDirection, angleToEnemyTileCenter);
+                let gunEndX = pos["x"];
+                let gunEndY = pos["y"];
+                let speculationResult = this.speculateOnHittingEnemy(myMusket.getBulletRange(), enemyInterpolatedTickCenterX, enemyInterpolatedTickCenterY, gunEndX, gunEndY, bestVisualDirection);
+                let canHitEnemyIfIAimAndShoot = speculationResult["can_hit"];
+
+
+                // If I am aiming
+                if (myMusket.isAiming()){
+                    if (canHitEnemyIfIAimAndShoot){
+                        // Turn to proper direction
+                        if (this.getFacingDirection() != bestVisualDirection){
+                            this.botDecisionDetails["decisions"][bestMovementDirection] = true;
+                            // Just turning not moving
+                            this.botDecisionDetails["decisions"]["breaking_stride"] = true;
+                        }
+
+                        // Allow bot to see the magnitude of current offset
+                        let mySwayOffsetMagnitude = Math.abs(myMusket.getCurrentAngleOffsetRAD());
+                        let myChanceOfHittingAShot = calculateRangeOverlapProportion(speculationResult["right_angle"], speculationResult["left_angle"], speculationResult["best_angle"] - mySwayOffsetMagnitude/2, speculationResult["best_angle"] + mySwayOffsetMagnitude/2);
+                        let shotAConstant = RETRO_GAME_DATA["duel"]["ai"]["shot_take_function_a_constant"];
+                        let shotBConstant = RETRO_GAME_DATA["duel"]["ai"]["shot_take_function_b_constant"];
+                        let secondsToShootWithThisChance = getDeclining1OverXOf(shotAConstant, shotBConstant, myChanceOfHittingAShot);
+                        // Convert to ms and acknowledge cap
+                        let msToShootWithThisChance = Math.min(secondsToShootWithThisChance * 1000, RETRO_GAME_DATA["duel"]["ai"]["max_expected_ms_to_hold_a_shot"]);
+
+                        let decideToShoot = this.getRandomEventManager().getResultExpectedMS(msToShootWithThisChance);
+                        this.botDecisionDetails["decisions"]["weapons"]["gun"]["trying_to_shoot"] = decideToShoot;
+                    }else{
+                        // I am aiming but I can't hit so I will stop
+                        this.botDecisionDetails["decisions"]["weapons"]["gun"]["trying_to_aim"] = this.getRandomEventManager().getResultExpectedMS(RETRO_GAME_DATA["duel"]["ai"]["stop_aiming_no_target_ms"]);
+                    }
+                }
+                // Else I am not aiming currently
+                else{
+
+                    /*
+                        Quick note
+                        So I have a gun
+                        either I am standing and shooting OR I am moving to a better position OR I am reloading
+                        So check here if I am moving 
+                    */
+                    let stateDataJSON = this.getStateData();
+                    let movingToBetterPosition = objectHasKey(stateDataJSON, "current_objective") && stateDataJSON["current_objective"] === "move_to_shooting_position";
+                    // Next ones are only calculated conditionally
+                    let betterPositionIsBasedOnCurrentData = movingToBetterPosition && stateDataJSON["relevant_enemy_tile_x"] === enemyTileX && stateDataJSON["relevant_enemy_tile_y"] === enemyTileY;
+                    let routeLastTile = betterPositionIsBasedOnCurrentData ? (stateDataJSON["route"].getLastTile()) : null;
+                    let notAtEndOfRoute = betterPositionIsBasedOnCurrentData && (routeLastTile["tile_x"] != this.getTileX() || routeLastTile["tile_y"] != this.getTileY());
+
+                    // If our current objective is to move to a better shooting position
+                    if (movingToBetterPosition && betterPositionIsBasedOnCurrentData && notAtEndOfRoute){
+                        this.updateFromRouteDecision(stateDataJSON["route"].getDecisionAt(this.getTileX(), this.getTileY()));
+                        // Consider sprinting
+                        this.botDecisionDetails["decisions"]["sprint"] = this.staminaBar.getStaminaProportion() > RETRO_GAME_DATA["duel"]["ai"]["positioning_for_shot_stamina_preference"];
+                    }
+                    // We are not currently persuing a pre-determined route
+                    else{
+                        /*
+                            - Get a weighted value map of shooting spots (say maybe X path distance from me and X path distance from victim)
+                                - Linear combination of:
+                                    - Route Distance from me (negative)
+                                    - Route Distance from enemy (positive)
+                                    - Distance from enemy (positive)
+                                    - Angle range to hit enemy (positive)
+                                    - Route distance to nearest single cover that is outside of enemy view range (negative)
+                                    - Route distance to nearest multicover (negative)
+                                    - Route distance to nearest physical cover (like a rock to hide behind) (negative)
+                            - Select best tile
+                                - If my tile -> stay and start aiming
+                                - If not my tile ->
+                                    - Add apply a random function to select (like in Skirmish choosing a move)
+                                        -> Move to new tile
+                        */
+                        //let b4 = Date.now();
+                        let newTile;
+
+                        let myTileX = this.getTileX();
+                        let myTileY = this.getTileY();
+
+                        let needToCalculate = true;
+
+                        // Check if we saved data
+                        if (this.temporaryOperatingData.has("tile_to_stand_and_shoot_from")){
+                            let dataJSON = this.temporaryOperatingData.get("tile_to_stand_and_shoot_from");
+
+                            // If the parameters are the same now as the previously calculated value
+                            if (dataJSON["enemy_tile_x"] === enemyTileX && dataJSON["enemy_tile_y"] && dataJSON["tile_x"] === myTileX && dataJSON["tile_y"] === myTileY){
+                                needToCalculate = false;
+                                newTile = dataJSON["tile"];
+                            }
+                        }
+
+                        // if I need to calculate a new tile to stand on
+                        if (needToCalculate){
+                            newTile = this.determineTileToStandAndShootFrom(enemyTileX, enemyTileY, myMusket);
+                            // update saved data
+                            let dataJSON = {
+                                "tile_x": myTileX,
+                                "tile_y": myTileY,
+                                "enemy_tile_x": enemyTileX,
+                                "enemy_tile_y": enemyTileY,
+                                "tile": newTile
+                            }
+                            this.temporaryOperatingData.set("tile_to_stand_and_shoot_from", dataJSON);
+                        }
+                        
+                        let newTileIsTheSame = newTile["tile_x"] === myTileX && newTile["tile_y"] === myTileY;
+                    
+                        // I can hit the enemy if I start aiming
+                        if (canHitEnemyIfIAimAndShoot && newTileIsTheSame){
+                            // Turn to proper direction
+                            if (this.getFacingDirection() != bestVisualDirection){
+                                this.botDecisionDetails["decisions"][bestMovementDirection] = true;
+                                // Just turning not moving
+                                this.botDecisionDetails["decisions"]["breaking_stride"] = true;
+                            }
+
+                            // Set angle
+                            
+                            this.botDecisionDetails["decisions"]["weapons"]["gun"]["aiming_angle_rad"] = speculationResult["best_angle"];
+                            this.botDecisionDetails["decisions"]["weapons"]["gun"]["trying_to_aim"] = this.getRandomEventManager().getResultExpectedMS(RETRO_GAME_DATA["duel"]["ai"]["good_shot_try_to_aim_delay_ms"]);
+                        }
+                        // Move to new tile
+                        else{
+                            // Create a new route
+                            stateDataJSON["current_objective"] = "move_to_shooting_position";
+                            stateDataJSON["relevant_enemy_tile_x"] = enemyTileX;
+                            stateDataJSON["relevant_enemy_tile_y"] = enemyTileY;
+                            stateDataJSON["route"] = Route.fromPath(newTile["shortest_path"]);
+
+                            // Move based on this new route
+                            this.updateFromRouteDecision(stateDataJSON["route"].getDecisionAt(myTileX, myTileY));
+                            // Consider sprinting
+                            this.botDecisionDetails["decisions"]["sprint"] = this.staminaBar.getStaminaProportion() > RETRO_GAME_DATA["duel"]["ai"]["positioning_for_shot_stamina_preference"];
+                        }
+                    }
+                }
+            }
+        }
+        // Gun is NOT loaded
+        else{
+            // I can just use this function it will move me if circumstances change while reloading
+
+            if (!myMusket.hasBayonetEquipped()){
+                if (!this.isBetweenTiles()){
+                    // Note: Reloading is canceled by movement (and weapon switching) so don't need to use "cancel_reload"
+                    this.goToReloadPositionAndReload(enemyTileX, enemyTileY);
+                }
+            }
+
+            // Bayonet is equipped
+            else{
+                let stateDataJSON = this.getStateData();
+                // If I am charging the enemy and have stamina then continue and the enemy is at the same position
+                if (stateDataJSON["current_objective"] === "charging_enemy" && this.staminaBar.hasStamina() && stateDataJSON["relevant_enemy_tile_x"] === enemyTileX && stateDataJSON["relevant_enemy_tile_y"] === enemyTileY){
+                    // Move based on this new route
+                    let myTileX = this.getTileX();
+                    let myTileY = this.getTileY();
+                    this.updateFromRouteDecision(stateDataJSON["route"].getDecisionAt(myTileX, myTileY));
+                    // Consider sprinting
+                    this.botDecisionDetails["decisions"]["sprint"] = true;
+                    // Consider stabbing
+                    let enemyInterpolatedTickCenterX = this.getDataToReactTo("enemy_interpolated_tick_center_x");
+                    let enemyInterpolatedTickCenterY = this.getDataToReactTo("enemy_interpolated_tick_center_y");
+                    let angleToEnemyTileCenter = displacementToRadians(enemyInterpolatedTickCenterX - this.getInterpolatedTickCenterX(), enemyInterpolatedTickCenterY - this.getInterpolatedTickCenterY());
+                    let bestVisualDirection = angleToBestFaceDirection(angleToEnemyTileCenter);
+                    let facingEnemyOrOnSameTile = (myTileX === enemyTileX && myTileY === enemyTileY) || this.getFacingDirection() === bestVisualDirection;
+                    let facingAndCloseToEnemy = facingEnemyOrOnSameTile && calculateEuclideanDistance(enemyInterpolatedTickCenterX, enemyInterpolatedTickCenterY, this.getInterpolatedTickCenterX(), this.getInterpolatedTickCenterY()) < RETRO_GAME_DATA["gun_data"][myMusket.getModel()]["stab_range"];
+                    this.botDecisionDetails["decisions"]["weapons"]["gun"]["trying_to_aim"] = true;
+                    if (facingAndCloseToEnemy){
+                        this.botDecisionDetails["decisions"]["weapons"]["gun"]["aiming_angle_rad"] = angleToEnemyTileCenter;
+                    }else{
+                        let udlrDirection = this.getFacingUDLRDirection()
+                        if (udlrDirection === "up"){
+                            this.botDecisionDetails["decisions"]["weapons"]["gun"]["aiming_angle_rad"] = toRadians(90);
+                        }else if (udlrDirection === "down"){
+                            this.botDecisionDetails["decisions"]["weapons"]["gun"]["aiming_angle_rad"] = toRadians(270);
+                        }else if (udlrDirection === "left"){
+                            this.botDecisionDetails["decisions"]["weapons"]["gun"]["aiming_angle_rad"] = toRadians(180);
+                        }else{
+                            this.botDecisionDetails["decisions"]["weapons"]["gun"]["aiming_angle_rad"] = toRadians(0);
+                        }
+                    }
+                    
+                    this.botDecisionDetails["decisions"]["weapons"]["musket"]["trying_to_stab"] = facingAndCloseToEnemy;
+                }else if (!this.isBetweenTiles()){
+                    let routeToEnemy = this.generateShortestEvasiveRouteToPoint(enemyTileX, enemyTileY);
+                    let routeDistanceToEnemy = routeToEnemy.getMovementDistance();
+                    let realisticTilesTraveled = routeDistanceToEnemy - 1;
+                    /*
+                        The plan:
+                            1. Calculate if I can sprint all the way up to and stab given the route distance
+                            IF YES
+                                2. Set state data to "charging_enemy"
+                                3. Follow path and sprint to enemy
+                                4. If run out of stamina early (because the enemy moved) then cancel this plan
+                                IF NOT
+                                    5. Stab when close enough
+                                    6. Set plan to going_to_reload
+                    */
+                    let pixelsToTravel = realisticTilesTraveled * RETRO_GAME_DATA["general"]["tile_size"];
+                    let msToMoveDistanceWhileSprinting = pixelsToTravel / (RETRO_GAME_DATA["general"]["walk_speed"] * RETRO_GAME_DATA["general"]["sprint_multiplier"]);
+                    let staminaRecoveryPerMS = RETRO_GAME_DATA["human"]["stamina"]["max_stamina"] / RETRO_GAME_DATA["human"]["stamina"]["stamina_recovery_time_ms"];
+                    let staminaRecoveryDuringSprinting = msToMoveDistanceWhileSprinting * staminaRecoveryPerMS;
+                    let currentStamina = this.staminaBar.getStamina();
+                    let staminaUsedPerTile = RETRO_GAME_DATA["human"]["stamina"]["sprinting_stamina_per_tile"];
+                    let staminaUsedWhileSprintingDistance = realisticTilesTraveled * staminaUsedPerTile;
+                    let staminaSum = currentStamina + staminaRecoveryDuringSprinting - staminaUsedWhileSprintingDistance;
+                    // If I can sprint to enemy and stab
+                    if (staminaSum > 0){
+                        stateDataJSON["current_objective"] = "charging_enemy";
+                        stateDataJSON["relevant_enemy_tile_x"] = enemyTileX;
+                        stateDataJSON["relevant_enemy_tile_y"] = enemyTileY;
+                        stateDataJSON["route"] = routeToEnemy;
+                    }else{
+                        // Note: Reloading is canceled by movement (and weapon switching) so don't need to use "cancel_reload"
+                        this.goToReloadPositionAndReload(enemyTileX, enemyTileY);
+                    }
+                }
+            }
+        }
     }
 
     goToReloadPositionAndReload(enemyTileX, enemyTileY){
@@ -2153,8 +2409,8 @@ class DuelBot extends DuelCharacter {
         let tryingToShoot = this.botDecisionDetails["decisions"]["weapons"]["gun"]["trying_to_shoot"];
         let tryingToReload = this.botDecisionDetails["decisions"]["weapons"]["gun"]["trying_to_reload"];
         let tryingToCancelReload = this.botDecisionDetails["decisions"]["weapons"]["gun"]["cancel_reload"];
-        let togglingBayonetEquip = false;
-        let tryingToStab = false; // TODO
+        let togglingBayonetEquip = this.botDecisionDetails["decisions"]["weapons"]["musket"]["toggling_bayonet_equip"];
+        let tryingToStab = this.botDecisionDetails["decisions"]["weapons"]["musket"]["trying_to_stab"];
         let aimingAngleRAD = this.botDecisionDetails["decisions"]["weapons"]["gun"]["aiming_angle_rad"];
         this.amendDecisions({
             "trying_to_aim": tryingToAim,

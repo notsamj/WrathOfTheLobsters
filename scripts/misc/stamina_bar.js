@@ -23,12 +23,16 @@ class StaminaBar {
         this.activelyDraining = false;
     }
 
+    isFull(){
+        return this.stamina === this.maxStamina;
+    }
+
     getStamina(){
         return this.stamina;
     }
 
     getStaminaProportion(){
-        return this.stamina / this.maxStamina;
+        return Math.max(0, this.stamina) / this.maxStamina;
     }
 
     isOutOfStamina(){
@@ -96,7 +100,7 @@ class StaminaBar {
     getInterpolatedStamina(timePassedMS){
         // Don't interpolated if still on recovery delay
         if (this.recoveryDelayTicks > 0){ return this.stamina; }
-        return Math.min(this.maxStamina, this.stamina + this.maxStamina * timePassedMS / this.recoveryTimeMS);
+        return Math.max(0, Math.min(this.maxStamina, this.stamina + this.maxStamina * timePassedMS / this.recoveryTimeMS));
     }
 
     /*
@@ -120,9 +124,9 @@ class StaminaBar {
     */
     useStamina(amount){
         this.activelyDraining = true;
-        this.stamina = Math.max(0, this.stamina-amount);
+        this.stamina = this.stamina-amount;
         // If stamina has reached 0 then start emergency recovery
-        if (this.stamina === 0){
+        if (this.stamina <= 0){
             this.emergencyRecovery = true;
             this.recoveryDelayTicks = this.maxRecoveryDelayTicks;
         }
@@ -162,7 +166,7 @@ class StaminaBar {
         let staminaBarBorderThickness = RETRO_GAME_DATA["stamina_bar"]["border_thickness"];
         let staminaBarColourCode;
         let interpolatedStaminaPercentage = displayStamina/this.maxStamina;
-        let realStaminaPercentage = this.stamina/this.maxStamina;
+        let realStaminaPercentage = Math.max(0, this.stamina)/this.maxStamina;
 
         // Determine bar colour
         // Note: The code after the && checks if the cooling will be over next tick

@@ -66,6 +66,15 @@ class Musket extends Gun {
         // If it hits an entity
         if (collision["collision_type"] === "entity"){
             collision["entity"].getStabbed(this);
+            collision["entity"].stun(Math.ceil(RETRO_GAME_DATA["gun_data"][this.getModel()]["stab_stun_time_ms"] / RETRO_GAME_DATA["general"]["ms_between_ticks"]));
+        
+            // Play sound
+            this.getGamemode().getEventHandler().emit({
+                "name": "stab",
+                "associated_sound_name": "slashing",
+                "x": hitCenterX,
+                "y": hitCenterY
+            });
         }
         // If it hits a physical tile or nothing then create bullet collision particle
         else if (collision["collision_type"] === null || collision["collision_type"] === "physical_tile"){

@@ -25,6 +25,7 @@ class DuelCamera extends Entity {
     }
 
     couldSeeEntityIfOnTile(){ return true; }
+    canSee(){ return true; }
 
     /*
         Method Name: checkMoveX

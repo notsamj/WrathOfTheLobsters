@@ -626,7 +626,7 @@ class DuelBot extends DuelCharacter {
         updateFromMoveDecisions(route.getDecisionAt(this.getTileX(), this.getTileY()));
 
         // Consider sprinting
-        this.botDecisionDetails["decisions"]["sprint"] = this.staminaBar.getStaminaProportion() > RETRO_GAME_DATA["duel"]["ai"]["enemy_search_min_stamina_preference"];
+        this.botDecisionDetails["decisions"]["sprint"] = (!this.staminaBar.isActivelyDraining() && this.staminaBar.isFull()) || (this.staminaBar.isActivelyDraining() && this.staminaBar.getStaminaProportion() > RETRO_GAME_DATA["duel"]["ai"]["enemy_search_min_stamina_preference"]);
     }
 
     getMaxSearchPathLength(){
@@ -938,7 +938,7 @@ class DuelBot extends DuelCharacter {
                 if (movingToBetterPosition && betterPositionIsBasedOnCurrentData && notAtEndOfRoute){
                     this.updateFromRouteDecision(stateDataJSON["route"].getDecisionAt(this.getTileX(), this.getTileY()));
                     // Consider sprinting
-                    this.botDecisionDetails["decisions"]["sprint"] = this.staminaBar.getStaminaProportion() > RETRO_GAME_DATA["duel"]["ai"]["positioning_for_shot_stamina_preference"];
+                    this.botDecisionDetails["decisions"]["sprint"] = (!this.staminaBar.isActivelyDraining() && this.staminaBar.isFull()) || (this.staminaBar.isActivelyDraining() && this.staminaBar.getStaminaProportion() > RETRO_GAME_DATA["duel"]["ai"]["positioning_for_shot_stamina_preference"]);
                 }
                 // We are not currently persuing a pre-determined route
                 else{
@@ -1018,7 +1018,7 @@ class DuelBot extends DuelCharacter {
                         // Move based on this new route
                         this.updateFromRouteDecision(stateDataJSON["route"].getDecisionAt(myTileX, myTileY));
                         // Consider sprinting
-                        this.botDecisionDetails["decisions"]["sprint"] = this.staminaBar.getStaminaProportion() > RETRO_GAME_DATA["duel"]["ai"]["positioning_for_shot_stamina_preference"];
+                        this.botDecisionDetails["decisions"]["sprint"] = (!this.staminaBar.isActivelyDraining() && this.staminaBar.isFull()) || (this.staminaBar.isActivelyDraining() && this.staminaBar.getStaminaProportion() > RETRO_GAME_DATA["duel"]["ai"]["positioning_for_shot_stamina_preference"]);
                     }
                 }
             }
@@ -1115,7 +1115,7 @@ class DuelBot extends DuelCharacter {
                     if (movingToBetterPosition && betterPositionIsBasedOnCurrentData && notAtEndOfRoute){
                         this.updateFromRouteDecision(stateDataJSON["route"].getDecisionAt(this.getTileX(), this.getTileY()));
                         // Consider sprinting
-                        this.botDecisionDetails["decisions"]["sprint"] = this.staminaBar.getStaminaProportion() > RETRO_GAME_DATA["duel"]["ai"]["positioning_for_shot_stamina_preference"];
+                        this.botDecisionDetails["decisions"]["sprint"] = (!this.staminaBar.isActivelyDraining() && this.staminaBar.isFull()) || (this.staminaBar.isActivelyDraining() && this.staminaBar.getStaminaProportion() > RETRO_GAME_DATA["duel"]["ai"]["positioning_for_shot_stamina_preference"]);
                     }
                     // We are not currently persuing a pre-determined route
                     else{
@@ -1195,7 +1195,7 @@ class DuelBot extends DuelCharacter {
                             // Move based on this new route
                             this.updateFromRouteDecision(stateDataJSON["route"].getDecisionAt(myTileX, myTileY));
                             // Consider sprinting
-                            this.botDecisionDetails["decisions"]["sprint"] = this.staminaBar.getStaminaProportion() > RETRO_GAME_DATA["duel"]["ai"]["positioning_for_shot_stamina_preference"];
+                            this.botDecisionDetails["decisions"]["sprint"] = (!this.staminaBar.isActivelyDraining() && this.staminaBar.isFull()) || (this.staminaBar.isActivelyDraining() && this.staminaBar.getStaminaProportion() > RETRO_GAME_DATA["duel"]["ai"]["positioning_for_shot_stamina_preference"]);
                         }
                     }
                 }
@@ -1241,19 +1241,17 @@ class DuelBot extends DuelCharacter {
                     */
                     let pixelsToTravel = realisticTilesTraveled * RETRO_GAME_DATA["general"]["tile_size"];
                     let msToMoveDistanceWhileSprinting = pixelsToTravel / (RETRO_GAME_DATA["general"]["walk_speed"] * RETRO_GAME_DATA["general"]["sprint_multiplier"]);
-                    let staminaRecoveryPerMS = RETRO_GAME_DATA["human"]["stamina"]["max_stamina"] / RETRO_GAME_DATA["human"]["stamina"]["stamina_recovery_time_ms"];
-                    let staminaRecoveryDuringSprinting = msToMoveDistanceWhileSprinting * staminaRecoveryPerMS;
                     let currentStamina = this.staminaBar.getStamina();
                     let staminaUsedPerTile = RETRO_GAME_DATA["human"]["stamina"]["sprinting_stamina_per_tile"];
                     let staminaUsedWhileSprintingDistance = realisticTilesTraveled * staminaUsedPerTile;
-                    let staminaSum = currentStamina + staminaRecoveryDuringSprinting - staminaUsedWhileSprintingDistance;
+                    let staminaSum = currentStamina - staminaUsedWhileSprintingDistance;
                     
                     // If I am currently charging (but need to update location) OR the enemy is outside charge distance then decide to charge
                     let stabMakesSense = stateDataJSON["current_objective"] === "charging_enemy" || routeDistanceToEnemy >= RETRO_GAME_DATA["duel"]["ai"]["min_stab_charge_distance"];
                     // If I can sprint to enemy and stab
-                    let staminaMakesSense = staminaSum > 0;
+                    let staminaIsSufficient = staminaSum > 0;
 
-                    if (staminaMakesSense && stabMakesSense){
+                    if (staminaIsSufficient && stabMakesSense){
                         stateDataJSON["current_objective"] = "charging_enemy";
                         stateDataJSON["relevant_enemy_tile_x"] = enemyTileX;
                         stateDataJSON["relevant_enemy_tile_y"] = enemyTileY;
@@ -1314,12 +1312,13 @@ class DuelBot extends DuelCharacter {
         let reloadPositionIsBasedOnCurrentData = movingToReloadPosition && stateDataJSON["relevant_enemy_tile_x"] === enemyTileX && stateDataJSON["relevant_enemy_tile_y"] === enemyTileY;
         let routeLastTile = reloadPositionIsBasedOnCurrentData ? (stateDataJSON["route"].getLastTile()) : null;
         let notAtEndOfRoute = reloadPositionIsBasedOnCurrentData && (routeLastTile["tile_x"] != this.getTileX() || routeLastTile["tile_y"] != this.getTileY());
-        
+        let routeIncludesCurrentTile = reloadPositionIsBasedOnCurrentData && stateDataJSON["route"].includesTile(this.getTileX(), this.getTileY());
+
         // If our current objective is to move to a reload position
-        if (movingToReloadPosition && reloadPositionIsBasedOnCurrentData && notAtEndOfRoute){
+        if (movingToReloadPosition && reloadPositionIsBasedOnCurrentData && notAtEndOfRoute && routeIncludesCurrentTile){
             this.updateFromRouteDecision(stateDataJSON["route"].getDecisionAt(this.getTileX(), this.getTileY()));
             // Consider sprinting
-            this.botDecisionDetails["decisions"]["sprint"] = this.staminaBar.getStaminaProportion() > RETRO_GAME_DATA["duel"]["ai"]["positioning_for_reload_stamina_preference"];
+            this.botDecisionDetails["decisions"]["sprint"] = (!this.staminaBar.isActivelyDraining() && this.staminaBar.isFull()) || (this.staminaBar.isActivelyDraining() && this.staminaBar.getStaminaProportion() > RETRO_GAME_DATA["duel"]["ai"]["positioning_for_reload_stamina_preference"]);
         }
         // We are not currently persuing a pre-determined route
         else{
@@ -1330,7 +1329,7 @@ class DuelBot extends DuelCharacter {
                 let dataJSON = this.temporaryOperatingData.get("tile_to_reload_from");
 
                 // If the parameters are the same now as the previously calculated value
-                if (dataJSON["enemy_tile_x"] === enemyTileX && dataJSON["enemy_tile_y"]){
+                if (dataJSON["enemy_tile_x"] === enemyTileX && dataJSON["enemy_tile_y"] && dataJSON["my_tile_x"] === this.getTileX() && dataJSON["my_tile_y"] === this.getTileY()){
                     needToCalculate = false;
                     newTile = dataJSON["tile"];
                 }
@@ -1343,13 +1342,15 @@ class DuelBot extends DuelCharacter {
                 let dataJSON = {
                     "enemy_tile_x": enemyTileX,
                     "enemy_tile_y": enemyTileY,
+                    "my_tile_x": this.getTileX(),
+                    "my_tile_y": this.getTileY(),
                     "tile": newTile
                 }
                 this.temporaryOperatingData.set("tile_to_reload_from", dataJSON);
             }
 
             let newTileIsTheSame = newTile["tile_x"] === this.getTileX() && newTile["tile_y"] === this.getTileY();
-            
+
             // If new tile is where we currently are then start reloading
             if (newTileIsTheSame){
                 // Start reloading
@@ -1359,12 +1360,14 @@ class DuelBot extends DuelCharacter {
                 stateDataJSON["current_objective"] = "move_to_reload_position";
                 stateDataJSON["relevant_enemy_tile_x"] = enemyTileX;
                 stateDataJSON["relevant_enemy_tile_y"] = enemyTileY;
-                stateDataJSON["route"] = Route.fromPath(newTile["shortest_path"]);
+                stateDataJSON["my_tile_x"] = this.getTileX();
+                stateDataJSON["my_tile_y"] = this.getTileY();
+                stateDataJSON["route"] = this.generateShortestEvasiveRouteToPoint(newTile["tile_x"], newTile["tile_y"]);
 
                 // Move based on this new route
                 this.updateFromRouteDecision(stateDataJSON["route"].getDecisionAt(this.getTileX(), this.getTileY()));
                 // Consider sprinting
-                this.botDecisionDetails["decisions"]["sprint"] = this.staminaBar.getStaminaProportion() > RETRO_GAME_DATA["duel"]["ai"]["positioning_for_reload_stamina_preference"];
+                this.botDecisionDetails["decisions"]["sprint"] = (!this.staminaBar.isActivelyDraining() && this.staminaBar.isFull()) || (this.staminaBar.isActivelyDraining() && this.staminaBar.getStaminaProportion() > RETRO_GAME_DATA["duel"]["ai"]["positioning_for_reload_stamina_preference"]);
             }
         }
     }
@@ -2376,7 +2379,7 @@ class DuelBot extends DuelCharacter {
                             this.updateFromRouteDecision(routeDecision);
 
                             // Consider sprinting
-                            this.botDecisionDetails["decisions"]["sprint"] = this.staminaBar.getStaminaProportion() > RETRO_GAME_DATA["duel"]["ai"]["sword_fight_min_stamina_preference"];
+                            this.botDecisionDetails["decisions"]["sprint"] = (!this.staminaBar.isActivelyDraining() && this.staminaBar.isFull()) || (this.staminaBar.isActivelyDraining() && this.staminaBar.getStaminaProportion() > RETRO_GAME_DATA["duel"]["ai"]["sword_fight_min_stamina_preference"]);
                         }
                     }
 
@@ -2420,7 +2423,7 @@ class DuelBot extends DuelCharacter {
             this.botDecisionDetails["decisions"][chosenOption] = true;
         }
         // Consider sprinting
-        this.botDecisionDetails["decisions"]["sprint"] = this.staminaBar.getStaminaProportion() > RETRO_GAME_DATA["duel"]["ai"]["sword_fight_min_stamina_preference"];
+        this.botDecisionDetails["decisions"]["sprint"] = (!this.staminaBar.isActivelyDraining() && this.staminaBar.isFull()) || (this.staminaBar.isActivelyDraining() && this.staminaBar.getStaminaProportion() > RETRO_GAME_DATA["duel"]["ai"]["sword_fight_min_stamina_preference"]);
     }
 
     makeSwordDecisions(){

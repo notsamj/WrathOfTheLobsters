@@ -17,6 +17,10 @@ class Route {
         return -1;
     }
 
+    includesTile(tileX, tileY){
+        return this.getIndexOfTile(tileX, tileY) != -1;
+    }
+
     getTile(tileIndex){
         return this.tileSequence[tileIndex];
     }
@@ -63,15 +67,15 @@ class Route {
 
         // If we can't find where the entity is in the sequence
         if (position == -1){
-            return {};
+            throw new Error("Tile not in route");
         }
 
         // If at the end then no decision
-        if (position == this.tileSequence.length - 1){
+        if (position === this.tileSequence.length - 1){
             return {};
         }
 
-        let nextPosition = position+1;
+        let nextPosition = position + 1;
 
         // Determine which way to move
         if (this.tileSequence[nextPosition]["tile_x"] > this.tileSequence[position]["tile_x"]){

@@ -4,7 +4,7 @@ const RETRO_GAME_DATA = {
         "duel": {
             "participants": [
                 {
-                    "human": true,
+                    "human": false,
                     "model": "british_officer",
                     "swords": [], // "cavalry_sword", "clever"
                     "pistols": [], // "flintlock"
@@ -550,7 +550,8 @@ const RETRO_GAME_DATA = {
             "corrective_sway_acceleration_deg": 0.75, // Corrective sway acceleration deg/second^2
             "corrective_sway_acceleration_constant_c": 0.35, // Constant for slowing down based on angle offset
             "corrective_sway_acceleration_constant_d": 2.75, // Constant for slowing down based on angular velocity
-            "stamina_usage_for_stab": 30
+            "stamina_usage_for_stab": 30,
+            "stab_stun_time_ms": 100 // Miliseconds a player is stunned after being stabbed
         },
         "flintlock": {
             "type": "pistol",

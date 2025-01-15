@@ -423,6 +423,8 @@ class Character extends Entity {
     }
 
     damage(amount){
+        if (amount < 0){ throw new Error("Invalid damage amount: " + amount.toString()); }
+        if (amount === 0){ return; }
         this.setHealth(this.health - amount);
         this.gamemode.getEventHandler().emit({
             "center_x": this.getInterpolatedTickCenterX(),

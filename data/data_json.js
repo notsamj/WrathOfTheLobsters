@@ -6,26 +6,26 @@ const RETRO_GAME_DATA = {
                 {
                     "human": false,
                     "model": "british_officer",
-                    "swords": [], // "cavalry_sword", "clever"
+                    "swords": ["cavalry_sword"], // "cavalry_sword", "clever"
                     "pistols": [], // "flintlock"
                     "muskets": ["brown_bess"], // "brown_bess"
                     "extra_details": {
-                        "invincible": true,
+                        "invincible": false,
                         "sway_compensation_ability": 0.2 // 20% reduction in gun sway
                     },
                     "bot_extra_details": {
                         "disabled": false,
-                        "reaction_time_ms": 50
+                        "reaction_time_ms": 100
                     }
                 },
                 {
                     "human": false,
                     "model": "usa_officer",
-                    "swords": [],
+                    "swords": ["clever"],
                     "pistols": [],
                     "muskets": ["brown_bess"],
                     "extra_details": {
-                        "invincible": true,
+                        "invincible": false,
                         "sway_compensation_ability": 0.2 // 20% reduction in gun sway
                     },
                     "bot_extra_details": {
@@ -69,7 +69,7 @@ const RETRO_GAME_DATA = {
         "shot_damage": 0.75,
         "musket_stab_damage": 0.6,
         "max_seed": 100000, // Self-explanatory
-        "seed": 9662,  // null for random seed, 24873 is good (on 10 size)
+        "seed": null,  // null for random seed, 24873 is good (on 10 size)
         "pistol_sway_acceleration_constant": 0.4,
         "musket_sway_acceleration_constant": 0.4,
         "camera": {
@@ -85,7 +85,7 @@ const RETRO_GAME_DATA = {
             "aiming_precision_degrees": 3, // The number of degrees the bot is able to adjust between two angles when searching for targets
             "shot_take_function_a_constant": 10, // 'a' constant for determine how long a bot expects to wait before firing a shot giving a hit probability
             "shot_take_function_b_constant": 0.3, // 'b' constant for determine how long a bot expects to wait before firing a shot giving a hit probability
-            "max_expected_ms_to_hold_a_shot": 20000, // Will only hold a shot for up totwenty seconds 
+            "max_expected_ms_to_hold_a_shot": 8000, // Will only hold a shot for up totwenty seconds 
             "stop_aiming_no_target_ms": 2000, // The bot is expected to stop aiming after some time if it cannot hit the enemy
             "good_shot_try_to_aim_delay_ms": 100, // Expected time to wait to start aiming when you have a good shot
             "sword_fight_min_stamina_preference": 0.6, // I would like to have 60% stamina available when I expect to start sword fighting

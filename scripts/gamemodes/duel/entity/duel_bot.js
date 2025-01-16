@@ -119,7 +119,7 @@ class DuelBot extends DuelCharacter {
 
         if (canSeeEnemy){
             this.inputPerceptionData("enemy_facing_movement_direction", enemy.getFacingUDLRDirection());
-
+            this.inputPerceptionData("enemy_health", enemy.getHealth());
             let enemyInventory = enemy.getInventory();
             let enemyHoldingAnItem = enemyInventory.hasSelectedItem();
             let enemyHoldingAWeapon = false;
@@ -151,6 +151,7 @@ class DuelBot extends DuelCharacter {
                 let swordSwinging = sword.isSwinging();
                 this.inputPerceptionData("enemy_sword_swing_time_ms", sword.getSwingTimeMS());
                 this.inputPerceptionData("enemy_swinging_a_sword", swordSwinging);
+                this.inputPerceptionData("enemy_sword_model", sword.getModel());
                 if (swordSwinging){
                     this.inputPerceptionData("enemy_sword_swing_start_tick", sword.getSwingStartTick());
                 }
@@ -407,6 +408,7 @@ class DuelBot extends DuelCharacter {
         let foundSwordIndex = null;
         let loadedGunIndex = null;
         let unloadedGunIndex = null;
+        let musketIndex = null;
 
         // Search through the inventory
         for (let item of this.getInventory().getItems()){
@@ -424,6 +426,9 @@ class DuelBot extends DuelCharacter {
                     if (unloadedGunIndex != null){
                         unloadedGunIndex = currentIndex;
                     }
+                }
+                if (otherGun instanceof Musket){
+                    musketIndex = currentIndex;
                 }
             }
             // If no swords have been found then record this
@@ -451,15 +456,49 @@ class DuelBot extends DuelCharacter {
                     return true;
                 }
 
-
-                // So no loaded guns but I found a sword
-                if (foundSwordIndex != null){
+                
+                if (myHeldGun instanceof Pistol && foundSwordIndex != null){
+                    // So no loaded guns but I found a sword
                     // If we are very close to enemy then switch to sword
                     if (euclidianDistanceToEnemy < RETRO_GAME_DATA["duel"]["ai"]["estimated_melee_distance"]){
                         this.botDecisionDetails["decisions"]["select_slot"] = foundSwordIndex;
                         return true;
                     }
                 }
+                // Else, if its a musket
+                else if (myHeldGun instanceof Musket && foundSwordIndex != null){
+                    // If we are very close to enemy then consider switching to sword
+                    if (euclidianDistanceToEnemy < RETRO_GAME_DATA["duel"]["ai"]["estimated_melee_distance"]){
+                        let enemyHoldingASword = this.getDataToReactTo("can_see_enemy") && this.getDataToReactTo("enemy_holding_a_sword");
+                        if (enemyHoldingASword){
+                            let myMusketDamage = RETRO_GAME_DATA["duel"]["musket_stab_damage"];
+                            let estimatedEnemyHealth = this.hasDataToReactTo("enemy_health") ? 1 : this.getDataToReactTo("enemy_health");
+                            // if my musket can swing kill the enemy in one hit
+                            if (estimatedEnemyHealth < myMusketDamage){
+                                let myMusketStabTime = RETRO_GAME_DATA["duel"]["stab_time_ms"];
+                                let enemySwordModel = this.getDataToReactTo("enemy_sword_model");
+                                let enemySwordDamage = RETRO_GAME_DATA["sword_data"]["swords"][enemySwordModel]["swing_damage"];
+                                let enemySwordSwingTime = RETRO_GAME_DATA["sword_data"]["swords"][enemySwordModel]["swing_time_ms"];
+                                let enemySwordSwingCooldown = RETRO_GAME_DATA["sword_data"]["swords"][enemySwordModel]["swing_cooldown_ms"];
+                                let totalDamageDoneByEnemyBeforeDeath = 0;
+                                let time = enemySwordSwingTime;
+                                while (time < myMusketStabTime){
+                                    totalDamageDoneByEnemyBeforeDeath += enemySwordDamage;
+                                    time += enemySwordSwingCooldown;
+                                    time += enemySwordSwingTime;
+                                }
+                                // If they could kill me before I could kill them using the musket then its useless
+                                if (totalDamageDoneByEnemyBeforeDeath >= this.getHealth()){
+                                    this.botDecisionDetails["decisions"]["select_slot"] = foundSwordIndex;
+                                    return true;
+                                }
+                                // Else keep the musket
+                            }
+                        }
+                    }
+                    
+                }
+
 
                 // Else just stick to the weapon
             }
@@ -486,6 +525,35 @@ class DuelBot extends DuelCharacter {
             if (hasLoadedGun){
                 this.botDecisionDetails["decisions"]["select_slot"] = loadedGunIndex;
                 return true;
+            }
+            // Otherwise an unloaded musket may be good
+            else if (musketIndex != null){
+                let myMusketDamage = RETRO_GAME_DATA["duel"]["musket_stab_damage"];
+                let estimatedEnemyHealth = this.hasDataToReactTo("enemy_health") ? 1 : this.getDataToReactTo("enemy_health");
+                // if my musket can swing kill the enemy in one hit
+                if (estimatedEnemyHealth < myMusketDamage){
+                    let myMusketStabTime = RETRO_GAME_DATA["duel"]["stab_time_ms"];
+                    let totalDamageDoneByEnemyBeforeDeath = 0;
+                    // If enemy has a sword then calculate how much damage it can do but I kill the enemy
+                    if (this.getDataToReactTo("can_see_enemy") && this.getDataToReactTo("enemy_holding_a_sword")){
+                        let enemySwordModel = this.getDataToReactTo("enemy_sword_model");
+                        let enemySwordDamage = RETRO_GAME_DATA["sword_data"]["swords"][enemySwordModel]["swing_damage"];
+                        let enemySwordSwingTime = RETRO_GAME_DATA["sword_data"]["swords"][enemySwordModel]["swing_time_ms"];
+                        let enemySwordSwingCooldown = RETRO_GAME_DATA["sword_data"]["swords"][enemySwordModel]["swing_cooldown_ms"];
+                        let time = enemySwordSwingTime;
+                        while (time < myMusketStabTime){
+                            totalDamageDoneByEnemyBeforeDeath += enemySwordDamage;
+                            time += enemySwordSwingCooldown;
+                            time += enemySwordSwingTime;
+                        }
+                    }
+                    // If I would kill them first with the musket then go and attack
+                    if (totalDamageDoneByEnemyBeforeDeath < this.getHealth()){
+                        this.botDecisionDetails["decisions"]["select_slot"] = musketIndex;
+                        return true;
+                    }
+                    // Else keep the sword
+                }
             }
             // Else no loaded gun and I'm not being swung at
             else{   
@@ -520,6 +588,8 @@ class DuelBot extends DuelCharacter {
             this.makePistolFightingDecisions();
         }else if (equippedItem instanceof Musket){
             this.makeMusketFightingDecisions();
+        }else{
+            // TODO: Unarmed stuff
         }
     }
 
@@ -626,7 +696,7 @@ class DuelBot extends DuelCharacter {
         updateFromMoveDecisions(route.getDecisionAt(this.getTileX(), this.getTileY()));
 
         // Consider sprinting
-        this.botDecisionDetails["decisions"]["sprint"] = (!this.staminaBar.isActivelyDraining() && this.staminaBar.isFull()) || (this.staminaBar.isActivelyDraining() && this.staminaBar.getStaminaProportion() > RETRO_GAME_DATA["duel"]["ai"]["enemy_search_min_stamina_preference"]);
+        this.botDecisionDetails["decisions"]["sprint"] = (!(this.movementDetails != null && this.movementDetails["sprinting"]) && this.staminaBar.isFull()) || ((this.movementDetails != null && this.movementDetails["sprinting"]) && this.staminaBar.getStaminaProportion() > RETRO_GAME_DATA["duel"]["ai"]["enemy_search_min_stamina_preference"]);
     }
 
     getMaxSearchPathLength(){
@@ -938,7 +1008,7 @@ class DuelBot extends DuelCharacter {
                 if (movingToBetterPosition && betterPositionIsBasedOnCurrentData && notAtEndOfRoute){
                     this.updateFromRouteDecision(stateDataJSON["route"].getDecisionAt(this.getTileX(), this.getTileY()));
                     // Consider sprinting
-                    this.botDecisionDetails["decisions"]["sprint"] = (!this.staminaBar.isActivelyDraining() && this.staminaBar.isFull()) || (this.staminaBar.isActivelyDraining() && this.staminaBar.getStaminaProportion() > RETRO_GAME_DATA["duel"]["ai"]["positioning_for_shot_stamina_preference"]);
+                    this.botDecisionDetails["decisions"]["sprint"] = (!(this.movementDetails != null && this.movementDetails["sprinting"]) && this.staminaBar.isFull()) || ((this.movementDetails != null && this.movementDetails["sprinting"]) && this.staminaBar.getStaminaProportion() > RETRO_GAME_DATA["duel"]["ai"]["positioning_for_shot_stamina_preference"]);
                 }
                 // We are not currently persuing a pre-determined route
                 else{
@@ -1018,7 +1088,7 @@ class DuelBot extends DuelCharacter {
                         // Move based on this new route
                         this.updateFromRouteDecision(stateDataJSON["route"].getDecisionAt(myTileX, myTileY));
                         // Consider sprinting
-                        this.botDecisionDetails["decisions"]["sprint"] = (!this.staminaBar.isActivelyDraining() && this.staminaBar.isFull()) || (this.staminaBar.isActivelyDraining() && this.staminaBar.getStaminaProportion() > RETRO_GAME_DATA["duel"]["ai"]["positioning_for_shot_stamina_preference"]);
+                        this.botDecisionDetails["decisions"]["sprint"] = (!(this.movementDetails != null && this.movementDetails["sprinting"]) && this.staminaBar.isFull()) || ((this.movementDetails != null && this.movementDetails["sprinting"]) && this.staminaBar.getStaminaProportion() > RETRO_GAME_DATA["duel"]["ai"]["positioning_for_shot_stamina_preference"]);
                     }
                 }
             }
@@ -1115,7 +1185,7 @@ class DuelBot extends DuelCharacter {
                     if (movingToBetterPosition && betterPositionIsBasedOnCurrentData && notAtEndOfRoute){
                         this.updateFromRouteDecision(stateDataJSON["route"].getDecisionAt(this.getTileX(), this.getTileY()));
                         // Consider sprinting
-                        this.botDecisionDetails["decisions"]["sprint"] = (!this.staminaBar.isActivelyDraining() && this.staminaBar.isFull()) || (this.staminaBar.isActivelyDraining() && this.staminaBar.getStaminaProportion() > RETRO_GAME_DATA["duel"]["ai"]["positioning_for_shot_stamina_preference"]);
+                        this.botDecisionDetails["decisions"]["sprint"] = (!(this.movementDetails != null && this.movementDetails["sprinting"]) && this.staminaBar.isFull()) || ((this.movementDetails != null && this.movementDetails["sprinting"]) && this.staminaBar.getStaminaProportion() > RETRO_GAME_DATA["duel"]["ai"]["positioning_for_shot_stamina_preference"]);
                     }
                     // We are not currently persuing a pre-determined route
                     else{
@@ -1195,7 +1265,7 @@ class DuelBot extends DuelCharacter {
                             // Move based on this new route
                             this.updateFromRouteDecision(stateDataJSON["route"].getDecisionAt(myTileX, myTileY));
                             // Consider sprinting
-                            this.botDecisionDetails["decisions"]["sprint"] = (!this.staminaBar.isActivelyDraining() && this.staminaBar.isFull()) || (this.staminaBar.isActivelyDraining() && this.staminaBar.getStaminaProportion() > RETRO_GAME_DATA["duel"]["ai"]["positioning_for_shot_stamina_preference"]);
+                            this.botDecisionDetails["decisions"]["sprint"] = (!(this.movementDetails != null && this.movementDetails["sprinting"]) && this.staminaBar.isFull()) || ((this.movementDetails != null && this.movementDetails["sprinting"]) && this.staminaBar.getStaminaProportion() > RETRO_GAME_DATA["duel"]["ai"]["positioning_for_shot_stamina_preference"]);
                         }
                     }
                 }
@@ -1318,7 +1388,7 @@ class DuelBot extends DuelCharacter {
         if (movingToReloadPosition && reloadPositionIsBasedOnCurrentData && notAtEndOfRoute && routeIncludesCurrentTile){
             this.updateFromRouteDecision(stateDataJSON["route"].getDecisionAt(this.getTileX(), this.getTileY()));
             // Consider sprinting
-            this.botDecisionDetails["decisions"]["sprint"] = (!this.staminaBar.isActivelyDraining() && this.staminaBar.isFull()) || (this.staminaBar.isActivelyDraining() && this.staminaBar.getStaminaProportion() > RETRO_GAME_DATA["duel"]["ai"]["positioning_for_reload_stamina_preference"]);
+            this.botDecisionDetails["decisions"]["sprint"] = (!(this.movementDetails != null && this.movementDetails["sprinting"]) && this.staminaBar.isFull()) || ((this.movementDetails != null && this.movementDetails["sprinting"]) && this.staminaBar.getStaminaProportion() > RETRO_GAME_DATA["duel"]["ai"]["positioning_for_reload_stamina_preference"]);
         }
         // We are not currently persuing a pre-determined route
         else{
@@ -1367,7 +1437,7 @@ class DuelBot extends DuelCharacter {
                 // Move based on this new route
                 this.updateFromRouteDecision(stateDataJSON["route"].getDecisionAt(this.getTileX(), this.getTileY()));
                 // Consider sprinting
-                this.botDecisionDetails["decisions"]["sprint"] = (!this.staminaBar.isActivelyDraining() && this.staminaBar.isFull()) || (this.staminaBar.isActivelyDraining() && this.staminaBar.getStaminaProportion() > RETRO_GAME_DATA["duel"]["ai"]["positioning_for_reload_stamina_preference"]);
+                this.botDecisionDetails["decisions"]["sprint"] = (!(this.movementDetails != null && this.movementDetails["sprinting"]) && this.staminaBar.isFull()) || ((this.movementDetails != null && this.movementDetails["sprinting"]) && this.staminaBar.getStaminaProportion() > RETRO_GAME_DATA["duel"]["ai"]["positioning_for_reload_stamina_preference"]);
             }
         }
     }
@@ -1390,17 +1460,26 @@ class DuelBot extends DuelCharacter {
         let enemyCenterXAtTile = scene.getCenterXOfTile(enemyTileX);
         let enemyCenterYAtTile = scene.getCenterYOfTile(enemyTileY);
 
+        let myTileX = this.getTileX();
+        let myTileY = this.getTileY();
+
         let enemyVisibilityDistance = this.getGamemode().getEnemyVisibilityDistance();
 
         let gun = this.getInventory().getSelectedItem();
 
         let singleCoverFunction = (tileX, tileY) => {
-            return scene.tileAtLocationHasAttribute(tileX, tileY, "single_cover") && calculateEuclideanDistance(enemyTileX, enemyTileY, tileX, tileY) > enemyVisibilityDistance;
+            let tileIsCover = scene.tileAtLocationHasAttribute(tileX, tileY, "single_cover");
+            // Assume if I'm already in it then it was outside enemy visibility
+            if (tileIsCover && tileX === myTileX && tileY === myTileY){
+                return true;
+            }
+            return tileIsCover && calculateEuclideanDistance(enemyTileX, enemyTileY, tileX, tileY) > enemyVisibilityDistance;
         }
 
         let multiCoverFunction = (tileX, tileY) => {
+            let tileIsCover = scene.tileAtLocationHasAttribute(tileX, tileY, "multi_cover");
             // Return true if this is multi cover and the enemy IS NOT in it
-            return scene.tileAtLocationHasAttribute(tileX, tileY, "multi_cover") && !(scene.tileAtLocationHasAttribute(enemyTileX, enemyTileY, "multi_cover") && scene.tilesInSameMultiCover(enemyTileX, enemyTileY, tileX, tileY));
+            return tileIsCover && !(scene.tileAtLocationHasAttribute(enemyTileX, enemyTileY, "multi_cover") && scene.tilesInSameMultiCover(enemyTileX, enemyTileY, tileX, tileY));
         }
 
         // Score each tile
@@ -2379,7 +2458,7 @@ class DuelBot extends DuelCharacter {
                             this.updateFromRouteDecision(routeDecision);
 
                             // Consider sprinting
-                            this.botDecisionDetails["decisions"]["sprint"] = (!this.staminaBar.isActivelyDraining() && this.staminaBar.isFull()) || (this.staminaBar.isActivelyDraining() && this.staminaBar.getStaminaProportion() > RETRO_GAME_DATA["duel"]["ai"]["sword_fight_min_stamina_preference"]);
+                            this.botDecisionDetails["decisions"]["sprint"] = (!(this.movementDetails != null && this.movementDetails["sprinting"]) && this.staminaBar.isFull()) || ((this.movementDetails != null && this.movementDetails["sprinting"]) && this.staminaBar.getStaminaProportion() > RETRO_GAME_DATA["duel"]["ai"]["sword_fight_min_stamina_preference"]);
                         }
                     }
 
@@ -2423,7 +2502,7 @@ class DuelBot extends DuelCharacter {
             this.botDecisionDetails["decisions"][chosenOption] = true;
         }
         // Consider sprinting
-        this.botDecisionDetails["decisions"]["sprint"] = (!this.staminaBar.isActivelyDraining() && this.staminaBar.isFull()) || (this.staminaBar.isActivelyDraining() && this.staminaBar.getStaminaProportion() > RETRO_GAME_DATA["duel"]["ai"]["sword_fight_min_stamina_preference"]);
+        this.botDecisionDetails["decisions"]["sprint"] = (!(this.movementDetails != null && this.movementDetails["sprinting"]) && this.staminaBar.isFull()) || ((this.movementDetails != null && this.movementDetails["sprinting"]) && this.staminaBar.getStaminaProportion() > RETRO_GAME_DATA["duel"]["ai"]["sword_fight_min_stamina_preference"]);
     }
 
     makeSwordDecisions(){

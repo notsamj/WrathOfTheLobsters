@@ -558,6 +558,7 @@ class Character extends Entity {
 
         this.movementDetails = {
             "direction": direction,
+            "sprinting": wantsToSprint,
             "speed": desiredMoveSpeed,
             "last_frame_time": FRAME_COUNTER.getLastFrameTime(),
             "last_tick_number": TICK_SCHEDULER.getNumTicks(),

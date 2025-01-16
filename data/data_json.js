@@ -6,7 +6,7 @@ const RETRO_GAME_DATA = {
                 {
                     "human": false,
                     "model": "british_officer",
-                    "swords": ["cavalry_sword"], // "cavalry_sword", "clever"
+                    "swords": [], // "cavalry_sword", "clever"
                     "pistols": [], // "flintlock"
                     "muskets": ["brown_bess"], // "brown_bess"
                     "extra_details": {
@@ -15,15 +15,15 @@ const RETRO_GAME_DATA = {
                     },
                     "bot_extra_details": {
                         "disabled": false,
-                        "reaction_time_ms": 100
+                        "reaction_time_ms": 1000
                     }
                 },
                 {
                     "human": false,
                     "model": "usa_officer",
-                    "swords": ["clever"],
+                    "swords": [],
                     "pistols": [],
-                    "muskets": ["brown_bess"],
+                    "muskets": [],
                     "extra_details": {
                         "invincible": false,
                         "sway_compensation_ability": 0.2 // 20% reduction in gun sway
@@ -69,7 +69,7 @@ const RETRO_GAME_DATA = {
         "shot_damage": 0.75,
         "musket_stab_damage": 0.6,
         "max_seed": 100000, // Self-explanatory
-        "seed": null,  // null for random seed, 24873 is good (on 10 size)
+        "seed": 78422,  // null for random seed, 24873 is good (on 10 size)
         "pistol_sway_acceleration_constant": 0.4,
         "musket_sway_acceleration_constant": 0.4,
         "camera": {
@@ -93,6 +93,8 @@ const RETRO_GAME_DATA = {
             "positioning_for_shot_stamina_preference": 0.1, // I would like to have 10% stamina available when I am going to a spot to shoot an enemy
             "positioning_for_reload_stamina_preference": 0.3, // I would like to have 30% stamina available when I am going to a spot to shoot an enemy
             "min_stab_charge_distance": 4, // Minimum distance at which to charge
+            "stab_range_close_multiplier": 10, // Multiplier, if dist(myCenter, enemyCenter) < multiplier * stabRange then start running calculations or hitting enemy
+            "running_away_stamina_preference": 0, // Amount of stamina I care to keep remaining when running away
             "shoot_tile_selection": {
                 "shoot_tile_selection_x_start": 0.25, // x start for function 1 / x^f for biasing a random selection
                 "shoot_tile_selection_x_end": 3, // x end for function 1 / x^f for biasing a random selection
@@ -108,7 +110,7 @@ const RETRO_GAME_DATA = {
                 "multi_cover_search_route_distance": 5, // Max route distance when searching for multicover
                 "single_cover_search_route_distance": 5, // Max route distance when searching for singlecover
                 "physical_cover_search_route_distance": 5, // Max route distance when searching for physical cover
-                "on_tile_multiplier": 2 // multiplier for reloading-tiles that are currently stood on
+                "on_tile_multiplier": 1.5 // multiplier for reloading-tiles that are currently stood on
             },
             "reload_tile_selection": {
                 "from_enemy_route_mult": 1/15 * 4, // multiplier for reloading-tiles that have a long route from the enemy
@@ -117,10 +119,21 @@ const RETRO_GAME_DATA = {
                 "angle_range_mult": -1/60 * 2, // multiplier for reloading-tiles that have a broad range of attack for the enemy
                 "in_single_cover_mult": 6, // multiplier for reloading-tiles that are in single cover (far from the enemy)
                 "in_multi_cover_mult": 1.5, // multiplier for reloading-tiles that are in multi cover that the enemy is not in
-                "shoot_tile_selection_x_start": 0.25, // x start value for function 1 / x^f for biasing a random selection
-                "shoot_tile_selection_x_end": 3, // x end value for function 1 / x^f for biasing a random selection
-                "shoot_tile_selection_f": 5, // f value for function 1 / x^f for biasing a random selection
-                "on_tile_multiplier": 5 // multiplier for reloading-tiles that are currently stood on
+                "reload_tile_selection_x_start": 0.30, // x start value for function 1 / x^f for biasing a random selection
+                "reload_tile_selection_x_end": 3, // x end value for function 1 / x^f for biasing a random selection
+                "reload_tile_selection_f": 5, // f value for function 1 / x^f for biasing a random selection
+                "on_tile_multiplier": 1.5 // multiplier for reloading-tiles that are currently stood on
+            },
+            "runaway_tile_selection": {
+                "from_enemy_route_mult": 1/15 * 8, // multiplier for runaway-tiles that have a long route from the enemy
+                "from_enemy_mult": 1/64 * 1/21 * 2, // multiplier for runaway-tiles that are far from the enemy
+                "can_hit_mult": -1 * 2, // multiplier for runaway-tiles that can be hit by the enemy
+                "angle_range_mult": -1/60 * 4, // multiplier for runaway-tiles that have a broad range of attack for the enemy
+                "in_single_cover_mult": 6, // multiplier for runaway-tiles that are in single cover (far from the enemy)
+                "in_multi_cover_mult": 1.5, // multiplier for runaway-tiles that are in multi cover that the enemy is not in
+                "tile_selection_x_start": 0.35, // x start value for function 1 / x^f for biasing a random selection
+                "tile_selection_x_end": 3, // x end value for function 1 / x^f for biasing a random selection
+                "tile_selection_f": 5 // f value for function 1 / x^f for biasing a random selection
             }
         }
     },
@@ -529,7 +542,7 @@ const RETRO_GAME_DATA = {
             "type": "musket",
             "reload_time_ms": 5000,
             "stab_time_ms": 600,
-            "stab_range": 1.2*DATA_TILE_SIZE,
+            "stab_range": 0.95 * DATA_TILE_SIZE,
             "range": 25*DATA_TILE_SIZE,
             "display": {
                 "left": {

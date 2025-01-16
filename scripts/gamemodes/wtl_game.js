@@ -255,9 +255,16 @@ async function tick(){
     }
 
     let expectedTicks = TICK_SCHEDULER.getExpectedNumberOfTicksPassed();
-    
+    let tickDifference = expectedTicks - TICK_SCHEDULER.getNumTicks()
+
     // If ready for a tick then execute
-    if (TICK_SCHEDULER.getNumTicks() < expectedTicks && !TICK_SCHEDULER.isPaused()){
+    if (tickDifference > 0 && !TICK_SCHEDULER.isPaused()){
+        // Destroy extra ticks
+        if (tickDifference > 1){
+            let ticksToDestroy = tickDifference - 1;
+            TICK_SCHEDULER.addTimeDebt(calculateMSBetweenTicks() * ticksToDestroy);
+        }
+
         TICK_SCHEDULER.getTickLock().lock()
 
         // Tick the game mode

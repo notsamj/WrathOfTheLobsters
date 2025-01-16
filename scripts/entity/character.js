@@ -558,7 +558,7 @@ class Character extends Entity {
 
         this.movementDetails = {
             "direction": direction,
-            "sprinting": wantsToSprint,
+            "sprinting": goingToSprint,
             "speed": desiredMoveSpeed,
             "last_frame_time": FRAME_COUNTER.getLastFrameTime(),
             "last_tick_number": TICK_SCHEDULER.getNumTicks(),
@@ -786,6 +786,10 @@ class Character extends Entity {
         return this.movementDetails != null;
     }
 
+    isSprinting(){
+        return this.movementDetails != null && this.movementDetails["sprinting"];
+    }
+
     getTileX(){
         return this.tileX;
     }
@@ -869,14 +873,14 @@ class Character extends Entity {
 
     getXVelocity(){
         if (!this.isMoving()){ return 0; }
-        if (this.movementDetails["direction"] == "up" || this.movementDetails["direction"] == "down"){ return 0; }
-        return this.movementDetails["speed"] * (this.movementDetails["direction"] == "left" ? -1 : 1);
+        if (this.movementDetails["direction"] === "up" || this.movementDetails["direction"] === "down"){ return 0; }
+        return this.movementDetails["speed"] * (this.movementDetails["direction"] === "left" ? -1 : 1);
     }
 
     getYVelocity(){
         if (!this.isMoving()){ return 0; }
-        if (this.movementDetails["direction"] == "left" || this.movementDetails["direction"] == "right"){ return 0; }
-        return this.movementDetails["speed"] * (this.movementDetails["direction"] == "down" ? -1 : 1);
+        if (this.movementDetails["direction"] === "left" || this.movementDetails["direction"] === "right"){ return 0; }
+        return this.movementDetails["speed"] * (this.movementDetails["direction"] === "down" ? -1 : 1);
     }
 
     display(lX, rX, bY, tY){

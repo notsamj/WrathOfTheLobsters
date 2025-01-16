@@ -18,7 +18,11 @@ class TickScheduler {
 
     unpause(){
         this.paused = false;
-        this.timeDebt += Date.now() - this.pauseStartTime;
+        this.addTimeDebt(Date.now() - this.pauseStartTime);
+    }
+
+    addTimeDebt(ms){
+        this.timeDebt += ms;
     }
 
     isPaused(){

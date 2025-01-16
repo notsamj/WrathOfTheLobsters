@@ -62,18 +62,17 @@ class Musket extends Gun {
         this.stabbing = false;
         // Calculate what it hit
         let myID = this.player.getID();
-        let collision = this.getScene().findInstantCollisionForProjectile(this.getEndOfGunX(), this.getEndOfGunY(), this.stabAngle, RETRO_GAME_DATA["gun_data"][this.model]["stab_range"], (enemy) => { return enemy.getID() == myID; });
+        let collision = this.getScene().findInstantCollisionForProjectile(this.getEndOfGunX(), this.getEndOfGunY(), this.stabAngle, RETRO_GAME_DATA["gun_data"][this.model]["stab_range"], (enemy) => { return enemy.getID() === myID; });
         // If it hits an entity
         if (collision["collision_type"] === "entity"){
             collision["entity"].getStabbed(this);
             collision["entity"].stun(Math.ceil(RETRO_GAME_DATA["gun_data"][this.getModel()]["stab_stun_time_ms"] / RETRO_GAME_DATA["general"]["ms_between_ticks"]));
-        
             // Play sound
             this.getGamemode().getEventHandler().emit({
                 "name": "stab",
                 "associated_sound_name": "slashing",
-                "x": hitCenterX,
-                "y": hitCenterY
+                "x": collision["x"],
+                "y": collision["y"]
             });
         }
         // If it hits a physical tile or nothing then create bullet collision particle
@@ -81,6 +80,10 @@ class Musket extends Gun {
             // If the shot didn't hit anything alive then show particles when it hit
             this.getScene().addExpiringVisual(BulletImpact.create(collision["x"], collision["y"]));
         }
+    }
+
+    getStabAngle(){
+        return this.stabAngle;
     }
 
     isStabbing(){

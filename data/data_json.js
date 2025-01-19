@@ -432,6 +432,8 @@ const WTL_GAME_DATA = {
         }
     },
 
+    "basic_images": ["page_background", "crosshair", "logo", "crossed_out"],
+
     "skirmish": {
         "area_size": 20, // 50?,
         "troop_selection_distance": 6,
@@ -532,6 +534,8 @@ const WTL_GAME_DATA = {
         "usa_officer": "America"
     },
 
+    "all_character_classes": ["british_pvt_g", "british_officer", "usa_pvt", "usa_officer"],
+
     "menu": {
         "option_slider": {
             "slider_width_px": 20,
@@ -546,6 +550,8 @@ const WTL_GAME_DATA = {
                     "text": "Main Menu",
                     "y_offset": 27,
                     "x": 50,
+                    "x_size": 200,
+                    "y_size": 76
                 },
                 "scrollable_display": {
                     "scroll_bar": {
@@ -584,8 +590,41 @@ const WTL_GAME_DATA = {
                     "display_name": "Duel",
                     "menu_name": "duel_menu"
                 }
+            },
+            "duel_menu": {
+                "back_button": {
+                    "colour_code": "#3bc44b",
+                    "text_colour_code": "#e6f5f4",
+                    "text": "Main Menu",
+                    "y_offset": 27,
+                    "x": 50,
+                    "x_size": 200,
+                    "y_size": 76
+                },
+                "p1_start_x": 500,
+                "p2_start_x": 1000,
+                "section_head": {
+                    "p1_name": "Player 1",
+                    "p2_name": "Player 2",
+                    "x_size": 250,
+                    "y_size": 100,
+                    "text_colour_code": "#000000"
+                },
+                "character_image": {
+                    "selection": ["british_officer_64", "british_pvt_g_64", "usa_officer_64", "usa_pvt_64"],
+                    "y_offset": 0,
+                    "width": 64,
+                    "height": 64
+                }
             }
         }
+    },
+
+    "character_basic_image_name_to_model": {
+        "british_officer_64": "british_officer",
+        "british_pvt_g_64": "british_pvt_g",
+        "usa_officer_64": "usa_officer",
+        "usa_pvt_64": "usa_pvt"
     },
 
     "gun_data": {

@@ -38,9 +38,9 @@ class MainMenu extends Menu {
 
         // Retro Game
         let gameBottonY = (innerHeight) => { return innerHeight - gapSize; };
-        this.components.push(new RectangleButton("Duel", "#3bc44b", "#e6f5f4", buttonX, gameBottonY, buttonSizeX, buttonSizeY, (menuInstance) => {
-            startGame();
-            MENU_MANAGER.switchTo("game");
+        let featuredGamemodeJSON = WTL_GAME_DATA["menu"]["menus"]["main_menu"]["featured_gamemode"];
+        this.components.push(new RectangleButton(featuredGamemodeJSON["display_name"], "#3bc44b", "#e6f5f4", buttonX, gameBottonY, buttonSizeX, buttonSizeY, (menuInstance) => {
+            MENU_MANAGER.switchTo(featuredGamemodeJSON["menu_name"]);
         }));
 
         // Gamemode viewer

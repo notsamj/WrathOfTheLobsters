@@ -8,7 +8,7 @@ class TextComponent extends Component {
         Method Parameters:
             textStr:
                 String of text inside the rectangle
-            textColour:
+            textColourCode:
                 The colour of the text inside the rectangle (code)
             x:
                 The x location of the top left of the rectangle
@@ -21,10 +21,10 @@ class TextComponent extends Component {
         Method Description: Constructor
         Method Return: Constructor
     */
-    constructor(textStr, textColour, x, y, width, height, alignLR="left", alignTB="top"){
+    constructor(textStr, textColourCode, x, y, width, height, alignLR="left", alignTB="top"){
         super();
         this.textStr = textStr;
-        this.textColour = textColour;
+        this.textColourCode = textColourCode;
         this.x = x;
         this.y = y;
         this.alignLR = alignLR;
@@ -69,7 +69,7 @@ class TextComponent extends Component {
     */
     display(){
         if (!this.enabled){ return; }
-        Menu.makeText(this.textStr, this.textColour, this.getX(), this.getY(), this.width, this.height, this.alignLR, this.alignTB);
+        Menu.makeText(this.textStr, this.textColourCode, this.getX(), this.getY(), this.width, this.height, this.alignLR, this.alignTB);
     }
 
     /*

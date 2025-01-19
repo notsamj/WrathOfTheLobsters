@@ -5,8 +5,6 @@ class GamemodeViewer extends Menu {
     }
 
     setup(){
-        let sectionYSize = 50;
-
         // Background
         this.components.push(new LoadingScreenComponent());
 
@@ -15,19 +13,15 @@ class GamemodeViewer extends Menu {
         // Back Button
         let menuDataBackButton = menuData["back_button"];
         let backButtonY = (innerHeight) => { return innerHeight-menuDataBackButton["y_offset"]; }
-        let backButtonXSize = 200;
-        let backButtonYSize = 76;
+        let backButtonXSize = menuDataBackButton["x_size"];
+        let backButtonYSize = menuDataBackButton["y_size"];
         this.components.push(new RectangleButton(menuDataBackButton["text"], menuDataBackButton["colour_code"], menuDataBackButton["text_colour_code"], menuDataBackButton["x"], backButtonY, backButtonXSize, backButtonYSize, (instance) => {
-            instance.goToMainMenu();
+            MENU_MANAGER.switchTo("main");
         }));
 
         // Add the scrollable display
         this.components.push(new ScrollableDisplay(menuData["scrollable_display"], menuData["gamemodes"]));
 
-    }
-
-    goToMainMenu(){
-        MENU_MANAGER.switchTo("main");
     }
 }
 

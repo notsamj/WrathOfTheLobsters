@@ -211,7 +211,7 @@ class StaticImage extends Component {
         Method Return: void
     */
     clicked(){
-        if (this.onClick == null){ return; }
+        if (this.onClick === null){ return; }
         this.onClick();
     }
 }

@@ -35,9 +35,9 @@ function isRDebugging(){
 async function setup() {
     setupOngoing = true;
     try {
-        await loadToImages("page_background");
-        await loadToImages("crosshair");
-        await loadToImages("logo");
+        for (let imageName of WTL_GAME_DATA["basic_images"]){
+            await loadToImages(imageName);
+        }
         await CharacterAnimationManager.loadAllImages();
         await Musket.loadAllImages();
         await Sword.loadAllImages();

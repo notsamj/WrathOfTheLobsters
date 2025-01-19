@@ -29,7 +29,7 @@ class SoundManager {
         Method Return: void
     */
     loadSounds(){
-        for (let soundData of RETRO_GAME_DATA["sound_data"]["sounds"]){
+        for (let soundData of WTL_GAME_DATA["sound_data"]["sounds"]){
             this.sounds.push(new Sound(soundData["name"], soundData["type"], this.mainVolume));
         }
     }
@@ -108,7 +108,7 @@ class SoundManager {
     }
 
     display(){
-        let displayEnabled = RETRO_GAME_DATA["sound_data"]["active_sound_display"]["enabled"];
+        let displayEnabled = WTL_GAME_DATA["sound_data"]["active_sound_display"]["enabled"];
         if (!displayEnabled){ return; }
 
         let activeSounds = [];
@@ -129,14 +129,14 @@ class SoundManager {
         // Sort biggest to smallest
         activeSounds.sort(sortFunc);
 
-        let numSlots = RETRO_GAME_DATA["sound_data"]["active_sound_display"]["num_slots"];
-        let slotXSize = RETRO_GAME_DATA["sound_data"]["active_sound_display"]["slot_x_size"];
-        let slotYSize = RETRO_GAME_DATA["sound_data"]["active_sound_display"]["slot_y_size"];
+        let numSlots = WTL_GAME_DATA["sound_data"]["active_sound_display"]["num_slots"];
+        let slotXSize = WTL_GAME_DATA["sound_data"]["active_sound_display"]["slot_x_size"];
+        let slotYSize = WTL_GAME_DATA["sound_data"]["active_sound_display"]["slot_y_size"];
 
         let x = getScreenWidth() - slotXSize;
         let y = slotYSize;
-        let backgroundColourCode = RETRO_GAME_DATA["sound_data"]["active_sound_display"]["background_colour"];
-        let textColourCode = RETRO_GAME_DATA["sound_data"]["active_sound_display"]["text_colour"];
+        let backgroundColourCode = WTL_GAME_DATA["sound_data"]["active_sound_display"]["background_colour"];
+        let textColourCode = WTL_GAME_DATA["sound_data"]["active_sound_display"]["text_colour"];
 
         let slotsToDisplay = Math.min(activeSounds.length, numSlots);
         // Display slots
@@ -361,9 +361,9 @@ class Sound {
         this.name = soundName;
         this.ongoing = soundType == "ongoing";
         this.lastPlayed = 0;
-        this.keepDisplayingLock = new CooldownLock(RETRO_GAME_DATA["sound_data"]["extra_display_time_ms"]);
+        this.keepDisplayingLock = new CooldownLock(WTL_GAME_DATA["sound_data"]["extra_display_time_ms"]);
         // Audio will be {} if opened in NodeJS
-        this.audio = (typeof window != "undefined") ? new Audio(RETRO_GAME_DATA["sound_data"]["url"] + "/" + this.name + RETRO_GAME_DATA["sound_data"]["file_type"]) : {};
+        this.audio = (typeof window != "undefined") ? new Audio(WTL_GAME_DATA["sound_data"]["url"] + "/" + this.name + WTL_GAME_DATA["sound_data"]["file_type"]) : {};
         this.running = false;
         this.volume = getLocalStorage(soundName, 0);
         this.adjustByMainVolume(mainVolume);
@@ -476,7 +476,7 @@ class Sound {
     prepareToPause(){
         if (!this.ongoing){ return; }
         // Check if its been 100ms since last played then ready to dismiss
-        if (Date.now() < this.lastPlayed + RETRO_GAME_DATA["sound_data"]["last_played_delay_ms"]){ // Just using 100ms as the standard TODO: Save this in a data file
+        if (Date.now() < this.lastPlayed + WTL_GAME_DATA["sound_data"]["last_played_delay_ms"]){ // Just using 100ms as the standard TODO: Save this in a data file
             return;
         }
         this.preparedToPause = true;

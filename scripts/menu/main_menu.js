@@ -43,22 +43,16 @@ class MainMenu extends Menu {
             MENU_MANAGER.switchTo("game");
         }));
 
-        // Turn Based Game
-        let turnBasedGamedBottomY = (innerHeight) => { return gameBottonY(innerHeight) - buttonSizeY - gapSize; }
-        this.components.push(new RectangleButton("Turn Based Game", "#3bc44b", "#e6f5f4", buttonX, turnBasedGamedBottomY, buttonSizeX, buttonSizeY, (menuInstance) => {
-            GAMEMODE_MANAGER.setActiveGamemode(new TurnBasedSkirmish(RETRO_GAME_DATA["test_settings"]["turn_based_skirmish"]["british_are_human"], RETRO_GAME_DATA["test_settings"]["turn_based_skirmish"]["americans_are_human"]))
-            MENU_MANAGER.switchTo("game");
-        }));
-
-        // Game Maker
-        let gameMakerButtonY = (innerHeight) => { return turnBasedGamedBottomY(innerHeight) - buttonSizeY - gapSize; }
-        this.components.push(new RectangleButton("Game Maker", "#3bc44b", "#e6f5f4", buttonX, gameMakerButtonY, buttonSizeX, buttonSizeY, (menuInstance) => {
-            startGameMaker();
-            MENU_MANAGER.switchTo("game_maker");
+        // Gamemode viewer
+        let gamemodeViewerBottomY = (innerHeight) => { return gameBottonY(innerHeight) - buttonSizeY - gapSize; }
+        this.components.push(new RectangleButton("Gamemode Viewer", "#3bc44b", "#e6f5f4", buttonX, gamemodeViewerBottomY, buttonSizeX, buttonSizeY, (menuInstance) => {
+            MENU_MANAGER.switchTo("gamemode_viewer");
+            //GAMEMODE_MANAGER.setActiveGamemode(new TurnBasedSkirmish(WTL_GAME_DATA["test_settings"]["turn_based_skirmish"]["british_are_human"], WTL_GAME_DATA["test_settings"]["turn_based_skirmish"]["americans_are_human"]))
+            //MENU_MANAGER.switchTo("game");
         }));
 
         // Sound
-        let soundButtonY = (innerHeight) => { return gameMakerButtonY(innerHeight) - buttonSizeY - gapSize; }
+        let soundButtonY = (innerHeight) => { return gamemodeViewerBottomY(innerHeight) - buttonSizeY - gapSize; }
         this.components.push(new RectangleButton("Sound", "#3bc44b", "#e6f5f4", buttonX, soundButtonY, buttonSizeX, buttonSizeY, async (menuInstance) => {
             MENU_MANAGER.switchTo("sound");
         }));
@@ -71,7 +65,7 @@ class MainMenu extends Menu {
 
         // Information
         let infoY = 250;
-        let infoXSize = (RETRO_GAME_DATA["general"]["expected_canvas_width"] - buttonSizeX)/2;
+        let infoXSize = (WTL_GAME_DATA["general"]["expected_canvas_width"] - buttonSizeX)/2;
         let infoYSize = 200;
         this.components.push(new TextComponent("Made by notsamj.", "#000000", 0, infoY, infoXSize, infoYSize));
     }

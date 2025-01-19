@@ -122,9 +122,9 @@ class SkirmishBot extends SkirmishCharacter {
         */
 
         let randomlySelectIndex = (n) => {
-            let xStart = RETRO_GAME_DATA["bot"]["plan_choosing_x_start"];
-            let xEnd = RETRO_GAME_DATA["bot"]["plan_choosing_x_end"];
-            let f = RETRO_GAME_DATA["bot"]["plan_choosing_f"];
+            let xStart = WTL_GAME_DATA["bot"]["plan_choosing_x_start"];
+            let xEnd = WTL_GAME_DATA["bot"]["plan_choosing_x_end"];
+            let f = WTL_GAME_DATA["bot"]["plan_choosing_f"];
             let func = (x) => { return 1/Math.pow(x,f); }
             let endY = func(xEnd);
             let startY = func(xStart);
@@ -162,7 +162,7 @@ class SkirmishBot extends SkirmishCharacter {
         for (let shootOneTile of shootOneTiles){
             shootOneTile["type"] = "shoot";
             // In this case, there is a score in [0,1] so directly assign the weight
-            shootOneTile["value"] = shootOneTile["score"] * RETRO_GAME_DATA["bot"]["weights"]["shoot"];
+            shootOneTile["value"] = shootOneTile["score"] * WTL_GAME_DATA["bot"]["weights"]["shoot"];
             // Apply the confidence
             shootOneTile["value"] *= shootOneTile["confidence"];
             collectivePlans.push(shootOneTile);
@@ -172,7 +172,7 @@ class SkirmishBot extends SkirmishCharacter {
         for (let stabOneTile of stabOneTiles){
             stabOneTile["type"] = "stab";
             // In this case, there is no existing value so directly assign the weight
-            stabOneTile["value"] = RETRO_GAME_DATA["bot"]["weights"]["stab"];
+            stabOneTile["value"] = WTL_GAME_DATA["bot"]["weights"]["stab"];
             // Apply the confidence
             stabOneTile["value"] *= stabOneTile["confidence"];
             collectivePlans.push(stabOneTile);
@@ -182,7 +182,7 @@ class SkirmishBot extends SkirmishCharacter {
         for (let closerTile of closerTiles){
             closerTile["type"] = "move_closer";
             // In this case, there is an existing value. It is already between [0,1] so multiply by weight
-            closerTile["value"] = closerTile["score"] * RETRO_GAME_DATA["bot"]["weights"]["move_closer"];
+            closerTile["value"] = closerTile["score"] * WTL_GAME_DATA["bot"]["weights"]["move_closer"];
             //console.log(closerTile["value"])
             collectivePlans.push(closerTile);
         }
@@ -191,7 +191,7 @@ class SkirmishBot extends SkirmishCharacter {
         for (let explorationTile of explorationTiles){
             explorationTile["type"] = "explore";
             // In this case, there is an existing value. It is already between [0,1] so multiply by weight
-            explorationTile["value"] = explorationTile["score"] * RETRO_GAME_DATA["bot"]["weights"]["explore"];
+            explorationTile["value"] = explorationTile["score"] * WTL_GAME_DATA["bot"]["weights"]["explore"];
             collectivePlans.push(explorationTile);
         }
 
@@ -199,7 +199,7 @@ class SkirmishBot extends SkirmishCharacter {
         for (let singleBushTile of singleBushTiles){
             singleBushTile["type"] = "single_bush";
             // In this case, there is no existing value so directly assign the weight
-            singleBushTile["value"] = RETRO_GAME_DATA["bot"]["weights"]["single_bush"];
+            singleBushTile["value"] = WTL_GAME_DATA["bot"]["weights"]["single_bush"];
             //console.log(singleBushTile["value"])
             collectivePlans.push(singleBushTile);
         }
@@ -208,7 +208,7 @@ class SkirmishBot extends SkirmishCharacter {
         for (let multiBushTile of multiBushTiles){
             multiBushTile["type"] = "multi_bush";
             // In this case, score is in [0,1] so multiply by weight
-            multiBushTile["value"] = multiBushTile["score"] * RETRO_GAME_DATA["bot"]["weights"]["multi_bush"];
+            multiBushTile["value"] = multiBushTile["score"] * WTL_GAME_DATA["bot"]["weights"]["multi_bush"];
             collectivePlans.push(multiBushTile);
         }
 
@@ -222,7 +222,7 @@ class SkirmishBot extends SkirmishCharacter {
             // Add positionsCloseToMyTroops tiles to collectiveplans
             for (let positionCloseToMyTroops of positionsCloseToMyTroops){
                 positionCloseToMyTroops["type"] = "move_to_friends";
-                positionCloseToMyTroops["value"] = positionCloseToMyTroops["score"] * RETRO_GAME_DATA["bot"]["weights"]["move_to_friends"];
+                positionCloseToMyTroops["value"] = positionCloseToMyTroops["score"] * WTL_GAME_DATA["bot"]["weights"]["move_to_friends"];
                 collectivePlans.push(positionCloseToMyTroops);
             }
 
@@ -258,7 +258,7 @@ class SkirmishBot extends SkirmishCharacter {
                     for (let rockTarget of rockTargets){
                         rockTarget["type"] = "cannon_rock";
                         // In this case, rock tiles have values in [-180,180]
-                        rockTarget["value"] = (rockTarget["score"] + 180) / (180*2) * RETRO_GAME_DATA["bot"]["weights"]["cannon_rock"];
+                        rockTarget["value"] = (rockTarget["score"] + 180) / (180*2) * WTL_GAME_DATA["bot"]["weights"]["cannon_rock"];
                         rockTarget["attached_location"] = locationToMoveIfOrderingButNotMoveOrder;
                         collectivePlans.push(rockTarget);
                     }
@@ -267,7 +267,7 @@ class SkirmishBot extends SkirmishCharacter {
                     for (let troopDamageTarget of troopDamageTargets){
                         troopDamageTarget["type"] = "cannon_troops";
                         // In this case, rock tiles have values in (-4,4)
-                        troopDamageTarget["value"] = (troopDamageTarget["score"] + 4) / (4*2) * RETRO_GAME_DATA["bot"]["weights"]["cannon_troops"];
+                        troopDamageTarget["value"] = (troopDamageTarget["score"] + 4) / (4*2) * WTL_GAME_DATA["bot"]["weights"]["cannon_troops"];
                         troopDamageTarget["attached_location"] = locationToMoveIfOrderingButNotMoveOrder;
                         collectivePlans.push(troopDamageTarget);
                     }
@@ -312,7 +312,7 @@ class SkirmishBot extends SkirmishCharacter {
                     for (let orderShootTarget of orderShootTargets){
                         orderShootTarget["type"] = "order_shoot";
                         // In this case, order shoot tiles have scores in (-4,4)
-                        orderShootTarget["value"] = (orderShootTarget["score"] + 4) / (4*2) * RETRO_GAME_DATA["bot"]["weights"]["order_shoot"];
+                        orderShootTarget["value"] = (orderShootTarget["score"] + 4) / (4*2) * WTL_GAME_DATA["bot"]["weights"]["order_shoot"];
                         orderShootTarget["num_selected_troops"] = selectedTroops.length;
                         orderShootTarget["select_location"] = troopSelectionTile;
                         orderShootTarget["attached_location"] = locationToMoveIfOrderingButNotMoveOrder;
@@ -323,7 +323,7 @@ class SkirmishBot extends SkirmishCharacter {
                     for (let orderTroopWalkToLocationTile of orderTroopWalkToLocationTiles){
                         orderTroopWalkToLocationTile["type"] = "order_move";
                         // In this case, there is an existing value. It is already between [0,1] so multiply by weight
-                        orderTroopWalkToLocationTile["value"] = orderTroopWalkToLocationTile["score"] * RETRO_GAME_DATA["bot"]["weights"]["order_move"] * RETRO_GAME_DATA["bot"]["weights"][orderTroopWalkToLocationTile["attached_location"]["type"]];
+                        orderTroopWalkToLocationTile["value"] = orderTroopWalkToLocationTile["score"] * WTL_GAME_DATA["bot"]["weights"]["order_move"] * WTL_GAME_DATA["bot"]["weights"][orderTroopWalkToLocationTile["attached_location"]["type"]];
                         orderTroopWalkToLocationTile["num_selected_troops"] = selectedTroops.length;
                         orderTroopWalkToLocationTile["select_location"] = troopSelectionTile;
                         // Attached location already here
@@ -470,7 +470,7 @@ class SkirmishBot extends SkirmishCharacter {
         else if (plan["type"] === "shoot"){
             explanationString += '\n' + "Moving troop from " + this.getTileX().toString() + "," + this.getTileY().toString() + " to shoot location at " + plan["tile_x"].toString() + "," + plan["tile_y"].toString();
             explanationString += '\n' + "Aiming troop at angle " + toDegrees(plan["angle_rad"]).toString();
-            explanationString += '\n' + "Shot distance (tiles) " + plan["distance_to_enemy"]/RETRO_GAME_DATA["general"]["tile_size"];
+            explanationString += '\n' + "Shot distance (tiles) " + plan["distance_to_enemy"]/WTL_GAME_DATA["general"]["tile_size"];
             explanationString += '\n' + "Facing " + plan["direction_to_face"];
         }
         else if (plan["type"] === "stab"){
@@ -528,7 +528,7 @@ class SkirmishBot extends SkirmishCharacter {
                     let isFriendly = troop.isOnSameTeam(selectedTroop);
                     tile["angle_rad"] = angleToTileCenter;
                     tile["direction_to_face"] = getMovementDirectionOf(visualDirectionToFace);
-                    let damage = RETRO_GAME_DATA["skirmish"]["shot_damage"];
+                    let damage = WTL_GAME_DATA["skirmish"]["shot_damage"];
                     if (isFriendly){
                         if (damage > troop.getHealth()){
                             friendlyKills++;
@@ -556,9 +556,9 @@ class SkirmishBot extends SkirmishCharacter {
             */
             let enemies = this.getEnemyData();
             let friends = this.getFriends();
-            let killScore = enemyKills / enemies.length - RETRO_GAME_DATA["bot"]["friend_enemy_cannon_ratio"] * friendlyKills / friends.length;
-            let damageScore = enemyExtraDamage / enemies.length - RETRO_GAME_DATA["bot"]["friend_enemy_cannon_ratio"] * friendlyExtraDamage / friends.length;
-            let score = killScore * RETRO_GAME_DATA["bot"]["kill_to_damage_importance_ratio"] + damageScore;
+            let killScore = enemyKills / enemies.length - WTL_GAME_DATA["bot"]["friend_enemy_cannon_ratio"] * friendlyKills / friends.length;
+            let damageScore = enemyExtraDamage / enemies.length - WTL_GAME_DATA["bot"]["friend_enemy_cannon_ratio"] * friendlyExtraDamage / friends.length;
+            let score = killScore * WTL_GAME_DATA["bot"]["kill_to_damage_importance_ratio"] + damageScore;
             // Score will be in range (-4, 4)
             // Skip if <= 0
             //console.log("score for order shoot", score);
@@ -574,12 +574,12 @@ class SkirmishBot extends SkirmishCharacter {
         let enemies = this.getEnemyData();
         let friends = this.getFriends();
 
-        let humanMultiplier = RETRO_GAME_DATA["cannon"]["human_damage_multiplier"];
+        let humanMultiplier = WTL_GAME_DATA["cannon"]["human_damage_multiplier"];
         let calculateCannonDamage = (distanceInTiles, multiplier) => {
-            return multiplier * 1 / (Math.pow(distanceInTiles+1, RETRO_GAME_DATA["cannon"]["damage_f"] * RETRO_GAME_DATA["cannon"]["damage_g"] * distanceInTiles));
+            return multiplier * 1 / (Math.pow(distanceInTiles+1, WTL_GAME_DATA["cannon"]["damage_f"] * WTL_GAME_DATA["cannon"]["damage_g"] * distanceInTiles));
         }
-        let tileDamageRadius = RETRO_GAME_DATA["cannon"]["aoe_tile_radius"];
-        let damageRadius = tileDamageRadius * RETRO_GAME_DATA["general"]["tile_size"];
+        let tileDamageRadius = WTL_GAME_DATA["cannon"]["aoe_tile_radius"];
+        let damageRadius = tileDamageRadius * WTL_GAME_DATA["general"]["tile_size"];
 
         // Loop around each tile around enemies and see how much damage you'd get for a cannon shot there
         for (let tile of squaresAroundEnemies){
@@ -603,7 +603,7 @@ class SkirmishBot extends SkirmishCharacter {
                 if (distanceFromHitLocation > damageRadius){
                     continue;
                 }
-                let distanceFromHitLocationInTiles = distanceFromHitLocation/RETRO_GAME_DATA["general"]["tile_size"];
+                let distanceFromHitLocationInTiles = distanceFromHitLocation/WTL_GAME_DATA["general"]["tile_size"];
                 let damage = calculateCannonDamage(distanceFromHitLocationInTiles, humanMultiplier);
                 let enemyConfidence = this.getBrain().getEnemyConfidence(enemy["entity_id"], this.gamemode.getOtherTeam(this.getTeamName()));
                 if (damage > this.getBrain().getHealthOfEnemy(enemy["entity_id"])){
@@ -621,7 +621,7 @@ class SkirmishBot extends SkirmishCharacter {
                 if (distanceFromHitLocation > damageRadius){
                     continue;
                 }
-                let distanceFromHitLocationInTiles = distanceFromHitLocation/RETRO_GAME_DATA["general"]["tile_size"];
+                let distanceFromHitLocationInTiles = distanceFromHitLocation/WTL_GAME_DATA["general"]["tile_size"];
                 let damage = calculateCannonDamage(distanceFromHitLocationInTiles, humanMultiplier);
                 if (damage > friendly.getHealth()){
                     friendlyKills++;
@@ -638,9 +638,9 @@ class SkirmishBot extends SkirmishCharacter {
                 We know friendlyKills is between 0 and num friendlies
                 We know friendlyExtraDamage is between 0 and num friendlies
             */
-            let killScore = enemyKills / enemies.length - RETRO_GAME_DATA["bot"]["friend_enemy_cannon_ratio"] * friendlyKills / friends.length;
-            let damageScore = enemyExtraDamage / enemies.length - RETRO_GAME_DATA["bot"]["friend_enemy_cannon_ratio"] * friendlyExtraDamage / friends.length;
-            let score = killScore * RETRO_GAME_DATA["bot"]["kill_to_damage_importance_ratio"] + damageScore;
+            let killScore = enemyKills / enemies.length - WTL_GAME_DATA["bot"]["friend_enemy_cannon_ratio"] * friendlyKills / friends.length;
+            let damageScore = enemyExtraDamage / enemies.length - WTL_GAME_DATA["bot"]["friend_enemy_cannon_ratio"] * friendlyExtraDamage / friends.length;
+            let score = killScore * WTL_GAME_DATA["bot"]["kill_to_damage_importance_ratio"] + damageScore;
             // Score will be in range (-4, 4)
             // Skip if <= 0 
             if (score <= 0){ continue; }
@@ -742,7 +742,7 @@ class SkirmishBot extends SkirmishCharacter {
 
         // Using formula 1/(x^f)
         let hitBoxValueByHealth = (hitboxHealth) => {
-            return Math.min(1/(Math.pow(hitboxHealth, RETRO_GAME_DATA["bot"]["rock_health_f_value"])), RETRO_GAME_DATA["bot"]["max_rock_value"]);
+            return Math.min(1/(Math.pow(hitboxHealth, WTL_GAME_DATA["bot"]["rock_health_f_value"])), WTL_GAME_DATA["bot"]["max_rock_value"]);
         }
 
         // Loop through each living rock hitbox locations
@@ -765,7 +765,7 @@ class SkirmishBot extends SkirmishCharacter {
                 // Don't even guess for unknown enemies
                 if (enemy["status"] === "unknown"){ continue; }
                 let distanceToEnemyInTile = calculateEuclideanDistance(enemy["tile_x"], enemy["tile_y"], tileX, tileY);
-                if (distanceToEnemyInTile > RETRO_GAME_DATA["cannon"]["aoe_tile_radius"]){
+                if (distanceToEnemyInTile > WTL_GAME_DATA["cannon"]["aoe_tile_radius"]){
                     continue;
                 }
                 let enemyConfidence = this.getBrain().getEnemyConfidence(enemy["entity_id"], this.gamemode.getOtherTeam(this.getTeamName()));
@@ -775,7 +775,7 @@ class SkirmishBot extends SkirmishCharacter {
             // Weigh by friendly distance to rock (use cannon aoe as distance)
             for (let friend of friends){
                 let distanceToEnemyInTile = calculateEuclideanDistance(friend.getTileX(), friend.getTileY(), tileX, tileY);
-                if (distanceToEnemyInTile > RETRO_GAME_DATA["cannon"]["aoe_tile_radius"]){
+                if (distanceToEnemyInTile > WTL_GAME_DATA["cannon"]["aoe_tile_radius"]){
                     continue;
                 }
                 friendlyScore += 1; 
@@ -786,7 +786,7 @@ class SkirmishBot extends SkirmishCharacter {
                 We know enemy score is between 0 and num enemies
                 We know friendly score is between 0 and num friendlies
             */
-            let score = healthScore * (enemyScore / enemies.length - RETRO_GAME_DATA["bot"]["friend_enemy_cannon_ratio"] * friendlyScore / friends.length);
+            let score = healthScore * (enemyScore / enemies.length - WTL_GAME_DATA["bot"]["friend_enemy_cannon_ratio"] * friendlyScore / friends.length);
             // Score will be in [-180,180]
             // Skip if <= 0 
             if (score <= 0){ continue; }
@@ -975,7 +975,7 @@ class SkirmishBot extends SkirmishCharacter {
         // Check tiles
         let lowestShortestDistance = Number.MAX_SAFE_INTEGER;
         let lowestTotalDistance = Number.MAX_SAFE_INTEGER;
-        let distanceMovePerTurn = RETRO_GAME_DATA["skirmish"]["distance_per_turn"][this.getRankName()];
+        let distanceMovePerTurn = WTL_GAME_DATA["skirmish"]["distance_per_turn"][this.getRankName()];
 
         // Create routes to all enemies
         let routes = {};
@@ -1069,7 +1069,7 @@ class SkirmishBot extends SkirmishCharacter {
 
         let averageRouteToFriendLength = totalRouteToFriendLength / friends.length;
         // Don't search for friends if they are all close
-        if (averageRouteToFriendLength < RETRO_GAME_DATA["bot"]["min_avg_route_to_friend_length_to_ignore"]){
+        if (averageRouteToFriendLength < WTL_GAME_DATA["bot"]["min_avg_route_to_friend_length_to_ignore"]){
             return [];
         }
 
@@ -1078,7 +1078,7 @@ class SkirmishBot extends SkirmishCharacter {
         let lowestShortestDistance = Number.MAX_SAFE_INTEGER;
         let lowestTotalDistance = Number.MAX_SAFE_INTEGER;
         // Note: Not hard coding "officer" because maybe I add some lower ranking troop at some point
-        let distanceMovePerTurn = RETRO_GAME_DATA["skirmish"]["distance_per_turn"][this.getRankName()];
+        let distanceMovePerTurn = WTL_GAME_DATA["skirmish"]["distance_per_turn"][this.getRankName()];
 
         // Loop through all tiles and find out how they compare to tiles along the routes
         for (let tile of possibleEndTiles){
@@ -1136,7 +1136,7 @@ class SkirmishBot extends SkirmishCharacter {
         // Note: Weed out multi-bushes
         let scene = this.getGamemode().getScene();
         let enemyData = this.getEnemyData();
-        let maxDistanceInTiles = Math.sqrt(2 * Math.pow(RETRO_GAME_DATA["skirmish"]["area_size"], 2));
+        let maxDistanceInTiles = Math.sqrt(2 * Math.pow(WTL_GAME_DATA["skirmish"]["area_size"], 2));
         let calculateTileScore = (possibleEndTile) => {
             // Do not stay at the same tile if you just shot from there
             if (this.hasShotSinceLastTurn() && possibleEndTile["tile_x"] === this.getTileX() && possibleEndTile["tile_y"] === this.getTileY()){
@@ -1220,7 +1220,7 @@ class SkirmishBot extends SkirmishCharacter {
             return false;
         }
 
-        let maxDistanceInTiles = Math.sqrt(2 * Math.pow(RETRO_GAME_DATA["skirmish"]["area_size"], 2));
+        let maxDistanceInTiles = Math.sqrt(2 * Math.pow(WTL_GAME_DATA["skirmish"]["area_size"], 2));
         let calculateDistanceToEnemyScore = (possibleEndTile) => {
             let totalDistanceToEnemiesInTiles = 0;
             for (let enemyObj of enemyData){
@@ -1256,15 +1256,15 @@ class SkirmishBot extends SkirmishCharacter {
             let distanceScore = calculateDistanceToEnemyScore(possibleEndTile);
             // If contains an enemy then add it
             if (spotContainsEnemy){
-                possibleEndTile["score"] = enemyConfidence * RETRO_GAME_DATA["bot"]["multi_cover_enemy_weight"];
+                possibleEndTile["score"] = enemyConfidence * WTL_GAME_DATA["bot"]["multi_cover_enemy_weight"];
             }
             // Else if it contains a friendly
             else if (containsFriendly(possibleEndTile["tile_x"], possibleEndTile["tile_y"])){
-                possibleEndTile["score"] = calculateDistanceToEnemyScore(possibleEndTile) * RETRO_GAME_DATA["bot"]["multi_cover_friendly_occupied_weight"];
+                possibleEndTile["score"] = calculateDistanceToEnemyScore(possibleEndTile) * WTL_GAME_DATA["bot"]["multi_cover_friendly_occupied_weight"];
             }
             // Else empty
             else{
-                possibleEndTile["score"] = calculateDistanceToEnemyScore(possibleEndTile) * RETRO_GAME_DATA["bot"]["multi_cover_empty_weight"];
+                possibleEndTile["score"] = calculateDistanceToEnemyScore(possibleEndTile) * WTL_GAME_DATA["bot"]["multi_cover_empty_weight"];
             }
 
             // Do not stay at the same tile if you just shot from there
@@ -1305,7 +1305,7 @@ class SkirmishBot extends SkirmishCharacter {
                 let distanceToEnemy = calculateEuclideanDistance(myCenterXWhenOnTile, myCenterYWhenOnTile, enemyX, enemyY);
                 
                 // Ignore possibility of stabbing or shooting
-                if (distanceToEnemy < RETRO_GAME_DATA["general"]["tile_size"]){
+                if (distanceToEnemy < WTL_GAME_DATA["general"]["tile_size"]){
                     continue;
                 }
 
@@ -1326,7 +1326,7 @@ class SkirmishBot extends SkirmishCharacter {
                     tileCopy["confidence"] = confidenceInEnemyPosition;
                     roughStabTiles.push(tileCopy);
                 }
-                let offsetAmount = RETRO_GAME_DATA["general"]["tile_size"]/4;
+                let offsetAmount = WTL_GAME_DATA["general"]["tile_size"]/4;
                 let offsetAngleAtRange = Math.atan(offsetAmount/distanceToEnemy);
 
                 let anglesToShootAt = [angleToEnemy, rotateCWRAD(angleToEnemy, offsetAngleAtRange), rotateCCWRAD(angleToEnemy, offsetAngleAtRange)];
@@ -1429,7 +1429,7 @@ class SkirmishBot extends SkirmishCharacter {
             let otherTroopTileX = otherTroop.getTileX();
             let otherTroopTileY = otherTroop.getTileY();
             let distance = Math.sqrt(Math.pow(myPlayerTileX - otherTroopTileX, 2) + Math.pow(myPlayerTileY - otherTroopTileY, 2));
-            if (distance < RETRO_GAME_DATA["skirmish"]["troop_selection_distance"]){
+            if (distance < WTL_GAME_DATA["skirmish"]["troop_selection_distance"]){
                 selectedTroops.push(otherTroop);
             }
         }

@@ -49,7 +49,7 @@ class BotSharedBrain {
 
         // Assign this location to the most likely unknown enemy
         if (bestEnemyObj["status"] === "unknown"){
-            this.lastKnownLocations[bestEnemyObj["enemy_id"]] = {"status": "last_known", "tile_x": shooterTileX, "tile_y": shooterTileY, "health": RETRO_GAME_DATA["bot"]["unknown_enemy_health_assumption"]};
+            this.lastKnownLocations[bestEnemyObj["enemy_id"]] = {"status": "last_known", "tile_x": shooterTileX, "tile_y": shooterTileY, "health": WTL_GAME_DATA["bot"]["unknown_enemy_health_assumption"]};
         }else{
             if (bestEnemyObj["enemy_id"] === null){ debugger; }
             this.lastKnownLocations[bestEnemyObj["enemy_id"]]["tile_x"] = shooterTileX;
@@ -58,7 +58,7 @@ class BotSharedBrain {
     }
 
     initializeSpawnPointKnowledge(){
-        let size = RETRO_GAME_DATA["skirmish"]["area_size"];
+        let size = WTL_GAME_DATA["skirmish"]["area_size"];
         this.spawnPointKnowledge = [{"tile_x": 0, "tile_y": 0, "has_been_explored": false}, {"tile_x": 0, "tile_y": size-1, "has_been_explored": false}, {"tile_x": size-1, "tile_y": 0, "has_been_explored": false}, {"tile_x": size-1, "tile_y": size-1, "has_been_explored": false}];
         let myTeamSpawn = this.gamemode.getSpawnOfTeam(this.getTeamName());
         // Mark own spawn as explored
@@ -147,7 +147,7 @@ class BotSharedBrain {
         }
         // Else assume it has full health
         else{
-            return RETRO_GAME_DATA["bot"]["unknown_enemy_health_assumption"];
+            return WTL_GAME_DATA["bot"]["unknown_enemy_health_assumption"];
         }
     }
 
@@ -198,9 +198,9 @@ class BotSharedBrain {
                 return 1 / countSizeOfMultiCover(tileX, tileY);
             }
             // Else its not a bush
-            return RETRO_GAME_DATA["bot"]["unknown_enemy_position_confidence"];
+            return WTL_GAME_DATA["bot"]["unknown_enemy_position_confidence"];
         }else{
-            return RETRO_GAME_DATA["bot"]["unknown_enemy_position_confidence"];
+            return WTL_GAME_DATA["bot"]["unknown_enemy_position_confidence"];
         }
     }
 }

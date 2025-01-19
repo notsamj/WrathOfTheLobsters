@@ -15,11 +15,11 @@ class Sword extends MeleeWeapon {
     }
 
     getSwingCooldownMS(){
-        return RETRO_GAME_DATA["sword_data"]["swords"][this.getModel()]["swing_cooldown_ms"]
+        return WTL_GAME_DATA["sword_data"]["swords"][this.getModel()]["swing_cooldown_ms"]
     }
 
     getSwingTimeMS(){
-        return RETRO_GAME_DATA["sword_data"]["swords"][this.getModel()]["swing_time_ms"];
+        return WTL_GAME_DATA["sword_data"]["swords"][this.getModel()]["swing_time_ms"];
     }
 
     startBlocking(){
@@ -65,7 +65,7 @@ class Sword extends MeleeWeapon {
     }
 
     startSwing(){
-        this.getPlayer().getStaminaBar().useStamina(RETRO_GAME_DATA["sword_data"]["swords"][this.getModel()]["stamina_usage_for_swing"]);
+        this.getPlayer().getStaminaBar().useStamina(WTL_GAME_DATA["sword_data"]["swords"][this.getModel()]["stamina_usage_for_swing"]);
         this.swinging = true;
         this.swingCooldownLock.lock();
         this.swingStartTick = this.getPlayer().getGamemode().getCurrentTick();
@@ -75,15 +75,15 @@ class Sword extends MeleeWeapon {
     }
 
     getSwingRange(){
-        return RETRO_GAME_DATA["sword_data"]["arm_length"] + RETRO_GAME_DATA["sword_data"]["swords"][this.getModel()]["blade_length"];
+        return WTL_GAME_DATA["sword_data"]["arm_length"] + WTL_GAME_DATA["sword_data"]["swords"][this.getModel()]["blade_length"];
     }
 
     getSwingCenterX(playerLeftX=this.getPlayer().getInterpolatedTickX(), facingDirection=this.getPlayer().getFacingDirection()){
-        return playerLeftX + RETRO_GAME_DATA["model_positions"][this.getPlayer().getModelCategory()][this.getModel()]["swinging"][facingDirection]["x_offset"];
+        return playerLeftX + WTL_GAME_DATA["model_positions"][this.getPlayer().getModelCategory()][this.getModel()]["swinging"][facingDirection]["x_offset"];
     }
 
     getSwingCenterY(playerTopY=this.getPlayer().getInterpolatedTickY(), facingDirection=this.getPlayer().getFacingDirection()){
-        return playerTopY - RETRO_GAME_DATA["model_positions"][this.getPlayer().getModelCategory()][this.getModel()]["swinging"][facingDirection]["y_offset"];
+        return playerTopY - WTL_GAME_DATA["model_positions"][this.getPlayer().getModelCategory()][this.getModel()]["swinging"][facingDirection]["y_offset"];
     }
 
     static swordCanHitCharacter(characterHitbox, swingHitbox, hitCenterX, hitCenterY, swingAngle, swingRange, startAngle, endAngle){
@@ -233,7 +233,7 @@ class Sword extends MeleeWeapon {
     }
 
     getSwingAngleRangeRAD(){
-        return toFixedRadians(RETRO_GAME_DATA["sword_data"]["swords"][this.getModel()]["swing_angle_range_deg"]);
+        return toFixedRadians(WTL_GAME_DATA["sword_data"]["swords"][this.getModel()]["swing_angle_range_deg"]);
     }
 
     finishSwing(exclusionFunction=(character)=>{ return false; }){
@@ -310,39 +310,39 @@ class Sword extends MeleeWeapon {
                 // Note: May be > 1?
                 let swingProportionCompletedWhenBlockStarted = (blockStartTick + 1 - swingStartTick) / swingTotalLengthInTicks;
 
-                isDeflected = swingProportionCompletedWhenBlockStarted >= RETRO_GAME_DATA["sword_data"]["blocking"]["deflect_proportion"];
-                stunsAttacker = swingProportionCompletedWhenBlockStarted >= RETRO_GAME_DATA["sword_data"]["blocking"]["stun_deflect_proportion"];
+                isDeflected = swingProportionCompletedWhenBlockStarted >= WTL_GAME_DATA["sword_data"]["blocking"]["deflect_proportion"];
+                stunsAttacker = swingProportionCompletedWhenBlockStarted >= WTL_GAME_DATA["sword_data"]["blocking"]["stun_deflect_proportion"];
                 // Stun also requires a contender blade
                 stunsAttacker = stunsAttacker && defenderBladeIsAContender;
 
                 // If the block started as a reaction and the blade contends in length
                 if (isDeflected && defenderBladeIsAContender){
-                    damageToDeal *= RETRO_GAME_DATA["sword_data"]["blocking"]["deflect_damage"]; // Blocks all damage
-                    staminaToDrain = RETRO_GAME_DATA["sword_data"]["blocking"]["deflect_contender_stamina_drain"];
+                    damageToDeal *= WTL_GAME_DATA["sword_data"]["blocking"]["deflect_damage"]; // Blocks all damage
+                    staminaToDrain = WTL_GAME_DATA["sword_data"]["blocking"]["deflect_contender_stamina_drain"];
                     soundToPlay = "longer_deflect";
                 }
                 // If the block started as a reaction but the defending blade is shorter
                 else if (isDeflected){
-                    damageToDeal *= RETRO_GAME_DATA["sword_data"]["blocking"]["deflect_damage"]; // Blocks all damage
-                    staminaToDrain = RETRO_GAME_DATA["sword_data"]["blocking"]["deflect_shorter_stamina_drain"];
+                    damageToDeal *= WTL_GAME_DATA["sword_data"]["blocking"]["deflect_damage"]; // Blocks all damage
+                    staminaToDrain = WTL_GAME_DATA["sword_data"]["blocking"]["deflect_shorter_stamina_drain"];
                     soundToPlay = "shorter_deflect";
                 }
                 // If the block started prior to the swing and the blade contends in length
                 else if (defenderBladeIsAContender){
-                    damageToDeal *= RETRO_GAME_DATA["sword_data"]["blocking"]["block_damage"];
-                    staminaToDrain = RETRO_GAME_DATA["sword_data"]["blocking"]["block_contender_stamina_drain"];
+                    damageToDeal *= WTL_GAME_DATA["sword_data"]["blocking"]["block_damage"];
+                    staminaToDrain = WTL_GAME_DATA["sword_data"]["blocking"]["block_contender_stamina_drain"];
                     soundToPlay = "longer_block";
                 }
                 // If the block started prior to the swing and the defending blade is shorter
                 else{
-                    damageToDeal *= RETRO_GAME_DATA["sword_data"]["blocking"]["block_damage"];
-                    staminaToDrain = RETRO_GAME_DATA["sword_data"]["blocking"]["block_shorter_stamina_drain"];
+                    damageToDeal *= WTL_GAME_DATA["sword_data"]["blocking"]["block_damage"];
+                    staminaToDrain = WTL_GAME_DATA["sword_data"]["blocking"]["block_shorter_stamina_drain"];
                     soundToPlay = "shorter_block";
                 }
             }
             // No block
             else{
-                victimStunTicks = Math.ceil(RETRO_GAME_DATA["sword_data"]["swords"][this.getModel()]["stun_time_ms"] / calculateMSBetweenTicks());
+                victimStunTicks = Math.ceil(WTL_GAME_DATA["sword_data"]["swords"][this.getModel()]["stun_time_ms"] / calculateMSBetweenTicks());
             }
         }
 
@@ -353,7 +353,7 @@ class Sword extends MeleeWeapon {
 
         // Do stun if applicable
         if (stunsAttacker){
-            this.player.stun(Math.ceil(RETRO_GAME_DATA["sword_data"]["blocking"]["stun_time_ms"] / RETRO_GAME_DATA["general"]["ms_between_ticks"]));
+            this.player.stun(Math.ceil(WTL_GAME_DATA["sword_data"]["blocking"]["stun_time_ms"] / WTL_GAME_DATA["general"]["ms_between_ticks"]));
         }
 
         // If the hit character still is alive and has stamina remove the block if it runs out now
@@ -408,7 +408,7 @@ class Sword extends MeleeWeapon {
     }
 
     getSwingDamage(){
-        return RETRO_GAME_DATA["sword_data"]["swords"][this.getModel()]["swing_damage"];
+        return WTL_GAME_DATA["sword_data"]["swords"][this.getModel()]["swing_damage"];
     }
 
     isSwinging(){
@@ -430,7 +430,7 @@ class Sword extends MeleeWeapon {
 
     displayItemSlot(providedX, providedY){
         let image = IMAGES[this.getModel()];
-        let displayScale = RETRO_GAME_DATA["inventory"]["slot_size"] / image.width;
+        let displayScale = WTL_GAME_DATA["inventory"]["slot_size"] / image.width;
         let scaleX = providedX + image.width / 2 * displayScale;
         let scaleY = providedY + image.height / 2 * displayScale;
 
@@ -450,11 +450,11 @@ class Sword extends MeleeWeapon {
     }
 
     getWidth(){
-        return RETRO_GAME_DATA["sword_data"]["swords"][this.getModel()]["image_width"] * RETRO_GAME_DATA["sword_data"]["swords"][this.getModel()]["image_scale"];
+        return WTL_GAME_DATA["sword_data"]["swords"][this.getModel()]["image_width"] * WTL_GAME_DATA["sword_data"]["swords"][this.getModel()]["image_scale"];
     }
 
     getHeight(){
-        return RETRO_GAME_DATA["sword_data"]["swords"][this.getModel()]["image_height"] * RETRO_GAME_DATA["sword_data"]["swords"][this.getModel()]["image_scale"];
+        return WTL_GAME_DATA["sword_data"]["swords"][this.getModel()]["image_height"] * WTL_GAME_DATA["sword_data"]["swords"][this.getModel()]["image_scale"];
     }
 
     getScene(){
@@ -498,7 +498,7 @@ class Sword extends MeleeWeapon {
     }
 
     getBladeLength(){
-        return RETRO_GAME_DATA["sword_data"]["swords"][this.getModel()]["blade_length"];
+        return WTL_GAME_DATA["sword_data"]["swords"][this.getModel()]["blade_length"];
     }
 
     display(lX, bY){
@@ -508,13 +508,13 @@ class Sword extends MeleeWeapon {
 
         let image = IMAGES[this.getModel()];
         let displayRotateAngleRAD;
-        let blockingAngle = RETRO_GAME_DATA["model_positions"]["blocking_rotation"];
-        let readyRotationDEG = RETRO_GAME_DATA["model_positions"]["holding_rotation_sword"];
+        let blockingAngle = WTL_GAME_DATA["model_positions"]["blocking_rotation"];
+        let readyRotationDEG = WTL_GAME_DATA["model_positions"]["holding_rotation_sword"];
         let flipDirection = 1;
 
         // Based on player action
         if (this.isSwinging()){ // Swinging
-            let rangeRAD = toFixedRadians(RETRO_GAME_DATA["sword_data"]["swords"][this.getModel()]["swing_angle_range_deg"]);
+            let rangeRAD = toFixedRadians(WTL_GAME_DATA["sword_data"]["swords"][this.getModel()]["swing_angle_range_deg"]);
             let positionalAngleRAD;
             if (playerDirection == "front"){
                 displayRotateAngleRAD = toFixedRadians(270);
@@ -532,15 +532,15 @@ class Sword extends MeleeWeapon {
 
             let startAngle = rotateCCWRAD(positionalAngleRAD, rangeRAD/2);
 
-            let timePassedTick = (this.swingLock.getCooldown() - this.swingLock.getTicksLeft()) * RETRO_GAME_DATA["general"]["ms_between_ticks"];
+            let timePassedTick = (this.swingLock.getCooldown() - this.swingLock.getTicksLeft()) * WTL_GAME_DATA["general"]["ms_between_ticks"];
             let timePassedNonTick = FRAME_COUNTER.getLastFrameTime() - TICK_SCHEDULER.getLastTickTime();
             let totalTimePassedMS = timePassedTick + timePassedNonTick;
             let proportion = totalTimePassedMS / this.getSwingTimeMS();
             proportion = Math.min(1, Math.max(0, proportion));
-            let hypotenuse = RETRO_GAME_DATA["sword_data"]["arm_length"] + RETRO_GAME_DATA["sword_data"]["swords"][this.getModel()]["image_width"] * RETRO_GAME_DATA["sword_data"]["swords"][this.getModel()]["image_scale"] / 2 - RETRO_GAME_DATA["sword_data"]["swords"][this.getModel()]["blade_length"];
+            let hypotenuse = WTL_GAME_DATA["sword_data"]["arm_length"] + WTL_GAME_DATA["sword_data"]["swords"][this.getModel()]["image_width"] * WTL_GAME_DATA["sword_data"]["swords"][this.getModel()]["image_scale"] / 2 - WTL_GAME_DATA["sword_data"]["swords"][this.getModel()]["blade_length"];
             let currentSwingAngle = rotateCWRAD(startAngle, rangeRAD * proportion);
 
-            let displayRotationAngleRange = toFixedRadians(RETRO_GAME_DATA["sword_data"]["swords"][this.getModel()]["sword_rotation_deg"]);
+            let displayRotationAngleRange = toFixedRadians(WTL_GAME_DATA["sword_data"]["swords"][this.getModel()]["sword_rotation_deg"]);
             let displayRotationStartAngle = rotateCCWRAD(displayRotateAngleRAD, displayRotationAngleRange/2);
             displayRotateAngleRAD = rotateCWRAD(displayRotationStartAngle, displayRotationAngleRange*proportion);
 
@@ -568,15 +568,15 @@ class Sword extends MeleeWeapon {
                 displayRotateAngleRAD = toRadians(-1 * readyRotationDEG);
             }
         }
-        let imageScale = RETRO_GAME_DATA["sword_data"]["swords"][this.getModel()]["image_scale"];
+        let imageScale = WTL_GAME_DATA["sword_data"]["swords"][this.getModel()]["image_scale"];
         let effectiveScale = gameZoom * imageScale;
         let flipped = flipDirection < 0;
-        let realImageWidth = RETRO_GAME_DATA["sword_data"]["swords"][this.getModel()]["image_width"];
-        let realImageHeight = RETRO_GAME_DATA["sword_data"]["swords"][this.getModel()]["image_height"];
+        let realImageWidth = WTL_GAME_DATA["sword_data"]["swords"][this.getModel()]["image_width"];
+        let realImageHeight = WTL_GAME_DATA["sword_data"]["swords"][this.getModel()]["image_height"];
         // So right now x,y is the position of the character's hand
 
-        let handleOffsetX = Math.cos(displayRotateAngleRAD) * (RETRO_GAME_DATA["sword_data"]["swords"][this.getModel()]["handle_offset_x"] * (flipped ? -1 : 1)) - Math.sin(displayRotateAngleRAD) * RETRO_GAME_DATA["sword_data"]["swords"][this.getModel()]["handle_offset_y"];
-        let handleOffsetY = Math.sin(displayRotateAngleRAD) * (RETRO_GAME_DATA["sword_data"]["swords"][this.getModel()]["handle_offset_x"] * (flipped ? -1 : 1)) + Math.cos(displayRotateAngleRAD) * RETRO_GAME_DATA["sword_data"]["swords"][this.getModel()]["handle_offset_y"];
+        let handleOffsetX = Math.cos(displayRotateAngleRAD) * (WTL_GAME_DATA["sword_data"]["swords"][this.getModel()]["handle_offset_x"] * (flipped ? -1 : 1)) - Math.sin(displayRotateAngleRAD) * WTL_GAME_DATA["sword_data"]["swords"][this.getModel()]["handle_offset_y"];
+        let handleOffsetY = Math.sin(displayRotateAngleRAD) * (WTL_GAME_DATA["sword_data"]["swords"][this.getModel()]["handle_offset_x"] * (flipped ? -1 : 1)) + Math.cos(displayRotateAngleRAD) * WTL_GAME_DATA["sword_data"]["swords"][this.getModel()]["handle_offset_y"];
         
         let rotateX = x - handleOffsetX * effectiveScale;
         let rotateY = y + handleOffsetY * effectiveScale;
@@ -602,26 +602,26 @@ class Sword extends MeleeWeapon {
 
     getImageX(lX){
         let x = this.getPlayer().getDisplayX(lX);
-        return x + RETRO_GAME_DATA["model_positions"][this.getPlayer().getModelCategory()][this.getModel()][this.isSwinging() ? "swinging" : "not_swinging"][this.getPlayer().getFacingDirection()]["x_offset"] * gameZoom - this.getPlayer().getWidth()/2 * gameZoom;
+        return x + WTL_GAME_DATA["model_positions"][this.getPlayer().getModelCategory()][this.getModel()][this.isSwinging() ? "swinging" : "not_swinging"][this.getPlayer().getFacingDirection()]["x_offset"] * gameZoom - this.getPlayer().getWidth()/2 * gameZoom;
     }
 
     getImageY(bY){
         let y = this.getPlayer().getDisplayY(bY);
-        return y + RETRO_GAME_DATA["model_positions"][this.getPlayer().getModelCategory()][this.getModel()][this.isSwinging() ? "swinging" : "not_swinging"][this.getPlayer().getFacingDirection()]["y_offset"] * gameZoom - this.getPlayer().getHeight()/2 * gameZoom;
+        return y + WTL_GAME_DATA["model_positions"][this.getPlayer().getModelCategory()][this.getModel()][this.isSwinging() ? "swinging" : "not_swinging"][this.getPlayer().getFacingDirection()]["y_offset"] * gameZoom - this.getPlayer().getHeight()/2 * gameZoom;
     }
 
     static async loadAllImagesOfModel(model){
         // Do not load if already exists
         if (objectHasKey(IMAGES, model)){ return; }
-        if (!objectHasKey(RETRO_GAME_DATA["sword_data"]["swords"][model], "alternate_url")){
+        if (!objectHasKey(WTL_GAME_DATA["sword_data"]["swords"][model], "alternate_url")){
             await loadToImages(model, "item/weapon/sword/" + model + "/");
         }else{
-            await loadToImages(model, RETRO_GAME_DATA["sword_data"]["swords"][model]["alternate_url"] + model + "/");
+            await loadToImages(model, WTL_GAME_DATA["sword_data"]["swords"][model]["alternate_url"] + model + "/");
         }
     }
 
     static async loadAllImages(){
-        for (let swordModel of Object.keys(RETRO_GAME_DATA["sword_data"]["swords"])){
+        for (let swordModel of Object.keys(WTL_GAME_DATA["sword_data"]["swords"])){
             await Sword.loadAllImagesOfModel(swordModel);
         }
     }

@@ -16,7 +16,7 @@ class DuelCharacter extends Character {
     }
 
     getShot(model, killerID){
-        let damage = RETRO_GAME_DATA["duel"]["shot_damage"];
+        let damage = WTL_GAME_DATA["duel"]["shot_damage"];
         this.damage(damage);
         // Assumes not dead prior to damage
         if (this.isDead()){
@@ -38,7 +38,7 @@ class DuelCharacter extends Character {
         if (!(stabItem instanceof Musket)){
             throw new Error("Unknown stab item: " + stabItem.toString());
         }
-        let damage = RETRO_GAME_DATA["duel"]["musket_stab_damage"];
+        let damage = WTL_GAME_DATA["duel"]["musket_stab_damage"];
         this.damage(damage);
         // Assumes not dead prior to damage
         if (this.isDead()){

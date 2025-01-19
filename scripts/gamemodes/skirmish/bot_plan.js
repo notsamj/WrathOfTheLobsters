@@ -365,7 +365,7 @@ class BotPlan {
         }
         // If id is only 1 more than its fine
         if (id > this.delayLocks.length - 1){
-            let tickDelay = Math.ceil(RETRO_GAME_DATA["bot"]["delay_ms"] / calculateMSBetweenTicks());
+            let tickDelay = Math.ceil(WTL_GAME_DATA["bot"]["delay_ms"] / calculateMSBetweenTicks());
             let tickLock = new TickLock(tickDelay);
             tickLock.lock();
             this.delayLocks.push(tickLock);

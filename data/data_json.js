@@ -1,13 +1,13 @@
 const DATA_TILE_SIZE = 64;
-const RETRO_GAME_DATA = {
+const WTL_GAME_DATA = {
     "test_settings": {
         "duel": {
             "participants": [
                 {
-                    "human": false,
+                    "human": true,
                     "model": "british_officer",
-                    "swords": [], // "cavalry_sword", "clever"
-                    "pistols": [], // "flintlock"
+                    "swords": ["cavalry_sword", "clever"], // "cavalry_sword", "clever"
+                    "pistols": ["flintlock"], // "flintlock"
                     "muskets": ["brown_bess"], // "brown_bess"
                     "extra_details": {
                         "invincible": false,
@@ -21,9 +21,9 @@ const RETRO_GAME_DATA = {
                 {
                     "human": false,
                     "model": "usa_officer",
-                    "swords": [],
-                    "pistols": [],
-                    "muskets": [],
+                    "swords": ["cavalry_sword", "clever"],
+                    "pistols": ["flintlock"],
+                    "muskets": ["brown_bess"],
                     "extra_details": {
                         "invincible": false,
                         "sway_compensation_ability": 0.2 // 20% reduction in gun sway
@@ -41,6 +41,7 @@ const RETRO_GAME_DATA = {
             "americans_are_human": false
         }
     },
+
     "game_maker": {
         "server_ip": "localhost",
         "server_port": 8080,
@@ -56,6 +57,8 @@ const RETRO_GAME_DATA = {
         "mesh_height": 8192/8,
         "tile_width": 512,
         "tile_height": 512,
+        "min_x_velocity": 1,
+        "min_y_velocity": 1,
         "max_x_velocity": 2,
         "max_y_velocity": 2,
         "origin_x_range_size": 2500,
@@ -69,7 +72,7 @@ const RETRO_GAME_DATA = {
         "shot_damage": 0.75,
         "musket_stab_damage": 0.6,
         "max_seed": 100000, // Self-explanatory
-        "seed": 78422,  // null for random seed, 24873 is good (on 10 size)
+        "seed": null,  // null for random seed, 24873 is good (on 10 size)
         "pistol_sway_acceleration_constant": 0.4,
         "musket_sway_acceleration_constant": 0.4,
         "camera": {
@@ -224,7 +227,7 @@ const RETRO_GAME_DATA = {
                     "min_blue": 0,
                     "max_blue": 0,*/
                     "min_red": 230,
-                    "max_red": 250,
+                    "max_red": 240,
                     "min_green": 168,
                     "max_green": 178,
                     "min_blue": 127,
@@ -233,7 +236,7 @@ const RETRO_GAME_DATA = {
                 },
                 "deflect": {
                     "min_sparks_per_impact": 7,
-                    "max_sparks_per_impact": 13,
+                    "max_sparks_per_impact": 11,
                     "size": 3,
                     "center_radius": 12,
                     /*"min_red": 0,
@@ -263,10 +266,10 @@ const RETRO_GAME_DATA = {
                     "max_blue": 0,*/
                     "min_red": 243,
                     "max_red": 252,
-                    "min_green": 145,
-                    "max_green": 155,
-                    "min_blue": 84,
-                    "max_blue": 94,
+                    "min_green": 135,
+                    "max_green": 145,
+                    "min_blue": 74,
+                    "max_blue": 44,
                     "max_speed": 35
                 }
             },
@@ -534,7 +537,55 @@ const RETRO_GAME_DATA = {
             "slider_width_px": 20,
             "x_size": 300
         },
-        "text_box_padding_proportion": 0.1
+        "text_box_padding_proportion": 0.1,
+        "menus": {
+            "gamemode_viewer": {
+                "back_button": {
+                    "colour_code": "#3bc44b",
+                    "text_colour_code": "#e6f5f4",
+                    "text": "Main Menu",
+                    "y_offset": 27,
+                    "x": 50,
+                },
+                "scrollable_display": {
+                    "scroll_bar": {
+                        "x_offset": 150,
+                        "y_offset": 150,
+                        "width": 40,
+                        "min_height": 400,
+                        "slider_height": 40,
+                        "background_colour_code": "#ffffff",
+                        "slider_colour_code": "#ff00ff",
+                    },
+                    "entry": {
+                        "y_size": 250,
+                        "y_offset": 150,
+                        "x_offset": 150,
+                        "x_size": 900,
+                        "display_name_x_size": 400,
+                        "display_name_y_size": 150,
+                        "display_name_text_colour_code": "#ffffff",
+                        "go_to_menu_button_text": "View",
+                        "go_to_menu_button_x_size": 400,
+                        "go_to_menu_button_y_size": 100,
+                        "go_to_menu_button_background_colour_code": "#3bc44b",
+                        "go_to_menu_button_text_colour_code": "#ffffff"
+                    }
+                },
+                "gamemodes": [
+                    {
+                        "display_name": "Duel",
+                        "menu_name": "duel_menu"
+                    }
+                ]
+            },
+            "main_menu": {
+                "featured_gamemode": {
+                    "display_name": "Duel",
+                    "menu_name": "duel_menu"
+                }
+            }
+        }
     },
 
     "gun_data": {
@@ -875,5 +926,5 @@ const RETRO_GAME_DATA = {
     }
 }
 if (typeof window === "undefined"){
-    module.exports=RETRO_GAME_DATA;
+    module.exports=WTL_GAME_DATA;
 }

@@ -38,7 +38,7 @@ class BulletImpact {
             let currentExistenceTime = currentTime - squareObject["spawn_time"];
             let screenX = scene.getDisplayX(squareObject["x"] + currentExistenceTime/1000 * squareObject["x_velocity"], 0, lX);
             let screenY = scene.getDisplayY(squareObject["y"] + currentExistenceTime/1000 * squareObject["y_velocity"], 0, bY);
-            noStrokeRectangle(Colour.fromCode(RETRO_GAME_DATA["visual_effects"]["bullet_impact_generation"]["dirt_colour"]), screenX, screenY, squareObject["size"], squareObject["size"]);
+            noStrokeRectangle(Colour.fromCode(WTL_GAME_DATA["visual_effects"]["bullet_impact_generation"]["dirt_colour"]), screenX, screenY, squareObject["size"], squareObject["size"]);
         }
     }
 
@@ -83,16 +83,16 @@ class BulletImpact {
     */
     static create(x, y){
         let squares = [];
-        let numSquares = randomNumberInclusive(RETRO_GAME_DATA["visual_effects"]["bullet_impact_generation"]["min_dirt_per_impact"], RETRO_GAME_DATA["visual_effects"]["bullet_impact_generation"]["max_dirt_per_impact"]);
-        let mainRadius = RETRO_GAME_DATA["visual_effects"]["bullet_impact_generation"]["center_radius"];
+        let numSquares = randomNumberInclusive(WTL_GAME_DATA["visual_effects"]["bullet_impact_generation"]["min_dirt_per_impact"], WTL_GAME_DATA["visual_effects"]["bullet_impact_generation"]["max_dirt_per_impact"]);
+        let mainRadius = WTL_GAME_DATA["visual_effects"]["bullet_impact_generation"]["center_radius"];
         let spawnTime = Date.now();
         for (let i = 0; i < numSquares; i++){
             let squareX = x + randomNumberInclusive(-1 * mainRadius, mainRadius);
             let squareY = y + randomNumberInclusive(-1 * mainRadius, mainRadius);
-            let squareSize = RETRO_GAME_DATA["visual_effects"]["bullet_impact_generation"]["size"];
-            let squareLifeLength = randomNumberInclusive(RETRO_GAME_DATA["visual_effects"]["bullet_impact_generation"]["min_life_ms"], RETRO_GAME_DATA["visual_effects"]["bullet_impact_generation"]["max_life_ms"]);
-            let xVelocity = randomFloatBetween(RETRO_GAME_DATA["visual_effects"]["bullet_impact_generation"]["max_speed"] * -1, RETRO_GAME_DATA["visual_effects"]["bullet_impact_generation"]["max_speed"]);
-            let yVelocity = randomFloatBetween(RETRO_GAME_DATA["visual_effects"]["bullet_impact_generation"]["max_speed"] * -1, RETRO_GAME_DATA["visual_effects"]["bullet_impact_generation"]["max_speed"]);
+            let squareSize = WTL_GAME_DATA["visual_effects"]["bullet_impact_generation"]["size"];
+            let squareLifeLength = randomNumberInclusive(WTL_GAME_DATA["visual_effects"]["bullet_impact_generation"]["min_life_ms"], WTL_GAME_DATA["visual_effects"]["bullet_impact_generation"]["max_life_ms"]);
+            let xVelocity = randomFloatBetween(WTL_GAME_DATA["visual_effects"]["bullet_impact_generation"]["max_speed"] * -1, WTL_GAME_DATA["visual_effects"]["bullet_impact_generation"]["max_speed"]);
+            let yVelocity = randomFloatBetween(WTL_GAME_DATA["visual_effects"]["bullet_impact_generation"]["max_speed"] * -1, WTL_GAME_DATA["visual_effects"]["bullet_impact_generation"]["max_speed"]);
             squares.push({"x": squareX, "y": squareY, "size": squareSize, "spawn_time": spawnTime, "expirey": spawnTime + squareLifeLength, "x_velocity": xVelocity, "y_velocity": yVelocity});
         }
         return new BulletImpact(squares);

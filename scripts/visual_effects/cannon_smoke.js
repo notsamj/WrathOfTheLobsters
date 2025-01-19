@@ -20,8 +20,8 @@ class CannonSmoke {
             let currentExistenceTime = currentTime - circleObject["spawn_time"];
             let screenX = scene.getDisplayX(circleObject["x"] + currentExistenceTime/1000 * circleObject["x_velocity"], 0, lX, false);
             let screenY = scene.getDisplayY(circleObject["y"] + currentExistenceTime/1000 * circleObject["y_velocity"], 0, bY, false);
-            let smokeColour = Colour.fromCode(RETRO_GAME_DATA["cannon"]["smoke"]["smoke_colour"]);
-            smokeColour.setAlpha(RETRO_GAME_DATA["cannon"]["smoke"]["smoke_opacity"] * (1-currentExistenceTime/totalExistenceTime));
+            let smokeColour = Colour.fromCode(WTL_GAME_DATA["cannon"]["smoke"]["smoke_colour"]);
+            smokeColour.setAlpha(WTL_GAME_DATA["cannon"]["smoke"]["smoke_opacity"] * (1-currentExistenceTime/totalExistenceTime));
             noStrokeCircle(smokeColour, screenX, screenY, circleObject["radius"]*2*gameZoom);
         }
     }
@@ -57,16 +57,16 @@ class CannonSmoke {
 
     static create(x, y){
         let circles = [];
-        let numCircles = randomNumberInclusive(RETRO_GAME_DATA["cannon"]["smoke"]["min_circles_per_smoke_cloud"], RETRO_GAME_DATA["cannon"]["smoke"]["max_circles_per_smoke_cloud"]);
-        let mainRadius = RETRO_GAME_DATA["cannon"]["smoke"]["center_radius"];
+        let numCircles = randomNumberInclusive(WTL_GAME_DATA["cannon"]["smoke"]["min_circles_per_smoke_cloud"], WTL_GAME_DATA["cannon"]["smoke"]["max_circles_per_smoke_cloud"]);
+        let mainRadius = WTL_GAME_DATA["cannon"]["smoke"]["center_radius"];
         let spawnTime = Date.now();
         for (let i = 0; i < numCircles; i++){
             let circleX = x + randomNumberInclusive(-1 * mainRadius, mainRadius);
             let circleY = y + randomNumberInclusive(-1 * mainRadius, mainRadius);
-            let circleRadius = randomNumberInclusive(RETRO_GAME_DATA["cannon"]["smoke"]["min_radius"], RETRO_GAME_DATA["cannon"]["smoke"]["max_radius"]);
-            let circleLifeLength = randomNumberInclusive(RETRO_GAME_DATA["cannon"]["smoke"]["min_life_ms"], RETRO_GAME_DATA["cannon"]["smoke"]["max_life_ms"]);
-            let xVelocity = randomFloatBetween(RETRO_GAME_DATA["cannon"]["smoke"]["max_speed"] * -1, RETRO_GAME_DATA["cannon"]["smoke"]["max_speed"]);
-            let yVelocity = randomFloatBetween(RETRO_GAME_DATA["cannon"]["smoke"]["max_speed"] * -1, RETRO_GAME_DATA["cannon"]["smoke"]["max_speed"]);
+            let circleRadius = randomNumberInclusive(WTL_GAME_DATA["cannon"]["smoke"]["min_radius"], WTL_GAME_DATA["cannon"]["smoke"]["max_radius"]);
+            let circleLifeLength = randomNumberInclusive(WTL_GAME_DATA["cannon"]["smoke"]["min_life_ms"], WTL_GAME_DATA["cannon"]["smoke"]["max_life_ms"]);
+            let xVelocity = randomFloatBetween(WTL_GAME_DATA["cannon"]["smoke"]["max_speed"] * -1, WTL_GAME_DATA["cannon"]["smoke"]["max_speed"]);
+            let yVelocity = randomFloatBetween(WTL_GAME_DATA["cannon"]["smoke"]["max_speed"] * -1, WTL_GAME_DATA["cannon"]["smoke"]["max_speed"]);
             circles.push({"x": circleX, "y": circleY, "radius": circleRadius, "spawn_time": spawnTime, "expirey": spawnTime + circleLifeLength, "x_velocity": xVelocity, "y_velocity": yVelocity});
         }
         return new CannonSmoke(circles);

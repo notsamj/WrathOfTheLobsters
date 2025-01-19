@@ -4,7 +4,7 @@ class Musket extends Gun {
         this.bayonetOn = false;
         
         this.stabbing = false;
-        this.stabLock = new TickLock(RETRO_GAME_DATA["gun_data"][this.model]["stab_time_ms"] / RETRO_GAME_DATA["general"]["ms_between_ticks"]);
+        this.stabLock = new TickLock(WTL_GAME_DATA["gun_data"][this.model]["stab_time_ms"] / WTL_GAME_DATA["general"]["ms_between_ticks"]);
         this.stabAngle = null; // value doesn't matter
         this.stabFacing = null;
     }
@@ -55,18 +55,18 @@ class Musket extends Gun {
         this.stabAngle = this.getDecidedAngleRAD();
         this.stabFacing = this.player.getFacingDirection();
         this.stabLock.resetAndLock();
-        this.getPlayer().getStaminaBar().useStamina(RETRO_GAME_DATA["gun_data"][this.getModel()]["stamina_usage_for_stab"]);
+        this.getPlayer().getStaminaBar().useStamina(WTL_GAME_DATA["gun_data"][this.getModel()]["stamina_usage_for_stab"]);
     }
 
     finishStab(){
         this.stabbing = false;
         // Calculate what it hit
         let myID = this.player.getID();
-        let collision = this.getScene().findInstantCollisionForProjectile(this.getEndOfGunX(), this.getEndOfGunY(), this.stabAngle, RETRO_GAME_DATA["gun_data"][this.model]["stab_range"], (enemy) => { return enemy.getID() === myID; });
+        let collision = this.getScene().findInstantCollisionForProjectile(this.getEndOfGunX(), this.getEndOfGunY(), this.stabAngle, WTL_GAME_DATA["gun_data"][this.model]["stab_range"], (enemy) => { return enemy.getID() === myID; });
         // If it hits an entity
         if (collision["collision_type"] === "entity"){
             collision["entity"].getStabbed(this);
-            collision["entity"].stun(Math.ceil(RETRO_GAME_DATA["gun_data"][this.getModel()]["stab_stun_time_ms"] / RETRO_GAME_DATA["general"]["ms_between_ticks"]));
+            collision["entity"].stun(Math.ceil(WTL_GAME_DATA["gun_data"][this.getModel()]["stab_stun_time_ms"] / WTL_GAME_DATA["general"]["ms_between_ticks"]));
             // Play sound
             this.getGamemode().getEventHandler().emit({
                 "name": "stab",
@@ -116,7 +116,7 @@ class Musket extends Gun {
 
     displayItemSlot(providedX, providedY){
         let image = IMAGES[this.model + "_right" + (this.hasBayonetEquipped() ? "_bayonet" : "")];
-        let displayScale = RETRO_GAME_DATA["inventory"]["slot_size"] / image.width;
+        let displayScale = WTL_GAME_DATA["inventory"]["slot_size"] / image.width;
         let scaleX = providedX + image.width / 2 * displayScale;
         let scaleY = providedY + image.height / 2 * displayScale;
 
@@ -139,26 +139,26 @@ class Musket extends Gun {
         translate(-1 * scaleX, -1 * scaleY);
 
         if (this.isReloading()){
-            let timePassedTick = (this.reloadLock.getCooldown() - this.reloadLock.getTicksLeft()) * RETRO_GAME_DATA["general"]["ms_between_ticks"];
+            let timePassedTick = (this.reloadLock.getCooldown() - this.reloadLock.getTicksLeft()) * WTL_GAME_DATA["general"]["ms_between_ticks"];
             let timePassedNonTick = FRAME_COUNTER.getLastFrameTime() - TICK_SCHEDULER.getLastTickTime();
             let totalTimePassedMS = timePassedTick + timePassedNonTick;
-            let proportion = totalTimePassedMS / RETRO_GAME_DATA["gun_data"][this.model]["reload_time_ms"];
+            let proportion = totalTimePassedMS / WTL_GAME_DATA["gun_data"][this.model]["reload_time_ms"];
             proportion = Math.min(1, Math.max(0, proportion));
-            let height = Math.round(RETRO_GAME_DATA["inventory"]["slot_size"] * proportion);
-            let colour = Colour.fromCode(RETRO_GAME_DATA["inventory"]["hotbar_selected_item_outline_colour"]);
+            let height = Math.round(WTL_GAME_DATA["inventory"]["slot_size"] * proportion);
+            let colour = Colour.fromCode(WTL_GAME_DATA["inventory"]["hotbar_selected_item_outline_colour"]);
             colour.setAlpha(0.5);
-            let slotSize = RETRO_GAME_DATA["inventory"]["slot_size"];
+            let slotSize = WTL_GAME_DATA["inventory"]["slot_size"];
             let y = providedY + slotSize - height;
             noStrokeRectangle(colour, providedX, y, slotSize, height);
         }
     }
 
     getWidth(){
-        return RETRO_GAME_DATA["general"]["tile_size"];
+        return WTL_GAME_DATA["general"]["tile_size"];
     }
 
     getHeight(){
-        return RETRO_GAME_DATA["general"]["tile_size"];
+        return WTL_GAME_DATA["general"]["tile_size"];
     }
 
     isAiming(){
@@ -194,9 +194,9 @@ class Musket extends Gun {
         // Get tile x of player (player not moving)
         let x = playerLeftX;
          // From top left to center of the player model
-        x += RETRO_GAME_DATA["general"]["tile_size"] / 2;
+        x += WTL_GAME_DATA["general"]["tile_size"] / 2;
         // Add gun y offset, y is now center of the gun
-        x += RETRO_GAME_DATA["model_positions"][this.player.getModelCategory()][this.model]["aiming"][playerDirection]["x_offset"];
+        x += WTL_GAME_DATA["model_positions"][this.player.getModelCategory()][this.model]["aiming"][playerDirection]["x_offset"];
 
         let gunDirection;
 
@@ -216,16 +216,16 @@ class Musket extends Gun {
             playerAimingAngleRAD -= Math.PI;
         }
 
-        let endOfBarrelXOffset = RETRO_GAME_DATA["gun_data"][this.model]["display"][gunDirection]["x_offset"];
-        let endOfBarrelYOffset = RETRO_GAME_DATA["gun_data"][this.model]["display"][gunDirection]["y_offset"];
+        let endOfBarrelXOffset = WTL_GAME_DATA["gun_data"][this.model]["display"][gunDirection]["x_offset"];
+        let endOfBarrelYOffset = WTL_GAME_DATA["gun_data"][this.model]["display"][gunDirection]["y_offset"];
         result["x"] = Math.cos(playerAimingAngleRAD) * endOfBarrelXOffset - Math.sin(playerAimingAngleRAD) * endOfBarrelYOffset + x;
 
         // Get tile y of player (player not moving)
         let y = playerTopY;
         // From top left to center of the player model
-        y -= RETRO_GAME_DATA["general"]["tile_size"] / 2;
+        y -= WTL_GAME_DATA["general"]["tile_size"] / 2;
         // Add gun y offset, y is now center of the gun
-        y += RETRO_GAME_DATA["model_positions"][this.player.getModelCategory()][this.model]["aiming"][playerDirection]["y_offset"] * -1
+        y += WTL_GAME_DATA["model_positions"][this.player.getModelCategory()][this.model]["aiming"][playerDirection]["y_offset"] * -1
 
         // This should be the center of the musket image?
         result["y"] = Math.sin(playerAimingAngleRAD) * endOfBarrelXOffset + Math.cos(playerAimingAngleRAD) * endOfBarrelYOffset + y;
@@ -236,9 +236,9 @@ class Musket extends Gun {
         // Get tile x of player (player not moving)
         let x = this.getScene().getXOfTile(this.player.getTileX());
          // From top left to center of the player model
-        x += RETRO_GAME_DATA["general"]["tile_size"] / 2;
+        x += WTL_GAME_DATA["general"]["tile_size"] / 2;
         // Add gun y offset, y is now center of the gun
-        x += RETRO_GAME_DATA["model_positions"][this.player.getModelCategory()][this.model]["aiming"][this.player.getFacingDirection()]["x_offset"];
+        x += WTL_GAME_DATA["model_positions"][this.player.getModelCategory()][this.model]["aiming"][this.player.getFacingDirection()]["x_offset"];
 
         let playerDirection = this.player.getFacingDirection();
         let playerAimingAngleRAD = this.getSwayedAngleRAD();
@@ -260,8 +260,8 @@ class Musket extends Gun {
             playerAimingAngleRAD -= Math.PI;
         }
 
-        let endOfBarrelXOffset = RETRO_GAME_DATA["gun_data"][this.model]["display"][gunDirection]["x_offset"];
-        let endOfBarrelYOffset = RETRO_GAME_DATA["gun_data"][this.model]["display"][gunDirection]["y_offset"];
+        let endOfBarrelXOffset = WTL_GAME_DATA["gun_data"][this.model]["display"][gunDirection]["x_offset"];
+        let endOfBarrelYOffset = WTL_GAME_DATA["gun_data"][this.model]["display"][gunDirection]["y_offset"];
         return Math.cos(playerAimingAngleRAD) * endOfBarrelXOffset - Math.sin(playerAimingAngleRAD) * endOfBarrelYOffset + x;
 
     }
@@ -270,9 +270,9 @@ class Musket extends Gun {
         // Get tile y of player (player not moving)
         let y = this.getScene().getYOfTile(this.player.getTileY());
         // From top left to center of the player model
-        y -= RETRO_GAME_DATA["general"]["tile_size"] / 2;
+        y -= WTL_GAME_DATA["general"]["tile_size"] / 2;
         // Add gun y offset, y is now center of the gun
-        y += RETRO_GAME_DATA["model_positions"][this.player.getModelCategory()][this.model]["aiming"][this.player.getFacingDirection()]["y_offset"] * -1
+        y += WTL_GAME_DATA["model_positions"][this.player.getModelCategory()][this.model]["aiming"][this.player.getFacingDirection()]["y_offset"] * -1
         
         let playerDirection = this.player.getFacingDirection();
         let playerAimingAngleRAD = this.getSwayedAngleRAD();
@@ -295,8 +295,8 @@ class Musket extends Gun {
         }
 
         // This should be the center of the musket image?
-        let endOfBarrelXOffset = RETRO_GAME_DATA["gun_data"][this.model]["display"][gunDirection]["x_offset"];
-        let endOfBarrelYOffset = RETRO_GAME_DATA["gun_data"][this.model]["display"][gunDirection]["y_offset"];
+        let endOfBarrelXOffset = WTL_GAME_DATA["gun_data"][this.model]["display"][gunDirection]["x_offset"];
+        let endOfBarrelYOffset = WTL_GAME_DATA["gun_data"][this.model]["display"][gunDirection]["y_offset"];
         return Math.sin(playerAimingAngleRAD) * endOfBarrelXOffset + Math.cos(playerAimingAngleRAD) * endOfBarrelYOffset + y;
     }
 
@@ -310,7 +310,7 @@ class Musket extends Gun {
         let displayRotateAngleRAD;
         let playerAimingAngleRAD = this.getSwayedAngleRAD();
         let playerAimingAngleDEG = toFixedDegrees(playerAimingAngleRAD);
-        let readyRotationDEG = RETRO_GAME_DATA["model_positions"]["holding_rotation"];
+        let readyRotationDEG = WTL_GAME_DATA["model_positions"]["holding_rotation"];
 
         // Based on player action
         if (isAiming){
@@ -344,12 +344,12 @@ class Musket extends Gun {
                 displayRotateAngleRAD = this.stabAngle + (stabAngleDEG < 90 ? 0 : Math.PI);
             }
 
-            let timePassedTick = (this.stabLock.getCooldown() - this.stabLock.getTicksLeft()) * RETRO_GAME_DATA["general"]["ms_between_ticks"];
+            let timePassedTick = (this.stabLock.getCooldown() - this.stabLock.getTicksLeft()) * WTL_GAME_DATA["general"]["ms_between_ticks"];
             let timePassedNonTick = FRAME_COUNTER.getLastFrameTime() - TICK_SCHEDULER.getLastTickTime();
             let totalTimePassedMS = timePassedTick + timePassedNonTick;
-            let proportion = totalTimePassedMS / RETRO_GAME_DATA["gun_data"][this.model]["stab_time_ms"];
+            let proportion = totalTimePassedMS / WTL_GAME_DATA["gun_data"][this.model]["stab_time_ms"];
             proportion = Math.min(1, Math.max(0, proportion));
-            let hypotenuse = RETRO_GAME_DATA["gun_data"][this.model]["stab_range"] * proportion;
+            let hypotenuse = WTL_GAME_DATA["gun_data"][this.model]["stab_range"] * proportion;
             let stabXDisplacement = Math.cos(this.stabAngle) * hypotenuse;
             let stabYDisplacement = Math.sin(this.stabAngle) * hypotenuse;
 
@@ -398,20 +398,20 @@ class Musket extends Gun {
 
     getImageX(lX){
         let x = this.player.getDisplayX(lX);
-        return x + RETRO_GAME_DATA["model_positions"][this.player.getModelCategory()][this.model][this.isAiming() ? "aiming" : "not_aiming"][this.player.getFacingDirection()]["x_offset"] * gameZoom - this.player.getWidth()/2 * gameZoom;
+        return x + WTL_GAME_DATA["model_positions"][this.player.getModelCategory()][this.model][this.isAiming() ? "aiming" : "not_aiming"][this.player.getFacingDirection()]["x_offset"] * gameZoom - this.player.getWidth()/2 * gameZoom;
     }
 
     getImageY(bY){
         let y = this.player.getDisplayY(bY);
-        return y + RETRO_GAME_DATA["model_positions"][this.player.getModelCategory()][this.model][this.isAiming() ? "aiming" : "not_aiming"][this.player.getFacingDirection()]["y_offset"] * gameZoom - this.player.getHeight()/2 * gameZoom;
+        return y + WTL_GAME_DATA["model_positions"][this.player.getModelCategory()][this.model][this.isAiming() ? "aiming" : "not_aiming"][this.player.getFacingDirection()]["y_offset"] * gameZoom - this.player.getHeight()/2 * gameZoom;
     }
 
     static async loadAllImagesOfModel(model){
         // Do not load if already exists
         if (objectHasKey(IMAGES, model + "_left")){ return; }
         let folderURL = "item/weapon/gun/musket/";
-        if (objectHasKey(RETRO_GAME_DATA["gun_data"][model], "alternate_url")){
-            folderURL = RETRO_GAME_DATA["gun_data"][model]["alternate_url"];
+        if (objectHasKey(WTL_GAME_DATA["gun_data"][model], "alternate_url")){
+            folderURL = WTL_GAME_DATA["gun_data"][model]["alternate_url"];
         }
         folderURL += model + "/";
         await loadToImages(model + "_left", folderURL);
@@ -421,8 +421,8 @@ class Musket extends Gun {
     }
 
     static async loadAllImages(){
-        for (let gunModel of Object.keys(RETRO_GAME_DATA["gun_data"])){
-            if (RETRO_GAME_DATA["gun_data"][gunModel]["type"] != "musket"){ continue; }
+        for (let gunModel of Object.keys(WTL_GAME_DATA["gun_data"])){
+            if (WTL_GAME_DATA["gun_data"][gunModel]["type"] != "musket"){ continue; }
             await Musket.loadAllImagesOfModel(gunModel);
         }
     }

@@ -11,10 +11,10 @@ class LoadingScreen {
     */
     constructor(){
         this.meshes = new NotSamLinkedList();
-        this.xVelocity = randomFloatBetween(RETRO_GAME_DATA["loading_screen"]["max_x_velocity"] * -1, RETRO_GAME_DATA["loading_screen"]["max_x_velocity"]);
-        this.yVelocity = randomFloatBetween(RETRO_GAME_DATA["loading_screen"]["max_y_velocity"] * -1, RETRO_GAME_DATA["loading_screen"]["max_y_velocity"]);
-        this.x = randomFloatBetween(RETRO_GAME_DATA["loading_screen"]["origin_x_range_size"] * -1, RETRO_GAME_DATA["loading_screen"]["origin_x_range_size"]);
-        this.y = randomFloatBetween(RETRO_GAME_DATA["loading_screen"]["origin_y_range_size"] * -1, RETRO_GAME_DATA["loading_screen"]["origin_y_range_size"]);
+        this.xVelocity = randomFloatBetween(WTL_GAME_DATA["loading_screen"]["min_x_velocity"], WTL_GAME_DATA["loading_screen"]["max_x_velocity"]) * (randomBoolean() ? 1 : -1);
+        this.yVelocity = randomFloatBetween(WTL_GAME_DATA["loading_screen"]["min_y_velocity"], WTL_GAME_DATA["loading_screen"]["max_y_velocity"]) * (randomBoolean() ? 1 : -1);
+        this.x = randomFloatBetween(WTL_GAME_DATA["loading_screen"]["origin_x_range_size"] * -1, WTL_GAME_DATA["loading_screen"]["origin_x_range_size"]);
+        this.y = randomFloatBetween(WTL_GAME_DATA["loading_screen"]["origin_y_range_size"] * -1, WTL_GAME_DATA["loading_screen"]["origin_y_range_size"]);
 
         //this.x = 0;
         //this.y = 0;
@@ -27,8 +27,8 @@ class LoadingScreen {
         Method Return: void
     */
     display(){
-        this.x += this.xVelocity;
-        this.y += this.yVelocity
+        this.x += this.xVelocity / gameZoom;
+        this.y += this.yVelocity / gameZoom;
         this.displayMeshes(this.x, this.y);
     }
 
@@ -46,10 +46,10 @@ class LoadingScreen {
         let rX = lX + getZoomedScreenWidth() - 1;
         let tY = bY + getZoomedScreenHeight() - 1;
 
-        let leftMeshX = Math.floor(lX / RETRO_GAME_DATA["loading_screen"]["mesh_width"]);
-        let rightMeshX = Math.floor(rX / RETRO_GAME_DATA["loading_screen"]["mesh_width"]);
-        let bottomMeshY = Math.floor(bY / RETRO_GAME_DATA["loading_screen"]["mesh_height"]);
-        let topMeshY = Math.floor(tY / RETRO_GAME_DATA["loading_screen"]["mesh_height"]);
+        let leftMeshX = Math.floor(lX / WTL_GAME_DATA["loading_screen"]["mesh_width"]);
+        let rightMeshX = Math.floor(rX / WTL_GAME_DATA["loading_screen"]["mesh_width"]);
+        let bottomMeshY = Math.floor(bY / WTL_GAME_DATA["loading_screen"]["mesh_height"]);
+        let topMeshY = Math.floor(tY / WTL_GAME_DATA["loading_screen"]["mesh_height"]);
 
         // Loop though all meshs and display
         for (let meshX = leftMeshX; meshX <= rightMeshX; meshX++){
@@ -100,9 +100,9 @@ class LoadingScreen {
         let cY = bY + 0.5 * getZoomedScreenHeight();
         for (let i = this.meshes.getLength() - 1; i >= 0; i--){
             let mesh = this.meshes.get(i);
-            let distance = Math.sqrt(Math.pow(mesh.getQuadrantX() * RETRO_GAME_DATA["loading_screen"]["mesh_width"] - cX, 2) + Math.pow(mesh.getQuadrantY() * RETRO_GAME_DATA["loading_screen"]["mesh_height"] - cY, 2));
+            let distance = Math.sqrt(Math.pow(mesh.getQuadrantX() * WTL_GAME_DATA["loading_screen"]["mesh_width"] - cX, 2) + Math.pow(mesh.getQuadrantY() * WTL_GAME_DATA["loading_screen"]["mesh_height"] - cY, 2));
             // Delete meshs more than 2 times max(width, height) away from the center of the screen
-            if (distance > RETRO_GAME_DATA["loading_screen"]["far_away_multiplier"] * Math.max(RETRO_GAME_DATA["loading_screen"]["mesh_width"], RETRO_GAME_DATA["loading_screen"]["mesh_height"])){
+            if (distance > WTL_GAME_DATA["loading_screen"]["far_away_multiplier"] * Math.max(WTL_GAME_DATA["loading_screen"]["mesh_width"], WTL_GAME_DATA["loading_screen"]["mesh_height"])){
                 this.meshes.remove(i);
             }
         }
@@ -151,24 +151,24 @@ class Mesh {
         Method Return: void
     */
     createTiles(){
-        let meshWidth = RETRO_GAME_DATA["loading_screen"]["mesh_width"];
-        let meshHeight = RETRO_GAME_DATA["loading_screen"]["mesh_height"];
-        let tileWidth = RETRO_GAME_DATA["loading_screen"]["tile_width"];
-        let tileHeight = RETRO_GAME_DATA["loading_screen"]["tile_height"];
+        let meshWidth = WTL_GAME_DATA["loading_screen"]["mesh_width"];
+        let meshHeight = WTL_GAME_DATA["loading_screen"]["mesh_height"];
+        let tileWidth = WTL_GAME_DATA["loading_screen"]["tile_width"];
+        let tileHeight = WTL_GAME_DATA["loading_screen"]["tile_height"];
         let leftX = this.meshX * meshWidth;
         let bottomY = this.meshY * meshHeight;
         
-        let topLeftMeshColour = this.getColourOfQuadrant(this.meshX - 1, this.meshY + 1);
-        let topMeshColour = this.getColourOfQuadrant(this.meshX, this.meshY + 1);
-        let topRightMeshColour = this.getColourOfQuadrant(this.meshX + 1, this.meshY + 1);
+        let topLeftMeshColour = this.getColourOfMesh(this.meshX - 1, this.meshY + 1);
+        let topMeshColour = this.getColourOfMesh(this.meshX, this.meshY + 1);
+        let topRightMeshColour = this.getColourOfMesh(this.meshX + 1, this.meshY + 1);
 
-        let middleLeftMeshColour = this.getColourOfQuadrant(this.meshX - 1, this.meshY);
-        let middleMeshColour = this.getColourOfQuadrant(this.meshX, this.meshY);
-        let middleRightMeshColour = this.getColourOfQuadrant(this.meshX + 1, this.meshY);
+        let middleLeftMeshColour = this.getColourOfMesh(this.meshX - 1, this.meshY);
+        let middleMeshColour = this.getColourOfMesh(this.meshX, this.meshY);
+        let middleRightMeshColour = this.getColourOfMesh(this.meshX + 1, this.meshY);
 
-        let bottomLeftMeshColour = this.getColourOfQuadrant(this.meshX - 1, this.meshY - 1);
-        let bottomMeshColour = this.getColourOfQuadrant(this.meshX, this.meshY - 1);
-        let bottomRightMeshColour = this.getColourOfQuadrant(this.meshX + 1, this.meshY - 1);
+        let bottomLeftMeshColour = this.getColourOfMesh(this.meshX - 1, this.meshY - 1);
+        let bottomMeshColour = this.getColourOfMesh(this.meshX, this.meshY - 1);
+        let bottomRightMeshColour = this.getColourOfMesh(this.meshX + 1, this.meshY - 1);
 
         let colours = [
             [topLeftMeshColour, topMeshColour, topRightMeshColour],
@@ -203,8 +203,8 @@ class Mesh {
         }
     }
 
-    getColourOfQuadrant(meshX, meshY){
-        let seed = meshX + 2 * meshY; // TODO: Come up with something better?
+    getColourOfMesh(meshX, meshY){
+        let seed = XYToSeed(meshX, meshY);
         let random = new SeededRandomizer(seed);
         let r = random.getIntInRangeInclusive(0, 255);
         let g = random.getIntInRangeInclusive(0, 255);

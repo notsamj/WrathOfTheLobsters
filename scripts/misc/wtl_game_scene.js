@@ -43,14 +43,14 @@ class WTLGameScene {
         // Update based on chunks
         if (!this.chunks.isEmpty()){
             if (xDirection > 0){
-                chunkXEnd = Math.max(chunkXEnd, Chunk.getNaturalRightX(this.chunks.getMaxX()) * RETRO_GAME_DATA["general"]["tile_size"]);
+                chunkXEnd = Math.max(chunkXEnd, Chunk.getNaturalRightX(this.chunks.getMaxX()) * WTL_GAME_DATA["general"]["tile_size"]);
             }else{
-                chunkXEnd = Math.min(chunkXEnd, Chunk.getNaturalLeftX(this.chunks.getMinX()) * RETRO_GAME_DATA["general"]["tile_size"]);
+                chunkXEnd = Math.min(chunkXEnd, Chunk.getNaturalLeftX(this.chunks.getMinX()) * WTL_GAME_DATA["general"]["tile_size"]);
             }
             if (yDirection > 0){
-                chunkYEnd = Math.max(chunkYEnd, Chunk.getNaturalTopY(this.chunks.getMaxY()) * RETRO_GAME_DATA["general"]["tile_size"]);
+                chunkYEnd = Math.max(chunkYEnd, Chunk.getNaturalTopY(this.chunks.getMaxY()) * WTL_GAME_DATA["general"]["tile_size"]);
             }else{
-                chunkYEnd = Math.min(chunkYEnd, Chunk.getNaturalBottomY(this.chunks.getMinY()) * RETRO_GAME_DATA["general"]["tile_size"]);
+                chunkYEnd = Math.min(chunkYEnd, Chunk.getNaturalBottomY(this.chunks.getMinY()) * WTL_GAME_DATA["general"]["tile_size"]);
             }
         }
 
@@ -86,8 +86,8 @@ class WTLGameScene {
 
         // Come up with initial values (incase shooting from inside a physical tile)
         {
-            let distanceToNextTileX = distanceToNextMultipleInDirection(x, RETRO_GAME_DATA["general"]["tile_size"], xDirection);
-            let distanceToNextTileY = distanceToNextMultipleInDirection(y, RETRO_GAME_DATA["general"]["tile_size"], yDirection);
+            let distanceToNextTileX = distanceToNextMultipleInDirection(x, WTL_GAME_DATA["general"]["tile_size"], xDirection);
+            let distanceToNextTileY = distanceToNextMultipleInDirection(y, WTL_GAME_DATA["general"]["tile_size"], yDirection);
             let timeToNextTileX = safeDivide(distanceToNextTileX, Math.abs(Math.cos(angleRAD)), 1e-7, Number.MAX_SAFE_INTEGER); 
             let timeToNextTileY = safeDivide(distanceToNextTileY, Math.abs(Math.sin(angleRAD)), 1e-7, Number.MAX_SAFE_INTEGER);
             if (timeToNextTileX < timeToNextTileY){
@@ -125,16 +125,16 @@ class WTLGameScene {
                     let hitX;
                     let hitY;
                     if (tileEntrySide === "left"){
-                        hitX = tileX * RETRO_GAME_DATA["general"]["tile_size"];
+                        hitX = tileX * WTL_GAME_DATA["general"]["tile_size"];
                         hitY = startY + Math.abs(safeDivide((hitX - startX), Math.cos(angleRAD), 1e-7, 0)) * Math.sin(angleRAD);
                     }else if (tileEntrySide === "right"){
-                        hitX = (tileX+1) * RETRO_GAME_DATA["general"]["tile_size"];
+                        hitX = (tileX+1) * WTL_GAME_DATA["general"]["tile_size"];
                         hitY = startY + Math.abs(safeDivide((hitX - startX), Math.cos(angleRAD), 1e-7, 0)) * Math.sin(angleRAD);
                     }else if (tileEntrySide === "top"){
                         hitY = this.getYOfTile(tileY); // Note: This is because tile y is the bottom left, the display is weird, sorry
                         hitX = startX + Math.abs(safeDivide((hitY - startY), Math.sin(angleRAD), 1e-7, 0)) * Math.cos(angleRAD);
                     }else{ // tileEntrySide === "bottom"
-                        hitY = this.getYOfTile(tileY) - RETRO_GAME_DATA["general"]["tile_size"];
+                        hitY = this.getYOfTile(tileY) - WTL_GAME_DATA["general"]["tile_size"];
                         hitX = startX + Math.abs(safeDivide((hitY - startY), Math.sin(angleRAD), 1e-7, 0)) * Math.cos(angleRAD);
                     }
                     let distance = Math.sqrt(Math.pow(hitX - startX, 2) + Math.pow(hitY - startY, 2));
@@ -147,14 +147,14 @@ class WTLGameScene {
                     break;
                 }
             }
-            let distanceToNextTileX = distanceToNextMultipleInDirection(x, RETRO_GAME_DATA["general"]["tile_size"], xDirection);
-            let distanceToNextTileY = distanceToNextMultipleInDirection(y, RETRO_GAME_DATA["general"]["tile_size"], yDirection);
+            let distanceToNextTileX = distanceToNextMultipleInDirection(x, WTL_GAME_DATA["general"]["tile_size"], xDirection);
+            let distanceToNextTileY = distanceToNextMultipleInDirection(y, WTL_GAME_DATA["general"]["tile_size"], yDirection);
             if (distanceToNextTileX == 0){
-                distanceToNextTileX = RETRO_GAME_DATA["general"]["tile_size"];
+                distanceToNextTileX = WTL_GAME_DATA["general"]["tile_size"];
             }
 
             if (distanceToNextTileY == 0){
-                distanceToNextTileY = RETRO_GAME_DATA["general"]["tile_size"];
+                distanceToNextTileY = WTL_GAME_DATA["general"]["tile_size"];
             }
 
             let timeToNextTileX = safeDivide(distanceToNextTileX, Math.abs(Math.cos(angleRAD)), 1e-7, Number.MAX_SAFE_INTEGER); 
@@ -565,11 +565,11 @@ class WTLGameScene {
     }
 
     getMaterialXTileSize(materialName){
-        return this.getMaterialImage(materialName).width / RETRO_GAME_DATA["general"]["tile_size"];
+        return this.getMaterialImage(materialName).width / WTL_GAME_DATA["general"]["tile_size"];
     }
 
     getMaterialYTileSize(materialName){
-        return this.getMaterialImage(materialName).height / RETRO_GAME_DATA["general"]["tile_size"];
+        return this.getMaterialImage(materialName).height / WTL_GAME_DATA["general"]["tile_size"];
     }
 
     hasEntityFocused(){
@@ -763,11 +763,11 @@ class WTLGameScene {
     }
 
     static getTileXAt(x){
-        return Math.floor(x / RETRO_GAME_DATA["general"]["tile_size"]);
+        return Math.floor(x / WTL_GAME_DATA["general"]["tile_size"]);
     }
 
     static getTileYAt(y){
-        return Math.floor(y / RETRO_GAME_DATA["general"]["tile_size"]);
+        return Math.floor(y / WTL_GAME_DATA["general"]["tile_size"]);
     }
 
     getDisplayXFromTileX(lX, tileX){
@@ -775,15 +775,15 @@ class WTLGameScene {
     }
 
     getXOfTile(tileX){
-        return tileX * RETRO_GAME_DATA["general"]["tile_size"];
+        return tileX * WTL_GAME_DATA["general"]["tile_size"];
     }
 
     getCenterXOfTile(tileX){
-        return this.getXOfTile(tileX) + (RETRO_GAME_DATA["general"]["tile_size"]-1)/2;
+        return this.getXOfTile(tileX) + (WTL_GAME_DATA["general"]["tile_size"]-1)/2;
     }
 
     getCenterYOfTile(tileY){
-        return this.getYOfTile(tileY) - (RETRO_GAME_DATA["general"]["tile_size"]-1)/2;
+        return this.getYOfTile(tileY) - (WTL_GAME_DATA["general"]["tile_size"]-1)/2;
     }
 
     getDisplayYFromTileY(bY, tileY){
@@ -791,7 +791,7 @@ class WTLGameScene {
     }
 
     getYOfTile(tileY){
-        return (tileY+1) * RETRO_GAME_DATA["general"]["tile_size"];
+        return (tileY+1) * WTL_GAME_DATA["general"]["tile_size"];
     }
 
     /*
@@ -1083,6 +1083,7 @@ class Chunk {
             // Loop through lower x values
             for (let xIndex = tileXExpectedIndex; xIndex >= 0; xIndex--){
                 let tile = xArray[xIndex]["value"];
+                if (tile === null){ continue; }
                 if (tile.covers(tileX, tileY)){
                     return tile;
                 }
@@ -1142,7 +1143,7 @@ class Chunk {
     }
 
     recalculateBoundaries(){
-        let bottomY = this.chunkY * RETRO_GAME_DATA["general"]["chunk_size"];
+        let bottomY = this.chunkY * WTL_GAME_DATA["general"]["chunk_size"];
         for (let [tile, tileX, tileY] of this.visualTiles){
             let tileBottomY = tile.getBottomY();
             if (tileBottomY < bottomY){
@@ -1151,7 +1152,7 @@ class Chunk {
         }
         this.bottomY = bottomY;
 
-        let rightX = (this.chunkX + 1) * RETRO_GAME_DATA["general"]["chunk_size"] - 1;
+        let rightX = (this.chunkX + 1) * WTL_GAME_DATA["general"]["chunk_size"] - 1;
         for (let [tile, tileX, tileY] of this.visualTiles){
             let tileRightX = tile.getRightX();
             if (tileRightX > rightX){
@@ -1159,12 +1160,12 @@ class Chunk {
             }
         }
         this.rightX = rightX;
-        this.leftX = this.chunkX * RETRO_GAME_DATA["general"]["chunk_size"];
-        this.topY = (this.chunkY + 1) * RETRO_GAME_DATA["general"]["chunk_size"] - 1;
+        this.leftX = this.chunkX * WTL_GAME_DATA["general"]["chunk_size"];
+        this.topY = (this.chunkY + 1) * WTL_GAME_DATA["general"]["chunk_size"] - 1;
     }
 
     static getNaturalLeftX(chunkX){
-        return chunkX * RETRO_GAME_DATA["general"]["chunk_size"]
+        return chunkX * WTL_GAME_DATA["general"]["chunk_size"]
     }
 
     getNaturalLeftX(){
@@ -1172,7 +1173,7 @@ class Chunk {
     }
 
     static getNaturalRightX(chunkX){
-        return (chunkX + 1) * RETRO_GAME_DATA["general"]["chunk_size"] - 1;
+        return (chunkX + 1) * WTL_GAME_DATA["general"]["chunk_size"] - 1;
     }
 
     getNaturalRightX(){
@@ -1180,7 +1181,7 @@ class Chunk {
     }
 
     static getNaturalTopY(chunkY){
-        return (chunkY + 1) * RETRO_GAME_DATA["general"]["chunk_size"] - 1;
+        return (chunkY + 1) * WTL_GAME_DATA["general"]["chunk_size"] - 1;
     }
 
     getNaturalTopY(){
@@ -1188,7 +1189,7 @@ class Chunk {
     }
 
     static getNaturalBottomY(chunkY){
-        return chunkY * RETRO_GAME_DATA["general"]["chunk_size"];
+        return chunkY * WTL_GAME_DATA["general"]["chunk_size"];
     }
 
     getNaturalBottomY(){
@@ -1273,6 +1274,6 @@ class Chunk {
     }
 
     static tileToChunkCoordinate(coordinate){
-        return Math.floor(coordinate / RETRO_GAME_DATA["general"]["chunk_size"]);
+        return Math.floor(coordinate / WTL_GAME_DATA["general"]["chunk_size"]);
     }
 }

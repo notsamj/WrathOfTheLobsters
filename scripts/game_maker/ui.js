@@ -63,7 +63,7 @@ function deleteTileMenu(){
 }
 
 function howManyTilesFit(){
-    return Math.floor(getScreenWidth() / RETRO_GAME_DATA["general"]["tile_size"]) * 2;
+    return Math.floor(getScreenWidth() / WTL_GAME_DATA["general"]["tile_size"]) * 2;
 }
 
 function createTile(tileDetails){
@@ -75,8 +75,8 @@ function createTile(tileDetails){
     }
     let imageTile = document.createElement("img");
     imageTile.src = tileDetails["file_link"];
-    imageTile.setAttribute("width", RETRO_GAME_DATA["general"]["tile_size"]);
-    imageTile.setAttribute("height", RETRO_GAME_DATA["general"]["tile_size"]);
+    imageTile.setAttribute("width", WTL_GAME_DATA["general"]["tile_size"]);
+    imageTile.setAttribute("height", WTL_GAME_DATA["general"]["tile_size"]);
     imageTile.onclick = () => {
         TILE_PLACER.setMaterial(tileDetails);
     }

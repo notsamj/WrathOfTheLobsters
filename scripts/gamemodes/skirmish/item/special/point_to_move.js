@@ -258,7 +258,7 @@ class PointToMove extends Item {
             let otherTroopTileX = otherTroop.getTileX();
             let otherTroopTileY = otherTroop.getTileY();
             let distance = Math.sqrt(Math.pow(myPlayerTileX - otherTroopTileX, 2) + Math.pow(myPlayerTileY - otherTroopTileY, 2));
-            if (distance < RETRO_GAME_DATA["skirmish"]["troop_selection_distance"]){
+            if (distance < WTL_GAME_DATA["skirmish"]["troop_selection_distance"]){
                 selectedTroops.push(otherTroop);
             }
         }
@@ -271,7 +271,7 @@ class PointToMove extends Item {
 
     displayItemSlot(providedX, providedY){
         let image = IMAGES["point_to_move"];
-        let displayScale = RETRO_GAME_DATA["inventory"]["slot_size"] / image.width;
+        let displayScale = WTL_GAME_DATA["inventory"]["slot_size"] / image.width;
         let scaleX = providedX + image.width / 2 * displayScale;
         let scaleY = providedY + image.height / 2 * displayScale;
 

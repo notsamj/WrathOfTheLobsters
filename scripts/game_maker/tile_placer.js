@@ -42,11 +42,11 @@ class TilePlacer extends Entity {
     }
 
     getX(){
-        return this.tileX * RETRO_GAME_DATA["general"]["tile_size"];
+        return this.tileX * WTL_GAME_DATA["general"]["tile_size"];
     }
 
     getY(){
-        return this.tileY * RETRO_GAME_DATA["general"]["tile_size"];
+        return this.tileY * WTL_GAME_DATA["general"]["tile_size"];
     }
 
     display(lX, rX, bY, tY){
@@ -60,7 +60,7 @@ class TilePlacer extends Entity {
         MY_HUD.updateElement("Placer Tile Y", this.placerTileY);
         MY_HUD.updateElement("Placer x", this.placerX);
         MY_HUD.updateElement("Placer y", this.placerY);
-        noStrokeRectangle(new Colour(252, 240, 63, 20), x, y, RETRO_GAME_DATA["general"]["tile_size"], RETRO_GAME_DATA["general"]["tile_size"]);
+        noStrokeRectangle(new Colour(252, 240, 63, 20), x, y, WTL_GAME_DATA["general"]["tile_size"], WTL_GAME_DATA["general"]["tile_size"]);
     }
 
     tick(){

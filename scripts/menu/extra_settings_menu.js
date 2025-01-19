@@ -11,7 +11,6 @@ class ExtraSettingsMenu extends Menu {
     */
     constructor(){
         super();
-        this.setup();
     }
 
     /*
@@ -34,7 +33,7 @@ class ExtraSettingsMenu extends Menu {
 
         // Interface for changing settings
         let i = 0;
-        for (let setting of RETRO_GAME_DATA["extra_settings"]){
+        for (let setting of WTL_GAME_DATA["extra_settings"]){
             this.createSetting(setting, i++);
         }
     }
@@ -140,7 +139,7 @@ class ExtraSettingsMenu extends Menu {
             modifyDataJSONValue(settingPath, newValue);
             setLocalStorage(settingName, newValue);
         }
-        let quantitySlider = new QuantitySlider(settingModifierButtonX, settingModifierButtonY, RETRO_GAME_DATA["menu"]["option_slider"]["x_size"], settingModifierButtonSize, getValueFunction, setValueFunction, setting["min_value"], setting["max_value"], setting["uses_float"], undefined, "#108700");
+        let quantitySlider = new QuantitySlider(settingModifierButtonX, settingModifierButtonY, WTL_GAME_DATA["menu"]["option_slider"]["x_size"], settingModifierButtonSize, getValueFunction, setValueFunction, setting["min_value"], setting["max_value"], setting["uses_float"], undefined, "#108700");
         this.components.push(quantitySlider);
     }
 
@@ -176,7 +175,7 @@ class ExtraSettingsMenu extends Menu {
             modifyDataJSONValue(settingPath, newValue);
             setLocalStorage(settingName, newValue);
         }
-        let selectionSlider = new SelectionSlider(settingModifierButtonX, settingModifierButtonY, RETRO_GAME_DATA["menu"]["option_slider"]["x_size"], settingModifierButtonSize, getValueFunction, setValueFunction, setting["options"], undefined, "#108700");
+        let selectionSlider = new SelectionSlider(settingModifierButtonX, settingModifierButtonY, WTL_GAME_DATA["menu"]["option_slider"]["x_size"], settingModifierButtonSize, getValueFunction, setValueFunction, setting["options"], undefined, "#108700");
         this.components.push(selectionSlider);
     }
 

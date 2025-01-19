@@ -1,6 +1,21 @@
 // If using NodeJS then do required imports
 if (typeof window === "undefined"){
-    RETRO_GAME_DATA = require("../../data/data_json.js");
+    WTL_GAME_DATA = require("../../data/data_json.js");
+}
+
+function XYToSeed(x, y){
+    let sqrtExtreme = Math.floor(Math.sqrt(Number.MAX_SAFE_INTEGER));
+    let halfSquareRootExtreme = Math.floor(sqrtExtreme/2);
+    let modifiedX = x;
+    while (Math.abs(modifiedX) < halfSquareRootExtreme){
+        modifiedX = -1 * (halfSquareRootExtreme - modifiedX);
+    }
+    let modifiedY = y;
+    while (Math.abs(modifiedY) < halfSquareRootExtreme){
+        modifiedY = -1 * (halfSquareRootExtreme - modifiedY);
+    }
+    let seed = halfSquareRootExtreme * modifiedY + modifiedX;
+    return seed;
 }
 
 function binarySearch(value, array, comparisonFunction, start=0, end=array.length-1){
@@ -136,7 +151,7 @@ function accessDataJSONValue(path){
     Method Return: JSON Object
 */
 function getDataJSONObjAtPath(path){
-    let obj = RETRO_GAME_DATA;
+    let obj = WTL_GAME_DATA;
     while (path.length > 1){
         obj = obj[path.shift()];
     }
@@ -268,7 +283,7 @@ function calculateMSBetweenTicks(){
 }
 
 function getTickRate(){
-    return RETRO_GAME_DATA["general"]["tick_rate"];
+    return WTL_GAME_DATA["general"]["tick_rate"];
 }
 
 function roundUpToNearestMultipleOf(numberToRound, base){
@@ -297,7 +312,7 @@ function calculateEuclideanDistance(x1, y1, x2, y2){
 }
 
 function getTeamNameFromClass(characterClass){
-    return RETRO_GAME_DATA["character_class_to_team_name"][characterClass];
+    return WTL_GAME_DATA["character_class_to_team_name"][characterClass];
 }
 
 function getNumKeys(obj){
@@ -385,7 +400,7 @@ function toFixedRadians(angleDEG){
 
 function getTeamNameJSON(teamName){
     let searchableName = teamName.toLowerCase();
-    for (let team of RETRO_GAME_DATA["team_aliases"]){
+    for (let team of WTL_GAME_DATA["team_aliases"]){
         if (team["noun"].toLowerCase() == searchableName || team["proper_adjective"].toLowerCase() == searchableName || team["proper_adjective_plural"].toLowerCase() == searchableName){
             return team;
         }
@@ -394,7 +409,7 @@ function getTeamNameJSON(teamName){
 }
 
 function getPhysicalTileDetails(physicalTileName){
-    for (let physicalTileDetails of RETRO_GAME_DATA["physical_tiles"]){
+    for (let physicalTileDetails of WTL_GAME_DATA["physical_tiles"]){
         if (physicalTileDetails["name"] == physicalTileName){
             return physicalTileDetails;
         }
@@ -468,7 +483,7 @@ function getImage(imageName){
 // TODO: Comments
 function getTickMultiplier(){
     return 1; // TODO: Remove this function?
-    // return RETRO_GAME_DATA["settings"]["assumed_tick_rate"] / RETRO_GAME_DATA["settings"]["tick_rate"];
+    // return WTL_GAME_DATA["settings"]["assumed_tick_rate"] / WTL_GAME_DATA["settings"]["tick_rate"];
 }
 
 // TODO: Comments
@@ -949,6 +964,10 @@ function nextIntInDir(floatValue, velocity){
 */
 function randomFloatBetween(lowerBound, upperBound){
     return Math.random() * (upperBound - lowerBound) + lowerBound;
+}
+
+function randomBoolean(){
+    return Math.random() < 0.5;
 }
 
 function calculateAngleDiffRAD(angle1, angle2){

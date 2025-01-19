@@ -22,11 +22,11 @@ class ProgressBar {
     */
     getThreshold(){
         let proportion = this.value/this.maxValue;
-        if (proportion > RETRO_GAME_DATA["progress_bar"]["threshold_4"]){
+        if (proportion > WTL_GAME_DATA["progress_bar"]["threshold_4"]){
             return "threshold_4";
-        }else if (proportion > RETRO_GAME_DATA["progress_bar"]["threshold_3"]){
+        }else if (proportion > WTL_GAME_DATA["progress_bar"]["threshold_3"]){
             return "threshold_3";
-        }else if (proportion > RETRO_GAME_DATA["progress_bar"]["threshold_2"]){
+        }else if (proportion > WTL_GAME_DATA["progress_bar"]["threshold_2"]){
             return "threshold_2";
         }else{
             return "threshold_1";
@@ -58,23 +58,23 @@ class ProgressBar {
         Method Return: void
     */
     display(){
-        let barWidth = RETRO_GAME_DATA["progress_bar"]["width"];
-        let barHeight = RETRO_GAME_DATA["progress_bar"]["height"];
-        let barBorderColour = RETRO_GAME_DATA["progress_bar"]["border_colour"];
-        let borderThickness = RETRO_GAME_DATA["progress_bar"]["border_thickness"];
+        let barWidth = WTL_GAME_DATA["progress_bar"]["width"];
+        let barHeight = WTL_GAME_DATA["progress_bar"]["height"];
+        let barBorderColour = WTL_GAME_DATA["progress_bar"]["border_colour"];
+        let borderThickness = WTL_GAME_DATA["progress_bar"]["border_thickness"];
         let barColour;
         let progressProportion = this.value/this.maxValue;
         let threshold = this.getThreshold();
 
         // Determine bar colour
         if (threshold == "threshold_4"){
-            barColour = RETRO_GAME_DATA["progress_bar"]["threshold_4_colour"];
+            barColour = WTL_GAME_DATA["progress_bar"]["threshold_4_colour"];
         }else if (threshold == "threshold_3"){
-            barColour = RETRO_GAME_DATA["progress_bar"]["threshold_3_colour"];
+            barColour = WTL_GAME_DATA["progress_bar"]["threshold_3_colour"];
         }else if (threshold == "threshold_2"){
-            barColour = RETRO_GAME_DATA["progress_bar"]["threshold_2_colour"];
+            barColour = WTL_GAME_DATA["progress_bar"]["threshold_2_colour"];
         }else{
-            barColour = RETRO_GAME_DATA["progress_bar"]["threshold_1_colour"];
+            barColour = WTL_GAME_DATA["progress_bar"]["threshold_1_colour"];
         }
 
         // Change from code to colour object
@@ -83,7 +83,7 @@ class ProgressBar {
         let screenHeight = getScreenHeight();
 
         // Display borders
-        let borderColour = Colour.fromCode(RETRO_GAME_DATA["progress_bar"]["border_colour"]);
+        let borderColour = Colour.fromCode(WTL_GAME_DATA["progress_bar"]["border_colour"]);
         // Top Border
         noStrokeRectangle(borderColour, 0, screenHeight - 1 - barHeight - borderThickness * 2 + 1, barWidth + 2 * borderThickness, borderThickness);
         // Bottom Border

@@ -11,7 +11,6 @@ class SoundMenu extends Menu {
     */
     constructor(){
         super();
-        this.setup();
     }
 
     /*
@@ -35,7 +34,7 @@ class SoundMenu extends Menu {
         // Interface for sound amounts
         let i = 0;
         this.createSoundSettings("main volume", i++);
-        for (let soundData of RETRO_GAME_DATA["sound_data"]["sounds"]){
+        for (let soundData of WTL_GAME_DATA["sound_data"]["sounds"]){
             this.createSoundSettings(soundData["name"], i++);
         }
 

@@ -10,6 +10,7 @@ class MenuManager {
         Method Return: Constructor
     */
     constructor(){
+        this.secondaryMenus = [];
     }
 
     getActiveMenu(){
@@ -18,12 +19,19 @@ class MenuManager {
 
     setup(){
         this.mainMenu = new MainMenu();
-        this.soundMenu = new SoundMenu();
+        //this.soundMenu = new SoundMenu();
         this.pauseMenu = new PauseMenu();
-        this.extraSettingsMenu = new ExtraSettingsMenu();
+        //this.extraSettingsMenu = new ExtraSettingsMenu();
         this.gameMakerMenu = new GameMakerUI();
         this.activeMenu = this.mainMenu;
         this.temporaryMessages = new NotSamLinkedList();
+        for (let secondaryMenu of this.secondaryMenus){
+            secondaryMenu["instance"].setup();
+        }
+    }
+
+    registerMenu(menuName, menuInstance){
+        this.secondaryMenus.push({"name": menuName, "instance": menuInstance});
     }
 
     /*
@@ -149,7 +157,7 @@ class MenuManager {
         Method Return: void
     */
     escapeKey(){
-        if (this.activeMenu == this.pauseMenu){
+        if (this.activeMenu === this.pauseMenu){
             this.switchTo("game");
         }else if (!this.hasActiveMenu()){
             this.switchTo("pauseMenu");
@@ -159,37 +167,46 @@ class MenuManager {
     /*
         Method Name: switchTo
         Method Parameters: 
-            newMenu:
+            newMenuName:
                 String, name of new menu
         Method Description: Switches to desired menu
         Method Return: void
     */
-    switchTo(newMenu){
+    switchTo(newMenuName){
         let enableCursor = true;
-        if (newMenu == "main"){
+        if (newMenuName == "main"){
             this.activeMenu = this.mainMenu;
-        }else if (newMenu == "pauseMenu"){
+        }else if (newMenuName == "pauseMenu"){
             if (!TICK_SCHEDULER.isPaused()){
                 TICK_SCHEDULER.pause();
             }
             this.activeMenu = this.pauseMenu;
-        }else if (newMenu == "game"){
+        }else if (newMenuName == "game"){
             if (TICK_SCHEDULER.isPaused()){
                 TICK_SCHEDULER.unpause();
             }
-            enableCursor = RETRO_GAME_DATA["user_chosen_settings"]["cursor_enabled"];
-            this.activeMenu = null;
-        }else if (newMenu == "game_maker"){
-            this.activeMenu = this.gameMakerMenu;
-        }else if (newMenu == "sound"){
-            this.activeMenu = this.soundMenu;
-        }else if (newMenu == "extraSettings"){
-            this.activeMenu = this.extraSettingsMenu;
-        }else{
-            enableCursor = RETRO_GAME_DATA["user_chosen_settings"]["cursor_enabled"];
+            enableCursor = WTL_GAME_DATA["user_chosen_settings"]["cursor_enabled"];
             this.activeMenu = null;
         }
+        // Try switching to a secondary menu with this name
+        else if (this.switchToSecondary(newMenuName)){
+            // If switched -> do nothing
+        }
+        // Else no menu and enable cursor
+        else{
+            throw new Error("Unknown menu: " + newMenuName);
+        }
         document.getElementById("canvas").style.cursor = (enableCursor ? "" : "none");
+    }
+
+    switchToSecondary(secondaryMenuName){
+        for (let secondaryMenu of this.secondaryMenus){
+            if (secondaryMenu["name"] === secondaryMenuName){
+                this.activeMenu = secondaryMenu["instance"];
+                return true;
+            }
+        }
+        return false;
     }
 
     /*
@@ -283,3 +300,4 @@ class TemporaryMessage {
         return this.expiryLock.isReady();
     }
 }
+const MENU_MANAGER = new MenuManager();

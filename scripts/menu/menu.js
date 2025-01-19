@@ -92,7 +92,7 @@ class Menu {
         }
 
         // Loop until the text is too big
-        while (measureTextWidth(longestLine) + RETRO_GAME_DATA["menu"]["text_box_padding_proportion"] * boxWidth < boxWidth){
+        while (measureTextWidth(longestLine) + WTL_GAME_DATA["menu"]["text_box_padding_proportion"] * boxWidth < boxWidth){
             updateFontSize(++currentTextSize);
         }
         return currentTextSize - 1; // -1 because we've established that this is 1 size too big for the width
@@ -124,7 +124,7 @@ class Menu {
         let screenX = x;
         let screenY = MENU_MANAGER.changeToScreenY(y);
         let maxTextSizeW = Menu.determineMaxTextSizeByWidth(splitByLine, boxWidth);
-        let maxTextSizeH = Math.floor((boxHeight - RETRO_GAME_DATA["menu"]["text_box_padding_proportion"] * boxHeight) / numLines);
+        let maxTextSizeH = Math.floor((boxHeight - WTL_GAME_DATA["menu"]["text_box_padding_proportion"] * boxHeight) / numLines);
         let calculatedTextSize = Math.min(maxTextSizeW, maxTextSizeH);
         calculatedTextSize = Math.max(calculatedTextSize, 1);
         makeText(textStr, screenX, screenY, boxWidth, boxHeight, textColour, calculatedTextSize, alignLR, alignTB);
@@ -158,7 +158,7 @@ class Menu {
         for (let i = this.components.length - 1; i >= 0; i--){
             let component = this.components[i];
             if (component.covers(x, y) && !component.isDisabled()){
-                component.clicked(this);
+                component.clicked(this, x, y);
                 break;
             }
         }

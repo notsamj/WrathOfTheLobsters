@@ -1,16 +1,30 @@
 Right now:
-	Add trees
+	Add gamemodes menu (displays extra gamemodes)
+		Instead of what I was thinking previously -> Screen bar should just be percentage. You should be able to scroll by even if you have only 1 object. 
+		% of scroll bar progress = % of pixels offset out of totalEntrySpace
 
+    Do something with this "main_menu": {
+            "featured_gamemode": {
+                "display_name": "Duel",
+                "menu_name": "duel_menu"
+            }
+        }
 	Make menu with only difficulty being reaction time slider on bots
 
 	Add gentlemanly duel
-		Add gamemodes menu (displays extra gamemodes)
 		Add gamemode 
 		Add gamemode menu
 
+	Add proper spectating
+
 	Review current_todo.txt
 
+	Make make_index.py to make index.html
+		Web data disables game maker launch thing
+		Web data replaced server_connection.js with server_connection_dud.js
+
 	Comment and look through code
+	Remove all debugger
 
 	Publish
 

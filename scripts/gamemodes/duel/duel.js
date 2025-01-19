@@ -97,7 +97,7 @@ class Duel extends Gamemode {
     }
 
     getEnemyVisibilityDistance(){
-        return RETRO_GAME_DATA["duel"]["enemy_visibility_distance"];
+        return WTL_GAME_DATA["duel"]["enemy_visibility_distance"];
     }
 
     getRandom(){
@@ -179,31 +179,31 @@ class Duel extends Gamemode {
             for (let pistolModelName of participantObject["pistols"]){
                 participant.getInventory().add(new Pistol(pistolModelName, {
                     "player": participant,
-                    "sway_acceleration_constant": participantSwayMultiplier * RETRO_GAME_DATA["duel"]["pistol_sway_acceleration_constant"],
-                    "max_sway_velocity_deg": participantSwayMultiplier * RETRO_GAME_DATA["gun_data"][pistolModelName]["max_sway_velocity_deg"],
-                    "maximum_random_sway_acceleration_deg": participantSwayMultiplier * RETRO_GAME_DATA["gun_data"][pistolModelName]["maximum_random_sway_acceleration_deg"],
-                    "minimum_random_sway_acceleration_deg": participantSwayMultiplier * RETRO_GAME_DATA["gun_data"][pistolModelName]["minimum_random_sway_acceleration_deg"],
-                    "corrective_sway_acceleration_deg": participantSwayMultiplier * RETRO_GAME_DATA["gun_data"][pistolModelName]["corrective_sway_acceleration_deg"],
-                    "sway_decline_a": participantSwayMultiplier * RETRO_GAME_DATA["gun_data"][pistolModelName]["sway_decline_a"],
-                    "sway_decline_b": participantSwayMultiplier * RETRO_GAME_DATA["gun_data"][pistolModelName]["sway_decline_b"],
-                    "corrective_sway_acceleration_constant_c": participantSwayMultiplier * RETRO_GAME_DATA["gun_data"][pistolModelName]["corrective_sway_acceleration_constant_c"],
-                    "corrective_sway_acceleration_constant_d": participantSwayMultiplier * RETRO_GAME_DATA["gun_data"][pistolModelName]["corrective_sway_acceleration_constant_d"],
-                    "sway_max_angle_deg": participantSwayMultiplier * RETRO_GAME_DATA["gun_data"][pistolModelName]["sway_max_angle_deg"]
+                    "sway_acceleration_constant": participantSwayMultiplier * WTL_GAME_DATA["duel"]["pistol_sway_acceleration_constant"],
+                    "max_sway_velocity_deg": participantSwayMultiplier * WTL_GAME_DATA["gun_data"][pistolModelName]["max_sway_velocity_deg"],
+                    "maximum_random_sway_acceleration_deg": participantSwayMultiplier * WTL_GAME_DATA["gun_data"][pistolModelName]["maximum_random_sway_acceleration_deg"],
+                    "minimum_random_sway_acceleration_deg": participantSwayMultiplier * WTL_GAME_DATA["gun_data"][pistolModelName]["minimum_random_sway_acceleration_deg"],
+                    "corrective_sway_acceleration_deg": participantSwayMultiplier * WTL_GAME_DATA["gun_data"][pistolModelName]["corrective_sway_acceleration_deg"],
+                    "sway_decline_a": participantSwayMultiplier * WTL_GAME_DATA["gun_data"][pistolModelName]["sway_decline_a"],
+                    "sway_decline_b": participantSwayMultiplier * WTL_GAME_DATA["gun_data"][pistolModelName]["sway_decline_b"],
+                    "corrective_sway_acceleration_constant_c": participantSwayMultiplier * WTL_GAME_DATA["gun_data"][pistolModelName]["corrective_sway_acceleration_constant_c"],
+                    "corrective_sway_acceleration_constant_d": participantSwayMultiplier * WTL_GAME_DATA["gun_data"][pistolModelName]["corrective_sway_acceleration_constant_d"],
+                    "sway_max_angle_deg": participantSwayMultiplier * WTL_GAME_DATA["gun_data"][pistolModelName]["sway_max_angle_deg"]
                 }))
             }
             for (let musketModelName of participantObject["muskets"]){
                 participant.getInventory().add(new Musket(musketModelName, {
                     "player": participant,
-                    "sway_acceleration_constant": RETRO_GAME_DATA["duel"]["musket_sway_acceleration_constant"],
-                    "max_sway_velocity_deg": participantSwayMultiplier * RETRO_GAME_DATA["gun_data"][musketModelName]["max_sway_velocity_deg"],
-                    "maximum_random_sway_acceleration_deg": participantSwayMultiplier * RETRO_GAME_DATA["gun_data"][musketModelName]["maximum_random_sway_acceleration_deg"],
-                    "minimum_random_sway_acceleration_deg": participantSwayMultiplier * RETRO_GAME_DATA["gun_data"][musketModelName]["minimum_random_sway_acceleration_deg"],
-                    "corrective_sway_acceleration_deg": participantSwayMultiplier * RETRO_GAME_DATA["gun_data"][musketModelName]["corrective_sway_acceleration_deg"],
-                    "sway_decline_a": participantSwayMultiplier * RETRO_GAME_DATA["gun_data"][musketModelName]["sway_decline_a"],
-                    "sway_decline_b": participantSwayMultiplier * RETRO_GAME_DATA["gun_data"][musketModelName]["sway_decline_b"],
-                    "corrective_sway_acceleration_constant_c": participantSwayMultiplier * RETRO_GAME_DATA["gun_data"][musketModelName]["corrective_sway_acceleration_constant_c"],
-                    "corrective_sway_acceleration_constant_d": participantSwayMultiplier * RETRO_GAME_DATA["gun_data"][musketModelName]["corrective_sway_acceleration_constant_d"],
-                    "sway_max_angle_deg": participantSwayMultiplier * RETRO_GAME_DATA["gun_data"][musketModelName]["sway_max_angle_deg"]
+                    "sway_acceleration_constant": WTL_GAME_DATA["duel"]["musket_sway_acceleration_constant"],
+                    "max_sway_velocity_deg": participantSwayMultiplier * WTL_GAME_DATA["gun_data"][musketModelName]["max_sway_velocity_deg"],
+                    "maximum_random_sway_acceleration_deg": participantSwayMultiplier * WTL_GAME_DATA["gun_data"][musketModelName]["maximum_random_sway_acceleration_deg"],
+                    "minimum_random_sway_acceleration_deg": participantSwayMultiplier * WTL_GAME_DATA["gun_data"][musketModelName]["minimum_random_sway_acceleration_deg"],
+                    "corrective_sway_acceleration_deg": participantSwayMultiplier * WTL_GAME_DATA["gun_data"][musketModelName]["corrective_sway_acceleration_deg"],
+                    "sway_decline_a": participantSwayMultiplier * WTL_GAME_DATA["gun_data"][musketModelName]["sway_decline_a"],
+                    "sway_decline_b": participantSwayMultiplier * WTL_GAME_DATA["gun_data"][musketModelName]["sway_decline_b"],
+                    "corrective_sway_acceleration_constant_c": participantSwayMultiplier * WTL_GAME_DATA["gun_data"][musketModelName]["corrective_sway_acceleration_constant_c"],
+                    "corrective_sway_acceleration_constant_d": participantSwayMultiplier * WTL_GAME_DATA["gun_data"][musketModelName]["corrective_sway_acceleration_constant_d"],
+                    "sway_max_angle_deg": participantSwayMultiplier * WTL_GAME_DATA["gun_data"][musketModelName]["sway_max_angle_deg"]
                 }))
             }
             for (let swordModelName of participantObject["swords"]){
@@ -239,13 +239,14 @@ class Duel extends Gamemode {
     // Note: I stole this from Skirmish
     async generateTiles(){
         let scene = this.getScene();
-        let size = RETRO_GAME_DATA["duel"]["area_size"];
+        let size = WTL_GAME_DATA["duel"]["area_size"];
 
         // Visual Details
         let grassDetails = {"name":"grass","file_link":"images/grass.png"};
         let rockDetails = {"name":"rock_on_grass","file_link":"images/rock_on_grass.png"};
         let waterDetails = {"name":"water","file_link":"images/water.png"};
         let brigeDetails = {"name":"bridge","file_link":"images/bridge.png"};
+        //let treeDetails = {"name":"tree","file_link":"images/tree.png"};
         let bushDetails = {"name":"bush","file_link":"images/bush.png"};
         let bigBushDetails = {"name":"thick_bush","file_link":"images/thick_bush.png"};
 
@@ -260,6 +261,7 @@ class Duel extends Gamemode {
         await ensureImageIsLoadedFromDetails(rockDetails);
         await ensureImageIsLoadedFromDetails(waterDetails);
         await ensureImageIsLoadedFromDetails(brigeDetails);
+        //await ensureImageIsLoadedFromDetails(treeDetails);
         await ensureImageIsLoadedFromDetails(bushDetails);
         await ensureImageIsLoadedFromDetails(bigBushDetails);
 
@@ -300,10 +302,11 @@ class Duel extends Gamemode {
         let minBigBushSize = 3;
         let maxBigBushSize = 9;
         let bigBushes = 5;
+        let trees = 0; // Temporarily disabled
 
-        let seed = randomNumberInclusive(0,RETRO_GAME_DATA["duel"]["max_seed"]);
+        let seed = randomNumberInclusive(0,WTL_GAME_DATA["duel"]["max_seed"]);
 
-        let setSeed = RETRO_GAME_DATA["duel"]["seed"];
+        let setSeed = WTL_GAME_DATA["duel"]["seed"];
         let useSetSeed = setSeed != null;
         if (useSetSeed){
             seed = setSeed;
@@ -410,6 +413,14 @@ class Duel extends Gamemode {
             placeCluster(bigBushDetails, multiCoverDetails, random.getIntInRangeInclusive(0, size-1), random.getIntInRangeInclusive(0, size-1), random.getIntInRangeInclusive(minBigBushSize, maxBigBushSize));
         }
 
+        // Place trees
+        for (let i = 0; i < trees; i++){
+            let x = random.getIntInRangeInclusive(0, size-1);
+            let y = random.getIntInRangeInclusive(0, size-1);
+            scene.placeVisualTile(treeDetails, x, y);
+            scene.placePhysicalTile(null, x, y);
+        }
+
         // Place River
         let minRiverWidth = 1;
         let maxRiverWidth = 3;
@@ -419,7 +430,7 @@ class Duel extends Gamemode {
             let startingTileX = Math.min(size, Math.max(0, WTLGameScene.getTileXAt(riverStartX)));
             let startingTileY = Math.min(size, Math.max(0, WTLGameScene.getTileXAt(riverStartY)));
 
-            let range = size*RETRO_GAME_DATA["general"]["tile_size"];
+            let range = size*WTL_GAME_DATA["general"]["tile_size"];
             let finalOffsetX = range * Math.cos(riverAngleRAD);
             let finalOffsetY = range * Math.sin(riverAngleRAD);
 
@@ -506,20 +517,20 @@ class Duel extends Gamemode {
             // Bottom Left
             if (riverType == 1){
                 riverAngleRAD = random.getFloatInRange(0, Math.PI/2);
-                riverStartX = random.getIntInRangeInclusive(0, (size-1) * RETRO_GAME_DATA["general"]["tile_size"]/2);
+                riverStartX = random.getIntInRangeInclusive(0, (size-1) * WTL_GAME_DATA["general"]["tile_size"]/2);
                 riverStartY = 0;
             }else if (riverType == 2){ // Top Left
                 riverAngleRAD = random.getFloatInRange(2 * Math.PI * 3/4, 2 * Math.PI);
-                riverStartX = random.getIntInRangeInclusive(0, (size-1) * RETRO_GAME_DATA["general"]["tile_size"]/2);
-                riverStartY = (size-1) * RETRO_GAME_DATA["general"]["tile_size"];
+                riverStartX = random.getIntInRangeInclusive(0, (size-1) * WTL_GAME_DATA["general"]["tile_size"]/2);
+                riverStartY = (size-1) * WTL_GAME_DATA["general"]["tile_size"];
             }else if (riverType == 3){ // Bottom Right
                 riverAngleRAD = random.getFloatInRange(Math.PI/2, Math.PI);
-                riverStartX = random.getIntInRangeInclusive(0, (size-1) * RETRO_GAME_DATA["general"]["tile_size"]/2);
+                riverStartX = random.getIntInRangeInclusive(0, (size-1) * WTL_GAME_DATA["general"]["tile_size"]/2);
                 riverStartY = 0;
             }else{ // Rivertype == 4 // Top Right
                 riverAngleRAD = random.getFloatInRange(Math.PI, 2 * Math.PI * 3/4);
-                riverStartX = (size-1) * RETRO_GAME_DATA["general"]["tile_size"];
-                riverStartY = random.getIntInRangeInclusive((size-1) * RETRO_GAME_DATA["general"]["tile_size"]/2, (size-1) * RETRO_GAME_DATA["general"]["tile_size"]);
+                riverStartX = (size-1) * WTL_GAME_DATA["general"]["tile_size"];
+                riverStartY = random.getIntInRangeInclusive((size-1) * WTL_GAME_DATA["general"]["tile_size"]/2, (size-1) * WTL_GAME_DATA["general"]["tile_size"]);
             }
 
             // For each x, find the y tile for the river
@@ -661,6 +672,16 @@ class Duel extends Gamemode {
         let middleY = Math.floor(size/2) - 1;
         createPath(this.spawns[0], {"x": middleX, "y": middleY});
         createPath({"x": middleX, "y": middleY}, this.spawns[3]);
+
+        // Add physical tiles where trees survive river placement
+        for (let tileX = 0; tileX < size; tileX++){
+            for (let tileY = 0; tileY < size; tileY++){
+                let visualTileAtLocation = this.getScene().getVisualTileAtLocation(tileX, tileY);
+                if (visualTileAtLocation != null && visualTileAtLocation.getMaterial() === "tree"){
+                    this.getScene().placePhysicalTile(tileX, tileY, fullBlockDetails);
+                }
+            }
+        }
     }
 
     display(){

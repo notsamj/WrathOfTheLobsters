@@ -11,8 +11,8 @@ class ServerConnection {
         Method Return: Constructor
     */
     constructor(){
-        this.ip = RETRO_GAME_DATA["game_maker"]["server_ip"];
-        this.port = RETRO_GAME_DATA["game_maker"]["server_port"];
+        this.ip = WTL_GAME_DATA["game_maker"]["server_ip"];
+        this.port = WTL_GAME_DATA["game_maker"]["server_port"];
         this.setup = false;
         this.socket = null;
         this.openedLock = new Lock();

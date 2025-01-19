@@ -33,7 +33,7 @@ class OptionSlider extends Component {
         this.y = y;
         this.width = width;
         this.height = height;
-        this.sliderWidth = RETRO_GAME_DATA["menu"]["option_slider"]["slider_width_px"];
+        this.sliderWidth = WTL_GAME_DATA["menu"]["option_slider"]["slider_width_px"];
         this.getValueFunction = getValueFunction;
         this.setValueFunction = setValueFunction;
         this.sliding = false;

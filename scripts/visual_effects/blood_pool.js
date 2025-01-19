@@ -9,7 +9,7 @@ class BloodPool {
 
     display(scene, lX, rX, bY, tY){
         // If gore is disabled -> do not display
-        if (!RETRO_GAME_DATA["user_chosen_settings"]["gore"]){ return; }
+        if (!WTL_GAME_DATA["user_chosen_settings"]["gore"]){ return; }
         if (!this.touchesRegion(lX, rX, bY, tY)){ return; }
         let currentTime = Date.now();
         for (let circleObject of this.circles){
@@ -18,8 +18,8 @@ class BloodPool {
             let currentExistenceTime = currentTime - circleObject["spawn_time"];
             let screenX = scene.getDisplayX(circleObject["x"], 0, lX, false);
             let screenY = scene.getDisplayY(circleObject["y"], 0, bY, false);
-            let bloodColour = Colour.fromCode(RETRO_GAME_DATA["visual_effects"]["blood_generation"]["blood_colour"]);
-            bloodColour.setAlpha(RETRO_GAME_DATA["visual_effects"]["blood_generation"]["blood_opacity"] * (1-currentExistenceTime/totalExistenceTime));
+            let bloodColour = Colour.fromCode(WTL_GAME_DATA["visual_effects"]["blood_generation"]["blood_colour"]);
+            bloodColour.setAlpha(WTL_GAME_DATA["visual_effects"]["blood_generation"]["blood_opacity"] * (1-currentExistenceTime/totalExistenceTime));
             noStrokeCircle(bloodColour, screenX, screenY, circleObject["radius"]*2*gameZoom);
         }
     }
@@ -65,14 +65,14 @@ class BloodPool {
     */
     static create(x, y){
         let circles = [];
-        let numCircles = randomNumberInclusive(RETRO_GAME_DATA["visual_effects"]["blood_generation"]["min_circles_per_blood_spatter"], RETRO_GAME_DATA["visual_effects"]["blood_generation"]["max_circles_per_blood_spatter"]);
-        let mainRadius = RETRO_GAME_DATA["visual_effects"]["blood_generation"]["center_radius"];
+        let numCircles = randomNumberInclusive(WTL_GAME_DATA["visual_effects"]["blood_generation"]["min_circles_per_blood_spatter"], WTL_GAME_DATA["visual_effects"]["blood_generation"]["max_circles_per_blood_spatter"]);
+        let mainRadius = WTL_GAME_DATA["visual_effects"]["blood_generation"]["center_radius"];
         let spawnTime = Date.now();
         for (let i = 0; i < numCircles; i++){
             let circleX = x + randomNumberInclusive(-1 * mainRadius, mainRadius);
             let circleY = y + randomNumberInclusive(-1 * mainRadius, mainRadius);
-            let circleRadius = randomNumberInclusive(RETRO_GAME_DATA["visual_effects"]["blood_generation"]["min_radius"], RETRO_GAME_DATA["visual_effects"]["blood_generation"]["max_radius"]);
-            let circleLifeLength = randomNumberInclusive(RETRO_GAME_DATA["visual_effects"]["blood_generation"]["min_life_ms"], RETRO_GAME_DATA["visual_effects"]["blood_generation"]["max_life_ms"]);
+            let circleRadius = randomNumberInclusive(WTL_GAME_DATA["visual_effects"]["blood_generation"]["min_radius"], WTL_GAME_DATA["visual_effects"]["blood_generation"]["max_radius"]);
+            let circleLifeLength = randomNumberInclusive(WTL_GAME_DATA["visual_effects"]["blood_generation"]["min_life_ms"], WTL_GAME_DATA["visual_effects"]["blood_generation"]["max_life_ms"]);
             circles.push({"x": circleX, "y": circleY, "radius": circleRadius, "spawn_time": spawnTime, "expirey": spawnTime + circleLifeLength});
         }
         return new BloodPool(circles);

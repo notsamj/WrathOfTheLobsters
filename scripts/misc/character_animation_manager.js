@@ -5,7 +5,7 @@ class CharacterAnimationManager extends AnimationManager {
         this.walkingCountLR = 0;
         this.walkingCountUD = 0;
         this.walkingUDNext = 1;
-        this.movingStepCD = new CooldownLock(RETRO_GAME_DATA["general"]["animation_frame_time"]);
+        this.movingStepCD = new CooldownLock(WTL_GAME_DATA["general"]["animation_frame_time"]);
     }
 
     getVisualDirection(){
@@ -94,7 +94,7 @@ class CharacterAnimationManager extends AnimationManager {
     }
 
     static async loadAllImages(){
-        for (let characterModel of Object.keys(RETRO_GAME_DATA["model_to_model_category"])){
+        for (let characterModel of Object.keys(WTL_GAME_DATA["model_to_model_category"])){
             await CharacterAnimationManager.loadAllImagesOfModel(characterModel);
         }
     }

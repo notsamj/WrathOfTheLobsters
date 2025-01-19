@@ -47,7 +47,7 @@ class DuelMatchStats {
         // Display winner information
         let winnerText = "Winner: " + this.winner;
         // Make winner text
-        let winnerColour = Colour.fromCode(RETRO_GAME_DATA["duel"]["theme_colour"]);
+        let winnerColour = Colour.fromCode(WTL_GAME_DATA["duel"]["theme_colour"]);
         Menu.makeText(winnerText, winnerColour, Math.floor(getScreenWidth()/2), Math.floor(getScreenHeight() * 0.9), Math.floor(getScreenWidth()*0.70), Math.floor(getScreenHeight()/4), "center", "hanging");
     }
 }

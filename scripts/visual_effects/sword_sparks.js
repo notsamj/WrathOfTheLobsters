@@ -53,19 +53,19 @@ class SwordSparks extends BasicFadingEffect {
 
     static create(sparkType, x, y){
         let squares = [];
-        let numSquares = randomNumberInclusive(RETRO_GAME_DATA["visual_effects"]["sword_sparks"]["type"][sparkType]["min_sparks_per_impact"], RETRO_GAME_DATA["visual_effects"]["sword_sparks"]["type"][sparkType]["max_sparks_per_impact"]);
-        let mainRadius = RETRO_GAME_DATA["visual_effects"]["sword_sparks"]["type"][sparkType]["center_radius"];
+        let numSquares = randomNumberInclusive(WTL_GAME_DATA["visual_effects"]["sword_sparks"]["type"][sparkType]["min_sparks_per_impact"], WTL_GAME_DATA["visual_effects"]["sword_sparks"]["type"][sparkType]["max_sparks_per_impact"]);
+        let mainRadius = WTL_GAME_DATA["visual_effects"]["sword_sparks"]["type"][sparkType]["center_radius"];
         let spawnTime = Date.now();
         for (let i = 0; i < numSquares; i++){
             let squareX = x + randomNumberInclusive(-1 * mainRadius, mainRadius);
             let squareY = y + randomNumberInclusive(-1 * mainRadius, mainRadius);
-            let squareSize = RETRO_GAME_DATA["visual_effects"]["sword_sparks"]["type"][sparkType]["size"];
-            let squareLifeLength = randomNumberInclusive(RETRO_GAME_DATA["visual_effects"]["sword_sparks"]["min_life_ms"], RETRO_GAME_DATA["visual_effects"]["sword_sparks"]["max_life_ms"]);
-            let xVelocity = randomFloatBetween(RETRO_GAME_DATA["visual_effects"]["sword_sparks"]["type"][sparkType]["max_speed"] * -1, RETRO_GAME_DATA["visual_effects"]["sword_sparks"]["type"][sparkType]["max_speed"]);
-            let yVelocity = randomFloatBetween(RETRO_GAME_DATA["visual_effects"]["sword_sparks"]["type"][sparkType]["max_speed"] * -1, RETRO_GAME_DATA["visual_effects"]["sword_sparks"]["type"][sparkType]["max_speed"]);
-            let red = randomNumberInclusive(RETRO_GAME_DATA["visual_effects"]["sword_sparks"]["type"][sparkType]["min_red"], RETRO_GAME_DATA["visual_effects"]["sword_sparks"]["type"][sparkType]["max_red"]);
-            let green = randomNumberInclusive(RETRO_GAME_DATA["visual_effects"]["sword_sparks"]["type"][sparkType]["min_green"], RETRO_GAME_DATA["visual_effects"]["sword_sparks"]["type"][sparkType]["max_green"]);
-            let blue = randomNumberInclusive(RETRO_GAME_DATA["visual_effects"]["sword_sparks"]["type"][sparkType]["min_blue"], RETRO_GAME_DATA["visual_effects"]["sword_sparks"]["type"][sparkType]["max_blue"]);
+            let squareSize = WTL_GAME_DATA["visual_effects"]["sword_sparks"]["type"][sparkType]["size"];
+            let squareLifeLength = randomNumberInclusive(WTL_GAME_DATA["visual_effects"]["sword_sparks"]["min_life_ms"], WTL_GAME_DATA["visual_effects"]["sword_sparks"]["max_life_ms"]);
+            let xVelocity = randomFloatBetween(WTL_GAME_DATA["visual_effects"]["sword_sparks"]["type"][sparkType]["max_speed"] * -1, WTL_GAME_DATA["visual_effects"]["sword_sparks"]["type"][sparkType]["max_speed"]);
+            let yVelocity = randomFloatBetween(WTL_GAME_DATA["visual_effects"]["sword_sparks"]["type"][sparkType]["max_speed"] * -1, WTL_GAME_DATA["visual_effects"]["sword_sparks"]["type"][sparkType]["max_speed"]);
+            let red = randomNumberInclusive(WTL_GAME_DATA["visual_effects"]["sword_sparks"]["type"][sparkType]["min_red"], WTL_GAME_DATA["visual_effects"]["sword_sparks"]["type"][sparkType]["max_red"]);
+            let green = randomNumberInclusive(WTL_GAME_DATA["visual_effects"]["sword_sparks"]["type"][sparkType]["min_green"], WTL_GAME_DATA["visual_effects"]["sword_sparks"]["type"][sparkType]["max_green"]);
+            let blue = randomNumberInclusive(WTL_GAME_DATA["visual_effects"]["sword_sparks"]["type"][sparkType]["min_blue"], WTL_GAME_DATA["visual_effects"]["sword_sparks"]["type"][sparkType]["max_blue"]);
             let colourCode = Colour.generateCodeFromValues(red, green, blue);
             squares.push({"x": squareX, "y": squareY, "size": squareSize, "spawn_time": spawnTime, "expirey": spawnTime + squareLifeLength, "x_velocity": xVelocity, "y_velocity": yVelocity, "colour_code": colourCode});
         }

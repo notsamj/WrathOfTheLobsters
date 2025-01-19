@@ -290,7 +290,7 @@ function noStrokeCircle(colourObject, x, y, diameter){
     Method Return: void
 */
 function updateFontSize(newTextSize){
-    drawingContext.font = newTextSize.toString() + "px " + RETRO_GAME_DATA["ui"]["font_family"];
+    drawingContext.font = newTextSize.toString() + "px " + WTL_GAME_DATA["ui"]["font_family"];
 }
 
 /*

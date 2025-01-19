@@ -53,7 +53,7 @@ class HUD {
             if (!element.isReadyToDisplay()){
                 continue;
             }
-            element.display(10, i * RETRO_GAME_DATA["hud"]["text_size"]);
+            element.display(10, i * WTL_GAME_DATA["hud"]["text_size"]);
             i++;
         }
     }
@@ -142,9 +142,9 @@ class HUDElement {
     */
     display(x, y){
         let key = this.name + ": ";
-        makeText(key, x, y, getScreenWidth(), getScreenHeight(), Colour.fromCode(RETRO_GAME_DATA["hud"]["key_colour"]), RETRO_GAME_DATA["hud"]["text_size"], "left", "top");
+        makeText(key, x, y, getScreenWidth(), getScreenHeight(), Colour.fromCode(WTL_GAME_DATA["hud"]["key_colour"]), WTL_GAME_DATA["hud"]["text_size"], "left", "top");
         let xOffset = measureTextWidth(key);
-        makeText(`${this.value}`, x + xOffset, y, getScreenWidth(), getScreenHeight(), Colour.fromCode(RETRO_GAME_DATA["hud"]["value_colour"]), RETRO_GAME_DATA["hud"]["text_size"], "left", "top");
+        makeText(`${this.value}`, x + xOffset, y, getScreenWidth(), getScreenHeight(), Colour.fromCode(WTL_GAME_DATA["hud"]["value_colour"]), WTL_GAME_DATA["hud"]["text_size"], "left", "top");
         if (this.readyToDisplay){
             this.extraTimeLock.lock();
         }

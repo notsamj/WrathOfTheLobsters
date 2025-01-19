@@ -56,7 +56,7 @@ class SkirmishCamera extends Entity {
         this.xLock.lock();
 
         // Else 1 key down and ready to move
-        this.xVelocity = RETRO_GAME_DATA["skirmish"]["camera"]["move_speed"] * getScreenWidth() / RETRO_GAME_DATA["general"]["expected_canvas_width"] / gameZoom;
+        this.xVelocity = WTL_GAME_DATA["skirmish"]["camera"]["move_speed"] * getScreenWidth() / WTL_GAME_DATA["general"]["expected_canvas_width"] / gameZoom;
         this.xVelocity *= leftKey ? -1 : 1;
     }
 
@@ -79,7 +79,7 @@ class SkirmishCamera extends Entity {
         this.yLock.lock();
 
         // Else 1 key down and ready to move
-        this.yVelocity = RETRO_GAME_DATA["skirmish"]["camera"]["move_speed"] * getScreenHeight() / RETRO_GAME_DATA["general"]["expected_canvas_height"] / gameZoom;
+        this.yVelocity = WTL_GAME_DATA["skirmish"]["camera"]["move_speed"] * getScreenHeight() / WTL_GAME_DATA["general"]["expected_canvas_height"] / gameZoom;
         this.yVelocity *= downKey ? -1 : 1; 
     }
 
@@ -104,8 +104,8 @@ class SkirmishCamera extends Entity {
         this.xLock.tick();
         this.yLock.tick();
         this.leftRightLock.tick();
-        this.x += this.xVelocity / RETRO_GAME_DATA["general"]["tick_rate"];
-        this.y += this.yVelocity / RETRO_GAME_DATA["general"]["tick_rate"];
+        this.x += this.xVelocity / WTL_GAME_DATA["general"]["tick_rate"];
+        this.y += this.yVelocity / WTL_GAME_DATA["general"]["tick_rate"];
         this.checkMoveX();
         this.checkMoveY();
         // TODO: Add something to snap on to nearest troop

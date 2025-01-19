@@ -8,13 +8,13 @@ class Character extends Entity {
         this.health = 1;
         this.model = model;
         this.animationManager = new CharacterAnimationManager();
-        this.stunLock = new TickLock(Math.ceil(RETRO_GAME_DATA["human"]["max_stun_time_ms"]/calculateMSBetweenTicks()));
-        this.staminaBar = new StaminaBar(RETRO_GAME_DATA["human"]["stamina"]["max_stamina"], RETRO_GAME_DATA["human"]["stamina"]["stamina_recovery_time_ms"]);
+        this.stunLock = new TickLock(Math.ceil(WTL_GAME_DATA["human"]["max_stun_time_ms"]/calculateMSBetweenTicks()));
+        this.staminaBar = new StaminaBar(WTL_GAME_DATA["human"]["stamina"]["max_stamina"], WTL_GAME_DATA["human"]["stamina"]["stamina_recovery_time_ms"]);
         this.tileX = 0;
         this.tileY = 0;
         this.lookingDetails = {
             "direction": null,
-            "look_lock": new TickLock(Math.ceil(RETRO_GAME_DATA["human"]["look_time_ms"]/calculateMSBetweenTicks()))
+            "look_lock": new TickLock(Math.ceil(WTL_GAME_DATA["human"]["look_time_ms"]/calculateMSBetweenTicks()))
         }
         this.movementDetails = null;
         this.inventory = new Inventory(this);
@@ -524,16 +524,16 @@ class Character extends Entity {
             debugger;
         }
 
-        let desiredMoveSpeed = RETRO_GAME_DATA["general"]["walk_speed"];
+        let desiredMoveSpeed = WTL_GAME_DATA["general"]["walk_speed"];
 
         // Determine if the character is going to sprint
         let goingToSprint = wantsToSprint && this.getStaminaBar().hasStamina();
         // If sprinting use stamina
         if (goingToSprint){
-            this.getStaminaBar().useStamina(RETRO_GAME_DATA["human"]["stamina"]["sprinting_stamina_per_tile"]);
+            this.getStaminaBar().useStamina(WTL_GAME_DATA["human"]["stamina"]["sprinting_stamina_per_tile"]);
         }
 
-        desiredMoveSpeed *= (goingToSprint ? RETRO_GAME_DATA["general"]["sprint_multiplier"] : 1);
+        desiredMoveSpeed *= (goingToSprint ? WTL_GAME_DATA["general"]["sprint_multiplier"] : 1);
         let tickProgressFromPrevious = 0;
         // If say at tileX 1.5 and moving right then keep that 0.5 as progress for the next move
         let lastLocationX = this.tileX;
@@ -544,15 +544,15 @@ class Character extends Entity {
             if (tickProgressFromPrevious > 1){
                 debugger
             }
-            let distanceProgressFromPrevious = tickProgressFromPrevious * this.movementDetails["speed"] / 1000 * RETRO_GAME_DATA["general"]["ms_between_ticks"];
+            let distanceProgressFromPrevious = tickProgressFromPrevious * this.movementDetails["speed"] / 1000 * WTL_GAME_DATA["general"]["ms_between_ticks"];
             if (direction === "down"){
-                lastLocationY -= distanceProgressFromPrevious / RETRO_GAME_DATA["general"]["tile_size"];
+                lastLocationY -= distanceProgressFromPrevious / WTL_GAME_DATA["general"]["tile_size"];
             }else if (direction === "left"){
-                lastLocationX -= distanceProgressFromPrevious / RETRO_GAME_DATA["general"]["tile_size"];
+                lastLocationX -= distanceProgressFromPrevious / WTL_GAME_DATA["general"]["tile_size"];
             }else if (direction === "right"){
-                lastLocationX += distanceProgressFromPrevious / RETRO_GAME_DATA["general"]["tile_size"];
+                lastLocationX += distanceProgressFromPrevious / WTL_GAME_DATA["general"]["tile_size"];
             }else{ // Up
-                lastLocationY += distanceProgressFromPrevious / RETRO_GAME_DATA["general"]["tile_size"];
+                lastLocationY += distanceProgressFromPrevious / WTL_GAME_DATA["general"]["tile_size"];
             }
         }
 
@@ -567,7 +567,7 @@ class Character extends Entity {
             "last_location_x": lastLocationX,
             "last_location_y": lastLocationY,
             "last_location_tick": numTicks,
-            "reached_destination_tick": numTicks + RETRO_GAME_DATA["general"]["tile_size"] / desiredMoveSpeed * 1000 / RETRO_GAME_DATA["general"]["ms_between_ticks"] - tickProgressFromPrevious
+            "reached_destination_tick": numTicks + WTL_GAME_DATA["general"]["tile_size"] / desiredMoveSpeed * 1000 / WTL_GAME_DATA["general"]["ms_between_ticks"] - tickProgressFromPrevious
         }
         this.tileX = newTileX;
         this.tileY = newTileY;
@@ -693,11 +693,11 @@ class Character extends Entity {
     }
 
     getWidth(){
-        return RETRO_GAME_DATA["general"]["tile_size"];
+        return WTL_GAME_DATA["general"]["tile_size"];
     }
 
     getHeight(){
-        return RETRO_GAME_DATA["general"]["tile_size"];
+        return WTL_GAME_DATA["general"]["tile_size"];
     }
 
     getInventory(){
@@ -717,7 +717,7 @@ class Character extends Entity {
     }
 
     getModelCategory(){
-        return RETRO_GAME_DATA["model_to_model_category"][this.getModel()];
+        return WTL_GAME_DATA["model_to_model_category"][this.getModel()];
     }
 
     getInterpolatedCenterX(){
@@ -807,7 +807,7 @@ class Character extends Entity {
         // Else moving l/r
         let dir = this.movementDetails["direction"] == "left" ? -1 : 1;
         let x = this.gamemode.getScene().getXOfTile(this.movementDetails["last_location_x"]);
-        return x + this.movementDetails["speed"] * dir * (this.getCurrentTick() - this.movementDetails["last_tick_number"]) * RETRO_GAME_DATA["general"]["ms_between_ticks"] / 1000;
+        return x + this.movementDetails["speed"] * dir * (this.getCurrentTick() - this.movementDetails["last_tick_number"]) * WTL_GAME_DATA["general"]["ms_between_ticks"] / 1000;
     }
 
     getInterpolatedX(){
@@ -853,7 +853,7 @@ class Character extends Entity {
         // Else moving l/r
         let dir = this.movementDetails["direction"] == "down" ? -1 : 1;
         let y = this.gamemode.getScene().getYOfTile(this.movementDetails["last_location_y"]);
-        return y + this.movementDetails["speed"] * dir * (this.getCurrentTick() - this.movementDetails["last_tick_number"]) * RETRO_GAME_DATA["general"]["ms_between_ticks"] / 1000;
+        return y + this.movementDetails["speed"] * dir * (this.getCurrentTick() - this.movementDetails["last_tick_number"]) * WTL_GAME_DATA["general"]["ms_between_ticks"] / 1000;
     }
 
     getDisplayY(bY){

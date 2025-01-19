@@ -9,11 +9,11 @@ class Tile extends VisualItem {
     }
 
     getX(){
-        return this.tileX * RETRO_GAME_DATA["general"]["tile_size"];
+        return this.tileX * WTL_GAME_DATA["general"]["tile_size"];
     }
 
     getY(){
-        return this.tileY * RETRO_GAME_DATA["general"]["tile_size"];
+        return this.tileY * WTL_GAME_DATA["general"]["tile_size"];
     }
 
     getTileX(){
@@ -29,7 +29,7 @@ class Tile extends VisualItem {
     }
 
     getRightX(){
-        return this.tileX + (this.width / RETRO_GAME_DATA["general"]["tile_size"] - 1);
+        return this.tileX + (this.width / WTL_GAME_DATA["general"]["tile_size"] - 1);
     }
 
     getTopY(){
@@ -37,7 +37,7 @@ class Tile extends VisualItem {
     }
 
     getBottomY(){
-        return this.tileY - (this.height / RETRO_GAME_DATA["general"]["tile_size"] - 1);
+        return this.tileY - (this.height / WTL_GAME_DATA["general"]["tile_size"] - 1);
     }
 
     getImage(){
@@ -114,7 +114,7 @@ class PhysicalTile extends Tile {
     }
 
     hasAttribute(attribute){
-        for (let physicalTile of RETRO_GAME_DATA["physical_tiles"]){
+        for (let physicalTile of WTL_GAME_DATA["physical_tiles"]){
             if (physicalTile["name"] === this.getMaterialName()){
                 for (let foundAttribute of physicalTile["attributes"]){
                     if (foundAttribute === attribute){

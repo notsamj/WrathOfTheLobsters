@@ -14,13 +14,12 @@ class NotSamArrayList {
     */
     constructor(array=null, size=1, size_inc=(size) => size * 2){
         this.size_inc = size_inc;
+        this.length = 0;
         if (array === null){
             this.size = size;
             this.array = new Array(this.size);
-            this.length = 0;
         }else{
             this.size = array.length;
-            this.length = array.length;
             this.array = new Array(this.size);
             this.convert_from_array(array);
         }

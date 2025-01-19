@@ -4,7 +4,7 @@ class PointToShootCannon extends Item {
         this.player = objectHasKey(details, "player") ? details["player"] : null;
         this.crosshairCenterX = 0;
         this.crosshairCenterY = 0;
-        this.unlocksAtTurnNumber = this.getGamemode().getTurnCounter() + RETRO_GAME_DATA["cannon"]["turn_cooldown"] * 2;
+        this.unlocksAtTurnNumber = this.getGamemode().getTurnCounter() + WTL_GAME_DATA["cannon"]["turn_cooldown"] * 2;
     }
 
     resetDecisions(){
@@ -49,9 +49,9 @@ class PointToShootCannon extends Item {
         let cannonOriginY = scene.getCenterYOfTile(cannonOriginTileY);
 
         let distanceToHitLocation = calculateEuclideanDistance(aimToHitX, aimToHitY, cannonOriginX, cannonOriginY);
-        let distanceOffInTiles = distanceToHitLocation/RETRO_GAME_DATA["general"]["tile_size"];
-        let distanceOffHitLocationInTiles = Math.pow(distanceOffInTiles, RETRO_GAME_DATA["cannon"]["error_f"]) / RETRO_GAME_DATA["cannon"]["error_g"];
-        let distanceOffHitLocation = distanceOffHitLocationInTiles * RETRO_GAME_DATA["general"]["tile_size"];
+        let distanceOffInTiles = distanceToHitLocation/WTL_GAME_DATA["general"]["tile_size"];
+        let distanceOffHitLocationInTiles = Math.pow(distanceOffInTiles, WTL_GAME_DATA["cannon"]["error_f"]) / WTL_GAME_DATA["cannon"]["error_g"];
+        let distanceOffHitLocation = distanceOffHitLocationInTiles * WTL_GAME_DATA["general"]["tile_size"];
 
         let angleFromHitLocationRAD = toFixedRadians(randomNumberInclusive(0, 360));
         let offsetObj = angleAndHypotenuseToXAndYSides(angleFromHitLocationRAD, randomNumberInclusive(0, distanceOffHitLocation));
@@ -64,18 +64,18 @@ class PointToShootCannon extends Item {
         scene.addExpiringVisual(cannonSmoke);
 
         // Determine area of effect
-        let tileDamageRadius = RETRO_GAME_DATA["cannon"]["aoe_tile_radius"];
-        let damageRadius = tileDamageRadius * RETRO_GAME_DATA["general"]["tile_size"];
+        let tileDamageRadius = WTL_GAME_DATA["cannon"]["aoe_tile_radius"];
+        let damageRadius = tileDamageRadius * WTL_GAME_DATA["general"]["tile_size"];
         let leftTileAffected = WTLGameScene.getTileXAt(hitX - damageRadius);
         let rightTileAffected = WTLGameScene.getTileXAt(hitX + damageRadius);
         let bottomTileAffected = WTLGameScene.getTileYAt(hitY - damageRadius);
         let topTileAffected = WTLGameScene.getTileYAt(hitY + damageRadius);
 
         // Set up cannon damage
-        let humanMultiplier = RETRO_GAME_DATA["cannon"]["human_damage_multiplier"];
-        let rockMultiplier = RETRO_GAME_DATA["cannon"]["rock_damage_multiplier"];
+        let humanMultiplier = WTL_GAME_DATA["cannon"]["human_damage_multiplier"];
+        let rockMultiplier = WTL_GAME_DATA["cannon"]["rock_damage_multiplier"];
         let calculateCannonDamage = (distanceInTiles, multiplier) => {
-            return multiplier * 1 / (Math.pow(distanceInTiles+1, RETRO_GAME_DATA["cannon"]["damage_f"] * RETRO_GAME_DATA["cannon"]["damage_g"] * distanceInTiles));
+            return multiplier * 1 / (Math.pow(distanceInTiles+1, WTL_GAME_DATA["cannon"]["damage_f"] * WTL_GAME_DATA["cannon"]["damage_g"] * distanceInTiles));
         }
 
         // Hurt rocks
@@ -97,7 +97,7 @@ class PointToShootCannon extends Item {
                     let rockHitboxCenterX = scene.getCenterXOfTile(tileX);
                     let rockHitboxCenterY = scene.getCenterYOfTile(tileY);
                     let distanceFromHitLocation = calculateEuclideanDistance(hitX, hitY, rockHitboxCenterX, rockHitboxCenterY);
-                    let distanceFromHitLocationInTiles = distanceFromHitLocation/RETRO_GAME_DATA["general"]["tile_size"];
+                    let distanceFromHitLocationInTiles = distanceFromHitLocation/WTL_GAME_DATA["general"]["tile_size"];
                     rockHitbox.damage(calculateCannonDamage(distanceFromHitLocationInTiles, rockMultiplier));
                     //console.log("Damaging rock", tileX, tileY, calculateCannonDamage(distanceFromHitLocationInTiles, rockMultiplier));
                     // If the rock is dead -> Destroy it
@@ -118,12 +118,12 @@ class PointToShootCannon extends Item {
             if (distanceFromHitLocation > damageRadius){
                 continue;
             }
-            let distanceFromHitLocationInTiles = distanceFromHitLocation/RETRO_GAME_DATA["general"]["tile_size"];
+            let distanceFromHitLocationInTiles = distanceFromHitLocation/WTL_GAME_DATA["general"]["tile_size"];
             troop.damage(calculateCannonDamage(distanceFromHitLocationInTiles, humanMultiplier));
         }
 
         // Lock for a number of turns
-        this.unlocksAtTurnNumber = this.getGamemode().getTurnCounter() + RETRO_GAME_DATA["cannon"]["turn_cooldown"] * 2;
+        this.unlocksAtTurnNumber = this.getGamemode().getTurnCounter() + WTL_GAME_DATA["cannon"]["turn_cooldown"] * 2;
     }
 
     select(){}
@@ -139,7 +139,7 @@ class PointToShootCannon extends Item {
 
     displayItemSlot(providedX, providedY){
         let image = IMAGES["point_to_shoot_cannon"];
-        let displayScale = RETRO_GAME_DATA["inventory"]["slot_size"] / image.width;
+        let displayScale = WTL_GAME_DATA["inventory"]["slot_size"] / image.width;
         let scaleX = providedX + image.width / 2 * displayScale;
         let scaleY = providedY + image.height / 2 * displayScale;
 
@@ -152,7 +152,7 @@ class PointToShootCannon extends Item {
         // Display turn cooldown if applicable
         if (this.isOnCooldown()){
             let turns = this.getDisplayedCooldown();
-            makeText(turns.toString(), 0, -1 * RETRO_GAME_DATA["inventory"]["slot_size"]/4, RETRO_GAME_DATA["inventory"]["slot_size"], RETRO_GAME_DATA["inventory"]["slot_size"], Colour.fromCode(RETRO_GAME_DATA["cannon"]["cooldown_colour"]), RETRO_GAME_DATA["cannon"]["cooldown_text_size"], "center", "alphabetic");
+            makeText(turns.toString(), 0, -1 * WTL_GAME_DATA["inventory"]["slot_size"]/4, WTL_GAME_DATA["inventory"]["slot_size"], WTL_GAME_DATA["inventory"]["slot_size"], Colour.fromCode(WTL_GAME_DATA["cannon"]["cooldown_colour"]), WTL_GAME_DATA["cannon"]["cooldown_text_size"], "center", "alphabetic");
         }
 
         scale(1 / displayScale, 1 / displayScale);

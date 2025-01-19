@@ -3,7 +3,7 @@ const fs = require("fs");
 const WebSocketServer = require("ws").WebSocketServer;
 const NotSamLinkedList = require("../scripts/general/notsam_linked_list.js");
 const Lock = require("../scripts/general/lock.js");
-const RETRO_GAME_DATA = require("../data/data_json.js");
+const WTL_GAME_DATA = require("../data/data_json.js");
 class Server {
     constructor(port){
         this.server = new WebSocketServer({ "port": port })
@@ -71,4 +71,4 @@ class Client {
 }
 
 // Start Up
-const SERVER = new Server(RETRO_GAME_DATA["game_maker"]["server_port"]);
+const SERVER = new Server(WTL_GAME_DATA["game_maker"]["server_port"]);

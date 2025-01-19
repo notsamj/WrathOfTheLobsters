@@ -8,12 +8,12 @@ class SkirmishCharacter extends Character {
         this.tileXOnTurnStart = null;
         this.tileYOnTurnStart = null;
         this.rankName = rankName;
-        this.walkingBar = new ProgressBar(RETRO_GAME_DATA["skirmish"]["distance_per_turn"][this.rankName]);
+        this.walkingBar = new ProgressBar(WTL_GAME_DATA["skirmish"]["distance_per_turn"][this.rankName]);
         this.visualEnvironmentHealthBar = new VisualEnvironmentHealthBar(this.health);
     }
 
     getShot(model, killerID){
-        let damage = RETRO_GAME_DATA["skirmish"]["shot_damage"];
+        let damage = WTL_GAME_DATA["skirmish"]["shot_damage"];
         // If the attacker is friendly then limit damage to avoid death of officer (This is to prevent dying while ordering shooting)
         if (teamNameIsEqual(getTeamNameFromClass(model), this.getTeamName()) && this.getRankName() === "officer" && this.isMakingAMove()){
             damage = Math.min(damage, Math.max(this.getHealth() - 0.01, 0));
@@ -206,8 +206,8 @@ class SkirmishCharacter extends Character {
             let myHeight = this.getHeight();
             let onScreen = pointInRectangle(displayX, displayY, 0, getScreenWidth(), 0, getScreenHeight()) || pointInRectangle(displayX+this.getWidth(), displayY, 0, getScreenWidth(), 0, getScreenHeight()) || pointInRectangle(displayX+this.getWidth(), displayY+this.getHeight(), 0, getScreenWidth(), 0, getScreenHeight()) || pointInRectangle(displayX, displayY+this.getHeight(), 0, getScreenWidth(), 0, getScreenHeight());
             if (!onScreen){ return; }
-            let selectionColour = Colour.fromCode(RETRO_GAME_DATA["skirmish"]["selection_colour"]);
-            let selectionBorderWidth = RETRO_GAME_DATA["skirmish"]["selection_border_width"];
+            let selectionColour = Colour.fromCode(WTL_GAME_DATA["skirmish"]["selection_colour"]);
+            let selectionBorderWidth = WTL_GAME_DATA["skirmish"]["selection_border_width"];
             selectionColour.setAlpha(0.75);
             
             translate(displayX, displayY);

@@ -138,7 +138,7 @@ class ComponentGroup extends Component {
 
     covers(x, y){
         console.log("Check y", y, "myY", this.getY())
-        return x >= this.getX() && x <= this.getX() + this.getWidth() && y <= this.getY() && y >= this.getY() - RETRO_GAME_DATA["ui"]["game_maker"]["bottom_bar_height"];
+        return x >= this.getX() && x <= this.getX() + this.getWidth() && y <= this.getY() && y >= this.getY() - WTL_GAME_DATA["ui"]["game_maker"]["bottom_bar_height"];
     }
 
     /*

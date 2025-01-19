@@ -1,11 +1,10 @@
 // Global constants
 const IMAGES = {};
-const FRAME_COUNTER = new FrameRateCounter(RETRO_GAME_DATA["general"]["frame_rate"]);
+const FRAME_COUNTER = new FrameRateCounter(WTL_GAME_DATA["general"]["frame_rate"]);
 const MY_HUD = new HUD();
-const TICK_SCHEDULER = new TickScheduler(Math.floor(1000/RETRO_GAME_DATA["general"]["tick_rate"]));
+const TICK_SCHEDULER = new TickScheduler(Math.floor(1000/WTL_GAME_DATA["general"]["tick_rate"]));
 const GAMEMODE_MANAGER = new GamemodeManager();
 const USER_INPUT_MANAGER = new UserInputManager();
-const MENU_MANAGER = new MenuManager();
 const SOUND_MANAGER = new SoundManager();
 const GENERAL_DEBUGGER = new GeneralDebugger();
 const LOADING_SCREEN = new LoadingScreen();
@@ -49,11 +48,11 @@ async function setup() {
     }
 
     // Make sure all physical tiles are loaded
-    for (let tileDetails of RETRO_GAME_DATA["physical_tiles"]){
+    for (let tileDetails of WTL_GAME_DATA["physical_tiles"]){
         await ensureImageIsLoadedFromDetails(tileDetails);
     }
 
-    RETRO_GAME_DATA["general"]["ms_between_ticks"] = Math.floor(1000 / RETRO_GAME_DATA["general"]["tick_rate"]); // Expected to be an integer so floor isn't really necessary
+    WTL_GAME_DATA["general"]["ms_between_ticks"] = Math.floor(1000 / WTL_GAME_DATA["general"]["tick_rate"]); // Expected to be an integer so floor isn't really necessary
     
     window.onmousemove = (event) => {
         mouseX = event.clientX;
@@ -63,6 +62,9 @@ async function setup() {
     // Game Maker
     USER_INPUT_MANAGER.register("option_slider_grab", "mousedown", (event) => { return true; });
     USER_INPUT_MANAGER.register("option_slider_grab", "mouseup", (event) => { return true; }, false);
+
+    USER_INPUT_MANAGER.register("scroll_bar_grab", "mousedown", (event) => { return true; });
+    USER_INPUT_MANAGER.register("scroll_bar_grab", "mouseup", (event) => { return true; }, false);
     
     USER_INPUT_MANAGER.register("left_click", "mousedown", (event) => { return event.which==1; });
     USER_INPUT_MANAGER.register("left_click", "mouseup", (event) => { return event.which==1; }, false);
@@ -190,10 +192,10 @@ function setGameZoom(){
         if (ZOOM_MONITOR["button"] == null){ return; }
         let timePassed = Date.now() - ZOOM_MONITOR["start_time_ms"];
         // If the button was pressed for a short amount of time then switch gamezoom to recorded
-        if (timePassed < RETRO_GAME_DATA["controls"]["approximate_zoom_peek_time_ms"]){
-            RETRO_GAME_DATA["settings"]["game_zoom"] = gameZoom;
+        if (timePassed < WTL_GAME_DATA["controls"]["approximate_zoom_peek_time_ms"]){
+            WTL_GAME_DATA["settings"]["game_zoom"] = gameZoom;
         }else{ // If not taking the button then reset zoom
-            gameZoom = RETRO_GAME_DATA["settings"]["game_zoom"];
+            gameZoom = WTL_GAME_DATA["settings"]["game_zoom"];
         }
         // Reset zoom monitor
         ZOOM_MONITOR["button"] = null;
@@ -310,7 +312,7 @@ window.addEventListener("load", () => {
 
 function startGame(){
     //GAMEMODE_MANAGER.setActiveGamemode(new WTLGame());
-    let gameDetails = RETRO_GAME_DATA["test_settings"]["duel"];
+    let gameDetails = WTL_GAME_DATA["test_settings"]["duel"];
     GAMEMODE_MANAGER.setActiveGamemode(new Duel(gameDetails));
 }
 

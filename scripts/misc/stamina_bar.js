@@ -15,7 +15,7 @@ class StaminaBar {
     */
     constructor(maxStamina, recoveryTimeMS){
         this.maxStamina = maxStamina;
-        this.maxRecoveryDelayTicks = Math.ceil(RETRO_GAME_DATA["stamina_bar"]["recovery_delay_ms"] / calculateMSBetweenTicks());
+        this.maxRecoveryDelayTicks = Math.ceil(WTL_GAME_DATA["stamina_bar"]["recovery_delay_ms"] / calculateMSBetweenTicks());
         this.recoveryDelayTicks = 0;
         this.recoveryTimeMS = recoveryTimeMS;
         this.stamina = this.maxStamina;
@@ -69,9 +69,9 @@ class StaminaBar {
 
         // Recovery stamina if not actively draining
         if (!this.isActivelyDraining()){
-            this.stamina = Math.min(this.maxStamina, this.stamina + this.maxStamina * RETRO_GAME_DATA["general"]["ms_between_ticks"] / this.recoveryTimeMS);
+            this.stamina = Math.min(this.maxStamina, this.stamina + this.maxStamina * WTL_GAME_DATA["general"]["ms_between_ticks"] / this.recoveryTimeMS);
             // Determine whether to cancel prehibatory recovery
-            if (this.isExperiencingEmergencyRecovery() && this.stamina / this.maxStamina > RETRO_GAME_DATA["stamina_bar"]["threshold_3"]){
+            if (this.isExperiencingEmergencyRecovery() && this.stamina / this.maxStamina > WTL_GAME_DATA["stamina_bar"]["threshold_3"]){
                 this.emergencyRecovery = false;
             }
         }
@@ -152,7 +152,7 @@ class StaminaBar {
         Method Description: Displays the stamina bar on the screen
         Method Return: void
     */
-    display(timePassed=RETRO_GAME_DATA["general"]["ms_between_ticks"], offset=0){
+    display(timePassed=WTL_GAME_DATA["general"]["ms_between_ticks"], offset=0){
         let shareBorderOffset = offset > 0 ? 1 : 0; 
         let displayStamina = this.getInterpolatedStamina(timePassed);
         // No need to display if at full stamina
@@ -160,10 +160,10 @@ class StaminaBar {
             return;
         }
 
-        let staminaBarWidth = RETRO_GAME_DATA["stamina_bar"]["width"];
-        let staminaBarHeight = RETRO_GAME_DATA["stamina_bar"]["height"];
-        let staminaBarBorderColour = RETRO_GAME_DATA["stamina_bar"]["border_colour"];
-        let staminaBarBorderThickness = RETRO_GAME_DATA["stamina_bar"]["border_thickness"];
+        let staminaBarWidth = WTL_GAME_DATA["stamina_bar"]["width"];
+        let staminaBarHeight = WTL_GAME_DATA["stamina_bar"]["height"];
+        let staminaBarBorderColour = WTL_GAME_DATA["stamina_bar"]["border_colour"];
+        let staminaBarBorderThickness = WTL_GAME_DATA["stamina_bar"]["border_thickness"];
         let staminaBarColourCode;
         let interpolatedStaminaPercentage = displayStamina/this.maxStamina;
         let realStaminaPercentage = Math.max(0, this.stamina)/this.maxStamina;
@@ -171,13 +171,13 @@ class StaminaBar {
         // Determine bar colour
         // Note: The code after the && checks if the cooling will be over next tick
         if (this.isExperiencingEmergencyRecovery()){
-            staminaBarColourCode = RETRO_GAME_DATA["stamina_bar"]["cooling_colour"];
-        }else if (realStaminaPercentage < RETRO_GAME_DATA["stamina_bar"]["threshold_3"]){
-            staminaBarColourCode = RETRO_GAME_DATA["stamina_bar"]["threshold_3_colour"];
-        }else if (realStaminaPercentage < RETRO_GAME_DATA["stamina_bar"]["threshold_2"]){
-            staminaBarColourCode = RETRO_GAME_DATA["stamina_bar"]["threshold_2_colour"];
+            staminaBarColourCode = WTL_GAME_DATA["stamina_bar"]["cooling_colour"];
+        }else if (realStaminaPercentage < WTL_GAME_DATA["stamina_bar"]["threshold_3"]){
+            staminaBarColourCode = WTL_GAME_DATA["stamina_bar"]["threshold_3_colour"];
+        }else if (realStaminaPercentage < WTL_GAME_DATA["stamina_bar"]["threshold_2"]){
+            staminaBarColourCode = WTL_GAME_DATA["stamina_bar"]["threshold_2_colour"];
         }else{
-            staminaBarColourCode = RETRO_GAME_DATA["stamina_bar"]["threshold_1_colour"];
+            staminaBarColourCode = WTL_GAME_DATA["stamina_bar"]["threshold_1_colour"];
         }
 
         // Change from code to colour object
@@ -186,7 +186,7 @@ class StaminaBar {
         let screenHeight = getScreenHeight();
 
         // Display borders
-        let borderColour = Colour.fromCode(RETRO_GAME_DATA["stamina_bar"]["border_colour"]);
+        let borderColour = Colour.fromCode(WTL_GAME_DATA["stamina_bar"]["border_colour"]);
         // Top Border
         noStrokeRectangle(borderColour, 0, screenHeight - 1 - staminaBarHeight - staminaBarBorderThickness * 2 + 1 - (staminaBarHeight+staminaBarBorderThickness*2-1) * offset, staminaBarWidth + 2 * staminaBarBorderThickness, staminaBarBorderThickness);
         // Bottom Border

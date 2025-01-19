@@ -101,7 +101,7 @@ class TurnBasedSkirmish extends Gamemode {
     }
 
     getEnemyVisibilityDistance(){
-        return RETRO_GAME_DATA["skirmish"]["enemy_visibility_distance"];
+        return WTL_GAME_DATA["skirmish"]["enemy_visibility_distance"];
     }
 
     getRandom(){
@@ -614,7 +614,7 @@ class TurnBasedSkirmish extends Gamemode {
         }
 
         // Create officers
-        for (let i = 0; i < RETRO_GAME_DATA["skirmish"]["game_play"]["officer_count"]; i++){
+        for (let i = 0; i < WTL_GAME_DATA["skirmish"]["game_play"]["officer_count"]; i++){
             let britishOfficer;
             if (britishAreHuman){
                 britishOfficer = new SkirmishHuman(this, "british_officer", "officer", "British");
@@ -662,7 +662,7 @@ class TurnBasedSkirmish extends Gamemode {
         }
 
         // Create privates
-        for (let i = 0; i < RETRO_GAME_DATA["skirmish"]["game_play"]["private_count"]; i++){
+        for (let i = 0; i < WTL_GAME_DATA["skirmish"]["game_play"]["private_count"]; i++){
             let britishPrivate;
             if (britishAreHuman){
                 britishPrivate = new SkirmishHuman(this, "british_pvt_g", "private", "British");
@@ -726,7 +726,7 @@ class TurnBasedSkirmish extends Gamemode {
 
     async generateTiles(){
         let scene = this.getScene();
-        let size = RETRO_GAME_DATA["skirmish"]["area_size"];
+        let size = WTL_GAME_DATA["skirmish"]["area_size"];
 
         // Visual Details
         let grassDetails = {"name":"grass","file_link":"images/grass.png"};
@@ -788,9 +788,9 @@ class TurnBasedSkirmish extends Gamemode {
         let maxBigBushSize = 20;
         let bigBushes = 5;
 
-        let seed = randomNumberInclusive(0,RETRO_GAME_DATA["skirmish"]["max_seed"]);
+        let seed = randomNumberInclusive(0,WTL_GAME_DATA["skirmish"]["max_seed"]);
 
-        let setSeed = RETRO_GAME_DATA["skirmish"]["seed"];
+        let setSeed = WTL_GAME_DATA["skirmish"]["seed"];
         let useSetSeed = setSeed != null;
         if (useSetSeed){
             seed = setSeed;
@@ -906,7 +906,7 @@ class TurnBasedSkirmish extends Gamemode {
             let startingTileX = Math.min(size, Math.max(0, WTLGameScene.getTileXAt(riverStartX)));
             let startingTileY = Math.min(size, Math.max(0, WTLGameScene.getTileXAt(riverStartY)));
 
-            let range = size*RETRO_GAME_DATA["general"]["tile_size"];
+            let range = size*WTL_GAME_DATA["general"]["tile_size"];
             let finalOffsetX = range * Math.cos(riverAngleRAD);
             let finalOffsetY = range * Math.sin(riverAngleRAD);
 
@@ -993,20 +993,20 @@ class TurnBasedSkirmish extends Gamemode {
             // Bottom Left
             if (riverType == 1){
                 riverAngleRAD = random.getFloatInRange(0, Math.PI/2);
-                riverStartX = random.getIntInRangeInclusive(0, (size-1) * RETRO_GAME_DATA["general"]["tile_size"]/2);
+                riverStartX = random.getIntInRangeInclusive(0, (size-1) * WTL_GAME_DATA["general"]["tile_size"]/2);
                 riverStartY = 0;
             }else if (riverType == 2){ // Top Left
                 riverAngleRAD = random.getFloatInRange(2 * Math.PI * 3/4, 2 * Math.PI);
-                riverStartX = random.getIntInRangeInclusive(0, (size-1) * RETRO_GAME_DATA["general"]["tile_size"]/2);
-                riverStartY = (size-1) * RETRO_GAME_DATA["general"]["tile_size"];
+                riverStartX = random.getIntInRangeInclusive(0, (size-1) * WTL_GAME_DATA["general"]["tile_size"]/2);
+                riverStartY = (size-1) * WTL_GAME_DATA["general"]["tile_size"];
             }else if (riverType == 3){ // Bottom Right
                 riverAngleRAD = random.getFloatInRange(Math.PI/2, Math.PI);
-                riverStartX = random.getIntInRangeInclusive(0, (size-1) * RETRO_GAME_DATA["general"]["tile_size"]/2);
+                riverStartX = random.getIntInRangeInclusive(0, (size-1) * WTL_GAME_DATA["general"]["tile_size"]/2);
                 riverStartY = 0;
             }else{ // Rivertype == 4 // Top Right
                 riverAngleRAD = random.getFloatInRange(Math.PI, 2 * Math.PI * 3/4);
-                riverStartX = (size-1) * RETRO_GAME_DATA["general"]["tile_size"];
-                riverStartY = random.getIntInRangeInclusive((size-1) * RETRO_GAME_DATA["general"]["tile_size"]/2, (size-1) * RETRO_GAME_DATA["general"]["tile_size"]);
+                riverStartX = (size-1) * WTL_GAME_DATA["general"]["tile_size"];
+                riverStartY = random.getIntInRangeInclusive((size-1) * WTL_GAME_DATA["general"]["tile_size"]/2, (size-1) * WTL_GAME_DATA["general"]["tile_size"]);
             }
 
             // For each x, find the y tile for the river
@@ -1216,7 +1216,7 @@ class TurnBasedSkirmish extends Gamemode {
 
     static async loadImages(){
         let folderURL = "skirmish/item/special/";
-        for (let specialItemName of RETRO_GAME_DATA["skirmish"]["special_item_names"]){
+        for (let specialItemName of WTL_GAME_DATA["skirmish"]["special_item_names"]){
             // Do not load if already exists
             if (objectHasKey(IMAGES, specialItemName)){ continue; }
             //console.log("Loading", specialItemName);

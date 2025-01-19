@@ -16,7 +16,7 @@ class SkirmishMatchStats {
     */
     constructor(){
         this.reset();
-        this.maxKillRowsToDisplay = RETRO_GAME_DATA["match_stats"]["max_rows_of_kills_to_display"];
+        this.maxKillRowsToDisplay = WTL_GAME_DATA["match_stats"]["max_rows_of_kills_to_display"];
     }
 
     /*
@@ -100,7 +100,7 @@ class SkirmishMatchStats {
         let classKillCounts = {};
         for (let kill of this.kills){
             // If victim on team B then its a kill for team A. This helps with cases like friendly-fire
-            if (getProperAdjective(RETRO_GAME_DATA["character_class_to_team_name"][kill["victim_class"]]) != getProperAdjective(team)){
+            if (getProperAdjective(WTL_GAME_DATA["character_class_to_team_name"][kill["victim_class"]]) != getProperAdjective(team)){
                 let killerClass = kill["killer_class"];
                 if (!objectHasKey(classKillCounts, killerClass)){
                     classKillCounts[killerClass] = 1;
@@ -151,20 +151,20 @@ class SkirmishMatchStats {
     displayKillFeed(){
         let lastToDisplayIndex = this.kills.length - 1 - this.killFeedOffset;
         let firstToDisplayIndex = Math.max(0, lastToDisplayIndex - this.maxKillRowsToDisplay);
-        let textSize = RETRO_GAME_DATA["match_stats"]["text_size"];
+        let textSize = WTL_GAME_DATA["match_stats"]["text_size"];
         updateFontSize(textSize);
 
         let startY = 0;
         let rightX = getScreenWidth();
-        let killTextColour = Colour.fromCode(RETRO_GAME_DATA["match_stats"]["kill_text_colour"]);
+        let killTextColour = Colour.fromCode(WTL_GAME_DATA["match_stats"]["kill_text_colour"]);
         let killText = " killed ";
         for (let i = firstToDisplayIndex; i <= lastToDisplayIndex; i++){
             let currentY = startY + (i - firstToDisplayIndex) * textSize;
             let killerClass = this.kills[i]["killer_class"];
             let victimClass = this.kills[i]["victim_class"];
-            //console.log(RETRO_GAME_DATA["character_class_to_team_name"][killerClass], RETRO_GAME_DATA["character_class_to_team_name"][victimClass])
-            let killerTeam = getProperAdjective(RETRO_GAME_DATA["character_class_to_team_name"][killerClass]);
-            let victimTeam = getProperAdjective(RETRO_GAME_DATA["character_class_to_team_name"][victimClass]);
+            //console.log(WTL_GAME_DATA["character_class_to_team_name"][killerClass], WTL_GAME_DATA["character_class_to_team_name"][victimClass])
+            let killerTeam = getProperAdjective(WTL_GAME_DATA["character_class_to_team_name"][killerClass]);
+            let victimTeam = getProperAdjective(WTL_GAME_DATA["character_class_to_team_name"][victimClass]);
             let killerTeamColour = Colour.fromCode(SkirmishMatchStats.getTeamNameColour(killerTeam));
             let victimTeamColour = Colour.fromCode(SkirmishMatchStats.getTeamNameColour(victimTeam));
             let victimTextLength = Math.ceil(measureTextWidth(victimClass));
@@ -214,7 +214,7 @@ class SkirmishMatchStats {
         Method Return: String
     */
     static getTeamNameColour(team){
-        return RETRO_GAME_DATA["team_to_colour"][team];
+        return WTL_GAME_DATA["team_to_colour"][team];
     }
 
     /*

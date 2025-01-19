@@ -11,11 +11,11 @@ class GameMakerUI extends Menu {
 
     blocksWindowLocation(windowX, windowY){
         if (!GAMEMODE_MANAGER.getActiveGamemode().isDisplayingHUD()){ return false; }
-        return windowY <= RETRO_GAME_DATA["ui"]["game_maker"]["top_bar_height"] || windowY >= getScreenHeight() - RETRO_GAME_DATA["ui"]["game_maker"]["bottom_bar_height"];
+        return windowY <= WTL_GAME_DATA["ui"]["game_maker"]["top_bar_height"] || windowY >= getScreenHeight() - WTL_GAME_DATA["ui"]["game_maker"]["bottom_bar_height"];
     }
 
     loadPhysicalImages(){
-        let tiles = RETRO_GAME_DATA["physical_tiles"];
+        let tiles = WTL_GAME_DATA["physical_tiles"];
         let selectableImages = [];
         for (let tileDetails of tiles){
             // Check if image already exists
@@ -59,7 +59,7 @@ class GameMakerUI extends Menu {
         let topBarHeight = 100;
         this.topBar = new ComponentGroup();
         
-        let purpleColour = Colour.fromCode(RETRO_GAME_DATA["ui"]["game_maker"]["purple_code"]);
+        let purpleColour = Colour.fromCode(WTL_GAME_DATA["ui"]["game_maker"]["purple_code"]);
 
         // Add Background of Top Bar
         this.topBar.addComponent(new SimpleComponent(() => {
@@ -103,7 +103,7 @@ class GameMakerUI extends Menu {
         let bottomBarHeight = 100;
         this.bottomBar = new ComponentGroup();
 
-        let purpleColour = Colour.fromCode(RETRO_GAME_DATA["ui"]["game_maker"]["purple_code"]);
+        let purpleColour = Colour.fromCode(WTL_GAME_DATA["ui"]["game_maker"]["purple_code"]);
 
         // Add Background of Back Bar
         this.bottomBar.addComponent(new SimpleComponent(() => {
@@ -118,8 +118,8 @@ class GameMakerUI extends Menu {
         this.bottomBar.addComponent(this.toggleButton);
 
         // Image Selector
-        let imageWidth = RETRO_GAME_DATA["ui"]["game_maker"]["image_width"];
-        let imageHeight = RETRO_GAME_DATA["ui"]["game_maker"]["image_height"];
+        let imageWidth = WTL_GAME_DATA["ui"]["game_maker"]["image_width"];
+        let imageHeight = WTL_GAME_DATA["ui"]["game_maker"]["image_height"];
         this.imageSelector = new ImageSelector((innerWidth) => { return 0; }, (innerHeight) => { return bottomBarHeight; }, (innerWidth) => { return innerWidth - toggleButtonWidth }, imageWidth, imageHeight);
         this.bottomBar.addComponent(this.imageSelector);
     }
@@ -214,11 +214,11 @@ class ImageSelector extends Component {
     }
 
     display(){
-        let scrollButtonWidth = RETRO_GAME_DATA["ui"]["game_maker"]["scroll_button_width"];
+        let scrollButtonWidth = WTL_GAME_DATA["ui"]["game_maker"]["scroll_button_width"];
 
         let x = this.getX();
         let y = this.getY();
-        let height = RETRO_GAME_DATA["ui"]["game_maker"]["bottom_bar_height"];
+        let height = WTL_GAME_DATA["ui"]["game_maker"]["bottom_bar_height"];
         let width = this.getWidth();
 
         // If too little width because screen is small then don't display
@@ -228,7 +228,7 @@ class ImageSelector extends Component {
         }
 
         // Left Scroll Button    
-        Menu.makeRectangleWithText("<", RETRO_GAME_DATA["ui"]["game_maker"]["purple_code"], "#ffffff", x, y, scrollButtonWidth, height);
+        Menu.makeRectangleWithText("<", WTL_GAME_DATA["ui"]["game_maker"]["purple_code"], "#ffffff", x, y, scrollButtonWidth, height);
 
         // Images
         let imageRegionSize = width - 2 * scrollButtonWidth;
@@ -267,7 +267,7 @@ class ImageSelector extends Component {
         }
         //console.log("Displaying right button @", x + scrollButtonWidth + usedWidth)
         // Right Scroll Button
-        Menu.makeRectangleWithText(">", RETRO_GAME_DATA["ui"]["game_maker"]["purple_code"], "#ffffff", x + scrollButtonWidth + usedWidth, y, scrollButtonWidth, height);
+        Menu.makeRectangleWithText(">", WTL_GAME_DATA["ui"]["game_maker"]["purple_code"], "#ffffff", x + scrollButtonWidth + usedWidth, y, scrollButtonWidth, height);
     }
 
     // TODO: Click mechanism
@@ -283,7 +283,7 @@ class ImageSelector extends Component {
         Method Return: boolean, true -> covers, false -> does not cover
     */
     covers(x, y){
-        return x >= this.getX() && x <= this.getX() + this.getWidth() && y <= this.getY() && y >= this.getY() - RETRO_GAME_DATA["ui"]["game_maker"]["bottom_bar_height"];
+        return x >= this.getX() && x <= this.getX() + this.getWidth() && y <= this.getY() && y >= this.getY() - WTL_GAME_DATA["ui"]["game_maker"]["bottom_bar_height"];
     }
 
     /*
@@ -301,9 +301,9 @@ class ImageSelector extends Component {
 
         // Note: Assuming x >= this.getX() and x < this.getX() + this.getWidth()
         // Note: Assuming y >= this.getY() && y <= this.getY() + height
-        let height = RETRO_GAME_DATA["ui"]["game_maker"]["bottom_bar_height"];
+        let height = WTL_GAME_DATA["ui"]["game_maker"]["bottom_bar_height"];
         let width = this.getWidth();
-        let scrollButtonWidth = RETRO_GAME_DATA["ui"]["game_maker"]["scroll_button_width"];
+        let scrollButtonWidth = WTL_GAME_DATA["ui"]["game_maker"]["scroll_button_width"];
         let imageRegionSize = width - 2 * scrollButtonWidth;
         let xOffset = x - this.getX();
         // Check left button
@@ -333,7 +333,7 @@ class ImageSelector extends Component {
 
 class ConnectButton extends RectangleButton {
     constructor(textColour, x, y, width, height){
-        super("connect", RETRO_GAME_DATA["ui"]["game_maker"]["red_code"], textColour, x, y, width, height, () => {});
+        super("connect", WTL_GAME_DATA["ui"]["game_maker"]["red_code"], textColour, x, y, width, height, () => {});
         this.connectLock = new Lock();
         this.connected = false;
     }
@@ -386,19 +386,19 @@ class ConnectButton extends RectangleButton {
     }
 
     setConnected(){
-        this.colour = RETRO_GAME_DATA["ui"]["game_maker"]["green_code"];
+        this.colour = WTL_GAME_DATA["ui"]["game_maker"]["green_code"];
         this.textStr = "Connected";
         this.connected = true;
     }
 
     setNotConnected(){
-        this.colour = RETRO_GAME_DATA["ui"]["game_maker"]["red_code"];
+        this.colour = WTL_GAME_DATA["ui"]["game_maker"]["red_code"];
         this.textStr = "Disconnected";
         this.connected = false;
     }
 
     setUpdating(){
-        this.colour = RETRO_GAME_DATA["ui"]["game_maker"]["yellow_code"];
+        this.colour = WTL_GAME_DATA["ui"]["game_maker"]["yellow_code"];
         this.textStr = "Connecting...";
         this.connected = false;
     }

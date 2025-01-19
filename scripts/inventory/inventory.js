@@ -1,7 +1,7 @@
 class Inventory {
     constructor(player){
         this.player = player;
-        this.hotbar = new NotSamArrayList(null, RETRO_GAME_DATA["inventory"]["hotbar_size"]);
+        this.hotbar = new NotSamArrayList(null, WTL_GAME_DATA["inventory"]["hotbar_size"]);
         this.hotbar.fillWithPlaceholder(null);
         this.selectedSlot = 0;
     }
@@ -57,10 +57,10 @@ class Inventory {
     }
 
     display(){
-        let hotbarOutlineColour = Colour.fromCode(RETRO_GAME_DATA["inventory"]["harbar_outline_colour"]);
+        let hotbarOutlineColour = Colour.fromCode(WTL_GAME_DATA["inventory"]["harbar_outline_colour"]);
 
-        let hotbarSize = RETRO_GAME_DATA["inventory"]["hotbar_size"];
-        let slotSize = RETRO_GAME_DATA["inventory"]["slot_size"];
+        let hotbarSize = WTL_GAME_DATA["inventory"]["hotbar_size"];
+        let slotSize = WTL_GAME_DATA["inventory"]["slot_size"];
         let width = slotSize * hotbarSize + 1 + hotbarSize;
 
         // Find x offset to center
@@ -72,7 +72,7 @@ class Inventory {
             xOffset = Math.floor((screenWidth - width) / 2);
         }
 
-        let yOffset = RETRO_GAME_DATA["inventory"]["hotbar_y_offset_from_bottom"];
+        let yOffset = WTL_GAME_DATA["inventory"]["hotbar_y_offset_from_bottom"];
         let displayY = getScreenHeight() - slotSize - yOffset;
 
         // Display top bar of outline
@@ -87,11 +87,11 @@ class Inventory {
         }
 
         // Display text numbers
-        let textColour = Colour.fromCode(RETRO_GAME_DATA["inventory"]["hotbar_selected_item_outline_colour"]);
+        let textColour = Colour.fromCode(WTL_GAME_DATA["inventory"]["hotbar_selected_item_outline_colour"]);
 
         // Display item icons
         let displayNumber = 1;
-        let textSize = RETRO_GAME_DATA["inventory"]["text_size"];
+        let textSize = WTL_GAME_DATA["inventory"]["text_size"];
         for (let i = 0; i < hotbarSize; i++){
             let itemXOffset = xOffset + 1 + i * (slotSize + 1);
             let item = this.hotbar.get(i);
@@ -103,7 +103,7 @@ class Inventory {
         }
 
         // If has selected item then display indicator
-        let selectedSlotOutlineColour = Colour.fromCode(RETRO_GAME_DATA["inventory"]["hotbar_selected_item_outline_colour"]);
+        let selectedSlotOutlineColour = Colour.fromCode(WTL_GAME_DATA["inventory"]["hotbar_selected_item_outline_colour"]);
         let selectedSlotLeftBorderX = xOffset + this.selectedSlot * (slotSize + 1);
         let selectedSlotRightBorderX = xOffset + (this.selectedSlot+1) * (slotSize + 1);
 

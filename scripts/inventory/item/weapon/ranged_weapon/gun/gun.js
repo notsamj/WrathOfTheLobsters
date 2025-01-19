@@ -6,17 +6,17 @@ class Gun extends RangedWeapon {
         this.loaded = true;
 
         this.reloading = false;
-        this.reloadLock = new TickLock(RETRO_GAME_DATA["gun_data"][this.model]["reload_time_ms"] / RETRO_GAME_DATA["general"]["ms_between_ticks"]);
+        this.reloadLock = new TickLock(WTL_GAME_DATA["gun_data"][this.model]["reload_time_ms"] / WTL_GAME_DATA["general"]["ms_between_ticks"]);
     
-        this.maxSwayVelocityRAD = 1 / getTickRate() * toRadians(objectHasKey(details, "max_sway_velocity_deg") ? details["max_sway_velocity_deg"] : RETRO_GAME_DATA["gun_data"][this.getModel()]["max_sway_velocity_deg"]);
-        this.swingMaxRandomConstant = 1 / getTickRate() * toRadians(objectHasKey(details, "maximum_random_sway_acceleration_deg") ? details["maximum_random_sway_acceleration_deg"] : RETRO_GAME_DATA["gun_data"][this.getModel()]["maximum_random_sway_acceleration_deg"]);
-        this.swingMinRandomConstant = 1 / getTickRate() * toRadians(objectHasKey(details, "minimum_random_sway_acceleration_deg") ? details["minimum_random_sway_acceleration_deg"] : RETRO_GAME_DATA["gun_data"][this.getModel()]["minimum_random_sway_acceleration_deg"]);
-        this.swayCompensationConstant = 1 / getTickRate() * toRadians(objectHasKey(details, "corrective_sway_acceleration_deg") ? details["corrective_sway_acceleration_deg"] : RETRO_GAME_DATA["gun_data"][this.getModel()]["corrective_sway_acceleration_deg"]);
-        this.swayDeclineA = objectHasKey(details, "sway_decline_a") ? details["sway_decline_a"] : RETRO_GAME_DATA["gun_data"][this.getModel()]["sway_decline_a"];
-        this.swayDeclineB = objectHasKey(details, "sway_decline_b") ? details["sway_decline_b"] : RETRO_GAME_DATA["gun_data"][this.getModel()]["sway_decline_b"];
-        this.swayConstantC = objectHasKey(details, "corrective_sway_acceleration_constant_c") ? details["corrective_sway_acceleration_constant_c"] : RETRO_GAME_DATA["gun_data"][this.getModel()]["corrective_sway_acceleration_constant_c"];
-        this.swayConstantD = objectHasKey(details, "corrective_sway_acceleration_constant_d") ? details["corrective_sway_acceleration_constant_d"] : RETRO_GAME_DATA["gun_data"][this.getModel()]["corrective_sway_acceleration_constant_d"];
-        this.swayMaxAngleRAD = toRadians(objectHasKey(details, "sway_max_angle_deg") ? details["sway_max_angle_deg"] : RETRO_GAME_DATA["gun_data"][this.getModel()]["sway_max_angle_deg"]);
+        this.maxSwayVelocityRAD = 1 / getTickRate() * toRadians(objectHasKey(details, "max_sway_velocity_deg") ? details["max_sway_velocity_deg"] : WTL_GAME_DATA["gun_data"][this.getModel()]["max_sway_velocity_deg"]);
+        this.swingMaxRandomConstant = 1 / getTickRate() * toRadians(objectHasKey(details, "maximum_random_sway_acceleration_deg") ? details["maximum_random_sway_acceleration_deg"] : WTL_GAME_DATA["gun_data"][this.getModel()]["maximum_random_sway_acceleration_deg"]);
+        this.swingMinRandomConstant = 1 / getTickRate() * toRadians(objectHasKey(details, "minimum_random_sway_acceleration_deg") ? details["minimum_random_sway_acceleration_deg"] : WTL_GAME_DATA["gun_data"][this.getModel()]["minimum_random_sway_acceleration_deg"]);
+        this.swayCompensationConstant = 1 / getTickRate() * toRadians(objectHasKey(details, "corrective_sway_acceleration_deg") ? details["corrective_sway_acceleration_deg"] : WTL_GAME_DATA["gun_data"][this.getModel()]["corrective_sway_acceleration_deg"]);
+        this.swayDeclineA = objectHasKey(details, "sway_decline_a") ? details["sway_decline_a"] : WTL_GAME_DATA["gun_data"][this.getModel()]["sway_decline_a"];
+        this.swayDeclineB = objectHasKey(details, "sway_decline_b") ? details["sway_decline_b"] : WTL_GAME_DATA["gun_data"][this.getModel()]["sway_decline_b"];
+        this.swayConstantC = objectHasKey(details, "corrective_sway_acceleration_constant_c") ? details["corrective_sway_acceleration_constant_c"] : WTL_GAME_DATA["gun_data"][this.getModel()]["corrective_sway_acceleration_constant_c"];
+        this.swayConstantD = objectHasKey(details, "corrective_sway_acceleration_constant_d") ? details["corrective_sway_acceleration_constant_d"] : WTL_GAME_DATA["gun_data"][this.getModel()]["corrective_sway_acceleration_constant_d"];
+        this.swayMaxAngleRAD = toRadians(objectHasKey(details, "sway_max_angle_deg") ? details["sway_max_angle_deg"] : WTL_GAME_DATA["gun_data"][this.getModel()]["sway_max_angle_deg"]);
         this.currentAngleOffsetRAD = 0;
         this.currentAngleOffsetVelocity = 0;
         this.swaying = false;
@@ -220,7 +220,7 @@ class Gun extends RangedWeapon {
     }
 
     getBulletRange(){
-        return RETRO_GAME_DATA["gun_data"][this.getModel()]["range"];
+        return WTL_GAME_DATA["gun_data"][this.getModel()]["range"];
     }
 
     shoot(){

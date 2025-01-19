@@ -35,6 +35,6 @@ class RockHitbox {
 
     display(leftX, topY){
         if (this.isDead()){ return; }
-        this.healthBar.display(leftX + RETRO_GAME_DATA["general"]["tile_size"]/2, topY + RETRO_GAME_DATA["general"]["tile_size"]/2);
+        this.healthBar.display(leftX + WTL_GAME_DATA["general"]["tile_size"]/2, topY + WTL_GAME_DATA["general"]["tile_size"]/2);
     }
 }

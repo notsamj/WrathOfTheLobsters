@@ -693,7 +693,7 @@ class TurnBasedSkirmish extends Gamemode {
                 "sway_acceleration_constant": 0
             }));
 
-            privateTroop.getInventory().add(new SkirmishSword("clever", {
+            privateTroop.getInventory().add(new SkirmishSword("cleaver", {
                 "player": privateTroop
             }));
         }

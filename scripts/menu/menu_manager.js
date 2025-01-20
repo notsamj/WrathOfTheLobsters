@@ -146,7 +146,7 @@ class MenuManager {
     */
     lostFocus(){
         if (!this.hasActiveMenu()){
-            this.switchTo("pauseMenu");
+            this.switchTo("pause_menu");
         }
     }
 
@@ -160,7 +160,7 @@ class MenuManager {
         if (this.activeMenu === this.pauseMenu){
             this.switchTo("game");
         }else if (!this.hasActiveMenu()){
-            this.switchTo("pauseMenu");
+            this.switchTo("pause_menu");
         }
     }
 
@@ -176,7 +176,7 @@ class MenuManager {
         let enableCursor = true;
         if (newMenuName == "main"){
             this.activeMenu = this.mainMenu;
-        }else if (newMenuName == "pauseMenu"){
+        }else if (newMenuName == "pause_menu"){
             if (!TICK_SCHEDULER.isPaused()){
                 TICK_SCHEDULER.pause();
             }
@@ -200,13 +200,11 @@ class MenuManager {
     }
 
     switchToSecondary(secondaryMenuName){
-        for (let secondaryMenu of this.secondaryMenus){
-            if (secondaryMenu["name"] === secondaryMenuName){
-                this.activeMenu = secondaryMenu["instance"];
-                return true;
-            }
+        let secondaryMenu = this.getMenuByName(secondaryMenuName);
+        if (secondaryMenu != null){
+            this.activeMenu = secondaryMenu;
         }
-        return false;
+        return secondaryMenu != null;
     }
 
     /*
@@ -218,28 +216,16 @@ class MenuManager {
         Method Return: Menu
     */
     getMenuByName(menuName){
-        if (menuName == "main"){
+        if (menuName === "main"){
             return this.mainMenu;
-        }else if (menuName == "dogfight"){
-            return this.dogfightMenu;
-        }else if (menuName == "pauseMenu"){
+        }else if (menuName === "pause_menu"){
             return this.pauseMenu;
-        }else if (menuName == "multiplayer"){
-            return this.multiplayerMenu;
-        }else if (menuName == "sound"){
-            return this.soundMenu;
-        }else if (menuName == "campaign"){
-            return this.campaignMenu;
-        }else if (menuName == "missionStart"){
-            return this.missionStartMenu;
-        }else if (menuName == "extraSettings"){
-            return this.extraSettingsMenu;
-        }else if (menuName == "participant"){
-            return this.participantMenu;
-        }else if (menuName == "host"){
-            return this.hostMenu;
-        }else if (menuName == "game_maker"){
-            return this.gameMakerMenu;
+        }
+        // Check secondary menus
+        for (let secondaryMenu of this.secondaryMenus){
+            if (secondaryMenu["name"] === menuName){
+                return secondaryMenu["instance"];
+            }
         }
         // Else
         return null;

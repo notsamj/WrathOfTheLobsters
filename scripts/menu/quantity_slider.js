@@ -3,38 +3,8 @@
     Description: A type of option slider. A sliding bar for setting a integer or float value in a range.
 */
 class QuantitySlider extends OptionSlider {
-    /*
-        Method Name: constructor
-        Method Parameters:
-            x:
-                x location of the quantity slider
-            y:
-                y location of the quantity slider
-            width:
-                Width of the quantity slider
-            height:
-                Height of the quantity slider
-            getValueFunction:
-                Function to call to get the value
-            setValueFunction:
-                Function to call to set the value
-            minValue:
-                Minimum value
-            maxValue:
-                Maximum value
-            usingFloat:
-                Whether using floats rather than integers
-            backgroundBarColour:
-                Colour of the bar background (code)
-            sliderColour:
-                Colour of the slider (code)
-            textColour:
-                Colour of the text (code)
-        Method Description: Constructor
-        Method Return: Constructor
-    */
-    constructor(x, y, width, height, getValueFunction, setValueFunction, minValue, maxValue, usingFloat=false, backgroundBarColour="#000000", sliderColour="#ffffff", textColour="#000000"){
-        super(x, y, width, height, getValueFunction, setValueFunction, backgroundBarColour, sliderColour, textColour);
+    constructor(x, y, width, height, textHeight, getValueFunction, setValueFunction, minValue, maxValue, usingFloat=false, backgroundBarColour="#000000", sliderColour="#ffffff", textColour="#000000"){
+        super(x, y, width, height, textHeight, getValueFunction, setValueFunction, backgroundBarColour, sliderColour, textColour);
         this.minValue = minValue;
         this.maxValue = maxValue;
         this.usingFloat = usingFloat;

@@ -83,7 +83,7 @@ class SoundMenu extends Menu {
             SOUND_MANAGER.updateVolume(soundName, newVolume);
         }
 
-        let quantitySlider = new QuantitySlider(soundScaleX, soundScaleY, width, height, getValueFunction, setValueFunction, 0, 100, false, "#000000", "#f5d442", "#f5d442");
+        let quantitySlider = new QuantitySlider(soundScaleX, soundScaleY, width, height/2, height/2, getValueFunction, setValueFunction, 0, 100, false, "#000000", "#f5d442", "#f5d442");
         this.components.push(quantitySlider);
     }
 
@@ -97,3 +97,4 @@ class SoundMenu extends Menu {
         MENU_MANAGER.switchTo("main");
     }
 }
+MENU_MANAGER.registerMenu("sound", new SoundMenu());

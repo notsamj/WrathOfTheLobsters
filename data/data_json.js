@@ -6,7 +6,7 @@ const WTL_GAME_DATA = {
                 {
                     "human": true,
                     "model": "british_officer",
-                    "swords": ["cavalry_sword", "clever"], // "cavalry_sword", "clever"
+                    "swords": ["cavalry_sword", "cleaver"], // "cavalry_sword", "cleaver"
                     "pistols": ["flintlock"], // "flintlock"
                     "muskets": ["brown_bess"], // "brown_bess"
                     "extra_details": {
@@ -21,7 +21,7 @@ const WTL_GAME_DATA = {
                 {
                     "human": false,
                     "model": "usa_officer",
-                    "swords": ["cavalry_sword", "clever"],
+                    "swords": ["cavalry_sword", "cleaver"],
                     "pistols": ["flintlock"],
                     "muskets": ["brown_bess"],
                     "extra_details": {
@@ -383,7 +383,7 @@ const WTL_GAME_DATA = {
             "stun_time_ms": 1000
         },
         "swords": {
-            "clever": {
+            "cleaver": {
                 "swing_time_ms": 200, // 200
                 "swing_angle_range_deg": 120,
                 "handle_offset_x": 0,
@@ -601,8 +601,8 @@ const WTL_GAME_DATA = {
                     "x_size": 200,
                     "y_size": 76
                 },
-                "p1_start_x": 500,
-                "p2_start_x": 1000,
+                "p1_start_x": 350,
+                "p2_start_x": 650,
                 "section_head": {
                     "p1_name": "Player 1",
                     "p2_name": "Player 2",
@@ -612,19 +612,53 @@ const WTL_GAME_DATA = {
                 },
                 "character_image": {
                     "selection": ["british_officer_64", "british_pvt_g_64", "usa_officer_64", "usa_pvt_64"],
+                    "selection_corresponding_models": ["british_officer", "british_pvt_g", "usa_officer", "usa_pvt"],
                     "y_offset": 0,
+                    "width": 128,
+                    "height": 128
+                },
+                "toggle_bot_button": {
+                    "y_offset": 25,
+                    "x_size": 128,
+                    "y_size": 64,
+                    "human_text": "Human",
+                    "bot_text": "Bot",
+                    "bot_colour_code": "#eb4034",
+                    "human_colour_code": "#3bc44b",
+                    "text_colour_code": "#ffffff"
+                },
+                "reaction_time_text": {
+                    "text": "Bot Reaction time (ms)",
+                    "text_colour_code": "#ffffff",
+                    "y_offset": 15,
+                    "width": 260,
+                    "height": 40
+                },
+                "reaction_time_slider": {
+                    "text_colour_code": "#ffffff",
+                    "slider_colour_code": "#ffffff",
+                    "background_colour_code": "#eb4034",
+                    "slider_width": 128,
+                    "slider_height": 50,
+                    "text_height": 50,
+                    "y_offset": -20,
+                    "reaction_time_options": [0, 50, 100, 150, 200, 250, 300, 350, 400, 450, 500, 550, 600, 650, 700, 750, 800, 850, 900, 950, 1000]
+                },
+                "weapon_data": {
                     "width": 64,
-                    "height": 64
+                    "height": 64,
+                    "y_offset": 15,
+                    "sword_model": "cavalry_sword",
+                    "sword_image_name": "cavalry_sword",
+                    "knife_model": "cleaver",
+                    "knife_image_name": "cleaver",
+                    "pistol_model": "flintlock",
+                    "pistol_image_name": "flintlock",
+                    "musket_model": "brown_bess",
+                    "musket_image_name": "brown_bess_right"
                 }
             }
         }
-    },
-
-    "character_basic_image_name_to_model": {
-        "british_officer_64": "british_officer",
-        "british_pvt_g_64": "british_pvt_g",
-        "usa_officer_64": "usa_officer",
-        "usa_pvt_64": "usa_pvt"
     },
 
     "gun_data": {
@@ -829,7 +863,7 @@ const WTL_GAME_DATA = {
                     }
                 }
             },
-            "clever": {
+            "cleaver": {
                 "swinging": {
                     "front": {
                         "x_offset": 32,

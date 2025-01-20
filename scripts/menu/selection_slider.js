@@ -3,34 +3,8 @@
     Description: A type of option slider. A sliding bar for picking an option for an array.
 */
 class SelectionSlider extends OptionSlider {
-    /*
-        Method Name: constructor
-        Method Parameters:
-            x:
-                x location of the quantity slider
-            y:
-                y location of the quantity slider
-            width:
-                Width of the quantity slider
-            height:
-                Height of the quantity slider
-            getValueFunction:
-                Function to call to get the value
-            setValueFunction:
-                Function to call to set the value
-            values:
-                A list of possible values for the selection slider
-            backgroundBarColour:
-                Colour of the bar background (code)
-            sliderColour:
-                Colour of the slider (code)
-            textColour:
-                Colour of the text (code)
-        Method Description: Constructor
-        Method Return: Constructor
-    */
-    constructor(x, y, width, height, getValueFunction, setValueFunction, options, backgroundBarColour="#000000", sliderColour="#ffffff", textColour="#000000"){
-        super(x, y, width, height, getValueFunction, setValueFunction, backgroundBarColour, sliderColour, textColour);
+    constructor(x, y, width, height, textHeight, getValueFunction, setValueFunction, options, backgroundBarColour="#000000", sliderColour="#ffffff", textColour="#000000"){
+        super(x, y, width, height, textHeight, getValueFunction, setValueFunction, backgroundBarColour, sliderColour, textColour);
         this.options = options;
         this.updateSliderX();
     }

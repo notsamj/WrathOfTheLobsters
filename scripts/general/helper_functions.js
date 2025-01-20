@@ -3,6 +3,15 @@ if (typeof window === "undefined"){
     WTL_GAME_DATA = require("../../data/data_json.js");
 }
 
+function getIndexOfElementInList(list, value){
+    for (let i = 0; i < list.length; i++){
+        if (list[i] === value){
+            return i;
+        }
+    }
+    return -1;
+}
+
 function XYToSeed(x, y){
     let sqrtExtreme = Math.floor(Math.sqrt(Number.MAX_SAFE_INTEGER));
     let halfSquareRootExtreme = Math.floor(sqrtExtreme/2);

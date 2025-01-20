@@ -8,10 +8,10 @@ class RectangleButton extends Component {
         Method Parameters:
             textStr:
                 String of text inside the rectangle
-            colour:
-                The colour of the rectangle
-            textColour:
-                The colour of the text insid the rectangle
+            colourCode:
+                The colour code of the rectangle
+            textColourCode:
+                The colour code of the text inside the rectangle
             x:
                 The x location of the top left of the rectangle or a function that returns the x given the screen width
             y:
@@ -25,11 +25,11 @@ class RectangleButton extends Component {
         Method Description: Constructor
         Method Return: Constructor
     */
-    constructor(textStr, colour, textColour, x, y, width, height, callBack){
+    constructor(textStr, colourCode, textColourCode, x, y, width, height, callBack){
         super();
         this.textStr = textStr;
-        this.colour = colour;
-        this.textColour = textColour;
+        this.colourCode = colourCode;
+        this.textColourCode = textColourCode;
         this.x = x;
         this.y = y;
         this.width = width;
@@ -124,7 +124,7 @@ class RectangleButton extends Component {
         Method Return: void
     */
     display(){
-        Menu.makeRectangleWithText(this.getText(), this.colour, this.textColour, this.getX(), this.getY(), this.getWidth(), this.getHeight());
+        Menu.makeRectangleWithText(this.getText(), this.colourCode, this.textColourCode, this.getX(), this.getY(), this.getWidth(), this.getHeight());
     }
 
     /*
@@ -157,12 +157,12 @@ class RectangleButton extends Component {
     /*
         Method Name: setColour
         Method Parameters:
-            colour:
+            colourCode:
                 A string representing a colour
         Method Description: Setter
         Method Return: void
     */
-    setColour(colour){
-        this.colour = colour; 
+    setColour(colourCode){
+        this.colourCode = colourCode; 
     }
 }

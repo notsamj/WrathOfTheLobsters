@@ -139,7 +139,7 @@ class ExtraSettingsMenu extends Menu {
             modifyDataJSONValue(settingPath, newValue);
             setLocalStorage(settingName, newValue);
         }
-        let quantitySlider = new QuantitySlider(settingModifierButtonX, settingModifierButtonY, WTL_GAME_DATA["menu"]["option_slider"]["x_size"], settingModifierButtonSize, getValueFunction, setValueFunction, setting["min_value"], setting["max_value"], setting["uses_float"], undefined, "#108700");
+        let quantitySlider = new QuantitySlider(settingModifierButtonX, settingModifierButtonY, WTL_GAME_DATA["menu"]["option_slider"]["x_size"], settingModifierButtonSize/2, settingModifierButtonSize/2, getValueFunction, setValueFunction, setting["min_value"], setting["max_value"], setting["uses_float"], undefined, "#108700");
         this.components.push(quantitySlider);
     }
 
@@ -189,3 +189,4 @@ class ExtraSettingsMenu extends Menu {
         MENU_MANAGER.switchTo("main");
     }
 }
+MENU_MANAGER.registerMenu("extra_settings", new ExtraSettingsMenu());

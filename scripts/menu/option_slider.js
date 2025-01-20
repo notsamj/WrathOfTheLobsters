@@ -3,43 +3,20 @@
     Description: An abstract type of component. A sliding bar for choosing between options for a value.
 */
 class OptionSlider extends Component {
-    /*
-        Method Name: constructor
-        Method Parameters:
-            x:
-                x location of the quantity slider
-            y:
-                y location of the quantity slider
-            width:
-                Width of the quantity slider
-            height:
-                Height of the quantity slider
-            getValueFunction:
-                Function to call to get the value
-            setValueFunction:
-                Function to call to set the value
-            backgroundBarColour:
-                Colour of the bar background (code)
-            sliderColour:
-                Colour of the slider (code)
-            textColour:
-                Colour of the text (code)
-        Method Description: Constructor
-        Method Return: Constructor
-    */
-    constructor(x, y, width, height, getValueFunction, setValueFunction, backgroundBarColour="#000000", sliderColour="#ffffff", textColour="#000000"){
+    constructor(x, y, width, height, textHeight, getValueFunction, setValueFunction, backgroundBarColourCode="#000000", sliderColourCode="#ffffff", textColourCode="#000000"){
         super();
         this.x = x;
         this.y = y;
         this.width = width;
         this.height = height;
+        this.textHeight = textHeight;
         this.sliderWidth = WTL_GAME_DATA["menu"]["option_slider"]["slider_width_px"];
         this.getValueFunction = getValueFunction;
         this.setValueFunction = setValueFunction;
         this.sliding = false;
-        this.backgroundBarColour = Colour.fromCode(backgroundBarColour);
-        this.sliderColour = Colour.fromCode(sliderColour);
-        this.textColour = textColour;
+        this.backgroundBarColour = Colour.fromCode(backgroundBarColourCode);
+        this.sliderColour = Colour.fromCode(sliderColourCode);
+        this.textColourCode = textColourCode;
     }
 
     // Abstract
@@ -85,7 +62,7 @@ class OptionSlider extends Component {
         this.tick();
         
         // Background Rectangle
-        let screenYForRects = MENU_MANAGER.changeToScreenY(this.getY()-this.height);
+        let screenYForRects = MENU_MANAGER.changeToScreenY(this.getY() - this.textHeight);
         noStrokeRectangle(this.backgroundBarColour, this.getX(), screenYForRects, this.width, this.height);
     
         // Slider
@@ -98,7 +75,7 @@ class OptionSlider extends Component {
         if (Math.floor(value) != value){
             valueString = value.toFixed(2);
         }
-        Menu.makeText(valueString, this.textColour, this.getX(), this.getY(), this.width, this.height);
+        Menu.makeText(valueString, this.textColourCode, this.getX(), this.getY(), this.width, this.textHeight);
     }
 
     /*
@@ -184,7 +161,7 @@ class OptionSlider extends Component {
         Method Return: Boolean
     */
     coveredByY(y){
-        return y <= this.getY() - this.height && y >= this.getY() - 2 * this.height;
+        return y <= this.getY() - this.textHeight && y >= this.getY() - this.textHeight - this.height;
     }
 
     /*

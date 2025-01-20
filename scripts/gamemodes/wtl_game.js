@@ -146,7 +146,7 @@ async function setup() {
     }
 
     window.onfocus = () => {
-        if (TICK_SCHEDULER.isPaused() && !(MENU_MANAGER.getActiveMenu() === MENU_MANAGER.getMenuByName("pauseMenu"))){
+        if (TICK_SCHEDULER.isPaused() && !(MENU_MANAGER.getActiveMenu() === MENU_MANAGER.getMenuByName("pause_menu"))){
             TICK_SCHEDULER.unpause();
         }
     }
@@ -350,7 +350,7 @@ class WTLGame extends Gamemode {
         samuel.getInventory().add(new Musket("brown_bess", {
             "player": samuel
         }));
-        samuel.getInventory().add(new Sword("clever", {
+        samuel.getInventory().add(new Sword("cleaver", {
             "player": samuel
         }));
         samuel.getInventory().add(new Sword("cavalry_sword", {

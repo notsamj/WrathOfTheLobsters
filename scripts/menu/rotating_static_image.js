@@ -5,6 +5,10 @@ class RotatingStaticImage extends StaticImage {
         this.imageIndex = this.findImageIndex(initialImageName);
     }
 
+    getImageIndex(){
+        return this.imageIndex;
+    }
+
     getImageName(){
         return this.imageSelection[this.imageIndex];
     }

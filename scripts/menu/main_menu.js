@@ -60,7 +60,7 @@ class MainMenu extends Menu {
         // Extra Settings
         let extraSettingsY = (innerHeight) => { return soundButtonY(innerHeight) - buttonSizeY - gapSize; }
         this.components.push(new RectangleButton("Settings", "#3bc44b", "#e6f5f4", buttonX, extraSettingsY, buttonSizeX, buttonSizeY, async (menuInstance) => {
-            MENU_MANAGER.switchTo("extraSettings");
+            MENU_MANAGER.switchTo("extra_settings");
         }));
 
         // Information

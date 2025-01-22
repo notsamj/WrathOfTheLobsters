@@ -37,6 +37,7 @@ class ScrollBar extends Component {
         let fullYRange = this.getYRange();
         let offsetOfScreen = sliderProgress * fullYRange;
         let offsetOfIndex = index * this.entryYSize;
+
         return offsetOfIndex - offsetOfScreen;
     }
 
@@ -76,7 +77,7 @@ class ScrollBar extends Component {
     }
 
     getYRange(){
-        return (this.getNumEntries() -1) * this.getEntryYSize();
+        return (this.getNumEntries() - 1) * this.getEntryYSize();
     }
 
     getVisibleEntriesIndicesRange(){

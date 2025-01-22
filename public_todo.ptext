@@ -1,8 +1,9 @@
 Right now:
-	Create custom level
-
+	Preset tester
+		Game
+			Fly around as spectator in an NxN preset generation
+			On screen (toggle to hit) buttons to change seed and reload
 	Complete duel menu
-		Add custom level selection
 		Add preset select
 		Add start butotn
 
@@ -28,6 +29,9 @@ Right now:
 			Shots fired from within are valid if shot within certain subregion
 			Shots from without are valid if hit within certain subregion
 			You can use this to give an advantage to shooting through say a gap in a wall (partial physical cover)
+
+	Gamemaker
+		Add offline loading of saved levels for viewing
 
 	Duel
 		Add bot difficulties

@@ -24,19 +24,23 @@ class ScrollableDisplay extends Component {
 
     clicked(menuInstance, x, yFromBottom){
         let yFromTop = MENU_MANAGER.changeToScreenY(yFromBottom);
+        // Handle the entry y offset
+        yFromTop -= this.entryYOffset;
+
         let itemIndicesOnScreen = this.scrollBar.getVisibleEntriesIndicesRange();
         let foundIndex = null;
         let startI = itemIndicesOnScreen["start_index"];
         let yOffsetOfStartI = this.scrollBar.getYOffsetOf(startI) + this.entryYOffset;
         let endI = itemIndicesOnScreen["end_index"];
 
-        let expectedI = Math.floor((yFromTop - yOffsetOfStartI) / this.entryYSize);
+
+        let expectedI = Math.floor((yFromTop - yOffsetOfStartI) / this.entryYSize) + startI;
         // Ignore if out of range
         if (expectedI > endI || expectedI < startI){ return; }
         let yOffsetOfExpectedI = (expectedI - startI) * this.entryYSize + yOffsetOfStartI;
         
         // If not clicking inside button then ignore
-        if (!(x >= this.entryXOffset && x < this.entryXOffset + this.goToMenuButtonXSize && yFromTop >= yOffsetOfExpectedI && yFromTop < yOffsetOfExpectedI + this.goToMenuButtonYSize + this.displayNameYSize)){
+        if (!(x >= this.entryXOffset && x < this.entryXOffset + this.goToMenuButtonXSize && yFromTop >= yOffsetOfExpectedI && yFromTop < yOffsetOfExpectedI + this.goToMenuButtonYSize)){
             return;
         }
         // Click in button -> go to menu

@@ -65,6 +65,14 @@ const WTL_GAME_DATA = {
         "origin_y_range_size": 2500
     },
 
+    "level_generator": {
+        "camera": {
+            "move_speed": DATA_TILE_SIZE*16  
+        },
+        "presets": ["river_1"],
+        "level_size": 100
+    },
+
     "duel": {
         "theme_colour": "#5479ff",
         "area_size": 15, // 15?,
@@ -543,6 +551,21 @@ const WTL_GAME_DATA = {
         },
         "text_box_padding_proportion": 0.1,
         "menus": {
+            "level_generator_menu": {
+                "back_button": {
+                    "colour_code": "#3bc44b",
+                    "text_colour_code": "#e6f5f4",
+                    "text": "Main Menu",
+                    "y_offset": 27,
+                    "x": 50,
+                    "x_size": 200,
+                    "y_size": 76
+                },
+                "number_button_size": 50,
+                "max_digits": 3,
+                "number_button_colour_code": "#3bc44b",
+                "number_button_text_colour_code": "#e6f5f4"
+            },
             "gamemode_viewer": {
                 "back_button": {
                     "colour_code": "#3bc44b",
@@ -582,6 +605,10 @@ const WTL_GAME_DATA = {
                     {
                         "display_name": "Duel",
                         "menu_name": "duel_menu"
+                    },
+                    {
+                        "display_name": "Level Generator",
+                        "menu_name": "level_generator_menu"
                     }
                 ]
             },

@@ -1,17 +1,17 @@
 Right now:
-	Preset tester
-		Game
-			Fly around as spectator in an NxN preset generation
-			On screen (toggle to hit) buttons to change seed and reload
-	Complete duel menu
-		Add preset select
-		Add start butotn
+	Default size should be specific to preset (saved in data file)
+	Add generate terrain then cut up (randomly) feature to level_generator
+	Make sure duel is using terrain generator
+	Add a duel level with dress
 
 	Add gentlemanly duel
+		Create custom map
 		Add gamemode 
 		Add gamemode menu
 
 	Add proper spectating to both
+
+	Press H for help on any menu or game
 
 	Review current_todo.txt
 

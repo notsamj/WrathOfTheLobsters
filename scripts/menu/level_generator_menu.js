@@ -1,5 +1,5 @@
 class LevelGeneratorMenu extends Menu {
-    constructor(){
+    constructor(game=null){
         super();
         // Declare
         this.buttonFor0 = undefined;
@@ -27,8 +27,14 @@ class LevelGeneratorMenu extends Menu {
         this.currentSeedString = undefined;
         this.currentPresetIndex = 0;
         this.presets = WTL_GAME_DATA["level_generator"]["presets"];
+        this.ingame = game != null;
+        this.game = game;
         if (this.presets.length === 0){
             throw new Error("Cannot run level generator with no presets");
+        }
+        if (this.ingame){
+            // If ingame then setup immediately
+            this.setup();
         }
     }
 
@@ -83,8 +89,12 @@ class LevelGeneratorMenu extends Menu {
     }
 
     submit(){
-        GAMEMODE_MANAGER.setActiveGamemode(new LevelGenerator(this.getPresetName(), parseInt(this.getCurrentSeedString())));
-        MENU_MANAGER.switchTo("game");
+        if (!this.ingame){
+            GAMEMODE_MANAGER.setActiveGamemode(new LevelGenerator(this.getPresetName(), parseInt(this.getCurrentSeedString())));
+            MENU_MANAGER.switchTo("game");
+        }else{
+            this.game.loadPreset(this.getPresetName(), parseInt(this.getCurrentSeedString()));
+        }
     }
 
     random(){
@@ -93,7 +103,9 @@ class LevelGeneratorMenu extends Menu {
 
     setup(){
         // Background
-        this.components.push(new LoadingScreenComponent());
+        if (!this.ingame){
+            this.components.push(new LoadingScreenComponent());
+        }
 
         let menuData = WTL_GAME_DATA["menu"]["menus"]["level_generator_menu"];
 

@@ -70,7 +70,7 @@ const WTL_GAME_DATA = {
             "move_speed": DATA_TILE_SIZE*16  
         },
         "presets": ["river_1"],
-        "level_size": 100
+        "level_size": 1000
     },
 
     "duel": {
@@ -836,7 +836,12 @@ const WTL_GAME_DATA = {
     "hud": {
         "text_size": 20,
         "key_colour": "#ff6700",
-        "value_colour": "#0066ff"
+        "value_colour": "#0066ff",
+        "extra_time_ms": 1000,
+        "display_x_offset": 10,
+        "priorities": {
+            "fps": 1
+        }
     },
 
     "model_to_model_category": {

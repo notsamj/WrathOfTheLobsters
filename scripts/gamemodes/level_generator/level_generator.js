@@ -6,6 +6,9 @@ class LevelGenerator extends Gamemode {
 
         this.loadingLock = new Lock();
 
+        this.uiEnabled = false;
+        this.ingameUI = new LevelGeneratorMenu(this);
+
         this.startUp(presetName, seed);
     }
 
@@ -19,20 +22,24 @@ class LevelGenerator extends Gamemode {
     async loadPreset(presetName, seed){
         this.loadingLock.lock();
 
+        this.seed = seed;
+
         let chosenPresetFunction;
         if (presetName === "river_1"){
-            chosenPresetFunction = this.generateRiver1Preset;
+            chosenPresetFunction = LevelGenerator.generateRiver1Preset;
         }else{
             throw new Error("Unknown preset: " + presetName);
         }
 
         // Generate
-        await chosenPresetFunction(this.scene, seed, WTL_GAME_DATA["level_generator"]["level_size"]);
+        await chosenPresetFunction(this.scene, seed);
 
         this.loadingLock.unlock();
     }
 
-    async generateRiver1Preset(scene, seed, size, spawns=[]){
+    static async generateRiver1Preset(scene, seed, spawns=[]){
+        let defaultSize = WTL_GAME_DATA["level_generator"]["level_size"];
+        let apr = new AsyncProcessingRegulator();
         // Visual Details
         let grassDetails = {"name":"grass","file_link":"images/grass.png"};
         let rockDetails = {"name":"rock_on_grass","file_link":"images/rock_on_grass.png"};
@@ -57,43 +64,51 @@ class LevelGenerator extends Gamemode {
         await ensureImageIsLoadedFromDetails(bushDetails);
         await ensureImageIsLoadedFromDetails(bigBushDetails);
 
+        // Processing break
+        await apr.attemptToWait();
+
 
         // Do the border
 
         // Left
-        for (let y = -1; y <= size; y++){
+        for (let y = -1; y <= defaultSize; y++){
             scene.placePhysicalTile(fullBlockDetails, -1, y);
         }
 
         // Right
-        for (let y = -1; y <= size; y++){
-            scene.placePhysicalTile(fullBlockDetails, size, y);
+        for (let y = -1; y <= defaultSize; y++){
+            scene.placePhysicalTile(fullBlockDetails, defaultSize, y);
         }
 
         // Bottom
-        for (let x = -1; x <= size; x++){
+        for (let x = -1; x <= defaultSize; x++){
             scene.placePhysicalTile(fullBlockDetails, x, -1);
         }
 
         // Top
-        for (let x = -1; x <= size; x++){
-            scene.placePhysicalTile(fullBlockDetails, x, size);
+        for (let x = -1; x <= defaultSize; x++){
+            scene.placePhysicalTile(fullBlockDetails, x, defaultSize);
         }
 
         // Fill with grass
-        for (let x = 0; x < size; x++){
-            for (let y = 0; y < size; y++){
+        for (let x = 0; x < defaultSize; x++){
+            for (let y = 0; y < defaultSize; y++){
+                // Processing break
+                await apr.attemptToWait();
                 scene.placeVisualTile(grassDetails, x, y);
             }
         }
 
-        let rockClusteres = 16;
-        let minRockClusterSize = 2;
-        let maxRockClusterSize = 5;
-        let smallBushes = 25;
+        // Processing break
+        await apr.attemptToWait();
+
+        let rockClusteres = 125;
+        let minRockClusterSize = 3;
+        let maxRockClusterSize = 7;
+        let smallBushes = 300;
         let minBigBushSize = 3;
         let maxBigBushSize = 9;
-        let bigBushes = 5;
+        let bigBushes = 75;
         let trees = 0; // Temporarily disabled
 
         let random = new SeededRandomizer(seed);
@@ -126,7 +141,7 @@ class LevelGenerator extends Gamemode {
                     let tileX = pair[0];
                     let tileY = pair[1];
 
-                    let isWithinBorders = tileX > -1 && tileX < size && tileY > -1 && tileY < size;
+                    let isWithinBorders = tileX > -1 && tileX < defaultSize && tileY > -1 && tileY < defaultSize;
                     // Disregard if not within playable area
                     if (!isWithinBorders){ continue; }
 
@@ -174,57 +189,72 @@ class LevelGenerator extends Gamemode {
             }
         }
 
+        // Processing break
+        await apr.attemptToWait();
+
         // Place rock clusters
         for (let i = 0; i < rockClusteres; i++){
-            placeCluster(rockDetails, fullBlockDetails, random.getIntInRangeInclusive(0, size-1), random.getIntInRangeInclusive(0, size-1), random.getIntInRangeInclusive(minRockClusterSize, maxRockClusterSize));
+            placeCluster(rockDetails, fullBlockDetails, random.getIntInRangeInclusive(0, defaultSize-1), random.getIntInRangeInclusive(0, defaultSize-1), random.getIntInRangeInclusive(minRockClusterSize, maxRockClusterSize));
         }
+
+        // Processing break
+        await apr.attemptToWait();
 
         // Place Small Bushes
         for (let i = 0; i < smallBushes; i++){
-            let x = random.getIntInRangeInclusive(0, size-1);
-            let y = random.getIntInRangeInclusive(0, size-1);
+            let x = random.getIntInRangeInclusive(0, defaultSize-1);
+            let y = random.getIntInRangeInclusive(0, defaultSize-1);
             scene.placeVisualTile(bushDetails, x, y);
             scene.placePhysicalTile(singleCoverDetails, x, y);
         }
 
+        // Processing break
+        await apr.attemptToWait();
+
         // Place Multi Bushes
         for (let i = 0; i < bigBushes; i++){
-            placeCluster(bigBushDetails, multiCoverDetails, random.getIntInRangeInclusive(0, size-1), random.getIntInRangeInclusive(0, size-1), random.getIntInRangeInclusive(minBigBushSize, maxBigBushSize));
+            placeCluster(bigBushDetails, multiCoverDetails, random.getIntInRangeInclusive(0, defaultSize-1), random.getIntInRangeInclusive(0, defaultSize-1), random.getIntInRangeInclusive(minBigBushSize, maxBigBushSize));
         }
+
+        // Processing break
+        await apr.attemptToWait();
 
         // Place trees
         for (let i = 0; i < trees; i++){
-            let x = random.getIntInRangeInclusive(0, size-1);
-            let y = random.getIntInRangeInclusive(0, size-1);
+            let x = random.getIntInRangeInclusive(0, defaultSize-1);
+            let y = random.getIntInRangeInclusive(0, defaultSize-1);
             scene.placeVisualTile(treeDetails, x, y);
             scene.placePhysicalTile(null, x, y);
         }
 
+        // Processing break
+        await apr.attemptToWait();
+
         // Place River
-        let minRiverWidth = 1;
-        let maxRiverWidth = 3;
-        let numRivers = 2;
+        let minRiverWidth = 3;
+        let maxRiverWidth = 7;
+        let numRivers = 5;
 
         let makeRiver = (riverAngleRAD, riverStartX, riverStartY, currentWidth, riverType, minRiverWidth, maxRiverWidth) => {
-            let startingTileX = Math.min(size, Math.max(0, WTLGameScene.getTileXAt(riverStartX)));
-            let startingTileY = Math.min(size, Math.max(0, WTLGameScene.getTileXAt(riverStartY)));
-
-            let range = size*WTL_GAME_DATA["general"]["tile_size"];
+            let range = defaultSize*WTL_GAME_DATA["general"]["tile_size"];
             let finalOffsetX = range * Math.cos(riverAngleRAD);
             let finalOffsetY = range * Math.sin(riverAngleRAD);
+
+            let xDirection = finalOffsetX < 0 ? -1 : 1;
+            let yDirection = finalOffsetY < 0 ? -1 : 1;
 
             let endX = riverStartX + finalOffsetX;
             let endY = riverStartY + finalOffsetY;
 
-            let endTileX = Math.max(0, Math.min(size, WTLGameScene.getTileXAt(endX)));
-            let endTileY = Math.max(0, Math.min(size, WTLGameScene.getTileYAt(endY)));
+            let endTileX = xDirection > 0 ? defaultSize : -1;
+            let endTileY = yDirection > 0 ? defaultSize : -1;
 
             let tileX = WTLGameScene.getTileXAt(riverStartX);
             let tileY = WTLGameScene.getTileYAt(riverStartY);
             let widthDir = Math.abs(Math.cos(riverAngleRAD)) > Math.abs(Math.sin(riverAngleRAD)) ? "y" : "x";
 
-            // While not at end 
-            while (tileX != endTileX || tileY != endTileY){
+            // While not at end
+            while (tileX != endTileX && tileY != endTileY){
                 let distanceToEndUp = Math.sqrt(Math.pow(endTileX - tileX, 2) + Math.pow(endTileY - (tileY + 1), 2));
                 let distanceToEndDown = Math.sqrt(Math.pow(endTileX - tileX, 2) + Math.pow(endTileY - (tileY - 1), 2));
                 let distanceToEndLeft = Math.sqrt(Math.pow(endTileX - (tileX-1), 2) + Math.pow(endTileY - tileY, 2));
@@ -247,34 +277,34 @@ class LevelGenerator extends Gamemode {
 
                 let lowerWidthOffset = Math.floor(currentWidth/2);
                 let upperWidthOffset = Math.floor(currentWidth/2);
-                if (currentWidth % 2 == 0){
-                    if (random.getIntInRangeInclusive(0,1) == 0){
+                if (currentWidth % 2 === 0){
+                    if (random.getIntInRangeInclusive(0,1) === 0){
                         lowerWidthOffset--;
                     }else{
                         upperWidthOffset++;
                     }
                 }
 
-                if (widthDir == "x"){
+                if (widthDir === "x"){
                     for (let x = tileX - lowerWidthOffset; x <= tileX + upperWidthOffset; x++){
-                        if (x < 0 || x >= size){ continue; }
+                        if (x < 0 || x >= defaultSize){ continue; }
                         scene.placeVisualTile(waterDetails, x, tileY);
                         scene.placePhysicalTile(noWalkDetails, x, tileY);
                     }
                 }else{
                     for (let y = tileY - lowerWidthOffset; y <= tileY + upperWidthOffset; y++){
-                        if (y < 0 || y >= size){ continue; }
+                        if (y < 0 || y >= defaultSize){ continue; }
                         scene.placeVisualTile(waterDetails, tileX, y);
                         scene.placePhysicalTile(noWalkDetails, tileX, y);
                     }
                 }
 
                 // Move
-                if (nextDir == "left"){
+                if (nextDir === "left"){
                     tileX--;
-                }else if (nextDir == "right"){
+                }else if (nextDir === "right"){
                     tileX++;
-                }else if (nextDir == "up"){
+                }else if (nextDir === "up"){
                     tileY++;
                 }else{
                     tileY--;
@@ -282,7 +312,7 @@ class LevelGenerator extends Gamemode {
 
                 currentWidth += random.getIntInRangeInclusive(-1, 1);
                 currentWidth = Math.max(minRiverWidth, Math.min(maxRiverWidth, currentWidth));
-                widthDir = (nextDir == "up" || nextDir == "down") ? "x" : "y";
+                widthDir = (nextDir === "up" || nextDir === "down") ? "x" : "y";
             }
         }
 
@@ -296,24 +326,27 @@ class LevelGenerator extends Gamemode {
             // Bottom Left
             if (riverType == 1){
                 riverAngleRAD = random.getFloatInRange(0, Math.PI/2);
-                riverStartX = random.getIntInRangeInclusive(0, (size-1) * WTL_GAME_DATA["general"]["tile_size"]/2);
+                riverStartX = random.getIntInRangeInclusive(0, (defaultSize-1) * WTL_GAME_DATA["general"]["tile_size"]/2);
                 riverStartY = 0;
             }else if (riverType == 2){ // Top Left
                 riverAngleRAD = random.getFloatInRange(2 * Math.PI * 3/4, 2 * Math.PI);
-                riverStartX = random.getIntInRangeInclusive(0, (size-1) * WTL_GAME_DATA["general"]["tile_size"]/2);
-                riverStartY = (size-1) * WTL_GAME_DATA["general"]["tile_size"];
+                riverStartX = random.getIntInRangeInclusive(0, (defaultSize-1) * WTL_GAME_DATA["general"]["tile_size"]/2);
+                riverStartY = (defaultSize-1) * WTL_GAME_DATA["general"]["tile_size"];
             }else if (riverType == 3){ // Bottom Right
                 riverAngleRAD = random.getFloatInRange(Math.PI/2, Math.PI);
-                riverStartX = random.getIntInRangeInclusive(0, (size-1) * WTL_GAME_DATA["general"]["tile_size"]/2);
+                riverStartX = random.getIntInRangeInclusive(0, (defaultSize-1) * WTL_GAME_DATA["general"]["tile_size"]/2);
                 riverStartY = 0;
             }else{ // Rivertype == 4 // Top Right
                 riverAngleRAD = random.getFloatInRange(Math.PI, 2 * Math.PI * 3/4);
-                riverStartX = (size-1) * WTL_GAME_DATA["general"]["tile_size"];
-                riverStartY = random.getIntInRangeInclusive((size-1) * WTL_GAME_DATA["general"]["tile_size"]/2, (size-1) * WTL_GAME_DATA["general"]["tile_size"]);
+                riverStartX = (defaultSize-1) * WTL_GAME_DATA["general"]["tile_size"];
+                riverStartY = random.getIntInRangeInclusive((defaultSize-1) * WTL_GAME_DATA["general"]["tile_size"]/2, (defaultSize-1) * WTL_GAME_DATA["general"]["tile_size"]);
             }
 
             // For each x, find the y tile for the river
             makeRiver(riverAngleRAD, riverStartX, riverStartY, currentWidth, riverType, minRiverWidth, maxRiverWidth);
+
+            // Processing break
+            await apr.attemptToWait();
         }
 
         // Set the spawns
@@ -331,7 +364,7 @@ class LevelGenerator extends Gamemode {
             let tileStorage = [{"x": startX, "y": startY, "can_walk": canWalk(startX, startY), "checked": false}];
             let hasPath = () => {
                 for (let element of tileStorage){
-                    if (element["x"] == endX && element["y"] == endY && element["can_walk"]){
+                    if (element["x"] === endX && element["y"] === endY && element["can_walk"]){
                         return true;
                     }
                 }
@@ -351,12 +384,12 @@ class LevelGenerator extends Gamemode {
             }
 
             let withinBoundaries = (x,y) => {
-                return x >= 0 && x < size && y >= 0 && y < size;
+                return x >= 0 && x < defaultSize && y >= 0 && y < defaultSize;
             } 
 
             let hasTile = (x,y) => {
                 for (let element of tileStorage){
-                    if (element["x"] == x && element["y"] == y){
+                    if (element["x"] === x && element["y"] === y){
                         return true;
                     }
                 }
@@ -387,7 +420,7 @@ class LevelGenerator extends Gamemode {
                     let tile = null; // Note: We know this exists because of while check
                     for (let element of tileStorage){
                         if (element["can_walk"] && !element["checked"]){
-                            if (tile == null){
+                            if (tile === null){
                                 tile = element;
                             }else{
                                 // Take the closest to end point when possible
@@ -422,7 +455,7 @@ class LevelGenerator extends Gamemode {
                     let toDestroy = null; // Note: No way we don't have a path unless there is something to be destroyed or invalid input
                     for (let element of tileStorage){
                         if (!element["can_walk"]){
-                            if (toDestroy == null){
+                            if (toDestroy === null){
                                 toDestroy = element;
                             }else{
                                 // Take the closest to end point when possible
@@ -440,14 +473,20 @@ class LevelGenerator extends Gamemode {
             }
         }
 
+        // Processing break
+        await apr.attemptToWait();
+
         // Create paths between the spawns
         for (let i = 0; i < spawns.length - 1; i++){
             createPath(spawns[i], spawns[i+1]);
         }
 
+        // Processing break
+        await apr.attemptToWait();
+
         // Add physical tiles where trees survive river placement
-        for (let tileX = 0; tileX < size; tileX++){
-            for (let tileY = 0; tileY < size; tileY++){
+        for (let tileX = 0; tileX < defaultSize; tileX++){
+            for (let tileY = 0; tileY < defaultSize; tileY++){
                 let visualTileAtLocation = scene.getVisualTileAtLocation(tileX, tileY);
                 if (visualTileAtLocation != null && visualTileAtLocation.getMaterial() === "tree"){
                     scene.placePhysicalTile(tileX, tileY, fullBlockDetails);
@@ -462,6 +501,10 @@ class LevelGenerator extends Gamemode {
             return;
         }
         this.scene.display();
+        if (this.uiEnabled){
+            this.ingameUI.display();
+        }
+        MY_HUD.updateElement("seed", this.seed);
     }
 
     tick(){
@@ -472,6 +515,14 @@ class LevelGenerator extends Gamemode {
     }
 
     tickUI(){
-        // TODO
+        let togglingUI = USER_INPUT_MANAGER.isActivated("u_ticked");
+        if (togglingUI){
+            this.uiEnabled = !this.uiEnabled;
+        }
+
+        let clicking = USER_INPUT_MANAGER.isActivated("left_click_ticked");
+        if (this.uiEnabled && clicking){
+            this.ingameUI.click(mouseX, MENU_MANAGER.changeFromScreenY(mouseY));
+        }
     }
 }

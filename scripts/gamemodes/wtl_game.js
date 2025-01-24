@@ -66,75 +66,77 @@ async function setup() {
     USER_INPUT_MANAGER.register("scroll_bar_grab", "mousedown", (event) => { return true; });
     USER_INPUT_MANAGER.register("scroll_bar_grab", "mouseup", (event) => { return true; }, false);
     
-    USER_INPUT_MANAGER.register("left_click", "mousedown", (event) => { return event.which==1; });
-    USER_INPUT_MANAGER.register("left_click", "mouseup", (event) => { return event.which==1; }, false);
+    USER_INPUT_MANAGER.register("left_click", "mousedown", (event) => { return event.which===1; });
+    USER_INPUT_MANAGER.register("left_click", "mouseup", (event) => { return event.which===1; }, false);
 
     // Game
-    USER_INPUT_MANAGER.register("move_up", "keydown", (event) => { return event.keyCode==87; });
-    USER_INPUT_MANAGER.register("move_up", "keyup", (event) => { return event.keyCode==87; }, false);
+    USER_INPUT_MANAGER.register("move_up", "keydown", (event) => { return event.keyCode===87; });
+    USER_INPUT_MANAGER.register("move_up", "keyup", (event) => { return event.keyCode===87; }, false);
 
-    USER_INPUT_MANAGER.register("move_down", "keydown", (event) => { return event.keyCode==83; });
-    USER_INPUT_MANAGER.register("move_down", "keyup", (event) => { return event.keyCode==83; }, false);
+    USER_INPUT_MANAGER.register("move_down", "keydown", (event) => { return event.keyCode===83; });
+    USER_INPUT_MANAGER.register("move_down", "keyup", (event) => { return event.keyCode===83; }, false);
 
-    USER_INPUT_MANAGER.register("move_left", "keydown", (event) => { return event.keyCode==65; });
-    USER_INPUT_MANAGER.register("move_left", "keyup", (event) => { return event.keyCode==65; }, false);
+    USER_INPUT_MANAGER.register("move_left", "keydown", (event) => { return event.keyCode===65; });
+    USER_INPUT_MANAGER.register("move_left", "keyup", (event) => { return event.keyCode===65; }, false);
 
-    USER_INPUT_MANAGER.register("move_right", "keydown", (event) => { return event.keyCode==68; });
-    USER_INPUT_MANAGER.register("move_right", "keyup", (event) => { return event.keyCode==68; }, false);
+    USER_INPUT_MANAGER.register("move_right", "keydown", (event) => { return event.keyCode===68; });
+    USER_INPUT_MANAGER.register("move_right", "keyup", (event) => { return event.keyCode===68; }, false);
 
-    USER_INPUT_MANAGER.register("sprint", "keydown", (event) => { return event.keyCode==16; });
-    USER_INPUT_MANAGER.register("sprint", "keyup", (event) => { return event.keyCode==16; }, false);
+    USER_INPUT_MANAGER.register("sprint", "keydown", (event) => { return event.keyCode===16; });
+    USER_INPUT_MANAGER.register("sprint", "keyup", (event) => { return event.keyCode===16; }, false);
 
-    USER_INPUT_MANAGER.register("right_click", "mousedown", (event) => { return event.which==3; });
-    USER_INPUT_MANAGER.register("right_click", "mouseup", (event) => { return event.which==3; }, false);
+    USER_INPUT_MANAGER.register("right_click", "mousedown", (event) => { return event.which===3; });
+    USER_INPUT_MANAGER.register("right_click", "mouseup", (event) => { return event.which===3; }, false);
 
-    USER_INPUT_MANAGER.register("middle_click", "mousedown", (event) => { return event.which==2; });
-    USER_INPUT_MANAGER.register("middle_click", "mouseup", (event) => { return event.which==2; }, false);
+    USER_INPUT_MANAGER.register("middle_click", "mousedown", (event) => { return event.which===2; });
+    USER_INPUT_MANAGER.register("middle_click", "mouseup", (event) => { return event.which===2; }, false);
 
-    USER_INPUT_MANAGER.register("left_click_ticked", "click", (event) => { return event.which==1; }, true, {"ticked": true, "ticked_activation": false});
+    USER_INPUT_MANAGER.register("left_click_ticked", "click", (event) => { return event.which===1; }, true, {"ticked": true, "ticked_activation": false});
 
-    USER_INPUT_MANAGER.register("h_ticked", "keydown", (event) => { return event.keyCode==72; }, true, {"ticked": true, "ticked_activation": false});
+    USER_INPUT_MANAGER.register("h_ticked", "keydown", (event) => { return event.keyCode===72; }, true, {"ticked": true, "ticked_activation": false});
 
-    USER_INPUT_MANAGER.register("p_ticked", "keydown", (event) => { return event.keyCode==80; }, true, {"ticked": true, "ticked_activation": false});
+    USER_INPUT_MANAGER.register("p_ticked", "keydown", (event) => { return event.keyCode===80; }, true, {"ticked": true, "ticked_activation": false});
 
-    USER_INPUT_MANAGER.register("1/8zoomhold", "keydown", (event) => { return event.keyCode == 101; }, true);
-    USER_INPUT_MANAGER.register("1/8zoomhold", "keyup", (event) => { return event.keyCode == 101; }, false);
+    USER_INPUT_MANAGER.register("1/8zoomhold", "keydown", (event) => { return event.keyCode === 101; }, true);
+    USER_INPUT_MANAGER.register("1/8zoomhold", "keyup", (event) => { return event.keyCode === 101; }, false);
 
-    USER_INPUT_MANAGER.register("1/4zoomhold", "keydown", (event) => { return event.keyCode == 100; }, true);
-    USER_INPUT_MANAGER.register("1/4zoomhold", "keyup", (event) => { return event.keyCode == 100; }, false);
+    USER_INPUT_MANAGER.register("1/4zoomhold", "keydown", (event) => { return event.keyCode === 100; }, true);
+    USER_INPUT_MANAGER.register("1/4zoomhold", "keyup", (event) => { return event.keyCode === 100; }, false);
 
-    USER_INPUT_MANAGER.register("1/2zoomhold", "keydown", (event) => { return event.keyCode == 99; }, true);;
-    USER_INPUT_MANAGER.register("1/2zoomhold", "keyup", (event) => { return event.keyCode == 99; }, false);
+    USER_INPUT_MANAGER.register("1/2zoomhold", "keydown", (event) => { return event.keyCode === 99; }, true);;
+    USER_INPUT_MANAGER.register("1/2zoomhold", "keyup", (event) => { return event.keyCode === 99; }, false);
 
-    USER_INPUT_MANAGER.register("1zoomhold", "keydown", (event) => { return event.keyCode == 98; }, true);
-    USER_INPUT_MANAGER.register("1zoomhold", "keyup", (event) => { return event.keyCode == 98; }, false);
+    USER_INPUT_MANAGER.register("1zoomhold", "keydown", (event) => { return event.keyCode === 98; }, true);
+    USER_INPUT_MANAGER.register("1zoomhold", "keyup", (event) => { return event.keyCode === 98; }, false);
 
-    USER_INPUT_MANAGER.register("2zoomhold", "keydown", (event) => { return event.keyCode == 97; }, true);
-    USER_INPUT_MANAGER.register("2zoomhold", "keyup", (event) => { return event.keyCode == 97; }, false);
+    USER_INPUT_MANAGER.register("2zoomhold", "keydown", (event) => { return event.keyCode === 97; }, true);
+    USER_INPUT_MANAGER.register("2zoomhold", "keyup", (event) => { return event.keyCode === 97; }, false);
 
-    USER_INPUT_MANAGER.register("1_ticked", "keydown", (event) => { return event.keyCode==49; }, true, {"ticked": true, "ticked_activation": false});
-    USER_INPUT_MANAGER.register("2_ticked", "keydown", (event) => { return event.keyCode==50; }, true, {"ticked": true, "ticked_activation": false});
-    USER_INPUT_MANAGER.register("3_ticked", "keydown", (event) => { return event.keyCode==51; }, true, {"ticked": true, "ticked_activation": false});
-    USER_INPUT_MANAGER.register("4_ticked", "keydown", (event) => { return event.keyCode==52; }, true, {"ticked": true, "ticked_activation": false});
-    USER_INPUT_MANAGER.register("5_ticked", "keydown", (event) => { return event.keyCode==53; }, true, {"ticked": true, "ticked_activation": false});
-    USER_INPUT_MANAGER.register("6_ticked", "keydown", (event) => { return event.keyCode==54; }, true, {"ticked": true, "ticked_activation": false});
-    USER_INPUT_MANAGER.register("7_ticked", "keydown", (event) => { return event.keyCode==55; }, true, {"ticked": true, "ticked_activation": false});
-    USER_INPUT_MANAGER.register("8_ticked", "keydown", (event) => { return event.keyCode==56; }, true, {"ticked": true, "ticked_activation": false});
-    USER_INPUT_MANAGER.register("9_ticked", "keydown", (event) => { return event.keyCode==57; }, true, {"ticked": true, "ticked_activation": false});
-    USER_INPUT_MANAGER.register("0_ticked", "keydown", (event) => { return event.keyCode==48; }, true, {"ticked": true, "ticked_activation": false});
+    USER_INPUT_MANAGER.register("1_ticked", "keydown", (event) => { return event.keyCode===49; }, true, {"ticked": true, "ticked_activation": false});
+    USER_INPUT_MANAGER.register("2_ticked", "keydown", (event) => { return event.keyCode===50; }, true, {"ticked": true, "ticked_activation": false});
+    USER_INPUT_MANAGER.register("3_ticked", "keydown", (event) => { return event.keyCode===51; }, true, {"ticked": true, "ticked_activation": false});
+    USER_INPUT_MANAGER.register("4_ticked", "keydown", (event) => { return event.keyCode===52; }, true, {"ticked": true, "ticked_activation": false});
+    USER_INPUT_MANAGER.register("5_ticked", "keydown", (event) => { return event.keyCode===53; }, true, {"ticked": true, "ticked_activation": false});
+    USER_INPUT_MANAGER.register("6_ticked", "keydown", (event) => { return event.keyCode===54; }, true, {"ticked": true, "ticked_activation": false});
+    USER_INPUT_MANAGER.register("7_ticked", "keydown", (event) => { return event.keyCode===55; }, true, {"ticked": true, "ticked_activation": false});
+    USER_INPUT_MANAGER.register("8_ticked", "keydown", (event) => { return event.keyCode===56; }, true, {"ticked": true, "ticked_activation": false});
+    USER_INPUT_MANAGER.register("9_ticked", "keydown", (event) => { return event.keyCode===57; }, true, {"ticked": true, "ticked_activation": false});
+    USER_INPUT_MANAGER.register("0_ticked", "keydown", (event) => { return event.keyCode===48; }, true, {"ticked": true, "ticked_activation": false});
 
-    USER_INPUT_MANAGER.register("b_ticked", "keydown", (event) => { return event.keyCode==66; }, true, {"ticked": true, "ticked_activation": false});
+    USER_INPUT_MANAGER.register("b_ticked", "keydown", (event) => { return event.keyCode===66; }, true, {"ticked": true, "ticked_activation": false});
 
-    USER_INPUT_MANAGER.register("r_ticked", "keydown", (event) => { return event.keyCode==82; }, true, {"ticked": true, "ticked_activation": false});
+    USER_INPUT_MANAGER.register("r_ticked", "keydown", (event) => { return event.keyCode===82; }, true, {"ticked": true, "ticked_activation": false});
 
-    USER_INPUT_MANAGER.register("ticked_toggle_camera", "keydown", (event) => { return event.keyCode==67; }, true, {"ticked": true, "ticked_activation": false});
+    USER_INPUT_MANAGER.register("ticked_toggle_camera", "keydown", (event) => { return event.keyCode===67; }, true, {"ticked": true, "ticked_activation": false});
 
-    USER_INPUT_MANAGER.register("kill_feed_up", "keydown", (event) => { return event.keyCode==33; });
-    USER_INPUT_MANAGER.register("kill_feed_up", "keyup", (event) => { return event.which==33; }, false);
-    USER_INPUT_MANAGER.register("kill_feed_down", "keydown", (event) => { return event.keyCode==34; });
-    USER_INPUT_MANAGER.register("kill_feed_down", "keyup", (event) => { return event.which==34; }, false);
+    USER_INPUT_MANAGER.register("kill_feed_up", "keydown", (event) => { return event.keyCode===33; });
+    USER_INPUT_MANAGER.register("kill_feed_up", "keyup", (event) => { return event.which===33; }, false);
+    USER_INPUT_MANAGER.register("kill_feed_down", "keydown", (event) => { return event.keyCode===34; });
+    USER_INPUT_MANAGER.register("kill_feed_down", "keyup", (event) => { return event.which===34; }, false);
 
-    USER_INPUT_MANAGER.register("m_ticked", "keydown", (event) => { return event.keyCode==77; }, true, {"ticked": true, "ticked_activation": false});
+    USER_INPUT_MANAGER.register("m_ticked", "keydown", (event) => { return event.keyCode===77; }, true, {"ticked": true, "ticked_activation": false});
+
+    USER_INPUT_MANAGER.register("u_ticked", "keydown", (event) => { return event.keyCode===85; }, true, {"ticked": true, "ticked_activation": false});
 
     // Disable context menu
     document.getElementById("main_area").addEventListener("contextmenu", (event) => {event.preventDefault()});
@@ -294,6 +296,7 @@ async function tick(){
         }
         draw();
     }
+
     requestAnimationFrame(tick);
 }
 

@@ -26,15 +26,21 @@ class HUD {
     updateElement(name, value){
         let foundElement = null;
         for (let element of this.hudElements){
-            if (name == element.getName()){
+            if (name === element.getName()){
                 foundElement = element;
                 break;
             }
         }
         // If element doesn't exist, create it
-        if (foundElement == null){
+        if (foundElement === null){
             foundElement = new HUDElement(name, value);
             this.hudElements.push(foundElement);
+
+            // Sort by priority (highest to lowest)
+            let priorityFunction = (he1, he2) => {
+                return he2.getPriority() - he1.getPriority();
+            }
+            this.hudElements.sort(priorityFunction);
         }else{
             foundElement.update(value);
         }
@@ -53,7 +59,7 @@ class HUD {
             if (!element.isReadyToDisplay()){
                 continue;
             }
-            element.display(10, i * WTL_GAME_DATA["hud"]["text_size"]);
+            element.display(WTL_GAME_DATA["hud"]["display_x_offset"], i * WTL_GAME_DATA["hud"]["text_size"]);
             i++;
         }
     }
@@ -94,7 +100,12 @@ class HUDElement {
         this.name = name;
         this.readyToDisplay = true;
         this.value = null;
-        this.extraTimeLock = new CooldownLock(1000);
+        this.extraTimeLock = new CooldownLock(WTL_GAME_DATA["hud"]["extra_time_ms"]);
+        this.priority = objectHasKey(WTL_GAME_DATA["hud"]["priorities"], name) ? WTL_GAME_DATA["hud"]["priorities"][name] : 0;
+    }
+
+    getPriority(){
+        return this.priority;
     }
 
     /*

@@ -39,6 +39,10 @@ class LevelGeneratorMenu extends Menu {
     }
 
     getPresetName(){
+        return this.getPresetData()["name"];
+    }
+
+    getPresetData(){
         return this.presets[this.currentPresetIndex];
     }
 
@@ -90,7 +94,7 @@ class LevelGeneratorMenu extends Menu {
 
     submit(){
         if (!this.ingame){
-            GAMEMODE_MANAGER.setActiveGamemode(new LevelGenerator(this.getPresetName(), parseInt(this.getCurrentSeedString())));
+            GAMEMODE_MANAGER.setActiveGamemode(new LevelGenerator(this.getPresetData(), parseInt(this.getCurrentSeedString())));
             MENU_MANAGER.switchTo("game");
         }else{
             this.game.loadPreset(this.getPresetName(), parseInt(this.getCurrentSeedString()));

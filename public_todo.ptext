@@ -1,8 +1,5 @@
 Right now:
-	Default size should be specific to preset (saved in data file)
-	Add generate terrain then cut up (randomly) feature to level_generator
-	Make sure duel is using terrain generator
-	Add a duel level with dress
+	Add a duel level with trees
 
 	Add gentlemanly duel
 		Create custom map

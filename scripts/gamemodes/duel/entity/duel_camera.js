@@ -16,6 +16,11 @@ class DuelCamera extends Entity {
         this.y = y;
     }
 
+    setTilePosition(tileX, tileY){
+        this.x = this.gamemode.getScene().getCenterXOfTile(tileX);
+        this.y = this.gamemode.getScene().getCenterYOfTile(tileY);
+    }
+
     focusOn(character){
         // TODO
     }

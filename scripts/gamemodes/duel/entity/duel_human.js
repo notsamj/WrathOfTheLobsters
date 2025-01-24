@@ -4,6 +4,12 @@ class DuelHuman extends DuelCharacter {
         super(gamemode, model, extraDetails);
     }
 
+    tick(){
+        super.tick();
+        MY_HUD.updateElement("tile_x", this.getTileX());
+        MY_HUD.updateElement("tile_y", this.getTileY());
+    }
+
     makeDecisions(){
         this.resetDecisions();
         this.makeMovementDecisions();

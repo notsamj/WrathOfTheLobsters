@@ -1,14 +1,52 @@
 const DATA_TILE_SIZE = 64;
 const WTL_GAME_DATA = {
+    "default_settings": {
+        "duel": {
+            "participants": [
+                {
+                    "human": true,
+                    "model": "british_officer",
+                    "swords": [], // "cavalry_sword", "cleaver"
+                    "pistols": [], // "flintlock"
+                    "muskets": [], // "brown_bess"
+                    "extra_details": {
+                        "invincible": false,
+                        "sway_compensation_ability": 0.2 // 20% reduction in gun sway
+                    },
+                    "bot_extra_details": {
+                        "disabled": false,
+                        "reaction_time_ms": 0
+                    }
+                },
+                {
+                    "human": false,
+                    "model": "usa_officer",
+                    "swords": [],
+                    "pistols": [],
+                    "muskets": [],
+                    "extra_details": {
+                        "invincible": false,
+                        "sway_compensation_ability": 0.2 // 20% reduction in gun sway
+                    },
+                    "bot_extra_details": {
+                        "disabled": false,
+                        "reaction_time_ms": 0
+                    }
+                }
+            ],
+            "seed": null,
+            "preset_data": null
+        }
+    },
     "test_settings": {
         "duel": {
             "participants": [
                 {
                     "human": true,
                     "model": "british_officer",
-                    "swords": ["cavalry_sword", "cleaver"], // "cavalry_sword", "cleaver"
-                    "pistols": ["flintlock"], // "flintlock"
-                    "muskets": ["brown_bess"], // "brown_bess"
+                    "swords": [], // "cavalry_sword", "cleaver"
+                    "pistols": [], // "flintlock"
+                    "muskets": [], // "brown_bess"
                     "extra_details": {
                         "invincible": false,
                         "sway_compensation_ability": 0.2 // 20% reduction in gun sway
@@ -21,9 +59,9 @@ const WTL_GAME_DATA = {
                 {
                     "human": false,
                     "model": "usa_officer",
-                    "swords": ["cavalry_sword", "cleaver"],
-                    "pistols": ["flintlock"],
-                    "muskets": ["brown_bess"],
+                    "swords": [],
+                    "pistols": [],
+                    "muskets": [],
                     "extra_details": {
                         "invincible": false,
                         "sway_compensation_ability": 0.2 // 20% reduction in gun sway
@@ -33,7 +71,9 @@ const WTL_GAME_DATA = {
                         "reaction_time_ms": 50
                     }
                 }
-            ]
+            ],
+            "seed": null,
+            "preset_data": {"name": "river_1", "size": 20}
         },
 
         "turn_based_skirmish": {
@@ -69,13 +109,17 @@ const WTL_GAME_DATA = {
         "camera": {
             "move_speed": DATA_TILE_SIZE*16  
         },
-        "presets": ["river_1"],
-        "level_size": 1000
+        "presets": [
+            {
+                "name": "river_1",
+                "size": 100
+            }
+        ]
     },
 
     "duel": {
         "theme_colour": "#5479ff",
-        "area_size": 15, // 15?,
+        "area_size": 25, // 15?,
         "enemy_visibility_distance": 12, // 12
         "shot_damage": 0.75,
         "musket_stab_damage": 0.6,
@@ -481,10 +525,6 @@ const WTL_GAME_DATA = {
         "approximate_zoom_peek_time_ms": 500
     },
 
-    "settings": {
-        "game_zoom": 1
-    },
-
     "physical_tiles": [
         {
             "name": "full_block",
@@ -513,6 +553,13 @@ const WTL_GAME_DATA = {
             "file_link": "images/physical_tiles/multi_cover.png",
             "attributes": [
                 "multi_cover"
+            ]
+        },
+        {
+            "name": "spawn",
+            "file_link": "images/physical_tiles/spawn.png",
+            "attributes": [
+                "spawn"
             ]
         }
     ],
@@ -683,6 +730,17 @@ const WTL_GAME_DATA = {
                     "pistol_image_name": "flintlock",
                     "musket_model": "brown_bess",
                     "musket_image_name": "brown_bess_right"
+                },
+                "level_generator_start_x": 950,
+                "number_button_size": 50,
+                "max_digits": 3,
+                "number_button_colour_code": "#3bc44b",
+                "number_button_text_colour_code": "#e6f5f4",
+                "start_game_button": {
+                    "text": "START",
+                    "colour_code": "#3bc44b",
+                    "text_colour_code": "#e6f5f4",
+                    "height": 200
                 }
             }
         }
@@ -792,7 +850,8 @@ const WTL_GAME_DATA = {
         "chunk_size": 16,
         "expected_canvas_width": 1920,
         "expected_canvas_height": 1080,
-        "entity_render_distance": 30
+        "entity_render_distance": 30,
+        "game_zoom": 1
     },
 
     "user_chosen_settings": {

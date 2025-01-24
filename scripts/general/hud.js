@@ -159,7 +159,7 @@ class HUDElement {
         if (this.readyToDisplay){
             this.extraTimeLock.lock();
         }
-        this.readyToDisplay = false;
+        //this.readyToDisplay = false;
     }
 
     /*
@@ -168,8 +168,12 @@ class HUDElement {
         Method Description: Determines if the element should be displayed. Either it has been updated OR the extra time lock hasn't run out
         Method Return: boolean, true -> ready to display, false -> not ready to display
     */
-    isReadyToDisplay(){
+    /*isReadyToDisplay(){
         return this.readyToDisplay || this.extraTimeLock.isLocked();
+    }*/
+
+    isReadyToDisplay(){
+        return this.readyToDisplay;
     }
 
     /*
@@ -178,8 +182,9 @@ class HUDElement {
         Method Description: Removes an element from the screen. Requires it to be requested again to be displayed
         Method Return: void
     */
-    clear(){
+    /*clear(){
         this.extraTimeLock.unlock();
         this.readyToDisplay = false;
-    }
+    }*/
+    clear(){}
 }

@@ -162,6 +162,9 @@ function accessDataJSONValue(path){
 function getDataJSONObjAtPath(path){
     let obj = WTL_GAME_DATA;
     while (path.length > 1){
+        if (obj === undefined){
+            debugger;
+        }
         obj = obj[path.shift()];
     }
     return obj;
@@ -489,11 +492,6 @@ function getImage(imageName){
     return images[imageName];
 }
 
-// TODO: Comments
-function getTickMultiplier(){
-    return 1; // TODO: Remove this function?
-    // return WTL_GAME_DATA["settings"]["assumed_tick_rate"] / WTL_GAME_DATA["settings"]["tick_rate"];
-}
 
 // TODO: Comments
 function objectHasKey(obj, key){
@@ -517,7 +515,7 @@ function mergeCopyObjects(obj1, obj2){
     let newObject = {};
     // Merge in object 1
     for (let key of Object.keys(obj1)){
-        if (typeof obj1[key] === "object"){
+        if (isJSON(obj1[key])){
             newObject[key] = copyObject(obj1[key]);
         }else{
             newObject[key] = obj1[key];
@@ -525,7 +523,7 @@ function mergeCopyObjects(obj1, obj2){
     }
     // Merge in object 2
     for (let key of Object.keys(obj2)){
-        if (typeof obj2[key] === "object"){
+        if (isJSON(obj2[key])){
             newObject[key] = copyObject(obj2[key]);
         }else{
             newObject[key] = obj2[key];
@@ -547,7 +545,11 @@ function copyObject(obj){
     // Deep copy, copy inner objects aswell
     let newObject = {};
     for (let key of Object.keys(obj)){
-        if (obj[key] != null && typeof obj[key] === "object"){
+        if (obj[key] === null){
+            newObject[key] = null;
+        }else if (Array.isArray(obj[key])){
+            newObject[key] = copyArray(obj[key]);
+        }else if (isJSON(obj[key])){
             newObject[key] = copyObject(obj[key]);
         }else{
             newObject[key] = obj[key];
@@ -661,6 +663,10 @@ function reverseList(myList){
     return newList;
 }
 
+function isJSON(e){
+    return e != null && e.constructor === ({}).constructor;
+}
+
 /*
     Method Name: copyArray
     Method Parameters:
@@ -674,7 +680,15 @@ function reverseList(myList){
 function copyArray(array, limit=array.length){
     let newArray = [];
     for (let i = 0; i < Math.min(array.length, limit); i++){
-        newArray.push(array[i]);
+        if (array[i] === null){
+            newArray.push(null);
+        }else if (Array.isArray(array[i])){
+            newArray.push(copyArray(array[i]));
+        }else if (isJSON(array[i])){
+            newArray.push(copyObject(array[i]));
+        }else{
+            newArray.push(array[i]);
+        }
     }
     return newArray;
 }

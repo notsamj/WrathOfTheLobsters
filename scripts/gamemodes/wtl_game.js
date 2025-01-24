@@ -195,9 +195,9 @@ function setGameZoom(){
         let timePassed = Date.now() - ZOOM_MONITOR["start_time_ms"];
         // If the button was pressed for a short amount of time then switch gamezoom to recorded
         if (timePassed < WTL_GAME_DATA["controls"]["approximate_zoom_peek_time_ms"]){
-            WTL_GAME_DATA["settings"]["game_zoom"] = gameZoom;
+            WTL_GAME_DATA["general"]["game_zoom"] = gameZoom;
         }else{ // If not taking the button then reset zoom
-            gameZoom = WTL_GAME_DATA["settings"]["game_zoom"];
+            gameZoom = WTL_GAME_DATA["general"]["game_zoom"];
         }
         // Reset zoom monitor
         ZOOM_MONITOR["button"] = null;

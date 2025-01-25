@@ -13,6 +13,7 @@ class NotSamXYSortedArrayList {
         }
         return outputList;
     }
+
     getMaxX(){
         return this.maxX;
     }

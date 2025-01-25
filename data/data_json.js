@@ -10,7 +10,7 @@ const WTL_GAME_DATA = {
                     "pistols": [], // "flintlock"
                     "muskets": [], // "brown_bess"
                     "extra_details": {
-                        "invincible": false,
+                        "invincible": true,
                         "sway_compensation_ability": 0.2 // 20% reduction in gun sway
                     },
                     "bot_extra_details": {
@@ -25,7 +25,7 @@ const WTL_GAME_DATA = {
                     "pistols": [],
                     "muskets": [],
                     "extra_details": {
-                        "invincible": false,
+                        "invincible": true,
                         "sway_compensation_ability": 0.2 // 20% reduction in gun sway
                     },
                     "bot_extra_details": {

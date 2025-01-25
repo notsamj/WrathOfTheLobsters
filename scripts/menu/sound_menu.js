@@ -21,6 +21,8 @@ class SoundMenu extends Menu {
     */
     setup(){
         let sectionYSize = 50;
+        // Background
+        this.components.push(new LoadingScreenComponent());
 
         // Back Button
         let backButtonX = () => { return 50; }

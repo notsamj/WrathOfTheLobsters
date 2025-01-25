@@ -712,8 +712,7 @@ class DuelBot extends DuelCharacter {
     }
 
     generateRouteToSearchForEnemy(){
-        let tileRange = this.getMaxSearchPathLength();
-        let tilesToEndAt = this.exploreAvailableTiles(tileRange, this.getTileX(), this.getTileY());
+        let tilesToEndAt = this.exploreAvailableTiles(this.getTileX(), this.getTileY());
         // If no tiles to move to (including current)
         if (tilesToEndAt.length === 0){
             throw new Error("Unable to generate paths.")
@@ -1535,8 +1534,8 @@ class DuelBot extends DuelCharacter {
         }
     }
 
-    determineTileToRunawayTo(enemyTileX, enemyTileY){
-        let allTiles = this.exploreAvailableTiles(this.getMaxSearchPathLength(), this.getTileX(), this.getTileY());
+    determineTilesToRunawayTo(myTileX, myTileY, enemyTileX, enemyTileY){
+        let allTiles = this.exploreAvailableTiles(myTileX, myTileY);
 
         // Combination scores
         let fromEnemyRouteMult = WTL_GAME_DATA["duel"]["ai"]["runaway_tile_selection"]["from_enemy_route_mult"]; // positive
@@ -1551,9 +1550,6 @@ class DuelBot extends DuelCharacter {
         let enemyTopY = scene.getYOfTile(enemyTileY);
         let enemyCenterXAtTile = scene.getCenterXOfTile(enemyTileX);
         let enemyCenterYAtTile = scene.getCenterYOfTile(enemyTileY);
-
-        let myTileX = this.getTileX();
-        let myTileY = this.getTileY();
 
         let enemyVisibilityDistance = this.getGamemode().getEnemyVisibilityDistance();
 
@@ -1624,18 +1620,67 @@ class DuelBot extends DuelCharacter {
                 debugger;
             }
         }
+        return allTiles;
+    }
+
+    determineTileToRunawayTo(enemyTileX, enemyTileY){
+        let allTiles;
+        let myTileX = this.getTileX();
+        let myTileY = this.getTileY();
 
         let biggestToSmallestScore = (tile1, tile2) => {
             return tile2["score"] - tile1["score"];
         }
 
-        // Sort scores big to small
-        allTiles.sort(biggestToSmallestScore);
+        let hasMyLocData = this.temporaryOperatingData.has("tiles_to_runaway_to");
+        let hasEnemyLocData = false;
+        let hasAllTilesStored = false;
+        let myLocData;
+        let enemyLocData;
+        let allTilesStored;
+        if (hasMyLocData){
+            myLocData = this.temporaryOperatingData.get("tiles_to_runaway_to");
+            hasEnemyLocData = myLocData.has(myTileX, myTileY);
+            if (hasEnemyLocData){
+                enemyLocData = myLocData.get(myTileX, myTileY);
+                hasAllTilesStored = enemyLocData.has(enemyTileX, enemyTileY);
+                if (hasAllTilesStored){
+                    allTilesStored = enemyLocData.get(enemyTileX, enemyTileY);
+                }
+            }
+        }
+
+        // If it's saved then request this tile data
+        if (hasAllTilesStored){
+            if (allTilesStored === null){ debugger;}
+            allTiles = allTilesStored;
+        }else{
+            allTiles = this.determineTilesToRunawayTo(myTileX, myTileY, enemyTileX, enemyTileY);
+            if (allTiles === null){ debugger; }
+            if (!hasMyLocData){
+                myLocData = new NotSamXYCappedLengthSortedArrayList(100);
+                this.temporaryOperatingData.set("tiles_to_runaway_to", myLocData);
+            }
+            if (!hasEnemyLocData){
+                enemyLocData = new NotSamXYCappedLengthSortedArrayList(100);
+                myLocData.set(myTileX, myTileY, enemyLocData);
+            }
+
+            // Save it
+            // Sort scores big to small
+            allTiles.sort(biggestToSmallestScore);
+            enemyLocData.set(enemyTileX, enemyTileY, allTiles);
+        }
+
+        // Make it a copy
+        allTiles = copyArray(allTiles);
+
+        // Note it was saved sorted
 
         let chosenTile = allTiles[0];
 
         // If we are on the best one then return it
-        if (chosenTile["tile_x"] === this.getTileX() && chosenTile["tile_y"] === this.getTileY()){
+        if (chosenTile["tile_x"] === myTileX && chosenTile["tile_y"] === myTileY){
             return chosenTile;
         }
 
@@ -1650,7 +1695,7 @@ class DuelBot extends DuelCharacter {
     }
 
     determineTileToReloadFrom(enemyTileX, enemyTileY){
-        let allTiles = this.exploreAvailableTiles(this.getMaxSearchPathLength(), this.getTileX(), this.getTileY());
+        let allTiles = this.exploreAvailableTiles(this.getTileX(), this.getTileY());
 
         // Combination scores
         let fromEnemyRouteMult = WTL_GAME_DATA["duel"]["ai"]["reload_tile_selection"]["from_enemy_route_mult"]; // positive
@@ -2047,9 +2092,81 @@ class DuelBot extends DuelCharacter {
         return null;
     }
 
+    generateShortestRouteFromPointToPoint(tile1X, tile1Y, tile2X, tile2Y){
+        let hasOriginArr = this.temporaryOperatingData.has("shortest_route_p_to_p");
+        let hasDestinationArr = false;
+        let hasODRoute = false;
+        let originArr;
+        let destinationArr;
+        let odRoute;
+        if (hasOriginArr){
+            originArr = this.temporaryOperatingData.get("shortest_route_p_to_p");
+            hasDestinationArr = originArr.has(tile1X, tile1Y);
+            if (hasDestinationArr){
+                destinationArr = originArr.get(tile1X, tile1Y);
+                hasODRoute = destinationArr.has(tile2X, tile2Y);
+                if (hasODRoute){
+                    odRoute = destinationArr.get(tile2X, tile2Y);
+                }
+            }
+        }
+
+        let route;
+        // If it's saved then request this tile data
+        if (hasODRoute){
+            if (odRoute === null){ debugger;}
+            route = odRoute;
+        }else{
+            route = super.generateShortestRouteFromPointToPoint(tile1X, tile1Y, tile2X, tile2Y);
+            if (route === null){ debugger; }
+            if (!hasOriginArr){
+                originArr = new NotSamXYCappedLengthSortedArrayList(100);
+                this.temporaryOperatingData.set("shortest_route_p_to_p", originArr);
+            }
+            if (!hasDestinationArr){
+                destinationArr = new NotSamXYCappedLengthSortedArrayList(100);
+                originArr.set(tile1X, tile1Y, destinationArr);
+            }
+
+            // Save it
+            destinationArr.set(tile2X, tile2Y, route);
+        }
+
+        // Copy route
+        if (route != null){
+            route = route.copy();
+        }
+        return route;
+    }
+
+    exploreAvailableTiles(tileX, tileY){
+        let hasSavedData = this.temporaryOperatingData.has("explore_available_tiles");
+        let foundSavedDataForTile = false;
+        let allTileSavedData;
+        if (hasSavedData){
+            allTileSavedData = this.temporaryOperatingData.get("explore_available_tiles");
+            foundSavedDataForTile = allTileSavedData.has(tileX, tileY);
+        }
+
+        let tiles;
+        // If it's saved then request this tile data
+        if (foundSavedDataForTile){
+            tiles = allTileSavedData.get(tileX, tileY);
+        }else{
+            tiles = super.exploreAvailableTiles(this.getMaxSearchPathLength(), tileX, tileY);
+            // Save it
+            let xyDataStore = new NotSamXYCappedLengthSortedArrayList(100);
+            xyDataStore.set(tileX, tileY, tiles);
+            this.temporaryOperatingData.set("explore_available_tiles", xyDataStore);
+        }
+
+        // Copy tiles
+        tiles = copyArray(tiles);
+        return tiles;
+    }
+
     determineTileToStandAndShootFrom(enemyTileX, enemyTileY, gun){
-        let pathLength = this.getMaxSearchPathLength();
-        let allTiles = this.exploreAvailableTiles(pathLength, this.getTileX(), this.getTileY());
+        let allTiles = this.exploreAvailableTiles(this.getTileX(), this.getTileY());
 
         let distanceToSearchForMultiCover = WTL_GAME_DATA["duel"]["ai"]["shoot_tile_selection"]["multi_cover_search_route_distance"];
         let distanceToSearchForSingleCover = WTL_GAME_DATA["duel"]["ai"]["shoot_tile_selection"]["single_cover_search_route_distance"];

@@ -1,4 +1,14 @@
 Right now:
+	Save the best tiles stuff for each of the major findTilesToXXXFrom
+	Add a convenient saving functions like
+		calculateShortestRouteDistanceToMultiCoverTile
+		calculateShortestRouteDistanceToPhysicalCover
+
+		For both of these save the distance for each tileX, tileY
+
+
+	Seed 855 both no weapons look into the EXTREME processing time (FPS drops)
+
 	Add a duel level with trees
 
 	Add gentlemanly duel

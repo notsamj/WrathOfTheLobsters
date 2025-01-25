@@ -3,6 +3,16 @@ class Route {
         this.tileSequence = [];
     }
 
+    setTileSequence(tileSequence){
+        this.tileSequence = tileSequence;   
+    }
+
+    copy(){
+        let routeCopy = new Route();
+        routeCopy.setTileSequence(copyArray(this.tileSequence));
+        return routeCopy;
+    }
+
     containsTile(tileX, tileY){
         return this.getIndexOfTile(tileX, tileY) != -1;
     }

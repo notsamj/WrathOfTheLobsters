@@ -1018,6 +1018,7 @@ class DuelBot extends DuelCharacter {
                     let shotAConstant = WTL_GAME_DATA["duel"]["ai"]["shot_take_function_a_constant"];
                     let shotBConstant = WTL_GAME_DATA["duel"]["ai"]["shot_take_function_b_constant"];
                     let secondsToShootWithThisChance = getDeclining1OverXOf(shotAConstant, shotBConstant, myChanceOfHittingAShot);
+
                     // Convert to ms and acknowledge cap
                     let msToShootWithThisChance = Math.min(secondsToShootWithThisChance * 1000, WTL_GAME_DATA["duel"]["ai"]["max_expected_ms_to_hold_a_shot"]);
 
@@ -2268,7 +2269,11 @@ class DuelBot extends DuelCharacter {
         return route;
     }
 
-    exploreAvailableTiles(tileX, tileY){
+    exploreAvailableTiles(tileX, tileY, pathLength=null){
+        // If path length not specified then just use the max search path length
+        if (pathLength === null){
+            pathLength = this.getMaxSearchPathLength();
+        }
         let hasSavedData = this.temporaryOperatingData.has("explore_available_tiles");
         let foundSavedDataForTile = false;
         let allTileSavedData;
@@ -2282,7 +2287,7 @@ class DuelBot extends DuelCharacter {
         if (foundSavedDataForTile){
             tiles = allTileSavedData.get(tileX, tileY);
         }else{
-            tiles = super.exploreAvailableTiles(this.getMaxSearchPathLength(), tileX, tileY);
+            tiles = super.exploreAvailableTiles(pathLength, tileX, tileY);
             // Save it
             let xyDataStore = new NotSamXYCappedLengthSortedArrayList(100);
             xyDataStore.set(tileX, tileY, tiles);
@@ -2295,7 +2300,16 @@ class DuelBot extends DuelCharacter {
     }
 
     determineTilesToStandAndShootFrom(myTileX, myTileY, enemyTileX, enemyTileY, gun){
-        let allTiles = this.exploreAvailableTiles(this.getTileX(), this.getTileY());
+        let allTiles = this.exploreAvailableTiles(this.getTileX(), this.getTileY(), this.getMaxSearchPathLength());
+        // Explore these tiles from the enemy perspective so I can save time calculating path length later
+        let pathToEnemyLength = this.generateShortestRouteFromPointToPoint(myTileX, myTileY, enemyTileX, enemyTileY).getMovementDistance();
+        let allTilesFromEnemy = this.exploreAvailableTiles(enemyTileX, enemyTileY, pathToEnemyLength + this.getMaxSearchPathLength());
+        let allTilesFromEnemySearchable = new NotSamXYSortedArrayList();
+
+        // Add enemy tiles to the searchable object
+        for (let tile of allTilesFromEnemy){
+            allTilesFromEnemySearchable.set(tile["tile_x"], tile["tile_y"], tile);
+        }
 
         let distanceToSearchForSingleCover = WTL_GAME_DATA["duel"]["ai"]["shoot_tile_selection"]["single_cover_search_route_distance"];
         let distanceToSearchForMultiCover = WTL_GAME_DATA["duel"]["ai"]["shoot_tile_selection"]["multi_cover_search_route_distance"];
@@ -2333,7 +2347,14 @@ class DuelBot extends DuelCharacter {
             let tileCenterY = scene.getCenterYOfTile(tileY);
 
             //let routeDistanceFromEnemy = 0;
-            let routeDistanceFromEnemy = this.generateShortestRouteFromPointToPoint(tileX, tileY, enemyTileX, enemyTileY).getMovementDistance();
+            let tileFromEnemyPos = allTilesFromEnemySearchable.get(tileX, tileY);
+            if (tileFromEnemyPos === null){
+                debugger;
+                throw new Error("Unexpected couldn't find tile from enemy perspective.");
+            }
+            let routeDistanceFromEnemy = tileFromEnemyPos["shortest_path"].length;
+            /*let mDistanceFromEnemy = calculateManhattanDistance(enemyTileX, enemyTileY, tileX, tileY);
+            let routeDistanceFromEnemy = mDistanceFromEnemy;*/
 
             let realDistanceFromEnemy = calculateEuclideanDistance(enemyCenterXAtTile, enemyCenterYAtTile, tileCenterX, tileCenterY);
 
@@ -2345,7 +2366,8 @@ class DuelBot extends DuelCharacter {
             let gunEndY = pos["y"];
             let bulletRange = gun.getBulletRange();
             //let speculation = {"can_hit": false}
-            let speculation = this.speculateOnHittingEnemy(bulletRange, enemyCenterXAtTile, enemyCenterYAtTile, gunEndX, gunEndY, visualDirectionToFace);
+            //let speculation = this.speculateOnHittingEnemy(bulletRange, enemyCenterXAtTile, enemyCenterYAtTile, gunEndX, gunEndY, visualDirectionToFace);
+            let speculation = {"can_hit": false, "left_angle": Math.PI/2, "right_angle": 0, "best_angle": Math.PI/4}
             let angleRangeToHitEnemy = 0;
             let canHitEnemyValue = 0;
             if (speculation["can_hit"]){
@@ -2357,11 +2379,14 @@ class DuelBot extends DuelCharacter {
 
             // Single cover outside of enemy visibility
             let shortestDistanceToSingleCover = this.calculateShortestRouteDistanceToTileWithCondition(tileX, tileY, singleCoverFunction, distanceToSearchForSingleCover);
+            //let shortestDistanceToSingleCover = null;
             if (shortestDistanceToSingleCover === null){ shortestDistanceToSingleCover = distanceToSearchForSingleCover; }
-            let shortestDistanceToMultiCover = this.calcuateShortestRouteDistanceToMultiCover(tileX, tileY);
+            let shortestDistanceToMultiCover = null;
+            //let shortestDistanceToMultiCover = this.calcuateShortestRouteDistanceToMultiCover(tileX, tileY);
             if (shortestDistanceToMultiCover === null){ shortestDistanceToMultiCover = distanceToSearchForMultiCover; }
             // Physical cover distance
-            let shortestDistanceToPhyiscalCover = this.calculateShortestRouteDistanceToPhysicalCover(scene, tileX, tileY, enemyTileX, enemyTileY, enemyVisibilityDistance);
+            let shortestDistanceToPhyiscalCover = null;
+            //let shortestDistanceToPhyiscalCover = this.calculateShortestRouteDistanceToPhysicalCover(scene, tileX, tileY, enemyTileX, enemyTileY, enemyVisibilityDistance);
             if (shortestDistanceToPhyiscalCover === null){ shortestDistanceToPhyiscalCover = distanceToSearchForPhysicalCover; }
 
             let onTile = (this.getTileX() === tileX && this.getTileY() === tileY) ? 1 : 0;

@@ -104,15 +104,21 @@ function calculateRangeOverlapProportion(coveringRangeLow, coveringRangeHigh, co
         return 0;
     }
     // Case 6 - Covering range is completely distinct (to the right)
-    else if (coveringRangeLow <= coveredRangeHigh){
+    else if (coveringRangeLow >= coveredRangeHigh){
         return 0;
     }
     // Case 2 - Covering range partially covers from the left
     else if (coveringRangeLow < coveredRangeLow && coveringRangeHigh > coveredRangeLow){
+        if ((coveredRangeHigh - coveringRangeHigh) / (coveredRangeHigh - coveredRangeLow) < 0){
+            debugger;
+        }
         return (coveredRangeHigh - coveringRangeHigh) / (coveredRangeHigh - coveredRangeLow);
     }
     // Case 5 - Covering range partially covers from the right
     else if (coveringRangeLow > coveredRangeLow && coveringRangeHigh > coveredRangeHigh){
+        if ((coveredRangeHigh - coveringRangeLow) / (coveredRangeHigh - coveredRangeLow) < 0){
+            debugger;
+        }
         return (coveredRangeHigh - coveringRangeLow) / (coveredRangeHigh - coveredRangeLow);
     }
     // Unknown case

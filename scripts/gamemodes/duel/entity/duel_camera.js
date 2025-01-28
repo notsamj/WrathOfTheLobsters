@@ -43,7 +43,7 @@ class DuelCamera extends Entity {
         let numKeysDown = 0;
         numKeysDown += leftKey ? 1 : 0;
         numKeysDown += rightKey ? 1 : 0;
-        if (numKeysDown == 0 || numKeysDown == 2){
+        if (numKeysDown == 0 || numKeysDown == 2 || this.isFollowingAnEntity()){
             this.xVelocity = 0;
             return;
         }else if (!this.xLock.isReady()){ return; }
@@ -66,7 +66,7 @@ class DuelCamera extends Entity {
         let numKeysDown = 0;
         numKeysDown += upKey ? 1 : 0;
         numKeysDown += downKey ? 1 : 0;
-        if (numKeysDown == 0 || numKeysDown == 2){
+        if (numKeysDown == 0 || numKeysDown == 2 || this.isFollowingAnEntity()){
             this.yVelocity = 0;
             return;
         }else if (!this.yLock.isReady()){ return; }
@@ -210,6 +210,8 @@ class DuelCamera extends Entity {
     }
 
     stopFollowing(){
+        this.x = this.followedEntity.getInterpolatedCenterX();
+        this.y = this.followedEntity.getInterpolatedCenterY();
         this.followedEntity = null;
     }
 

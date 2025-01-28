@@ -10,7 +10,7 @@ const WTL_GAME_DATA = {
                     "pistols": [], // "flintlock"
                     "muskets": [], // "brown_bess"
                     "extra_details": {
-                        "invincible": true,
+                        "invincible": false,
                         "sway_compensation_ability": 0.0 // 0.2 -> 20% reduction in gun sway
                     },
                     "bot_extra_details": {
@@ -25,7 +25,7 @@ const WTL_GAME_DATA = {
                     "pistols": [],
                     "muskets": [],
                     "extra_details": {
-                        "invincible": true,
+                        "invincible": false,
                         "sway_compensation_ability": 0.0 // 20% reduction in gun sway
                     },
                     "bot_extra_details": {
@@ -138,8 +138,8 @@ const WTL_GAME_DATA = {
             "adjust_close_duel_delay_ms": 500, // The bots are locked too close. Expected delay before making a pivot.
             "expected_adjacent_pivot_ms": 100, // The bots are probably diagonal to one another. They can hit but it's better to move closer
             "aiming_precision_degrees": 3, // The number of degrees the bot is able to adjust between two angles when searching for targets
-            "shot_take_function_a_constant": 10, // 'a' constant for determine how long a bot expects to wait before firing a shot giving a hit probability
-            "shot_take_function_b_constant": 0.3, // 'b' constant for determine how long a bot expects to wait before firing a shot giving a hit probability
+            "shot_take_function_a_constant": 5, // 'a' constant for determine how long a bot expects to wait before firing a shot giving a hit probability
+            "shot_take_function_b_constant": 0.1, // 'b' constant for determine how long a bot expects to wait before firing a shot giving a hit probability
             "max_expected_ms_to_hold_a_shot": 8000, // Will only hold a shot for up totwenty seconds 
             "stop_aiming_no_target_ms": 2000, // The bot is expected to stop aiming after some time if it cannot hit the enemy
             "good_shot_try_to_aim_delay_ms": 100, // Expected time to wait to start aiming when you have a good shot

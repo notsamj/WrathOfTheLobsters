@@ -202,9 +202,12 @@ class DuelMenu extends Menu {
     }
 
     addNumber(newNumberString){
+        // If they try to add to a full seed then just reset
         if (this.currentSeedString.length >= this.maxDigits){
-            return;
-        }else if (this.currentSeedString === '0'){
+            this.currentSeedString = '0';
+        }
+
+        if (this.currentSeedString === '0'){
             this.updateCurrentSeedString(newNumberString);
         }else{
             this.updateCurrentSeedString(this.currentSeedString + newNumberString);

@@ -438,8 +438,8 @@ class LevelGenerator extends Gamemode {
 
         // Place River
         let minRiverWidth = 3;
-        let maxRiverWidth = 7;
-        let numRivers = 5;
+        let maxRiverWidth = 6;
+        let numRivers = 7;
 
         let makeRiver = (riverAngleRAD, riverStartX, riverStartY, currentWidth, riverType, minRiverWidth, maxRiverWidth) => {
             let range = defaultSize*WTL_GAME_DATA["general"]["tile_size"];

@@ -28,6 +28,9 @@ class Character extends Entity {
         }
     }
 
+    // Abstract
+    drawGunCrosshair(){}
+
     getRandom(){
         return this.gamemode.getRandom();
     }

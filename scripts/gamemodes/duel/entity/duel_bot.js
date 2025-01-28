@@ -38,6 +38,40 @@ class DuelBot extends DuelCharacter {
         }
     }
 
+    drawGunCrosshair(gun, lX, bY){
+        let enemy = this.getEnemy();
+
+        let enemyX = enemy.getInterpolatedTickCenterX();
+        let enemyY = enemy.getInterpolatedTickCenterY();
+
+        let humanCenterX = this.getInterpolatedTickCenterX();
+        let humanCenterY = this.getInterpolatedTickCenterY();
+
+        let distance = Math.sqrt(Math.pow(enemyX - humanCenterX, 2) + Math.pow(enemyY - humanCenterY, 2));
+        let swayedAngleRAD = gun.getSwayedAngleRAD();
+
+        let crosshairCenterX = Math.cos(swayedAngleRAD) * distance + humanCenterX;
+        let crosshairCenterY = Math.sin(swayedAngleRAD) * distance + humanCenterY;
+
+        let x = this.getScene().getDisplayXOfPoint(crosshairCenterX, lX);
+        let y = this.getScene().getDisplayYOfPoint(crosshairCenterY, bY);
+        let crosshairImage = IMAGES["crosshair"];
+        let crosshairWidth = crosshairImage.width;
+        let crosshairHeight = crosshairImage.height;
+        
+        translate(x, y);
+
+        // Game zoom
+        scale(gameZoom, gameZoom);
+
+        drawingContext.drawImage(crosshairImage, -1 * crosshairWidth / 2, -1 * crosshairHeight / 2);
+
+        // Game zoom
+        scale(1 / gameZoom, 1 / gameZoom);
+
+        translate(-1 * x, -1 * y);
+    }
+
     getEnemyID(){
         return this.getEnemy().getID();
     }
@@ -1694,7 +1728,7 @@ class DuelBot extends DuelCharacter {
         return chosenTile;
     }
 
-    determineTileToReloadFrom(enemyTileX, enemyTileY){
+    determineTilesToReloadFrom(myTileX, myTileY, enemyTileX, enemyTileY){
         let allTiles = this.exploreAvailableTiles(this.getTileX(), this.getTileY());
 
         // Combination scores
@@ -1711,9 +1745,6 @@ class DuelBot extends DuelCharacter {
         let enemyTopY = scene.getYOfTile(enemyTileY);
         let enemyCenterXAtTile = scene.getCenterXOfTile(enemyTileX);
         let enemyCenterYAtTile = scene.getCenterYOfTile(enemyTileY);
-
-        let myTileX = this.getTileX();
-        let myTileY = this.getTileY();
 
         let enemyVisibilityDistance = this.getGamemode().getEnemyVisibilityDistance();
 
@@ -1787,12 +1818,62 @@ class DuelBot extends DuelCharacter {
             }
         }
 
+        return allTiles;
+    }
+
+    determineTileToReloadFrom(enemyTileX, enemyTileY){
+        let allTiles;
+        let myTileX = this.getTileX();
+        let myTileY = this.getTileY();
+
         let biggestToSmallestScore = (tile1, tile2) => {
             return tile2["score"] - tile1["score"];
         }
 
-        // Sort scores big to small
-        allTiles.sort(biggestToSmallestScore);
+        let hasMyLocData = this.temporaryOperatingData.has("tiles_to_runaway_to");
+        let hasEnemyLocData = false;
+        let hasAllTilesStored = false;
+        let myLocData;
+        let enemyLocData;
+        let allTilesStored;
+        if (hasMyLocData){
+            myLocData = this.temporaryOperatingData.get("tiles_to_runaway_to");
+            hasEnemyLocData = myLocData.has(myTileX, myTileY);
+            if (hasEnemyLocData){
+                enemyLocData = myLocData.get(myTileX, myTileY);
+                hasAllTilesStored = enemyLocData.has(enemyTileX, enemyTileY);
+                if (hasAllTilesStored){
+                    allTilesStored = enemyLocData.get(enemyTileX, enemyTileY);
+                }
+            }
+        }
+
+        // If it's saved then request this tile data
+        if (hasAllTilesStored){
+            if (allTilesStored === null){ debugger;}
+            allTiles = allTilesStored;
+        }else{
+            allTiles = this.determineTilesToReloadFrom(myTileX, myTileY, enemyTileX, enemyTileY);
+            if (allTiles === null){ debugger; }
+            if (!hasMyLocData){
+                myLocData = new NotSamXYCappedLengthSortedArrayList(100);
+                this.temporaryOperatingData.set("tiles_to_runaway_to", myLocData);
+            }
+            if (!hasEnemyLocData){
+                enemyLocData = new NotSamXYCappedLengthSortedArrayList(100);
+                myLocData.set(myTileX, myTileY, enemyLocData);
+            }
+
+            // Save it
+            // Sort scores big to small
+            allTiles.sort(biggestToSmallestScore);
+            enemyLocData.set(enemyTileX, enemyTileY, allTiles);
+        }
+
+        // Make it a copy
+        allTiles = copyArray(allTiles);
+
+        // Note it was saved sorted
 
         let chosenTile = allTiles[0];
 
@@ -1811,10 +1892,58 @@ class DuelBot extends DuelCharacter {
         return chosenTile;
     }
 
-
     generateShortestEvasiveRouteToPoint(endTileX, endTileY, routeLengthLimit=Number.MAX_SAFE_INTEGER){
         let startTileX = this.getTileX();
         let startTileY = this.getTileY();
+
+        let hasOriginArr = this.temporaryOperatingData.has("shortest_evasive_route_p_to_p");
+        let hasDestinationArr = false;
+        let hasODRoute = false;
+        let originArr;
+        let destinationArr;
+        let odRoute;
+        if (hasOriginArr){
+            originArr = this.temporaryOperatingData.get("shortest_evasive_route_p_to_p");
+            hasDestinationArr = originArr.has(startTileX, startTileY);
+            if (hasDestinationArr){
+                destinationArr = originArr.get(startTileX, startTileY);
+                hasODRoute = destinationArr.has(endTileX, endTileY);
+                if (hasODRoute){
+                    odRoute = destinationArr.get(endTileX, endTileY);
+                }
+            }
+        }
+
+        let route;
+
+        // If it's saved then request this tile data
+        if (hasODRoute){
+            route = odRoute;
+        }else{
+            route = this.generateShortestRouteFromPointToPoint(startTileX, startTileY, endTileX, endTileY, routeLengthLimit);
+            if (!hasOriginArr){
+                originArr = new NotSamXYCappedLengthSortedArrayList(100);
+                this.temporaryOperatingData.set("shortest_evasive_route_p_to_p", originArr);
+            }
+            if (!hasDestinationArr){
+                destinationArr = new NotSamXYCappedLengthSortedArrayList(100);
+                originArr.set(startTileX, startTileY, destinationArr);
+            }
+
+            // Save it
+            destinationArr.set(endTileX, endTileY, route);
+        }
+
+        // Copy route
+        if (route != null){
+            route = route.copy();
+        }
+
+        return route;
+    }
+
+
+    generateShortestEvasiveRoutePointToPoint(endTileX, endTileY, routeLengthLimit=Number.MAX_SAFE_INTEGER){
         if (startTileX === endTileX && startTileY === endTileY){ return Route.fromPath([{"tile_x": startTileX, "tile_y": startTileY}]); }
         if (!this.canWalkOnTile(startTileX, startTileY)){ throw new Error("Invalid start tile."); }
         if (!this.canWalkOnTile(endTileX, endTileY)){ throw new Error("Invalid end tile."); }
@@ -2165,11 +2294,11 @@ class DuelBot extends DuelCharacter {
         return tiles;
     }
 
-    determineTileToStandAndShootFrom(enemyTileX, enemyTileY, gun){
+    determineTilesToStandAndShootFrom(myTileX, myTileY, enemyTileX, enemyTileY, gun){
         let allTiles = this.exploreAvailableTiles(this.getTileX(), this.getTileY());
 
-        let distanceToSearchForMultiCover = WTL_GAME_DATA["duel"]["ai"]["shoot_tile_selection"]["multi_cover_search_route_distance"];
         let distanceToSearchForSingleCover = WTL_GAME_DATA["duel"]["ai"]["shoot_tile_selection"]["single_cover_search_route_distance"];
+        let distanceToSearchForMultiCover = WTL_GAME_DATA["duel"]["ai"]["shoot_tile_selection"]["multi_cover_search_route_distance"];
         let distanceToSearchForPhysicalCover = WTL_GAME_DATA["duel"]["ai"]["shoot_tile_selection"]["physical_cover_search_route_distance"];
 
         // Combination multipliers
@@ -2194,22 +2323,6 @@ class DuelBot extends DuelCharacter {
         let singleCoverFunction = (tile) => {
             return tile.hasAttribute("multi_cover") && calculateEuclideanDistance(enemyTileX, enemyTileY, tile.getTileX(), tile.getTileY()) > enemyVisibilityDistance;
         }
-
-        let multiCoverFunction = (tile) => {
-            return tile.hasAttribute("multi_cover");
-        }
-
-        let myID = this.getID();
-
-        // If direct line from enemyTile to tile hits a physical tile then this applies
-        let physicalCoverFunction = (tileX, tileY) => {
-            let targetPositionX = scene.getCenterXOfTile(tileX);
-            let targetPositionY = scene.getCenterYOfTile(tileY);
-            let targets = [{"center_x": targetPositionX, "center_y": targetPositionY, "width": WTL_GAME_DATA["general"]["tile_size"], "height": WTL_GAME_DATA["general"]["tile_size"], "entity": null}];
-            return this.getScene().findInstantCollisionForProjectileWithTargets(enemyCenterXAtTile, enemyCenterYAtTile, displacementToRadians(tileX-enemyTileX, tileY-enemyTileY), enemyVisibilityDistance, targets)["collision_type"] === "physical_tile";
-        }
-
-        let foundATileThatICanHitFrom = false;
 
         // Score each tile
         for (let tile of allTiles){
@@ -2237,17 +2350,18 @@ class DuelBot extends DuelCharacter {
             let canHitEnemyValue = 0;
             if (speculation["can_hit"]){
                 canHitEnemyValue = 1;
-                foundATileThatICanHitFrom = true;
                 angleRangeToHitEnemy = calculateAngleDiffCCWRAD(speculation["left_angle"], speculation["right_angle"]);
             }
+            // Store can_hit result
+            tile["can_hit"] = speculation["can_hit"];
 
             // Single cover outside of enemy visibility
             let shortestDistanceToSingleCover = this.calculateShortestRouteDistanceToTileWithCondition(tileX, tileY, singleCoverFunction, distanceToSearchForSingleCover);
             if (shortestDistanceToSingleCover === null){ shortestDistanceToSingleCover = distanceToSearchForSingleCover; }
-            let shortestDistanceToMultiCover = this.calculateShortestRouteDistanceToTileWithCondition(tileX, tileY, multiCoverFunction, distanceToSearchForMultiCover);
+            let shortestDistanceToMultiCover = this.calcuateShortestRouteDistanceToMultiCover(tileX, tileY);
             if (shortestDistanceToMultiCover === null){ shortestDistanceToMultiCover = distanceToSearchForMultiCover; }
             // Physical cover distance
-            let shortestDistanceToPhyiscalCover = this.calculateShortestRouteDistanceToTileWithCondition(tileX, tileY, physicalCoverFunction, distanceToSearchForPhysicalCover);
+            let shortestDistanceToPhyiscalCover = this.calculateShortestRouteDistanceToPhysicalCover(scene, tileX, tileY, enemyTileX, enemyTileY, enemyVisibilityDistance);
             if (shortestDistanceToPhyiscalCover === null){ shortestDistanceToPhyiscalCover = distanceToSearchForPhysicalCover; }
 
             let onTile = (this.getTileX() === tileX && this.getTileY() === tileY) ? 1 : 0;
@@ -2273,14 +2387,152 @@ class DuelBot extends DuelCharacter {
             }
         }
 
+        return allTiles;
+    }
+
+    calcuateShortestRouteDistanceToMultiCover(tileX, tileY){
+        let multiCoverFunction = (tile) => {
+            return tile.hasAttribute("multi_cover");
+        }
+        let distanceToSearchForMultiCover = WTL_GAME_DATA["duel"]["ai"]["shoot_tile_selection"]["multi_cover_search_route_distance"];
+
+        let distance;
+        let hasSavedData = this.temporaryOperatingData.has("shortest_route_dsitance_to_multi_cover");
+        let foundSavedDataForTile = false;
+        let allTileSavedData;
+        if (hasSavedData){
+            allTileSavedData = this.temporaryOperatingData.get("shortest_route_dsitance_to_multi_cover");
+            foundSavedDataForTile = allTileSavedData.has(tileX, tileY);
+        }
+
+        // If it's saved then request this tile data
+        if (foundSavedDataForTile){
+            distance = allTileSavedData.get(tileX, tileY);
+        }else{
+            distance = this.calculateShortestRouteDistanceToTileWithCondition(tileX, tileY, multiCoverFunction, distanceToSearchForMultiCover);
+            // Save it
+            let xyDataStore = new NotSamXYCappedLengthSortedArrayList(100);
+            xyDataStore.set(tileX, tileY, distance);
+            this.temporaryOperatingData.set("shortest_route_dsitance_to_multi_cover", xyDataStore);
+        }
+
+        return distance;
+    }
+
+    calculateShortestRouteDistanceToPhysicalCover(scene, tileX, tileY, enemyTileX, enemyTileY, enemyVisibilityDistance){
+        let enemyCenterXAtTile = scene.getCenterXOfTile(enemyTileX);
+        let enemyCenterYAtTile = scene.getCenterYOfTile(enemyTileY);
+        // If direct line from enemyTile to tile hits a physical tile then this applies
+        let physicalCoverFunction = (tileX, tileY) => {
+            let targetPositionX = scene.getCenterXOfTile(tileX);
+            let targetPositionY = scene.getCenterYOfTile(tileY);
+            let targets = [{"center_x": targetPositionX, "center_y": targetPositionY, "width": WTL_GAME_DATA["general"]["tile_size"], "height": WTL_GAME_DATA["general"]["tile_size"], "entity": null}];
+            return this.getScene().findInstantCollisionForProjectileWithTargets(enemyCenterXAtTile, enemyCenterYAtTile, displacementToRadians(tileX-enemyTileX, tileY-enemyTileY), enemyVisibilityDistance, targets)["collision_type"] === "physical_tile";
+        }
+
+        let distanceToSearchForPhysicalCover = WTL_GAME_DATA["duel"]["ai"]["shoot_tile_selection"]["physical_cover_search_route_distance"];
+
+        let distance;
+        let hasMyLocData = this.temporaryOperatingData.has("shortest_route_dsitance_to_physical_cover");
+        let hasEnemyLocData = false;
+        let hasDistanceStored = false;
+        let myLocData;
+        let enemyLocData;
+        let distanceStored;
+        if (hasMyLocData){
+            myLocData = this.temporaryOperatingData.get("shortest_route_dsitance_to_physical_cover");
+            hasEnemyLocData = myLocData.has(tileX, tileY);
+            if (hasEnemyLocData){
+                enemyLocData = myLocData.get(tileX, tileY);
+                hasDistanceStored = enemyLocData.has(enemyTileX, enemyTileY);
+                if (hasDistanceStored){
+                    distanceStored = enemyLocData.get(enemyTileX, enemyTileY);
+                }
+            }
+        }
+
+        // If it's saved then request this tile data
+        if (hasDistanceStored){
+            distance = distanceStored;
+        }else{
+            distance = this.calculateShortestRouteDistanceToTileWithCondition(tileX, tileY, physicalCoverFunction, distanceToSearchForPhysicalCover);
+            if (!hasMyLocData){
+                myLocData = new NotSamXYCappedLengthSortedArrayList(100);
+                this.temporaryOperatingData.set("shortest_route_dsitance_to_physical_cover", myLocData);
+            }
+            if (!hasEnemyLocData){
+                enemyLocData = new NotSamXYCappedLengthSortedArrayList(100);
+                myLocData.set(tileX, tileY, enemyLocData);
+            }
+
+            // Save it
+            enemyLocData.set(enemyTileX, enemyTileY, distance);
+        }
+        return distance;
+    }
+
+    determineTileToStandAndShootFrom(enemyTileX, enemyTileY, gun){
+        let allTiles;
+        let myTileX = this.getTileX();
+        let myTileY = this.getTileY();
+
         let biggestToSmallestScore = (tile1, tile2) => {
             return tile2["score"] - tile1["score"];
         }
 
-        // Sort scores big to small
-        allTiles.sort(biggestToSmallestScore);
+        let hasMyLocData = this.temporaryOperatingData.has("tiles_to_stand_and_shoot_from");
+        let hasEnemyLocData = false;
+        let hasAllTilesStored = false;
+        let myLocData;
+        let enemyLocData;
+        let allTilesStored;
+        if (hasMyLocData){
+            myLocData = this.temporaryOperatingData.get("tiles_to_stand_and_shoot_from");
+            hasEnemyLocData = myLocData.has(myTileX, myTileY);
+            if (hasEnemyLocData){
+                enemyLocData = myLocData.get(myTileX, myTileY);
+                hasAllTilesStored = enemyLocData.has(enemyTileX, enemyTileY);
+                if (hasAllTilesStored){
+                    allTilesStored = enemyLocData.get(enemyTileX, enemyTileY);
+                }
+            }
+        }
+
+        // If it's saved then request this tile data
+        if (hasAllTilesStored){
+            if (allTilesStored === null){ debugger;}
+            allTiles = allTilesStored;
+        }else{
+            allTiles = this.determineTilesToStandAndShootFrom(myTileX, myTileY, enemyTileX, enemyTileY, gun);
+            if (allTiles === null){ debugger; }
+            if (!hasMyLocData){
+                myLocData = new NotSamXYCappedLengthSortedArrayList(100);
+                this.temporaryOperatingData.set("tiles_to_stand_and_shoot_from", myLocData);
+            }
+            if (!hasEnemyLocData){
+                enemyLocData = new NotSamXYCappedLengthSortedArrayList(100);
+                myLocData.set(myTileX, myTileY, enemyLocData);
+            }
+
+            // Save it
+            // Sort scores big to small
+            allTiles.sort(biggestToSmallestScore);
+            enemyLocData.set(enemyTileX, enemyTileY, allTiles);
+        }
+
+        // Make it a copy
+        allTiles = copyArray(allTiles);
 
         let chosenTile = allTiles[0];
+
+        // Quick check if any of the tiles can hit
+        let foundATileThatICanHitFrom = false;
+        for (let tile of allTiles){
+            if (tile["can_hit"]){
+                foundATileThatICanHitFrom = true;
+                break;
+            }
+        }
 
         // If I can't find a tile to hit the enemy from
         if (!foundATileThatICanHitFrom){
@@ -2291,7 +2543,6 @@ class DuelBot extends DuelCharacter {
                 tile["shortest_path"] = [{"tile_x": this.getTileX(), "tile_y": this.getTileY()}, {"tile_x": tile["tile_x"], "tile_y": tile["tile_y"]}];
                 return tile;
             }
-            return routeToEnemy.getMovementDistance()
         }
 
         // If we are on the best one then return it
@@ -2304,6 +2555,8 @@ class DuelBot extends DuelCharacter {
         let xEnd = WTL_GAME_DATA["duel"]["ai"]["shoot_tile_selection"]["shoot_tile_selection_x_end"];
         let f = WTL_GAME_DATA["duel"]["ai"]["shoot_tile_selection"]["shoot_tile_selection_f"];
         let randomIndex = biasedIndexSelection(xStart, xEnd, f, allTiles.length, this.getRandom());
+
+        // Change the chosen tile
         chosenTile = allTiles[randomIndex];
 
         return chosenTile;

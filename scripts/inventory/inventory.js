@@ -102,6 +102,9 @@ class Inventory {
             displayNumber = (displayNumber+ 1) % 10;
         }
 
+        // Display UI associated things (i.e. crosshair)
+        this.displayUIAssociated();
+
         // If has selected item then display indicator
         let selectedSlotOutlineColour = Colour.fromCode(WTL_GAME_DATA["inventory"]["hotbar_selected_item_outline_colour"]);
         let selectedSlotLeftBorderX = xOffset + this.selectedSlot * (slotSize + 1);
@@ -111,6 +114,12 @@ class Inventory {
         noStrokeRectangle(selectedSlotOutlineColour, selectedSlotLeftBorderX, displayY, 1, slotSize+2);
         noStrokeRectangle(selectedSlotOutlineColour, selectedSlotLeftBorderX, displayY+slotSize+1, slotSize+2, 1);
         noStrokeRectangle(selectedSlotOutlineColour, selectedSlotRightBorderX, displayY, 1, slotSize+2);
+    }
+
+    displayUIAssociated(){
+        if (this.hasSelectedItem()){
+            this.getSelectedItem().displayUIAssociated();
+        }
     }
 
     getItemAtSelectedSlot(){

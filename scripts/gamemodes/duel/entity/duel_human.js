@@ -4,6 +4,80 @@ class DuelHuman extends DuelCharacter {
         super(gamemode, model, extraDetails);
     }
 
+    drawGunCrosshair(gun, lX, bY){
+        let mouseX = window.mouseX;
+        let mouseY = window.mouseY;
+
+        let canvasX = mouseX;
+        let canvasY = this.getScene().changeFromScreenY(mouseY);
+
+        // Don't display if invalid value
+        if (canvasX < 0 || canvasX >= this.getScene().getWidth() || canvasY < 0 || canvasY >= this.getScene().getHeight()){ return; }
+
+        let engineX = canvasX / gameZoom + lX;
+        let engineY = canvasY / gameZoom + bY;
+
+        let humanCenterX = this.getInterpolatedTickCenterX();
+        let humanCenterY = this.getInterpolatedTickCenterY();
+
+        let distance = Math.sqrt(Math.pow(engineX - humanCenterX, 2) + Math.pow(engineY - humanCenterY, 2));
+        let swayedAngleRAD = gun.getSwayedAngleRAD();
+
+        let crosshairCenterX = Math.cos(swayedAngleRAD) * distance + humanCenterX;
+        let crosshairCenterY = Math.sin(swayedAngleRAD) * distance + humanCenterY;
+
+        let x = this.getScene().getDisplayXOfPoint(crosshairCenterX, lX);
+        let y = this.getScene().getDisplayYOfPoint(crosshairCenterY, bY);
+        let crosshairImage = IMAGES["crosshair"];
+        let crosshairWidth = crosshairImage.width;
+        let crosshairHeight = crosshairImage.height;
+        translate(x, y);
+
+        // Game zoom
+        scale(gameZoom, gameZoom);
+
+        drawingContext.drawImage(crosshairImage, -1 * crosshairWidth / 2, -1 * crosshairHeight / 2);
+
+        // Game zoom
+        scale(1 / gameZoom, 1 / gameZoom);
+
+        translate(-1 * x, -1 * y);
+    }
+
+    /*drawGunCrosshair(gun, lX, bY){
+        let enemy = this.gamemode.participants[1];
+
+        let enemyX = enemy.getInterpolatedTickCenterX();
+        let enemyY = enemy.getInterpolatedTickCenterY();
+
+        let humanCenterX = this.getInterpolatedTickCenterX();
+        let humanCenterY = this.getInterpolatedTickCenterY();
+
+        let distance = Math.sqrt(Math.pow(enemyX - humanCenterX, 2) + Math.pow(enemyY - humanCenterY, 2));
+        let swayedAngleRAD = gun.getSwayedAngleRAD();
+
+        let crosshairCenterX = Math.cos(swayedAngleRAD) * distance + humanCenterX;
+        let crosshairCenterY = Math.sin(swayedAngleRAD) * distance + humanCenterY;
+        console.log("Distance", distance, gun)
+
+        let x = this.getScene().getDisplayXOfPoint(crosshairCenterX, lX);
+        let y = this.getScene().getDisplayYOfPoint(crosshairCenterY, bY);
+        let crosshairImage = IMAGES["crosshair"];
+        let crosshairWidth = crosshairImage.width;
+        let crosshairHeight = crosshairImage.height;
+        translate(x, y);
+
+        // Game zoom
+        scale(gameZoom, gameZoom);
+
+        drawingContext.drawImage(crosshairImage, -1 * crosshairWidth / 2, -1 * crosshairHeight / 2);
+
+        // Game zoom
+        scale(1 / gameZoom, 1 / gameZoom);
+
+        translate(-1 * x, -1 * y);
+    }*/
+
     tick(){
         super.tick();
         MY_HUD.updateElement("tile_x", this.getTileX());

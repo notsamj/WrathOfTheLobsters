@@ -269,11 +269,6 @@ class Pistol extends Gun {
 
         rotate(displayRotateAngleRAD);
         translate(-1 * rotateX, -1 * rotateY);
-
-        // Display Crosshair if aiming
-        if (isAiming && this.player.isHuman()){
-            this.drawCrosshair(lX, bY);
-        }
     }
 
     getImageX(lX){

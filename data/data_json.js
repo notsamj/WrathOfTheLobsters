@@ -11,7 +11,7 @@ const WTL_GAME_DATA = {
                     "muskets": [], // "brown_bess"
                     "extra_details": {
                         "invincible": true,
-                        "sway_compensation_ability": 0.2 // 20% reduction in gun sway
+                        "sway_compensation_ability": 0.0 // 0.2 -> 20% reduction in gun sway
                     },
                     "bot_extra_details": {
                         "disabled": false,
@@ -26,7 +26,7 @@ const WTL_GAME_DATA = {
                     "muskets": [],
                     "extra_details": {
                         "invincible": true,
-                        "sway_compensation_ability": 0.2 // 20% reduction in gun sway
+                        "sway_compensation_ability": 0.0 // 20% reduction in gun sway
                     },
                     "bot_extra_details": {
                         "disabled": false,
@@ -119,7 +119,7 @@ const WTL_GAME_DATA = {
 
     "duel": {
         "theme_colour": "#5479ff",
-        "area_size": 25, // 15?,
+        "area_size": 17, // 15?,
         "enemy_visibility_distance": 12, // 12
         "shot_damage": 0.75,
         "musket_stab_damage": 0.6,

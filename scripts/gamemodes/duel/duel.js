@@ -66,6 +66,12 @@ class Duel extends Gamemode {
         this.startUp();
     }
 
+    end(){
+        MY_HUD.clearElement("seed");
+        MY_HUD.clearElement("tile_x");
+        MY_HUD.clearElement("tile_y");
+    }
+
     alertBotsOfGunshot(shooterID, gunshotShooterTileX, gunshotShooterTileY, gunshotShooterFacingDirection){
         for (let participant of this.participants){
             if (participant instanceof DuelBot){

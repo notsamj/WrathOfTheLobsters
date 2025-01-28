@@ -13,4 +13,5 @@ class Item {
         return this.player.getGamemode();
     }
     breakAction(){}
+    displayUIAssociated(){}
 }

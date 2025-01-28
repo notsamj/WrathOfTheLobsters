@@ -23,6 +23,14 @@ class Gun extends RangedWeapon {
         this.swayStartTick = -1;
     }
 
+    displayUIAssociated(){
+        let lX = this.getScene().getLX();
+        let bY = this.getScene().getBY();
+        if (this.isAiming()){
+            this.drawCrosshair(lX, bY);
+        }
+    }
+
     getPlayer(){
         return this.player;
     }
@@ -33,43 +41,7 @@ class Gun extends RangedWeapon {
     }
 
     drawCrosshair(lX, bY){
-        let mouseX = window.mouseX;
-        let mouseY = window.mouseY;
-
-        let canvasX = mouseX;
-        let canvasY = this.getScene().changeFromScreenY(mouseY);
-
-        // Don't display if invalid value
-        if (canvasX < 0 || canvasX >= this.getScene().getWidth() || canvasY < 0 || canvasY >= this.getScene().getHeight()){ return; }
-
-        let engineX = canvasX / gameZoom + lX;
-        let engineY = canvasY / gameZoom + bY;
-
-        let humanCenterX = this.player.getInterpolatedTickCenterX();
-        let humanCenterY = this.player.getInterpolatedTickCenterY();
-
-        let distance = Math.sqrt(Math.pow(engineX - humanCenterX, 2) + Math.pow(engineY - humanCenterY, 2));
-        let swayedAngleRAD = this.getSwayedAngleRAD();
-
-        let crosshairCenterX = Math.cos(swayedAngleRAD) * distance + humanCenterX;
-        let crosshairCenterY = Math.sin(swayedAngleRAD) * distance + humanCenterY;
-
-        let x = this.getScene().getDisplayXOfPoint(crosshairCenterX, lX);
-        let y = this.getScene().getDisplayYOfPoint(crosshairCenterY, bY);
-        let crosshairImage = IMAGES["crosshair"];
-        let crosshairWidth = crosshairImage.width;
-        let crosshairHeight = crosshairImage.height;
-        translate(x, y);
-
-        // Game zoom
-        scale(gameZoom, gameZoom);
-
-        drawingContext.drawImage(crosshairImage, -1 * crosshairWidth / 2, -1 * crosshairHeight / 2);
-
-        // Game zoom
-        scale(1 / gameZoom, 1 / gameZoom);
-
-        translate(-1 * x, -1 * y);
+        this.player.drawGunCrosshair(this, lX, bY);
     }
 
     resetSway(){

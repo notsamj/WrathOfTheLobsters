@@ -89,6 +89,12 @@ class Lock {
         }
     }
 
+    unlockIfLocked(){
+        if (this.isLocked()){
+            this.unlock();
+        }
+    }
+
     /*
         Method Name: awaitUnlock
         Method Parameters: 

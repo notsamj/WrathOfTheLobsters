@@ -32,6 +32,7 @@ class Gamemode {
     
     // Abstract
     tick(){}
+    // Sort of like a destructor
     end(){}
     isDisplayingPhysicalLayer(){}
 }

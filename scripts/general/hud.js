@@ -100,7 +100,7 @@ class HUDElement {
         this.name = name;
         this.readyToDisplay = true;
         this.value = null;
-        this.extraTimeLock = new CooldownLock(WTL_GAME_DATA["hud"]["extra_time_ms"]);
+        this.disabled = false;
         this.priority = objectHasKey(WTL_GAME_DATA["hud"]["priorities"], name) ? WTL_GAME_DATA["hud"]["priorities"][name] : 0;
     }
 
@@ -118,7 +118,7 @@ class HUDElement {
     */
     update(value){
         this.value = value;
-        this.readyToDisplay = true;
+        this.disabled = false;
     }
 
     /*
@@ -152,39 +152,26 @@ class HUDElement {
         Method Return: void
     */
     display(x, y){
+        if (this.isDisabled()){ return; }
         let key = this.name + ": ";
         makeText(key, x, y, getScreenWidth(), getScreenHeight(), Colour.fromCode(WTL_GAME_DATA["hud"]["key_colour"]), WTL_GAME_DATA["hud"]["text_size"], "left", "top");
         let xOffset = measureTextWidth(key);
         makeText(`${this.value}`, x + xOffset, y, getScreenWidth(), getScreenHeight(), Colour.fromCode(WTL_GAME_DATA["hud"]["value_colour"]), WTL_GAME_DATA["hud"]["text_size"], "left", "top");
-        if (this.readyToDisplay){
-            this.extraTimeLock.lock();
-        }
-        //this.readyToDisplay = false;
     }
 
-    /*
-        Method Name: isReadyToDisplay
-        Method Parameters: None
-        Method Description: Determines if the element should be displayed. Either it has been updated OR the extra time lock hasn't run out
-        Method Return: boolean, true -> ready to display, false -> not ready to display
-    */
-    /*isReadyToDisplay(){
-        return this.readyToDisplay || this.extraTimeLock.isLocked();
-    }*/
+    isDisabled(){
+        return this.disabled;
+    }
 
     isReadyToDisplay(){
         return this.readyToDisplay;
     }
 
-    /*
-        Method Name: clear
-        Method Parameters: None
-        Method Description: Removes an element from the screen. Requires it to be requested again to be displayed
-        Method Return: void
-    */
-    /*clear(){
-        this.extraTimeLock.unlock();
-        this.readyToDisplay = false;
-    }*/
-    clear(){}
+    disable(){
+        this.disabled = true;
+    }
+
+    clear(){
+        this.disable();
+    }
 }

@@ -9,6 +9,9 @@ class DuelCamera extends Entity {
         this.xLock = new TickLock(0);
         this.yLock = new TickLock(0);
         this.id = "camera";
+        this.followedEntity = null;
+        this.scrollLock = new Lock();
+        this.snapLock = new Lock();
     }
 
     setPosition(x, y){
@@ -19,10 +22,6 @@ class DuelCamera extends Entity {
     setTilePosition(tileX, tileY){
         this.x = this.gamemode.getScene().getCenterXOfTile(tileX);
         this.y = this.gamemode.getScene().getCenterYOfTile(tileY);
-    }
-
-    focusOn(character){
-        // TODO
     }
 
     hasVisionRestrictions(){
@@ -78,20 +77,140 @@ class DuelCamera extends Entity {
         this.yVelocity *= downKey ? -1 : 1; 
     }
 
-    getInterpolatedX(){
+    getFreeCamX(){
         return this.x + this.xVelocity * (FRAME_COUNTER.getLastFrameTime() - TICK_SCHEDULER.getLastTickTime()) / 1000;
     }
 
-    getInterpolatedY(){
+    getFreeCamY(){
         return this.y + this.yVelocity * (FRAME_COUNTER.getLastFrameTime() - TICK_SCHEDULER.getLastTickTime()) / 1000;
     }
 
     getInterpolatedCenterX(){
-        return this.getInterpolatedX();
+        if (this.isFollowingAnEntity()){
+            return this.getFollowedEntity().getInterpolatedCenterX();
+        }else{
+            return this.getFreeCamX();
+        }
     }
 
     getInterpolatedCenterY(){
-        return this.getInterpolatedY();
+        if (this.isFollowingAnEntity()){
+            return this.getFollowedEntity().getInterpolatedCenterY();
+        }else{
+            return this.getFreeCamY();
+        }
+    }
+
+    checkSnap(){
+        let wantsToSnap = USER_INPUT_MANAGER.isActivated("f_ticked");
+        if (wantsToSnap && this.snapLock.isUnlocked()){
+            this.snapLock.lock();
+            if (this.isFollowingAnEntity()){
+                this.stopFollowing();
+            }else{
+                this.snapToClosestEntity();
+            }
+        }
+        this.snapLock.unlockIfLocked();
+    }
+
+    snapToClosestEntity(){
+        let participants = this.gamemode.getParticipants();
+
+        if (participants.length === 0){
+            throw new Error("No participants supplied");
+        }
+
+        let bestP;
+        let bestD = undefined;
+
+        let myX = this.getFreeCamX();
+        let myY = this.getFreeCamY();
+
+        for (let participant of participants){
+            let distanceToParticipant = calculateEuclideanDistance(myX, myY, participant.getInterpolatedCenterX(), participant.getInterpolatedCenterY());
+            if (bestD === undefined || distanceToParticipant < bestD){
+                bestD = distanceToParticipant;
+                bestP = participant;
+            }
+        }
+
+        this.followedEntity = bestP;
+    }
+
+    scrollTroops(direction){
+        let participants = this.gamemode.getParticipants();
+
+        if (participants.length === 0){
+            throw new Error("No participants supplied.");
+        }
+        // Don't scroll if there is only 1 participant
+        else if (participants.length === 1){
+            return;
+        }
+
+        if (!this.isFollowingAnEntity()){
+            throw new Error("Trying to scroll but not following.");
+        }
+
+        let currentParticipantID = this.getFollowedEntity().getID();
+        let currentParticipantIndex = -1;
+
+        // Find current participant index
+        for (let i = 0; i < participants.length; i++){
+            let participant = participants[i];
+            
+            if (participant.getID() === currentParticipantID){
+                currentParticipantIndex = i;
+                break;
+            }
+        }
+
+        if (currentParticipantIndex === -1){
+            throw new Error("Current participant not found.");
+        }
+
+        // Get index of next one in direction
+
+        let nextIndex = currentParticipantIndex + direction;
+
+        if (nextIndex >= participants.length){
+            nextIndex = 0;
+        }else if (nextIndex < 0){
+            nextIndex = participants.length - 1;
+        }
+
+        // Change to new entity
+        this.followedEntity = participants[nextIndex];
+    }
+
+    checkScrollTroops(){
+        let wantsToScrollLeft = USER_INPUT_MANAGER.isActivated("left_arrow");
+        let wantsToScrollRight = USER_INPUT_MANAGER.isActivated("right_arrow");
+
+        if (this.scrollLock.isLocked()){
+            this.scrollLock.unlock();
+            return;
+        }
+        this.scrollLock.lock();
+
+        if (wantsToScrollLeft && this.isFollowingAnEntity()){
+            this.scrollTroops(-1);
+        }else if(wantsToScrollRight && this.isFollowingAnEntity()){
+            this.scrollTroops(1);
+        }
+    }
+
+    isFollowingAnEntity(){
+        return this.getFollowedEntity() != null;
+    }
+
+    getFollowedEntity(){
+        return this.followedEntity;
+    }
+
+    stopFollowing(){
+        this.followedEntity = null;
     }
 
     tick(){
@@ -103,9 +222,13 @@ class DuelCamera extends Entity {
         this.y += this.yVelocity / WTL_GAME_DATA["general"]["tick_rate"];
         this.checkMoveX();
         this.checkMoveY();
-        // TODO: Add something to snap on to nearest troop
-        // TODO: Add something to scroll the troops
+        this.checkSnap();
+        this.checkScrollTroops();
     }
 
-    display(){}
+    display(){
+        if (this.isFollowingAnEntity()){
+            this.followedEntity.displayWhenFocused();
+        }
+    }
 }

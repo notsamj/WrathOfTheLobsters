@@ -1,14 +1,9 @@
 Right now:
-	Save the best tiles stuff for each of the major findTilesToXXXFrom
-	Add a convenient saving functions like
-		calculateShortestRouteDistanceToMultiCoverTile
-		calculateShortestRouteDistanceToPhysicalCover
-
-		For both of these save the distance for each tileX, tileY
-
-
-	Seed 855 both no weapons look into the EXTREME processing time (FPS drops)
-
+	Look into bot aiming
+	Lets say sway is super high BUT randomly happens to be about 0
+		Bot SHOULD NOT KNOW THIS
+			It should maybe know the max sway it could be in a moment not the actual current sway
+	
 	Add a duel level with trees
 
 	Add gentlemanly duel

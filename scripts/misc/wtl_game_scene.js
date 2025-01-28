@@ -1100,11 +1100,13 @@ class Chunk {
         if (!this.touchesRegion(lX, rX, bY, tY)){ return; }
         // Display all tiles
         for (let [tile, tileX, tileY] of this.visualTiles){
+            if (tile === null){ continue; }
             tile.display(lX, rX, bY, tY);
         }
         if (displayPhysicalTiles){
             // Display all tiles
             for (let [tile, tileX, tileY] of this.physicalTiles){
+                if (tile === null){ continue; }
                 tile.display(lX, rX, bY, tY);
             }
         }
@@ -1145,6 +1147,7 @@ class Chunk {
     recalculateBoundaries(){
         let bottomY = this.chunkY * WTL_GAME_DATA["general"]["chunk_size"];
         for (let [tile, tileX, tileY] of this.visualTiles){
+            if (tile === null){ continue; }
             let tileBottomY = tile.getBottomY();
             if (tileBottomY < bottomY){
                 bottomY = tileBottomY;
@@ -1154,6 +1157,7 @@ class Chunk {
 
         let rightX = (this.chunkX + 1) * WTL_GAME_DATA["general"]["chunk_size"] - 1;
         for (let [tile, tileX, tileY] of this.visualTiles){
+            if (tile === null){ continue; }
             let tileRightX = tile.getRightX();
             if (tileRightX > rightX){
                 rightX = tileRightX;
@@ -1209,6 +1213,7 @@ class Chunk {
         if (tileY > chunkTopY){ return false; }
         // Check all tiles
         for (let [tile, tileX, tileY] of this.visualTiles){
+            if (tile === null){ continue; }
             if (tile.covers(tileX, tileY)){ return true; }
         }
         return false;
@@ -1273,7 +1278,23 @@ class Chunk {
         this.recalculateBoundaries();
     }
 
-    static tileToChunkCoordinate(coordinate){
-        return Math.floor(coordinate / WTL_GAME_DATA["general"]["chunk_size"]);
+    static tileToChunkCoordinate(tileCoordinate){
+        return Math.floor(tileCoordinate / WTL_GAME_DATA["general"]["chunk_size"]);
+    }
+
+    static getRightTileXOfChunk(chunkX){
+        return ((chunkX+1) * WTL_GAME_DATA["general"]["chunk_size"] - 1);
+    }
+
+    static getLeftTileXOfChunk(chunkX){
+        return chunkX * WTL_GAME_DATA["general"]["chunk_size"];
+    }
+
+    static getTopTileYOfChunk(chunkY){
+        return ((chunkY+1) * WTL_GAME_DATA["general"]["chunk_size"] - 1);
+    }
+
+    static getBottomTileYOfChunk(chunkY){
+        return chunkY * WTL_GAME_DATA["general"]["chunk_size"];
     }
 }

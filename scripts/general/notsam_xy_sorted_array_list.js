@@ -2,8 +2,18 @@
 class NotSamXYSortedArrayList {
     constructor(size=1, size_inc=(size) => size * 2){
         this.size_inc = size_inc;
-        this.ySize = 1;
+        this.ySize = size;
         this.clear();
+    }
+
+    getNullVersion(){
+        let nullCopy = new NotSamXYSortedArrayList();
+        for (let [value, x, y] of this){
+            nullCopy.set(x, y, null);
+        }
+        //console.log("Returning", nullCopy);
+        //debugger;
+        return nullCopy;
     }
 
     toList(){
@@ -121,7 +131,7 @@ class NotSamXYSortedArrayList {
         let comparisonResult = y - this.yAxis[mid]["y"];
 
         // If we found the y value
-        if (comparisonResult == 0){
+        if (comparisonResult === 0){
             return mid;
         }
         // If region too small
@@ -352,7 +362,7 @@ class NotSamXYSortedArrayList {
             for (let xIndex = 0 ; xIndex < xArrayLength; xIndex++){
                 let xObj = xArray[xIndex];
                 let value = xObj["value"];
-                if (value === null){ continue; }
+                //if (value === null){ continue; }
                 yield [value, xObj["x"], xArrayObj["y"]];
             }
         }

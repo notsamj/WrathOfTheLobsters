@@ -69,26 +69,34 @@ class Gun extends RangedWeapon {
         return this.player.getRandom();
     }
 
-    updateSway(){
-        if (this.isAiming()){
-            if (!this.isSwaying()){
-                this.startSwaying();
-            }
-            let newAngleOffset = this.currentAngleOffsetRAD;
-            let correctiveAcceleration = this.currentAngleOffsetRAD * -1 * this.swayConstantC + this.currentAngleOffsetVelocity * -1 * this.swayConstantD;
-            correctiveAcceleration = Math.min(correctiveAcceleration, this.swayCompensationConstant);
-            correctiveAcceleration = Math.max(correctiveAcceleration, this.swayCompensationConstant * -1);
-            let maxVelocity = this.getMaxSwayVelocityRAD();
-            let swayMaxAngleRAD = this.getSwayMaxAngleRAD();
+    getMaxSwayOffsetOverTime(timeMS){
+        let newAngleOffset = this.currentAngleOffsetRAD;
+        let correctiveAcceleration = this.currentAngleOffsetRAD * -1 * this.swayConstantC + this.currentAngleOffsetVelocity * -1 * this.swayConstantD;
+        correctiveAcceleration = Math.min(correctiveAcceleration, this.swayCompensationConstant);
+        correctiveAcceleration = Math.max(correctiveAcceleration, this.swayCompensationConstant * -1);
+        let maxVelocity = this.getMaxSwayVelocityRAD();
+        let swayMaxAngleRAD = this.getSwayMaxAngleRAD();
 
-            let declineConstA = this.getSwayConstantA();
-            let declineConstB = this.getSwayConstantB();
+        let declineConstA = this.getSwayConstantA();
+        let declineConstB = this.getSwayConstantB();
 
-            let secondsSinceSwayStarted = calculateMSBetweenTicks() * (this.player.getGamemode().getCurrentTick() - this.swayStartTick) / 1000; 
+        let maxRandom = this.swingMaxRandomConstant;
+        let minRandom = this.swingMinRandomConstant;
+
+        let numTicksToSimulate = Math.ceil(timeMS / calculateMSBetweenTicks());
+        let actualCurrentTick = this.player.getGamemode().getCurrentTick();
+
+        let velocity = this.currentAngleOffsetVelocity;
+        let offset = this.currentAngleOffsetRAD;
+
+        let maxOffset = Math.abs(offset);
+
+        for (let i = 0; i < numTicksToSimulate; i++){
+            let currentTick = actualCurrentTick + numTicksToSimulate;
+            let secondsSinceSwayStarted = calculateMSBetweenTicks() * (currentTick - this.swayStartTick) / 1000; 
 
             let randomAccelerationOverTimeMultiplier = getDeclining1OverXOf(declineConstA, declineConstB, secondsSinceSwayStarted);
-            let maxRandom = this.swingMaxRandomConstant;
-            let minRandom = this.swingMinRandomConstant;
+
             let randomAccelerationAtTime = minRandom + (maxRandom - minRandom) * randomAccelerationOverTimeMultiplier;
             let randomlyGeneratedMultiplier = this.getRandom().getFloatInRange(-1, 1);
             randomAccelerationAtTime *= randomlyGeneratedMultiplier;
@@ -96,17 +104,64 @@ class Gun extends RangedWeapon {
             let acceleration = correctiveAcceleration + randomAccelerationAtTime;
 
             //  Make sure velocity in bounds
-            let newVelocity = this.currentAngleOffsetVelocity + acceleration;
-            newVelocity = Math.min(newVelocity, maxVelocity);
-            newVelocity = Math.max(newVelocity, maxVelocity * -1);
-            this.currentAngleOffsetVelocity = newVelocity;
+            velocity = velocity + acceleration;
+            velocity = Math.min(velocity, maxVelocity);
+            velocity = Math.max(velocity, maxVelocity * -1);
 
             // Make sure offset in bounds
-            let newOffset = this.currentAngleOffsetRAD + this.currentAngleOffsetVelocity;
-            newOffset = Math.min(newOffset, swayMaxAngleRAD);
-            newOffset = Math.max(newOffset, swayMaxAngleRAD * -1);
-            //console.log(this.currentAngleOffsetVelocity, acceleration, newOffset)
-            this.currentAngleOffsetRAD = newOffset;
+            offset = offset + velocity;
+            offset = Math.min(offset, swayMaxAngleRAD);
+            offset = Math.max(offset, swayMaxAngleRAD * -1);
+
+            maxOffset = Math.max(Math.abs(offset), maxOffset);
+        }
+
+        return maxOffset;
+
+    }
+
+    getNewSwayValues(){
+        let newAngleOffset = this.currentAngleOffsetRAD;
+        let correctiveAcceleration = this.currentAngleOffsetRAD * -1 * this.swayConstantC + this.currentAngleOffsetVelocity * -1 * this.swayConstantD;
+        correctiveAcceleration = Math.min(correctiveAcceleration, this.swayCompensationConstant);
+        correctiveAcceleration = Math.max(correctiveAcceleration, this.swayCompensationConstant * -1);
+        let maxVelocity = this.getMaxSwayVelocityRAD();
+        let swayMaxAngleRAD = this.getSwayMaxAngleRAD();
+
+        let declineConstA = this.getSwayConstantA();
+        let declineConstB = this.getSwayConstantB();
+
+        let secondsSinceSwayStarted = calculateMSBetweenTicks() * (this.player.getGamemode().getCurrentTick() - this.swayStartTick) / 1000; 
+
+        let randomAccelerationOverTimeMultiplier = getDeclining1OverXOf(declineConstA, declineConstB, secondsSinceSwayStarted);
+        let maxRandom = this.swingMaxRandomConstant;
+        let minRandom = this.swingMinRandomConstant;
+        let randomAccelerationAtTime = minRandom + (maxRandom - minRandom) * randomAccelerationOverTimeMultiplier;
+        let randomlyGeneratedMultiplier = this.getRandom().getFloatInRange(-1, 1);
+        randomAccelerationAtTime *= randomlyGeneratedMultiplier;
+
+        let acceleration = correctiveAcceleration + randomAccelerationAtTime;
+
+        //  Make sure velocity in bounds
+        let newVelocity = this.currentAngleOffsetVelocity + acceleration;
+        newVelocity = Math.min(newVelocity, maxVelocity);
+        newVelocity = Math.max(newVelocity, maxVelocity * -1);
+
+        // Make sure offset in bounds
+        let newOffset = this.currentAngleOffsetRAD + newVelocity;
+        newOffset = Math.min(newOffset, swayMaxAngleRAD);
+        newOffset = Math.max(newOffset, swayMaxAngleRAD * -1);
+        return {"new_offset": newOffset, "new_velocity": newVelocity} ;
+    }
+
+    updateSway(){
+        if (this.isAiming()){
+            if (!this.isSwaying()){
+                this.startSwaying();
+            }
+            let updatedAmounts = this.getNewSwayValues();
+            this.currentAngleOffsetVelocity = updatedAmounts["new_velocity"];
+            this.currentAngleOffsetRAD = updatedAmounts["new_offset"];
         }else{
             // Reset angle offset if not aiming
             this.resetSway();

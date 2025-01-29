@@ -1,14 +1,4 @@
 Right now:
-	New tile finding
-		Look for efficiencies (like finding enemy distance to ALL tiles AT ONCE)
-			For physical, single, mutli cover
-				RUN A CHECK ON ALL TILES AT ONCE TO THE TILE WITH ATTRIBUTE! EASIER!
-		Consider the logic for picking a tile and then moving there and then I decide to move again to a better one that the opposite direction and so on while enemy not moving. Instead if enemy stayed in the same place (or maybe if I have a say X% chance of hitting the enemy from my current tile then DO NOT MOVE) then keep the current tile selection.
-
-
-	Lets say sway is super high BUT randomly happens to be about 0
-		Bot SHOULD NOT KNOW THIS
-			It should maybe know the max sway it could be in a moment not the actual current sway
 	
 	Add a duel level with trees
 

@@ -741,7 +741,8 @@ class DuelBot extends DuelCharacter {
     }
 
     getMaxSearchPathLength(){
-        return Math.ceil(this.getGamemode().getEnemyVisibilityDistance() / Math.sqrt(2)); // Basically the idea is you have a 1 / 1 / sqrt(2) triangle and you add up the two 1s to get the search range
+        return WTL_GAME_DATA["duel"]["ai"]["search_path_max_length"];
+        //return Math.ceil(this.getGamemode().getEnemyVisibilityDistance() / Math.sqrt(2)); // Basically the idea is you have a 1 / 1 / sqrt(2) triangle and you add up the two 1s to get the search range
         // return Math.ceil(Math.sqrt(2 * Math.pow(WTL_GAME_DATA["duel"]["area_size"], 2)));
     }
 
@@ -1013,8 +1014,9 @@ class DuelBot extends DuelCharacter {
                     }
 
                     // Allow bot to see the magnitude of current offset
-                    let mySwayOffsetMagnitude = Math.abs(myGun.getCurrentAngleOffsetRAD());
+                    let mySwayOffsetMagnitude = myGun.getMaxSwayOffsetOverTime(WTL_GAME_DATA["duel"]["ai"]["shoot_offset_sample_time_ms"]);
                     let myChanceOfHittingAShot = calculateRangeOverlapProportion(speculationResult["right_angle"], speculationResult["left_angle"], speculationResult["best_angle"] - mySwayOffsetMagnitude/2, speculationResult["best_angle"] + mySwayOffsetMagnitude/2);
+
                     let shotAConstant = WTL_GAME_DATA["duel"]["ai"]["shot_take_function_a_constant"];
                     let shotBConstant = WTL_GAME_DATA["duel"]["ai"]["shot_take_function_b_constant"];
                     let secondsToShootWithThisChance = getDeclining1OverXOf(shotAConstant, shotBConstant, myChanceOfHittingAShot);
@@ -1105,7 +1107,7 @@ class DuelBot extends DuelCharacter {
                     let newTileIsTheSame = newTile["tile_x"] === myTileX && newTile["tile_y"] === myTileY;
                 
                     // I can hit the enemy if I start aiming
-                    if (canHitEnemyIfIAimAndShoot && newTileIsTheSame){
+                    if (canHitEnemyIfIAimAndShoot){
                         // Turn to proper direction
                         if (this.getFacingDirection() != bestVisualDirection){
                             this.botDecisionDetails["decisions"][bestMovementDirection] = true;
@@ -2303,7 +2305,7 @@ class DuelBot extends DuelCharacter {
         let allTiles = this.exploreAvailableTiles(this.getTileX(), this.getTileY(), this.getMaxSearchPathLength());
         // Explore these tiles from the enemy perspective so I can save time calculating path length later
         let pathToEnemyLength = this.generateShortestRouteFromPointToPoint(myTileX, myTileY, enemyTileX, enemyTileY).getMovementDistance();
-        let allTilesFromEnemy = this.exploreAvailableTiles(enemyTileX, enemyTileY, pathToEnemyLength + this.getMaxSearchPathLength());
+        let allTilesFromEnemy = super.exploreAvailableTiles(pathToEnemyLength + this.getMaxSearchPathLength(), enemyTileX, enemyTileY);
         let allTilesFromEnemySearchable = new NotSamXYSortedArrayList();
 
         // Add enemy tiles to the searchable object
@@ -2381,8 +2383,7 @@ class DuelBot extends DuelCharacter {
             let gunEndY = pos["y"];
             let bulletRange = gun.getBulletRange();
             //let speculation = {"can_hit": false}
-            //let speculation = this.speculateOnHittingEnemy(bulletRange, enemyCenterXAtTile, enemyCenterYAtTile, gunEndX, gunEndY, visualDirectionToFace);
-            let speculation = {"can_hit": false, "left_angle": Math.PI/2, "right_angle": 0, "best_angle": Math.PI/4}
+            let speculation = this.speculateOnHittingEnemy(bulletRange, enemyCenterXAtTile, enemyCenterYAtTile, gunEndX, gunEndY, visualDirectionToFace);
             let angleRangeToHitEnemy = 0;
             let canHitEnemyValue = 0;
             if (speculation["can_hit"]){
@@ -2427,87 +2428,6 @@ class DuelBot extends DuelCharacter {
         }
 
         return allTiles;
-    }
-
-    calcuateShortestRouteDistanceToMultiCover(tileX, tileY){
-        let multiCoverFunction = (tile) => {
-            return tile.hasAttribute("multi_cover");
-        }
-        let distanceToSearchForMultiCover = WTL_GAME_DATA["duel"]["ai"]["shoot_tile_selection"]["multi_cover_search_route_distance"];
-
-        let distance;
-        let hasSavedData = this.temporaryOperatingData.has("shortest_route_dsitance_to_multi_cover");
-        let foundSavedDataForTile = false;
-        let allTileSavedData;
-        if (hasSavedData){
-            allTileSavedData = this.temporaryOperatingData.get("shortest_route_dsitance_to_multi_cover");
-            foundSavedDataForTile = allTileSavedData.has(tileX, tileY);
-        }
-
-        // If it's saved then request this tile data
-        if (foundSavedDataForTile){
-            distance = allTileSavedData.get(tileX, tileY);
-        }else{
-            distance = this.calculateShortestRouteDistanceToTileWithCondition(tileX, tileY, multiCoverFunction, distanceToSearchForMultiCover);
-            // Save it
-            let xyDataStore = new NotSamXYCappedLengthSortedArrayList(100);
-            xyDataStore.set(tileX, tileY, distance);
-            this.temporaryOperatingData.set("shortest_route_dsitance_to_multi_cover", xyDataStore);
-        }
-
-        return distance;
-    }
-
-    calculateShortestRouteDistanceToPhysicalCover(scene, tileX, tileY, enemyTileX, enemyTileY, enemyVisibilityDistance){
-        let enemyCenterXAtTile = scene.getCenterXOfTile(enemyTileX);
-        let enemyCenterYAtTile = scene.getCenterYOfTile(enemyTileY);
-        // If direct line from enemyTile to tile hits a physical tile then this applies
-        let physicalCoverFunction = (tileX, tileY) => {
-            let targetPositionX = scene.getCenterXOfTile(tileX);
-            let targetPositionY = scene.getCenterYOfTile(tileY);
-            let targets = [{"center_x": targetPositionX, "center_y": targetPositionY, "width": WTL_GAME_DATA["general"]["tile_size"], "height": WTL_GAME_DATA["general"]["tile_size"], "entity": null}];
-            return this.getScene().findInstantCollisionForProjectileWithTargets(enemyCenterXAtTile, enemyCenterYAtTile, displacementToRadians(tileX-enemyTileX, tileY-enemyTileY), enemyVisibilityDistance, targets)["collision_type"] === "physical_tile";
-        }
-
-        let distanceToSearchForPhysicalCover = WTL_GAME_DATA["duel"]["ai"]["shoot_tile_selection"]["physical_cover_search_route_distance"];
-
-        let distance;
-        let hasMyLocData = this.temporaryOperatingData.has("shortest_route_dsitance_to_physical_cover");
-        let hasEnemyLocData = false;
-        let hasDistanceStored = false;
-        let myLocData;
-        let enemyLocData;
-        let distanceStored;
-        if (hasMyLocData){
-            myLocData = this.temporaryOperatingData.get("shortest_route_dsitance_to_physical_cover");
-            hasEnemyLocData = myLocData.has(tileX, tileY);
-            if (hasEnemyLocData){
-                enemyLocData = myLocData.get(tileX, tileY);
-                hasDistanceStored = enemyLocData.has(enemyTileX, enemyTileY);
-                if (hasDistanceStored){
-                    distanceStored = enemyLocData.get(enemyTileX, enemyTileY);
-                }
-            }
-        }
-
-        // If it's saved then request this tile data
-        if (hasDistanceStored){
-            distance = distanceStored;
-        }else{
-            distance = this.calculateShortestRouteDistanceToTileWithCondition(tileX, tileY, physicalCoverFunction, distanceToSearchForPhysicalCover);
-            if (!hasMyLocData){
-                myLocData = new NotSamXYCappedLengthSortedArrayList(100);
-                this.temporaryOperatingData.set("shortest_route_dsitance_to_physical_cover", myLocData);
-            }
-            if (!hasEnemyLocData){
-                enemyLocData = new NotSamXYCappedLengthSortedArrayList(100);
-                myLocData.set(tileX, tileY, enemyLocData);
-            }
-
-            // Save it
-            enemyLocData.set(enemyTileX, enemyTileY, distance);
-        }
-        return distance;
     }
 
     determineTileToStandAndShootFrom(enemyTileX, enemyTileY, gun){
@@ -2637,6 +2557,9 @@ class DuelBot extends DuelCharacter {
 
         let tryToFindMoreChunks = () => {
             for (let [currentBestRouteLength, tileX, tileY] of startTileArray){
+                // Skip ones with confirmed paths
+                if (currentBestRouteLength === null){ continue; }
+
                 let lowestChunkPossibleEndX = Chunk.tileToChunkCoordinate(tileX - maxRouteLength);
                 let highestChunkPossibleEndX = Chunk.tileToChunkCoordinate(tileX + maxRouteLength);
                 let lowestChunkPossibleEndY = Chunk.tileToChunkCoordinate(tileY - maxRouteLength);
@@ -2669,7 +2592,7 @@ class DuelBot extends DuelCharacter {
                         // If the chunk meets the minimum threshold of having a distance there less than maxRouteLength
                         if (distanceToChunk < maxRouteLength){
                             // If the chunk is closer than the best route length OR this is no best route length
-                            if (currentBestRouteLength === null || distanceToChunk < currentBestRouteLength){
+                            if (distanceToChunk < currentBestRouteLength){
                                 // If the check has not been checked already
                                 if (!chunksToCheck.has(chunkX, chunkY)){
                                     chunksToCheck.set(chunkX, chunkY, {"extracted": false, "chunk": chunks.get(chunkX, chunkY)});

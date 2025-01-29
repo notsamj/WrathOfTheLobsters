@@ -131,7 +131,7 @@ const WTL_GAME_DATA = {
             "move_speed": DATA_TILE_SIZE*16  
         },
         "ai": {
-            //"search_path_max_length": 15, // A path up to this length will be made when looking for the enemy. Once reached a new one will be made
+            "search_path_max_length": 9, // A path up to this length will be made when looking for the enemy. Once reached a new one will be made
             "estimated_melee_distance": Math.sqrt(2) + 0.1, // Distance in tiles at which melee combat is estimated to take place <= amount
             "regular_deflect_attempt_probability": 0.6, // [0,1] the proability that a bot will attempt to perform a regular deflect (as opposed to no deflect or stun deflect)
             "expected_swing_delay_ms": 150, // The bot has the ability to swing it's sword at the enemy. This is the expected delay used to calculate probability of swing attmempt per tick
@@ -150,6 +150,7 @@ const WTL_GAME_DATA = {
             "min_stab_charge_distance": 4, // Minimum distance at which to charge
             "stab_range_close_multiplier": 10, // Multiplier, if dist(myCenter, enemyCenter) < multiplier * stabRange then start running calculations or hitting enemy
             "running_away_stamina_preference": 0, // Amount of stamina I care to keep remaining when running away
+            "shoot_offset_sample_time_ms": 1000, // Time to sample the the sway to predict the maximum offset
             "shoot_tile_selection": {
                 "shoot_tile_selection_x_start": 0.25, // x start for function 1 / x^f for biasing a random selection
                 "shoot_tile_selection_x_end": 3, // x end for function 1 / x^f for biasing a random selection
@@ -162,9 +163,9 @@ const WTL_GAME_DATA = {
                 "nearest_single_cover_mult": -1/15, // multiplier for shooting-tiles that are far from single cover
                 "nearest_multi_cover_mult": -1/15, // multiplier for shooting-tiles that are far from mutli cover
                 "nearest_physical_cover_mult": -1/15, // multiplier for shooting-tiles that are far from physical cover
-                "multi_cover_search_route_distance": 5, // Max route distance when searching for multicover
-                "single_cover_search_route_distance": 5, // Max route distance when searching for singlecover
-                "physical_cover_search_route_distance": 5, // Max route distance when searching for physical cover
+                "multi_cover_search_route_distance": 4, // Max route distance when searching for multicover
+                "single_cover_search_route_distance": 4, // Max route distance when searching for singlecover
+                "physical_cover_search_route_distance": 4, // Max route distance when searching for physical cover
                 "on_tile_multiplier": 1.5 // multiplier for reloading-tiles that are currently stood on
             },
             "reload_tile_selection": {

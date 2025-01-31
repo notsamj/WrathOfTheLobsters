@@ -13,6 +13,7 @@ class ScrollBar extends Component {
         this.entryYSize = entryYSize;
         this.numEntries = 0;
         this.entryYSpaceFunction = entryYSpaceFunction;
+        this.scrollWheelMultiplier = WTL_GAME_DATA["menu"]["menus"]["gamemode_viewer"]["scrollable_display"]["scroll_bar"]["wheel_multiplier"];
     }
 
     getMinHeight(){
@@ -47,21 +48,37 @@ class ScrollBar extends Component {
 
         let x = this.getX();
         let y = this.getY();
-        let inX = mouseX >= x && mouseX < x + displayWidth;
-        let inY = mouseY >= y && mouseY < y + displayHeight;
+        let inX = mouseX >= x && gMouseX < x + displayWidth;
+        let inY = mouseX >= y && gMouseY < y + displayHeight;
         return inX && inY;
     }
 
     tick(){
-        let hasMouseOn = this.covers(mouseX, mouseY);
+        let hasMouseOn = this.covers(gMouseX, gMouseY);
         let activated = USER_INPUT_MANAGER.isActivated("scroll_bar_grab");
-        if (!activated || !hasMouseOn){ return; }
-        // Sliding
-        this.moveToY(mouseY);
+        // If they clicked on the bar
+        if (activated && hasMouseOn){ 
+            // Sliding
+            this.moveToY(gMouseY);
+        }else{
+            let scrollValue = USER_INPUT_MANAGER.get("scroll_in_dir").getValue();
+            if (scrollValue != 0){
+                this.moveByScrollValue(scrollValue);
+            }
+        }
+    }
+
+    moveByScrollValue(scrollValue){
+        let currentOffset = this.getSliderOffset();
+        let newOffset = currentOffset + this.scrollWheelMultiplier * scrollValue;
+        let scrollBarHeight = this.getHeight();
+        let scrollBarHeightDiff = scrollBarHeight - this.getSliderHeight();
+        let newSliderPogress = newOffset / scrollBarHeightDiff;
+        this.sliderProgress = Math.max(0, Math.min(1, newSliderPogress));
     }
 
     moveToY(mouseY){
-        let desiredCenterY = mouseY - this.getY();
+        let desiredCenterY = gMouseY - this.getY();
         let desiredOffset = desiredCenterY - this.getSliderHeight()/2;
         let scrollBarHeightDiff = this.getHeight() - this.getSliderHeight();
         let newProgress = desiredOffset / scrollBarHeightDiff;

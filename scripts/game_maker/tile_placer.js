@@ -60,15 +60,16 @@ class TilePlacer extends Entity {
         MY_HUD.updateElement("Placer Tile Y", this.placerTileY);
         MY_HUD.updateElement("Placer x", this.placerX);
         MY_HUD.updateElement("Placer y", this.placerY);
-        noStrokeRectangle(new Colour(252, 240, 63, 20), x, y, WTL_GAME_DATA["general"]["tile_size"], WTL_GAME_DATA["general"]["tile_size"]);
+        noStrokeRectangle(new Colour(252, 240, 63, 20), x, y, WTL_GAME_DATA["general"]["tile_size"] * gameZoom, WTL_GAME_DATA["general"]["tile_size"] * gameZoom);
     }
 
     tick(){
-        let canvasX = window.mouseX;
-        let canvasY = this.getScene().changeFromScreenY(window.mouseY);
+        let canvasX = gMouseX;
+        let canvasY = this.getScene().changeFromScreenY(gMouseY);
         if (canvasX < 0 || canvasX >= this.getScene().getWidth() || canvasY < 0 || canvasY >= this.getScene().getHeight()){ return; }
-        let engineX = canvasX + this.getScene().getLX();
-        let engineY = canvasY + this.getScene().getBY();
+        if (this.gamemode.getUI().blocksWindowLocation(mouseX, mouseY)){ return; }
+        let engineX = canvasX / gameZoom + this.getScene().getLX();
+        let engineY = canvasY / gameZoom + this.getScene().getBY();
         let newPlacerTileX = WTLGameScene.getTileXAt(engineX);
         let newPlacerTileY = WTLGameScene.getTileYAt(engineY);
         // If the new placer tile has moved
@@ -111,7 +112,7 @@ class TilePlacer extends Entity {
     }
 
     checkPlace(){
-        if ((this.usingVisualLayer() && !this.hasVisualMaterial()) || (this.usingPhysicalLayer() && !this.hasPhysicalMaterial()) || this.gamemode.getUI().blocksWindowLocation(mouseX, mouseY)){ return; }
+        if ((this.usingVisualLayer() && !this.hasVisualMaterial()) || (this.usingPhysicalLayer() && !this.hasPhysicalMaterial())){ return; }
         let tryingToPlace = USER_INPUT_MANAGER.isActivated("left_click") && USER_INPUT_MANAGER.notActivated("right_click");
         if (!tryingToPlace){
             this.readyToPlaceLock.unlock();
@@ -139,7 +140,13 @@ class TilePlacer extends Entity {
         if (this.usingPhysicalLayer()){
             this.getScene().deletePhysicalTile(this.placerTileX, this.placerTileY);
         }else{
-            this.getScene().deleteVisualTile(this.placerTileX, this.placerTileY);
+            if (this.getScene().hasVisualTileCoveringLocation(this.placerTileX, this.placerTileY)){
+                this.getScene().getVisualTileCoveringLocation(this.placerTileX, this.placerTileY).delete();
+            }else{
+                // temp
+                //rDebug();
+                //this.getScene().getVisualTileCoveringLocation(this.placerTileX, this.placerTileY)
+            }
         }
     }
 

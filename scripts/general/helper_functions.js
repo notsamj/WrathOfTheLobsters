@@ -257,8 +257,8 @@ function getOppositeDirectionOf(direction){
 }
 
 function getAngleFromMouseToScreenCenter(scene){
-    let x = mouseX;
-    let y = scene.changeFromScreenY(mouseY);
+    let x = gMouseX;
+    let y = scene.changeFromScreenY(gMouseY);
     let xOffset = x - getScreenWidth() / 2;
     let yOffset = y - getScreenHeight() / 2;
     if (xOffset == 0){

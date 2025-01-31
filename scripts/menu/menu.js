@@ -13,6 +13,8 @@ class Menu {
         this.components = [];
     }
 
+    informSwitchedTo(){}
+
     /*
         Method Name: getWidth
         Method Parameters: None

@@ -1,7 +1,7 @@
 class GameMaker extends Gamemode {
-    constructor(){
+    constructor(menu){
         super();
-        this.ui = MENU_MANAGER.getMenuByName("game_maker");
+        this.ui = menu;
         this.ui.reset();
         this.serverConnection = new ServerConnection();
         this.tilePlacer = new TilePlacer(this);

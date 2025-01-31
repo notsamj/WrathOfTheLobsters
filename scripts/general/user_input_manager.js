@@ -11,6 +11,7 @@ class UserInputManager {
     */
     constructor(){
         this.handlerNodes = [];
+        this.specialNodes = [];
     }
 
     /*
@@ -30,13 +31,14 @@ class UserInputManager {
         Method Return: void
     */
     register(alias, eventName, checker, onOff=true, extraInfo=null){
-        let node = this.get(alias);
+        let newNode = this.getOrCreate(alias);
+        this.handlerNodes.push(newNode);
         document.addEventListener(eventName, (event) => {
             if (checker(event)){
-                node.setActivated(onOff);
+                newNode.setActivated(onOff);
             }
         });
-        node.setExtraInfo(extraInfo);
+        newNode.setExtraInfo(extraInfo);
     }
 
     /*
@@ -48,7 +50,7 @@ class UserInputManager {
         Method Return: boolean, true -> exists, false -> does not exist
     */
     has(alias){
-        return this.get(alias) != null;
+        return this.getMaybeNull(alias) != null;
     }
 
     /*
@@ -60,16 +62,44 @@ class UserInputManager {
         Method Return: UserInputNode
     */
     get(alias){
-        // Check if we have this node
-        for (let handlerNode of this.handlerNodes){
-            if (handlerNode.getAlias() == alias){
-                return handlerNode;
-            }
+        let result = this.getMaybeNull(alias);
+        if (result != null){
+            return result;
         }
+        throw new Error("Listener node not found.");
+
+        /*// Else doesn't exist -> create it
+        let newNode = new UserInputNode(alias);
+        this.handlerNodes.push(newNode);
+        return newNode; */
+    }
+
+    getOrCreate(alias){
+        let result = this.getMaybeNull(alias);
+        if (result != null){
+            return result;
+        }
+
         // Else doesn't exist -> create it
         let newNode = new UserInputNode(alias);
         this.handlerNodes.push(newNode);
         return newNode;
+    }
+
+    getMaybeNull(alias){
+        // Check if we have this node
+        for (let handlerNode of this.handlerNodes){
+            if (handlerNode.getAlias() === alias){
+                return handlerNode;
+            }
+        }
+
+        for (let specialNode of this.specialNodes){
+            if (specialNode.getAlias() === alias){
+                return specialNode;
+            }
+        }
+        return null;
     }
     
     /*
@@ -103,6 +133,13 @@ class UserInputManager {
                 handlerNode.tick();
             }
         }
+        for (let specialNode of this.specialNodes){
+            specialNode.tick();
+        }
+    }
+
+    registerSpecialType(specialNode){
+        this.specialNodes.push(specialNode);
     }
 }
 
@@ -122,6 +159,7 @@ class UserInputNode {
     constructor(alias){
         this.alias = alias;
         this.activated = false;
+        this.ticked = false;
     }
 
     /*
@@ -158,9 +196,9 @@ class UserInputNode {
 
     // TODO: Comments for these 3
     setExtraInfo(extraInfo){
-        if (extraInfo == null){ return; }
+        if (extraInfo === null){ return; }
         this.extraInfo = extraInfo;
-        if (extraInfo["ticked"]){ this.ticked = true;}
+        this.ticked = extraInfo["ticked"];
     }
 
     isTicked(){
@@ -169,5 +207,41 @@ class UserInputNode {
 
     tick(){
         this.activated = this.extraInfo["ticked_activation"];
+    }
+}
+
+class SpecialNode {
+    constructor(alias){
+        this.alias = alias;
+    }
+
+    getAlias(){
+        return this.alias;
+    }
+
+    tick(){ throw new Error("Please implement this method."); }
+}
+
+class TickedValueNode extends SpecialNode {
+    constructor(alias, eventName, valueExtractorFunction, defaultValue){
+        super(alias);
+        this.defaultValue = defaultValue;
+        this.value = this.defaultValue;
+        this.valueExtractorFunction = valueExtractorFunction;
+        document.addEventListener(eventName, (event) => {
+            this.updateValue(event);
+        });
+    }
+
+    getValue(){
+        return this.value;
+    }
+
+    updateValue(event){
+        this.value = this.valueExtractorFunction(event);
+    }
+
+    tick(){
+        this.value = this.defaultValue;
     }
 }

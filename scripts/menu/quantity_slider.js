@@ -34,7 +34,7 @@ class QuantitySlider extends OptionSlider {
     */
     moveToX(mouseX){
         // Update the slider position
-        let sliderOffset = mouseX - this.getX() - this.sliderWidth/2;
+        let sliderOffset = gMouseX - this.getX() - this.sliderWidth/2;
         // Either set value to extremes or in between
         let calculatedValue = sliderOffset / (this.width - this.sliderWidth) * (this.maxValue - this.minValue) + this.minValue;
         if (!this.usingFloat){

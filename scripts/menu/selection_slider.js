@@ -33,7 +33,7 @@ class SelectionSlider extends OptionSlider {
     */
     moveToX(mouseX){
         // Update the slider position
-        let sliderOffset = mouseX - this.getX() - this.sliderWidth/2;
+        let sliderOffset = gMouseX - this.getX() - this.sliderWidth/2;
         // Either set value to extremes or in between
         let calculatedIndex = Math.max(0, Math.min(this.options.length-1, Math.floor(sliderOffset / (this.width - this.sliderWidth) * this.options.length)));
         let newValue = this.options[calculatedIndex];

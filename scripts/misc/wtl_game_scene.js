@@ -98,9 +98,6 @@ class WTLGameScene {
         }
 
         // Loop from start to end but stop if you exceed where all existing chunk boundaries
-        if (isRDebugging()){
-            debugger;
-        }
 
         let lastAdditionalX = 0;
         let lastAdditionalY = 0;
@@ -116,7 +113,6 @@ class WTLGameScene {
             if (!sameChunk){
                 currentChunk = this.chunks.get(chunkX, chunkY);
             }
-            if (currentChunk === null){ debugger; }
             let tile = currentChunk.getPhysicalTileCoveringLocation(tileX, tileY);
 
             let physicalTileIsPresent = tile != null;
@@ -512,7 +508,9 @@ class WTLGameScene {
         tileJSON["physical_tiles"] = [];
         // Save Visual Chunks to JSON
         for (let [chunk, chunkX, chunkY] of this.chunks){
+            if (chunk === null){ continue; }
             for (let [tile, tI] of chunk.getVisualTiles()){
+                if (tile === null){ continue; }
                 let material = tile.getMaterial();
                 let materialExists = false;
                 for (let savedMaterial of tileJSON["materials"]){
@@ -536,7 +534,9 @@ class WTLGameScene {
 
         // Save Physical Chunks to JSON
         for (let [chunk, chunkX, chunkY] of this.chunks){
+            if (chunk === null){ continue; }
             for (let [tile, tI] of chunk.getPhysicalTiles()){
+                if (tile === null){ continue; }
                 let material = tile.getMaterial();
                 let materialExists = false;
                 for (let savedMaterial of tileJSON["materials"]){
@@ -627,14 +627,16 @@ class WTLGameScene {
     }
 
     deleteVisualTile(tileX, tileY){
-        if (this.hasVisualTileAtLocation(tileX, tileY)){
-            this.getVisualTileAtLocation(tileX, tileY).delete();
+        let vt = this.getVisualTileAtLocation(tileX, tileY);
+        if (vt != null){
+            vt.delete();
         }
     }
 
     deletePhysicalTile(tileX, tileY){
-        if (this.hasPhysicalTileAtLocation(tileX, tileY)){
-            this.getPhysicalTileAtLocation(tileX, tileY).delete();
+        let pt = this.getPhysicalTileAtLocation(tileX, tileY);
+        if (pt != null){
+            pt.delete();
         }
     }
 
@@ -660,6 +662,10 @@ class WTLGameScene {
         let chunkX = Chunk.tileToChunkCoordinate(tileX);
         let chunkY = Chunk.tileToChunkCoordinate(tileY);
 
+        if (isRDebugging()){
+            debugger;
+        }
+
         let chunkYExpectedIndex = this.chunks.findYActualOrWouldBeLocation(chunkY);
 
         // Ignore if the index suggests it should be inserted at the end
@@ -670,13 +676,13 @@ class WTLGameScene {
         let yAxis = this.chunks.grabYAxis();
         let yValueAtIndex = yAxis[chunkYExpectedIndex]["y"];
 
-        // We only want <=
-        if (yValueAtIndex > chunkY){
-            return null;
+        // We want to look at chunks that are below or the same y
+        if (chunkY > yValueAtIndex){
+            chunkYExpectedIndex += 1;
         }
 
         // Loop from the highest index with a y <= chunkY
-        for (let yIndex = chunkYExpectedIndex; yIndex >= 0; yIndex--){
+        for (let yIndex = chunkYExpectedIndex; yIndex < this.chunks.getYLength(); yIndex++){
             let xArrayObj = yAxis[yIndex];
             let xArray = xArrayObj["array"];
             let xArrayLength = xArrayObj["length"];
@@ -688,16 +694,20 @@ class WTLGameScene {
             }
 
             let xValueAtIndex = xArray[chunkXExpectedIndex]["x"];
-            // We only want <=
+            // We only want chunks that are to the left or at the same chunk x
             if (xValueAtIndex > chunkX){
-                continue;
+                chunkXExpectedIndex -= 1;
             }
 
             // Loop through lower x values
             for (let xIndex = chunkXExpectedIndex; xIndex >= 0; xIndex--){
                 let chunk = xArray[xIndex]["value"];
                 if (chunk.covers(tileX, tileY)){
-                    return chunk.getVisualTileCoveringLocation(tileX, tileY);
+                    let visualTile = chunk.getVisualTileCoveringLocation(tileX, tileY);
+                    // It can cover naturally but not visually cover it (say a big visual from a chunk above)
+                    if (visualTile != null){
+                        return visualTile;
+                    }
                 }
             }
         }
@@ -900,7 +910,7 @@ class WTLGameScene {
 
         // We only want >=
         if (yValueAtIndex < bottomChunkY){
-            return null;
+            chunkYExpectedIndex += 1;
         }
 
         // Loop from the lowest index to the highest
@@ -916,15 +926,42 @@ class WTLGameScene {
             }
 
             let xValueAtIndex = xArray[chunkXExpectedIndex]["x"];
-            // We only want <=
+            // We only want tiles that are to the left or at the same tile x
             if (xValueAtIndex > rightChunkX){
-                continue;
+                chunkXExpectedIndex -= 1;
             }
 
             // Loop through lower x values
             for (let xIndex = chunkXExpectedIndex; xIndex >= 0; xIndex--){
                 let chunk = xArray[xIndex]["value"];
-                chunk.display(lX, rX, bY, tY, this.isDisplayingPhysicalLayer());
+                chunk.displayVisualTiles(lX, rX, bY, tY);
+            }
+        }
+
+        if (this.isDisplayingPhysicalLayer()){
+            // Loop from the lowest index to the highest
+            for (let yIndex = chunkYExpectedIndex; yIndex < this.chunks.getYLength(); yIndex++){
+                let xArrayObj = yAxis[yIndex];
+                let xArray = xArrayObj["array"];
+                let xArrayLength = xArrayObj["length"];
+                let chunkXExpectedIndex = this.chunks.findXActualOrWouldBeLocation(rightChunkX, xArrayObj);
+                
+                // If the right chunk belongs at the end of the list then loop from the last valid one 
+                if (chunkXExpectedIndex === xArrayLength){
+                    chunkXExpectedIndex = xArrayLength - 1;
+                }
+
+                let xValueAtIndex = xArray[chunkXExpectedIndex]["x"];
+                // We only want tiles that are to the left or at the same tile x
+                if (xValueAtIndex > rightChunkX){
+                    chunkXExpectedIndex -= 1;
+                }
+
+                // Loop through lower x values
+                for (let xIndex = chunkXExpectedIndex; xIndex >= 0; xIndex--){
+                    let chunk = xArray[xIndex]["value"];
+                    chunk.displayPhysicalTiles(lX, rX, bY, tY);
+                }
             }
         }
     }
@@ -1047,7 +1084,7 @@ class Chunk {
     }
 
     getVisualTileCoveringLocation(tileX, tileY){
-        let tileYExpectedIndex = this.visualTiles.findYActualOrWouldBeLocation(tileX);
+        let tileYExpectedIndex = this.visualTiles.findYActualOrWouldBeLocation(tileY);
 
         // Ignore if the index suggests it should be inserted at the end
         if (tileYExpectedIndex === this.visualTiles.getYLength()){
@@ -1057,13 +1094,14 @@ class Chunk {
         let yAxis = this.visualTiles.grabYAxis();
         let yValueAtIndex = yAxis[tileYExpectedIndex]["y"];
 
-        // We only want <=
-        if (yValueAtIndex > tileY){
-            return null;
+        // We want to look at chunks that are below or the same y
+        if (tileY > yValueAtIndex){
+            tileYExpectedIndex += 1;
         }
 
-        // Loop from the highest index with a y <= tileY
-        for (let yIndex = tileYExpectedIndex; yIndex >= 0; yIndex--){
+
+        // Loop from the lowest to highest
+        for (let yIndex = tileYExpectedIndex; yIndex < this.visualTiles.getYLength(); yIndex++){
             let xArrayObj = yAxis[yIndex];
             let xArray = xArrayObj["array"];
             let xArrayLength = xArrayObj["length"];
@@ -1075,9 +1113,9 @@ class Chunk {
             }
 
             let xValueAtIndex = xArray[tileXExpectedIndex]["x"];
-            // We only want <=
+            // We only want tiles that are to the left or at the same tile x
             if (xValueAtIndex > tileX){
-                continue;
+                tileXExpectedIndex -= 1;
             }
 
             // Loop through lower x values
@@ -1096,19 +1134,21 @@ class Chunk {
         return this.getPhysicalTileAtLocation(tileX, tileY);
     }
 
-    display(lX, rX, bY, tY, displayPhysicalTiles){
+    displayVisualTiles(lX, rX, bY, tY){
         if (!this.touchesRegion(lX, rX, bY, tY)){ return; }
         // Display all tiles
         for (let [tile, tileX, tileY] of this.visualTiles){
             if (tile === null){ continue; }
             tile.display(lX, rX, bY, tY);
         }
-        if (displayPhysicalTiles){
-            // Display all tiles
-            for (let [tile, tileX, tileY] of this.physicalTiles){
-                if (tile === null){ continue; }
-                tile.display(lX, rX, bY, tY);
-            }
+    }
+
+    displayPhysicalTiles(lX, rX, bY, tY){
+        if (!this.touchesRegion(lX, rX, bY, tY)){ return; }
+        // Display all tiles
+        for (let [tile, tileX, tileY] of this.physicalTiles){
+            if (tile === null){ continue; }
+            tile.display(lX, rX, bY, tY);
         }
     }
 
@@ -1139,7 +1179,7 @@ class Chunk {
         return this.topY;
     }
 
-    // Note: Be careful if you have a 5000 long tile in bottom right it will extend this right
+    // Note: Be careful if you have a 5000 long tile in bottom right it will extend this down
     getBottomY(){
         return this.bottomY;
     }
@@ -1220,7 +1260,7 @@ class Chunk {
     }
 
     coversNaturally(tileX, tileY){
-        return Chunk.tileToChunkCoordinate(tileX) == this.chunkX && Chunk.tileToChunkCoordinate(tileY) == this.chunkY;
+        return Chunk.tileToChunkCoordinate(tileX) === this.chunkX && Chunk.tileToChunkCoordinate(tileY) === this.chunkY;
     }
 
     placeVisualTile(material, tileX, tileY){

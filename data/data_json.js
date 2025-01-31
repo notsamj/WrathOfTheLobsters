@@ -72,8 +72,7 @@ const WTL_GAME_DATA = {
                     }
                 }
             ],
-            "seed": null,
-            "preset_data": {"name": "river_1", "size": 20}
+            "seed": null
         },
 
         "turn_based_skirmish": {
@@ -110,6 +109,10 @@ const WTL_GAME_DATA = {
             "move_speed": DATA_TILE_SIZE*16  
         },
         "presets": [
+            {
+                "name": "oak_forest_1",
+                "size": 100
+            },
             {
                 "name": "river_1",
                 "size": 100
@@ -633,6 +636,7 @@ const WTL_GAME_DATA = {
                         "slider_height": 40,
                         "background_colour_code": "#ffffff",
                         "slider_colour_code": "#ff00ff",
+                        "wheel_multiplier": 0.25
                     },
                     "entry": {
                         "y_size": 250,
@@ -657,6 +661,10 @@ const WTL_GAME_DATA = {
                     {
                         "display_name": "Level Generator",
                         "menu_name": "level_generator_menu"
+                    },
+                    {
+                        "display_name": "Gamemaker",
+                        "menu_name": "game_maker"
                     }
                 ]
             },

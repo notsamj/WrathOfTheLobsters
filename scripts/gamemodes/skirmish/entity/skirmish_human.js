@@ -26,8 +26,8 @@ class SkirmishHuman extends SkirmishCharacter {
             "trying_to_shoot": false,
             "new_crosshair_center": false
         });
-        let canvasX = mouseX;
-        let canvasY = this.getScene().changeFromScreenY(mouseY);
+        let canvasX = gMouseX;
+        let canvasY = this.getScene().changeFromScreenY(gMouseY);
         if (canvasX < 0 || canvasX >= this.getScene().getWidth() || canvasY < 0 || canvasY >= this.getScene().getHeight()){ return; }
         let engineX = canvasX / gameZoom + this.getScene().getLX();
         let engineY = canvasY / gameZoom + this.getScene().getBY();
@@ -47,8 +47,8 @@ class SkirmishHuman extends SkirmishCharacter {
             "trying_to_shoot": false,
             "new_crosshair_center": false
         });
-        let canvasX = mouseX;
-        let canvasY = this.getScene().changeFromScreenY(mouseY);
+        let canvasX = gMouseX;
+        let canvasY = this.getScene().changeFromScreenY(gMouseY);
         if (canvasX < 0 || canvasX >= this.getScene().getWidth() || canvasY < 0 || canvasY >= this.getScene().getHeight()){ return; }
         let engineX = canvasX / gameZoom + this.getScene().getLX();
         let engineY = canvasY / gameZoom + this.getScene().getBY();
@@ -131,8 +131,8 @@ class SkirmishHuman extends SkirmishCharacter {
     }
 
     makeMovePointerDecisions(){
-        let canvasX = mouseX;
-        let canvasY = this.getScene().changeFromScreenY(mouseY);
+        let canvasX = gMouseX;
+        let canvasY = this.getScene().changeFromScreenY(gMouseY);
         if (canvasX < 0 || canvasX >= this.getScene().getWidth() || canvasY < 0 || canvasY >= this.getScene().getHeight()){ return; }
         let engineX = canvasX / gameZoom + this.getScene().getLX();
         let engineY = canvasY / gameZoom + this.getScene().getBY();

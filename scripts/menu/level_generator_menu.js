@@ -79,9 +79,12 @@ class LevelGeneratorMenu extends Menu {
     }
 
     addNumber(newNumberString){
+        // If they try to add to a full seed then just reset
         if (this.currentSeedString.length >= this.maxDigits){
-            return;
-        }else if (this.currentSeedString === '0'){
+            this.currentSeedString = this.currentSeedString.substring(1, this.maxDigits);
+        }
+
+        if (this.currentSeedString === '0'){
             this.updateCurrentSeedString(newNumberString);
         }else{
             this.updateCurrentSeedString(this.currentSeedString + newNumberString);
@@ -112,6 +115,15 @@ class LevelGeneratorMenu extends Menu {
         }
 
         let menuData = WTL_GAME_DATA["menu"]["menus"]["level_generator_menu"];
+
+        // Back Button
+        let menuDataBackButton = menuData["back_button"];
+        let backButtonY = (innerHeight) => { return innerHeight-menuDataBackButton["y_offset"]; }
+        let backButtonXSize = menuDataBackButton["x_size"];
+        let backButtonYSize = menuDataBackButton["y_size"];
+        this.components.push(new RectangleButton(menuDataBackButton["text"], menuDataBackButton["colour_code"], menuDataBackButton["text_colour_code"], menuDataBackButton["x"], backButtonY, backButtonXSize, backButtonYSize, (instance) => {
+            MENU_MANAGER.switchTo("main");
+        }));
 
         // Number pad area
         let numberButtonSize = menuData["number_button_size"];

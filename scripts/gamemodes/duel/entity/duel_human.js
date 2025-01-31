@@ -5,11 +5,11 @@ class DuelHuman extends DuelCharacter {
     }
 
     drawGunCrosshair(gun, lX, bY){
-        let mouseX = window.mouseX;
-        let mouseY = window.mouseY;
+        let mouseX = gMouseX;
+        let mouseY = gMouseY;
 
-        let canvasX = mouseX;
-        let canvasY = this.getScene().changeFromScreenY(mouseY);
+        let canvasX = gMouseX;
+        let canvasY = this.getScene().changeFromScreenY(gMouseY);
 
         // Don't display if invalid value
         if (canvasX < 0 || canvasX >= this.getScene().getWidth() || canvasY < 0 || canvasY >= this.getScene().getHeight()){ return; }

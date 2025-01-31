@@ -37,21 +37,23 @@ class Client {
         let action = dataJSON["action"];
 
         // Check for ping
-        if (action == "ping"){
+        if (action === "ping"){
             this.sendJSON({"success": true, "mail_box": dataJSON["mail_box"]});
             return;
         }
 
+        //console.log("Received", dataJSON)
         // At this point it must have something to do with files
         let fileName = dataJSON["file_name"];
         let path = "data/" + fileName;
-        if (action == "load"){
+        if (action === "load"){
             if (!fs.existsSync(path)){
                 this.sendJSON({"success": false, "mail_box": dataJSON["mail_box"], "reason": "File not found."});
                 return;
             }
             this.sendJSON({"success": true, "mail_box": dataJSON["mail_box"], "data": fs.readFileSync(path, {"encoding": "utf8", "flag": "r"})});
-        }else if (action == "save"){
+        }else if (action === "save"){
+            //console.log("Received", dataJSON, path)
             fs.writeFileSync(path, JSON.stringify(dataJSON["data"]));
             console.log("Saving", path)
             this.sendJSON({"success": true, "mail_box": dataJSON["mail_box"]});

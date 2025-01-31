@@ -181,7 +181,7 @@ class MenuManager {
                 TICK_SCHEDULER.pause();
             }
             this.activeMenu = this.pauseMenu;
-        }else if (newMenuName == "game"){
+        }else if (newMenuName === "game"){
             if (TICK_SCHEDULER.isPaused()){
                 TICK_SCHEDULER.unpause();
             }
@@ -197,6 +197,11 @@ class MenuManager {
             throw new Error("Unknown menu: " + newMenuName);
         }
         document.getElementById("canvas").style.cursor = (enableCursor ? "" : "none");
+
+        // If not the game then inform that it's switched
+        if (newMenuName != "game"){
+            this.activeMenu.informSwitchedTo();
+        }
     }
 
     switchToSecondary(secondaryMenuName){

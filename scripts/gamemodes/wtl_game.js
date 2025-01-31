@@ -13,8 +13,8 @@ const LOCAL_EVENT_HANDLER = new NSEventHandler();
 const ZOOM_MONITOR = {"button": null, "start_time_ms": null};
 
 // Global Variables
-var mouseX = 0;
-var mouseY = 0;
+var gMouseX = 0;
+var gMouseY = 0;
 var programOver = false;
 var ramshackleDebugToolValue = false;
 var setupOngoing = false;
@@ -93,8 +93,8 @@ async function setup() {
     WTL_GAME_DATA["general"]["ms_between_ticks"] = Math.floor(1000 / WTL_GAME_DATA["general"]["tick_rate"]); // Expected to be an integer so floor isn't really necessary
     
     window.onmousemove = (event) => {
-        mouseX = event.clientX;
-        mouseY = event.clientY;
+        gMouseX = event.clientX;
+        gMouseY = event.clientY;
     }
 
     // Game Maker
@@ -187,6 +187,8 @@ async function setup() {
 
     USER_INPUT_MANAGER.register("u_ticked", "keydown", (event) => { return event.keyCode===KEY_CODE_U; }, true, {"ticked": true, "ticked_activation": false});
 
+    USER_INPUT_MANAGER.registerSpecialType(new TickedValueNode("scroll_in_dir", "wheel", (event) => { return event.deltaY; }, 0));
+
     // Disable context menu
     document.getElementById("main_area").addEventListener("contextmenu", (event) => {event.preventDefault()});
 
@@ -274,8 +276,8 @@ function setGameZoom(){
 }
 
 function drawCustomCrosshair(crosshairImage, customX=null, customY=null){
-    let x = window.mouseX;
-    let y = window.mouseY;
+    let x = gMouseX;
+    let y = gMouseY;
     let crosshairWidth = crosshairImage.width;
     let crosshairHeight = crosshairImage.height;
     let displayX = x - crosshairWidth/2;

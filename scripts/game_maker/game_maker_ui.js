@@ -4,13 +4,22 @@ class GameMakerUI extends Menu {
         this.imageSelector = null; // Placeholder
         this.visualImages = [];
         this.physicalImages = [];
+        this.game = undefined; // Declare
+    }
+
+    setup(){
         this.loadPhysicalImages();
         this.setupTopBar();
         this.setupBottomBar();
     }
 
+    informSwitchedTo(){
+        this.game = new GameMaker(this);
+        GAMEMODE_MANAGER.setActiveGamemode(this.game);
+    }
+
     blocksWindowLocation(windowX, windowY){
-        if (!GAMEMODE_MANAGER.getActiveGamemode().isDisplayingHUD()){ return false; }
+        if (!this.game.isDisplayingHUD()){ return false; }
         return windowY <= WTL_GAME_DATA["ui"]["game_maker"]["top_bar_height"] || windowY >= getScreenHeight() - WTL_GAME_DATA["ui"]["game_maker"]["bottom_bar_height"];
     }
 
@@ -138,7 +147,7 @@ class GameMakerUI extends Menu {
     }
 
     display(){
-        if (!GAMEMODE_MANAGER.getActiveGamemode().isDisplayingHUD()){
+        if (!this.game.isDisplayingHUD()){
             return;
         }
         this.topBar.display();
@@ -157,6 +166,7 @@ class GameMakerUI extends Menu {
         Method Return: void
     */
     click(x, y){
+        if (!this.game.isDisplayingHUD()){ return; }
         let components = this.getAllComponents();
         for (let i = components.length - 1; i >= 0; i--){
             let component = components[i];
@@ -165,6 +175,18 @@ class GameMakerUI extends Menu {
                 break;
             }
         }
+    }
+
+    covers(x, y){
+        // Note: y is using game coordinate system (bottom of screen is 0)
+        let components = this.getAllComponents();
+        for (let i = components.length - 1; i >= 0; i--){
+            let component = components[i];
+            if (component.covers(x, y)){
+                return true;
+            }
+        }
+        return false;
     }
 
     getAllComponents(){
@@ -386,19 +408,19 @@ class ConnectButton extends RectangleButton {
     }
 
     setConnected(){
-        this.colour = WTL_GAME_DATA["ui"]["game_maker"]["green_code"];
+        this.colourCode = WTL_GAME_DATA["ui"]["game_maker"]["green_code"];
         this.textStr = "Connected";
         this.connected = true;
     }
 
     setNotConnected(){
-        this.colour = WTL_GAME_DATA["ui"]["game_maker"]["red_code"];
+        this.colourCode = WTL_GAME_DATA["ui"]["game_maker"]["red_code"];
         this.textStr = "Disconnected";
         this.connected = false;
     }
 
     setUpdating(){
-        this.colour = WTL_GAME_DATA["ui"]["game_maker"]["yellow_code"];
+        this.colourCode = WTL_GAME_DATA["ui"]["game_maker"]["yellow_code"];
         this.textStr = "Connecting...";
         this.connected = false;
     }
@@ -419,3 +441,5 @@ class SelectableImage {
         return this.name;
     }
 }
+
+MENU_MANAGER.registerMenu("game_maker", new GameMakerUI());

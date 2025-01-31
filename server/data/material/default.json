@@ -7,6 +7,7 @@
         {"name": "rock_on_dirt", "file_link": "images/rock_on_dirt.png"},
         {"name": "rock_on_grass", "file_link": "images/rock_on_grass.png"},
         {"name": "bush", "file_link": "images/bush.png"},
-        {"name": "thick_bush", "file_link": "images/thick_bush.png"}
+        {"name": "thick_bush", "file_link": "images/thick_bush.png"},
+        {"name": "tree", "file_link": "images/tree.png"}
     ]
 }

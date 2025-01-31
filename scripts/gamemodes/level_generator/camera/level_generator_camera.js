@@ -8,6 +8,8 @@ class LevelGeneratorCamera extends Entity {
         this.yVelocity = 0;
         this.xLock = new TickLock(0);
         this.yLock = new TickLock(0);
+        this.cursorTileX = undefined;
+        this.cursorTileY = undefined;
         this.id = "camera";
     }
 
@@ -87,7 +89,21 @@ class LevelGeneratorCamera extends Entity {
         this.y += this.yVelocity / WTL_GAME_DATA["general"]["tick_rate"];
         this.checkMoveX();
         this.checkMoveY();
+        this.updateCursorInfo();
     }
 
-    display(){}
+    updateCursorInfo(){
+        let canvasX = gMouseX;
+        let canvasY = this.getScene().changeFromScreenY(gMouseY);
+        if (canvasX < 0 || canvasX >= this.getScene().getWidth() || canvasY < 0 || canvasY >= this.getScene().getHeight()){ return; }
+        let engineX = canvasX / gameZoom + this.getScene().getLX();
+        let engineY = canvasY / gameZoom + this.getScene().getBY();
+        this.cursorTileX = WTLGameScene.getTileXAt(engineX);
+        this.cursorTileY = WTLGameScene.getTileYAt(engineY);
+    }
+
+    display(){
+        MY_HUD.updateElement("Cursor Tile X", this.cursorTileX);
+        MY_HUD.updateElement("Cursor Tile Y", this.cursorTileY);
+    }
 }

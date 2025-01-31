@@ -1,6 +1,6 @@
 class Tile extends VisualItem {
     constructor(scene, chunk, material, tileX, tileY){
-        super(IMAGES[material["name"]].width, IMAGES[material["name"]].height);
+        super(scene, IMAGES[material["name"]].width, IMAGES[material["name"]].height);
         this.scene = scene;
         this.chunk = chunk;
         this.material = material;
@@ -105,6 +105,14 @@ class Tile extends VisualItem {
 class VisualTile extends Tile {
     delete(){
         this.chunk.deleteVisualTile(this);
+    }
+
+    getTileWidth(){
+        return Math.ceil(this.width / WTL_GAME_DATA["general"]["tile_size"]);
+    }
+
+    getTileHeight(){
+        return Math.ceil(this.height / WTL_GAME_DATA["general"]["tile_size"]);
     }
 }
 

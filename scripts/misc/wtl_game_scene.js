@@ -627,17 +627,29 @@ class WTLGameScene {
     }
 
     deleteVisualTile(tileX, tileY){
-        let vt = this.getVisualTileAtLocation(tileX, tileY);
-        if (vt != null){
-            vt.delete();
-        }
+        let chunkX = Chunk.tileToChunkCoordinate(tileX);
+        let chunkY = Chunk.tileToChunkCoordinate(tileY);
+
+        let chunk = this.chunks.get(chunkX, chunkY);
+        
+        // If chunk doesn't exist
+        if (chunk === null){ return null; }
+
+        // Check if the chunk has a physical tile there
+        return chunk.getVisualTiles().set(tileX, tileY, null);
     }
 
     deletePhysicalTile(tileX, tileY){
-        let pt = this.getPhysicalTileAtLocation(tileX, tileY);
-        if (pt != null){
-            pt.delete();
-        }
+        let chunkX = Chunk.tileToChunkCoordinate(tileX);
+        let chunkY = Chunk.tileToChunkCoordinate(tileY);
+
+        let chunk = this.chunks.get(chunkX, chunkY);
+        
+        // If chunk doesn't exist
+        if (chunk === null){ return null; }
+
+        // Check if the chunk has a physical tile there
+        return chunk.getPhysicalTiles().set(tileX, tileY, null);
     }
 
     hasVisualTileAtLocation(tileX, tileY){
@@ -702,6 +714,7 @@ class WTLGameScene {
             // Loop through lower x values
             for (let xIndex = chunkXExpectedIndex; xIndex >= 0; xIndex--){
                 let chunk = xArray[xIndex]["value"];
+                if (chunk === null){ continue; }
                 if (chunk.covers(tileX, tileY)){
                     let visualTile = chunk.getVisualTileCoveringLocation(tileX, tileY);
                     // It can cover naturally but not visually cover it (say a big visual from a chunk above)
@@ -934,6 +947,7 @@ class WTLGameScene {
             // Loop through lower x values
             for (let xIndex = chunkXExpectedIndex; xIndex >= 0; xIndex--){
                 let chunk = xArray[xIndex]["value"];
+                if (chunk === null){ continue; }
                 chunk.displayVisualTiles(lX, rX, bY, tY);
             }
         }
@@ -960,6 +974,7 @@ class WTLGameScene {
                 // Loop through lower x values
                 for (let xIndex = chunkXExpectedIndex; xIndex >= 0; xIndex--){
                     let chunk = xArray[xIndex]["value"];
+                    if (chunk === null){ continue; }
                     chunk.displayPhysicalTiles(lX, rX, bY, tY);
                 }
             }
@@ -1263,6 +1278,14 @@ class Chunk {
         return Chunk.tileToChunkCoordinate(tileX) === this.chunkX && Chunk.tileToChunkCoordinate(tileY) === this.chunkY;
     }
 
+    outsideTileRegion(leftTileX, rightTileX, bottomTileY, topTileY){
+        if (this.chunkX < Chunk.tileToChunkCoordinate(leftTileX)){ return true; }
+        if (this.chunkX > Chunk.tileToChunkCoordinate(rightTileX)){ return true; }
+        if (this.chunkY < Chunk.tileToChunkCoordinate(bottomTileY)){ return true; }
+        if (this.chunkY > Chunk.tileToChunkCoordinate(topTileY)){ return true; }
+        return false;
+    }
+
     placeVisualTile(material, tileX, tileY){
         let tile = this.getVisualTileCoveringLocation(tileX, tileY);
         // If tile doesn't exist, add it
@@ -1315,6 +1338,14 @@ class Chunk {
         let tY = tile.getTileY();
         // Find and delete the specified tile
         this.physicalTiles.set(tX, tY, null);
+    }
+
+    deletePhysicalTileAt(tileX, tileY){
+        this.physicalTiles.set(tileX, tileY, null);
+    }
+
+    deleteVisualTileAt(tileX, tileY){
+        this.visualTiles.set(tileX, tileY, null);
         this.recalculateBoundaries();
     }
 

@@ -2545,8 +2545,10 @@ class DuelBot extends DuelCharacter {
             let chunkX = Chunk.tileToChunkCoordinate(tileX);
             let chunkY = Chunk.tileToChunkCoordinate(tileY);
             if (!chunksToCheck.has(chunkX, chunkY)){
+                let chunk = chunks.get(chunkX, chunkY);
+                if (chunk === null){ continue; }
                 // False to indicate the end tiles have not been taken
-                chunksToCheck.set(chunkX, chunkY, {"extracted": false, "chunk": chunks.get(chunkX, chunkY)});
+                chunksToCheck.set(chunkX, chunkY, {"extracted": false, "chunk": chunk});
             }
         }
 
@@ -2594,8 +2596,9 @@ class DuelBot extends DuelCharacter {
                             // If the chunk is closer than the best route length OR this is no best route length
                             if (distanceToChunk < currentBestRouteLength){
                                 // If the check has not been checked already
-                                if (!chunksToCheck.has(chunkX, chunkY)){
-                                    chunksToCheck.set(chunkX, chunkY, {"extracted": false, "chunk": chunks.get(chunkX, chunkY)});
+                                let chunk = chunks.get(chunkX, chunkY);
+                                if (!chunksToCheck.has(chunkX, chunkY) && chunk != null){
+                                    chunksToCheck.set(chunkX, chunkY, {"extracted": false, "chunk": chunk});
                                     // Return true to to indicate we found a new chunk to add
                                     return true;
                                 }

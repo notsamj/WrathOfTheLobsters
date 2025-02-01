@@ -86,156 +86,28 @@ class LevelGenerator extends Gamemode {
 
         // Set the spawns
 
-        let createPath = async (coordSet1, coordSet2) => {
-            let startX = coordSet1[0];
-            let startY = coordSet1[1];
-            let endX = coordSet2[0];
-            let endY = coordSet2[1];
+        await LevelGenerator.deleteAllOutsideOfRegion(scene, chosenXStart, chosenXStart + size, chosenYStart, chosenYStart + size);
+        // Fill voids with grass
+        for (let [chunk, chunkX, chunkY] of scene.getChunks()){
+            if (chunk === null){ continue; }
+            await apr.attemptToWait();
 
-            let canWalk = (x, y) => {
-                return !(scene.hasPhysicalTileCoveringLocation(x, y) && scene.getPhysicalTileCoveringLocation(x, y).hasAttribute("no_walk"));
-            }
-
-            let tileStorage = [{"x": startX, "y": startY, "can_walk": canWalk(startX, startY), "checked": false}];
-            let hasPath = () => {
-                for (let element of tileStorage){
-                    if (element["x"] === endX && element["y"] === endY && element["can_walk"]){
-                        return true;
-                    }
-                }
-                return false;
-            }
-
-            let hasUnreadyUnblockedTilesToCheck = () => {
-                for (let element of tileStorage){
-                    let elementX = element["x"];
-                    let elementY = element["y"];
-                    // If element isn't ready to walk on and 
-                    if (element["can_walk"] && !element["checked"]){
-                        return true;
-                    }
-                }
-                return false;
-            }
-
-            let withinBoundaries = (x,y) => {
-                return x >= 0 && x < defaultSize && y >= 0 && y < defaultSize;
-            } 
-
-            let hasTile = (x,y) => {
-                for (let element of tileStorage){
-                    if (element["x"] === x && element["y"] === y){
-                        return true;
-                    }
-                }
-                return false;
-            }
-
-            let destroyTile = (tileObject) => {
-                let tileX = tileObject["x"];
-                let tileY = tileObject["y"];
-
-                let visualTile = scene.getVisualTileCoveringLocation(tileX, tileY);
-                let originX = visualTile.getTileX();
-                let originY = visualTile.getTileY();
-                for (let oX = originX; oX < originX + treeWidth; oX++){
-                    for (let oY = originY; oY > originY - treeHeight; oY--){
-                        // Destroy the physical tile
-                        scene.deletePhysicalTile(tileX, tileY);
-                        scene.placeVisualTile(grassDetails, tileX, tileY);
-                    }
-                }
-            }
-
-            // Loop until there is a path found
-            while (!hasPath()){
-                await apr.attemptToWait();
-                // Find all accessible tiles that are currentlyn ot blocked
-                while (hasUnreadyUnblockedTilesToCheck()){
-                    let tile = null; // Note: We know this exists because of while check
-                    for (let element of tileStorage){
-                        if (element["can_walk"] && !element["checked"]){
-                            if (tile === null){
-                                tile = element;
-                            }else{
-                                // Take the closest to end point when possible
-                                let distanceToEnd = Math.sqrt(Math.pow(endX-element["x"], 2) + Math.pow(endY-element["y"], 2));
-                                let distanceToEndExisting = Math.sqrt(Math.pow(endX-tile["x"], 2) + Math.pow(endY-tile["y"], 2));
-                                if (distanceToEnd < distanceToEndExisting){
-                                    tile = element;
-                                }
-                            }
+            let visualTiles = chunk.getVisualTiles();
+            for (let [tile, tileX, tileY] of visualTiles){
+                let tileIsNull = tile === null;
+                if (tileIsNull){
+                    let insideRegion = tileX >= chosenXStart && tileX < chosenXStart + size && tileY >= chosenYStart && tileY < chosenYStart + size;
+                    if (insideRegion){
+                        let uncovered = !scene.hasVisualTileCoveringLocation(tileX, tileY);
+                        if (uncovered){
+                            chunk.placeVisualTile(grassDetails, tileX, tileY);
+                            chunk.deletePhysicalTileAt(tileX, tileY);
                         }
                     }
-
-                    // So we have the tile to check
-                    tile["checked"] = true;
-                    let tileX = tile["x"];
-                    let tileY = tile["y"];
-                    if (withinBoundaries(tileX+1, tileY) && !hasTile(tileX+1, tileY)){
-                        tileStorage.push({"x": tileX+1, "y": tileY, "can_walk": canWalk(tileX+1, tileY), "checked": false})
-                    }
-                    if (withinBoundaries(tileX-1, tileY) && !hasTile(tileX-1, tileY)){
-                        tileStorage.push({"x": tileX-1, "y": tileY, "can_walk": canWalk(tileX-1, tileY), "checked": false})
-                    }
-                    if (withinBoundaries(tileX, tileY+1) && !hasTile(tileX, tileY+1)){
-                        tileStorage.push({"x": tileX, "y": tileY+1, "can_walk": canWalk(tileX, tileY+1), "checked": false})
-                    }
-                    if (withinBoundaries(tileX, tileY-1) && !hasTile(tileX, tileY-1)){
-                        tileStorage.push({"x": tileX, "y": tileY-1, "can_walk": canWalk(tileX, tileY-1), "checked": false})
-                    }
-                }
-                // If still haven't found a good path
-                if (!hasPath()){
-                    // Processing break
-                    await apr.attemptToWait();
-                    let toDestroy = null; // Note: No way we don't have a path unless there is something to be destroyed or invalid input
-                    for (let element of tileStorage){
-                        if (!element["can_walk"]){
-                            if (toDestroy === null){
-                                toDestroy = element;
-                            }else{
-                                // Take the closest to end point when possible
-                                let distanceToEnd = Math.sqrt(Math.pow(endX-element["x"], 2) + Math.pow(endY-element["y"], 2));
-                                let distanceToEndExisting = Math.sqrt(Math.pow(endX-toDestroy["x"], 2) + Math.pow(endY-toDestroy["y"], 2));
-                                if (distanceToEnd < distanceToEndExisting){
-                                    toDestroy = element;
-                                }
-                            }
-                        }
-                    }
-                    destroyTile(toDestroy);
-                    toDestroy["can_walk"] = true;
                 }
             }
         }
         
-        // Cut everything outside the chosen zone (extra 1 is because of border)
-        for (let x = -1; x < defaultSize + 1; x++){
-            for (let y = -1; y < defaultSize + 1; y++){
-                // Skip chosen zone
-                if (x >= chosenXStart && x < chosenXStart + size && y >= chosenYStart && y < chosenYStart + size){
-                    continue;
-                }
-                await apr.attemptToWait();
-                scene.deletePhysicalTile(x, y);
-                scene.deleteVisualTile(x, y);
-            }
-        }
-
-        // Fill with grass
-        for (let x = chosenXStart; x < chosenXStart + size; x++){
-            for (let y = chosenYStart; y < chosenYStart + size; y++){
-                // Processing break
-                await apr.attemptToWait();
-                if (!scene.hasVisualTileCoveringLocation(x, y)){
-                    scene.placeVisualTile(grassDetails, x, y);
-                    scene.deletePhysicalTile(x, y);
-                }
-            }
-        }
-        
-
         // Redo border
         let fullBlockDetails = getPhysicalTileDetails("full_block");
 
@@ -254,6 +126,7 @@ class LevelGenerator extends Gamemode {
             }
             if (visualTile.getMaterialName() === "tree"){
                 for (let oY = y; oY > Math.max(y - treeHeight, -1); oY--){
+                    console.log("Destroying tile at", chosenXStart + size - 1, oY);
                     scene.placeVisualTile(grassDetails, chosenXStart + size - 1, oY);
                     scene.deletePhysicalTile(chosenXStart + size - 1, oY);
                 }
@@ -262,49 +135,250 @@ class LevelGenerator extends Gamemode {
 
         // Bottom
         for (let x = chosenXStart; x < chosenXStart + size; x++){
-            let visualTile = scene.getVisualTileAtLocation(x, chosenYStart - 1 - 1);
+            let visualTile = scene.getVisualTileAtLocation(x, chosenYStart);
             // May be null because of big tiles to the left
             if (visualTile === null){
                 continue;
             }
             await apr.attemptToWait();
             if (visualTile.getMaterialName() === "tree"){
-                for (let oX = x; oX < Math.max(x + treeWidth, chosenXStart + size); oX++){
-                    scene.placeVisualTile(grassDetails, oX, chosenYStart - 1 - 1);
-                    scene.deletePhysicalTile(oX, chosenYStart - 1 - 1);
+                for (let oX = x; oX < Math.min(x + treeWidth, chosenXStart + size); oX++){
+                    scene.placeVisualTile(grassDetails, oX, chosenYStart);
+                    scene.deletePhysicalTile(oX, chosenYStart);
                 }
             }
         }
 
         let spawnDetails = getPhysicalTileDetails("spawn");
+
+        let destroyTile = (tileObject, scene) => {
+            let tileX = tileObject["tile_x"];
+            let tileY = tileObject["tile_y"];
+
+            let visualTile = scene.getVisualTileCoveringLocation(tileX, tileY);
+            let originX = visualTile.getTileX();
+            let originY = visualTile.getTileY();
+            for (let oX = originX; oX < originX + visualTile.getTileWidth(); oX++){
+                for (let oY = originY; oY > originY - visualTile.getTileHeight(); oY--){
+                    // Destroy the physical tile
+                    console.log("Destroying tile at", oX, oY);
+                    scene.deletePhysicalTile(oX, oY);
+                    scene.placeVisualTile(grassDetails, oX, oY);
+                }
+            }
+        }
+
         // Create paths between the spawns
         for (let i = 0; i < spawns.length - 1; i++){
-            await createPath(spawns[i], spawns[i+1]);
+            await apr.attemptToWait();
+            await LevelGenerator.createPath(spawns[i], spawns[i+1], scene, destroyTile);
+        }
+
+        for (let i = 0; i < spawns.length; i++){
             // Place spawn tiles on the spawn points
             scene.placePhysicalTile(spawnDetails, spawns[i][0], spawns[i][1]);
         }
 
         // Left
         for (let y = chosenYStart - 1; y <= chosenYStart + size; y++){
+            await apr.attemptToWait();
             scene.placePhysicalTile(fullBlockDetails, chosenXStart - 1, y);
         }
 
         // Right
         for (let y = chosenYStart - 1; y <= chosenYStart + size; y++){
+            await apr.attemptToWait();
             scene.placePhysicalTile(fullBlockDetails, chosenXStart + size, y);
         }
 
         // Bottom
         for (let x = chosenXStart - 1; x <= chosenXStart + size; x++){
+            await apr.attemptToWait();
             scene.placePhysicalTile(fullBlockDetails, x, chosenYStart - 1);
         }
 
         // Top
         for (let x = chosenXStart - 1; x <= chosenXStart + size; x++){
+            await apr.attemptToWait();
             scene.placePhysicalTile(fullBlockDetails, x, chosenYStart + size);
         }
 
         return spawns;
+    }
+
+    static async createPath(coordSet1, coordSet2, scene, destroyTileFunc){
+        let startTileX = coordSet1[0];
+        let startTileY = coordSet1[1];
+        let endTileX = coordSet2[0];
+        let endTileY = coordSet2[1];
+
+        let knownTilesFromStart = new NotSamXYSortedArrayList();
+        let edgeTilesFromStart = new NotSamLinkedList([{"tile_x": startTileX, "tile_y": startTileY}]);
+
+        // Make sure both ends are clear
+        if (scene.tileAtLocationHasAttribute(startTileX, startTileY, "no_walk")){
+            destroyTileFunc({"tile_x": startTileX, "tile_y": startTileY}, scene);
+        }
+        if (scene.tileAtLocationHasAttribute(endTileX, endTileY, "no_walk")){
+            destroyTileFunc({"tile_x": endTileX, "tile_y": endTileY}, scene);
+        }
+
+        let foundEndTile = false;
+
+        let getTileToDestroy = () => {
+            let bestTileX = null;
+            let bestTileY = null;
+            let bestDistance = null;
+
+            // Find the closest physical obstruction to the tile
+            for (let [dud, tileX, tileY] of knownTilesFromStart){
+                let adjacentTiles = [[tileX+1,tileY], [tileX-1, tileY], [tileX, tileY+1], [tileX, tileY-1]];
+                // Look through adjacent tiles to find obstructions
+                for (let adjacentTile of adjacentTiles){
+                    let aX = adjacentTile[0];
+                    let aY = adjacentTile[1];
+                    // If this is already known do nothing
+                    if (knownTilesFromStart.has(aX, aY)){ continue; }
+                    // if this is a void tile then ignore
+                    if (!scene.hasVisualTileCoveringLocation(aX, aY)){ continue; }
+
+                    // Because this function was called we know this MUST not be a walkable tile
+                    let mDistance = calculateManhattanDistance(adjacentTile[0], adjacentTile[1], endTileX, endTileY);
+                    if (bestDistance === null || mDistance < bestDistance){
+                        bestTileX = aX;
+                        bestTileY = aY;
+                        bestDistance = mDistance;
+                    }
+                }
+            }
+            return {"tile_x": bestTileX, "tile_y": bestTileY};
+        }
+
+        let findBestEdgeTile = () => {
+            let bestEdgeTileIndex = null;
+            let bestDistance = null;
+
+            // Loop from top to bottom
+            for (let [edgeTile, eTI] of edgeTilesFromStart){
+                let eX = edgeTile["tile_x"];
+                let eY = edgeTile["tile_y"];
+                let distance = calculateManhattanDistance(eX, eY, endTileX, endTileY);
+                if (bestDistance === null || distance < bestDistance){
+                    bestDistance = distance;
+                    bestEdgeTileIndex = eTI;
+                    // don't continue searching if this is good enough
+                    if (bestDistance <= 1){
+                        break;
+                    }
+                }
+            }
+
+            let bestEdgeTile = null;
+            if (bestEdgeTileIndex != null){
+                bestEdgeTile = edgeTilesFromStart.pop(bestEdgeTileIndex);
+            }
+            return {"manhattan_distance": bestDistance, "edge_tile": bestEdgeTile}
+        }
+
+        let exploreEdgeTile = (edgeTile) => {
+            let edgeTileX = edgeTile["tile_x"];
+            let edgeTileY = edgeTile["tile_y"];
+            if (edgeTileX === undefined){ debugger; }
+            let adjacentTiles = [[edgeTileX+1,edgeTileY], [edgeTileX-1, edgeTileY], [edgeTileX, edgeTileY+1], [edgeTileX, edgeTileY-1]];
+            // Look through adjacent tiles to find obstructions
+            for (let adjacentTile of adjacentTiles){
+                let aX = adjacentTile[0];
+                let aY = adjacentTile[1];
+                // If this is already known do nothing
+                if (knownTilesFromStart.has(aX, aY)){ continue; }
+
+                // if this is a no walk tile then ignore
+                if (scene.tileAtLocationHasAttribute(aX, aY, "no_walk")){ continue; }
+
+                // Add to known tiles
+                knownTilesFromStart.set(aX, aY, null);
+
+                // Add to edge tiles
+                edgeTilesFromStart.push({"tile_x": aX, "tile_y": aY});
+            }
+        }
+
+        // Loop until the end tile is found
+        while (!foundEndTile){
+            let edgeTileInfo = findBestEdgeTile();
+            let edgeTile = edgeTileInfo["edge_tile"];
+            let noTiles = edgeTile === null;
+            // If no tiles found then clear a new edge tile
+            if (noTiles){
+                // This destoys and adds to edge tiles
+                let tileToClear = getTileToDestroy();
+                destroyTileFunc(tileToClear, scene);
+                // Add to edge tiles
+                edgeTilesFromStart.push(tileToClear);
+                // Because this isn't the normal process of adding to edge tiles I need to remember to add to knowTilesFromStart
+                knownTilesFromStart.set(tileToClear["tile_x"], tileToClear["tile_y"], null);
+            }else{
+                let mDistance = edgeTileInfo["manhattan_distance"];
+                // If this is the end (or next to it) then we have a path
+                if (mDistance <= 1){
+                    foundEndTile = true;
+                }else{
+                    // Explore around this tile
+                    exploreEdgeTile(edgeTile);
+                }
+            }
+        }
+
+        if (!foundEndTile){
+            throw new Error("Failed to create a path.");
+        }
+    }
+
+    static async deleteAllOutsideOfRegion(scene, lowerX, higherXEX, lowerY, higherYEX){
+        let apr = new AsyncProcessingRegulator();
+        let chunks = scene.getChunks();
+        let higherXINC = higherXEX - 1;
+        let higherYINC = higherYEX - 1;
+
+        // Delete chunks fully outside the region
+        for (let [chunk, chunkX, chunkY] of chunks){
+            if (chunk === null){ continue; }
+            await apr.attemptToWait();
+            // Delete chunks outside of the region
+            if (chunk.outsideTileRegion(lowerX, higherXINC, lowerY, higherYINC)){
+                // Delete self
+                chunks.set(chunkX, chunkY, null);
+            }
+        }
+
+        let lowerChunkX = Chunk.tileToChunkCoordinate(lowerX);
+        let higherChunkX = Chunk.tileToChunkCoordinate(higherXINC);
+        let lowerChunkY = Chunk.tileToChunkCoordinate(lowerY);
+        let higherChunkY = Chunk.tileToChunkCoordinate(higherYINC);
+        // Delete tiles in edge chunks
+        for (let [chunk, chunkX, chunkY] of chunks){
+            if (chunk === null){ continue; }
+            await apr.attemptToWait();
+            let edgeX = chunkX === lowerChunkX || chunkX === higherChunkX;
+            let edgeY = chunkY === lowerChunkY || chunkY === higherChunkY;
+
+            // For edge chunks delete the tiles outside the range
+            if (edgeX || edgeY){
+                let visualTiles = chunk.getVisualTiles();
+                for (let [tile, tileX, tileY] of visualTiles){
+                    if (tile === null){ continue; }
+                    if (tileX >= lowerX && tileX < higherXEX && tileY >= lowerY && tileY < higherYEX){ continue; }
+                    visualTiles.set(tileX, tileY, null);
+                }
+
+                let physicalTiles = chunk.getPhysicalTiles();
+                for (let [tile, tileX, tileY] of physicalTiles){
+                    if (tile === null){ continue; }
+                    if (tileX >= lowerX && tileX < higherXEX && tileY >= lowerY && tileY < higherYEX){ continue; }
+                    physicalTiles.set(tileX, tileY, null);
+                }
+            }
+        }
     }
 
     static async generateOakForest1Preset(scene, seed, presetData){
@@ -355,12 +429,28 @@ class LevelGenerator extends Gamemode {
             scene.placePhysicalTile(fullBlockDetails, x, defaultSize);
         }
 
+        let lowerChunkX = Chunk.tileToChunkCoordinate(0);
+        let higherChunkX = Chunk.tileToChunkCoordinate(defaultSize - 1);
+        let lowerChunkY = Chunk.tileToChunkCoordinate(0);
+        let higherChunkY = Chunk.tileToChunkCoordinate(defaultSize - 1);
+
+        let chunks = scene.getChunks();
+        for (let cX = lowerChunkX; cX <= higherChunkX; cX++){
+            for (let cY = lowerChunkY; cY <= higherChunkY; cY++){
+                chunks.set(cX, cY, new Chunk(scene, cX, cY));
+            }
+        }
+
         // Fill with grass
-        for (let x = 0; x < defaultSize; x++){
-            for (let y = 0; y < defaultSize; y++){
-                // Processing break
-                await apr.attemptToWait();
-                scene.placeVisualTile(grassDetails, x, y);
+        for (let [chunk, chunkX, chunkY] of chunks){
+            // No null check because they're fresh
+            await apr.attemptToWait();
+
+            // Fill with grass
+            for (let tileY = Math.max(chunk.getNaturalBottomY(), 0); tileY <= Math.min(chunk.getNaturalTopY(), defaultSize - 1); tileY++){
+                for (let tileX = Math.max(chunk.getNaturalLeftX(), 0); tileX <= Math.min(chunk.getNaturalRightX(), defaultSize - 1); tileX++){
+                    chunk.placeVisualTile(grassDetails, tileX, tileY);
+                }
             }
         }
 
@@ -457,6 +547,7 @@ class LevelGenerator extends Gamemode {
 
         // Place rock clusters
         for (let i = 0; i < rockClusteres; i++){
+            await apr.attemptToWait();
             placeCluster(rockDetails, fullBlockDetails, random.getIntInRangeInclusive(0, defaultSize-1), random.getIntInRangeInclusive(0, defaultSize-1), random.getIntInRangeInclusive(minRockClusterSize, maxRockClusterSize));
         }
 
@@ -465,6 +556,7 @@ class LevelGenerator extends Gamemode {
 
         // Place Small Bushes
         for (let i = 0; i < smallBushes; i++){
+            await apr.attemptToWait();
             let x = random.getIntInRangeInclusive(0, defaultSize-1);
             let y = random.getIntInRangeInclusive(0, defaultSize-1);
             scene.placeVisualTile(bushDetails, x, y);
@@ -507,10 +599,17 @@ class LevelGenerator extends Gamemode {
 
         // Place Trees
         for (let i = 0; i < smallBushes; i++){
+            await apr.attemptToWait();
             let x = random.getIntInRangeInclusive(0, defaultSize-1);
             let y = random.getIntInRangeInclusive(0, defaultSize-1);
             tryToPlaceTree(x, y);
         }
+    }
+
+    end(){
+        MY_HUD.clearElement("seed");
+        MY_HUD.clearElement("Cursor Tile X");
+        MY_HUD.clearElement("Cursor Tile Y");
     }
 
     static async refitRiver1PresetForCornerSpawns(scene, seed, size, presetData){
@@ -531,147 +630,10 @@ class LevelGenerator extends Gamemode {
 
         let grassDetails = {"name":"grass","file_link":"images/grass.png"};
         let brigeDetails = {"name":"bridge","file_link":"images/bridge.png"};
+    
+        // Clear everything outside
+        await LevelGenerator.deleteAllOutsideOfRegion(scene, chosenXStart, chosenXStart + size, chosenYStart, chosenYStart + size);
 
-        // Set the spawns
-
-        let createPath = async (coordSet1, coordSet2) => {
-            let startX = coordSet1[0];
-            let startY = coordSet1[1];
-            let endX = coordSet2[0];
-            let endY = coordSet2[1];
-
-            let canWalk = (x, y) => {
-                return !(scene.hasPhysicalTileCoveringLocation(x, y) && scene.getPhysicalTileCoveringLocation(x, y).hasAttribute("no_walk"));
-            }
-
-            let tileStorage = [{"x": startX, "y": startY, "can_walk": canWalk(startX, startY), "checked": false}];
-            let hasPath = () => {
-                for (let element of tileStorage){
-                    if (element["x"] === endX && element["y"] === endY && element["can_walk"]){
-                        return true;
-                    }
-                }
-                return false;
-            }
-
-            let hasUnreadyUnblockedTilesToCheck = () => {
-                for (let element of tileStorage){
-                    let elementX = element["x"];
-                    let elementY = element["y"];
-                    // If element isn't ready to walk on and 
-                    if (element["can_walk"] && !element["checked"]){
-                        return true;
-                    }
-                }
-                return false;
-            }
-
-            let withinBoundaries = (x,y) => {
-                return x >= 0 && x < defaultSize && y >= 0 && y < defaultSize;
-            } 
-
-            let hasTile = (x,y) => {
-                for (let element of tileStorage){
-                    if (element["x"] === x && element["y"] === y){
-                        return true;
-                    }
-                }
-                return false;
-            }
-
-            let destroyTile = (tileObject) => {
-                let tileX = tileObject["x"];
-                let tileY = tileObject["y"];
-                
-                // Destroy the physical tile
-                scene.deletePhysicalTile(tileX, tileY);
-
-                let visualTile = scene.getVisualTileAtLocation(tileX, tileY);
-
-                // Bridge over water, grass over anything else
-                if (visualTile.getMaterialName() === "water"){
-                    scene.placeVisualTile(brigeDetails, tileX, tileY);
-                }else{
-                    scene.placeVisualTile(grassDetails, tileX, tileY);
-                }
-            }
-
-            // Loop until there is a path found
-            while (!hasPath()){
-                // Find all accessible tiles that are currentlyn ot blocked
-                while (hasUnreadyUnblockedTilesToCheck()){
-                    let tile = null; // Note: We know this exists because of while check
-                    for (let element of tileStorage){
-                        if (element["can_walk"] && !element["checked"]){
-                            if (tile === null){
-                                tile = element;
-                            }else{
-                                // Take the closest to end point when possible
-                                let distanceToEnd = Math.sqrt(Math.pow(endX-element["x"], 2) + Math.pow(endY-element["y"], 2));
-                                let distanceToEndExisting = Math.sqrt(Math.pow(endX-tile["x"], 2) + Math.pow(endY-tile["y"], 2));
-                                if (distanceToEnd < distanceToEndExisting){
-                                    tile = element;
-                                }
-                            }
-                        }
-                    }
-
-                    // So we have the tile to check
-                    tile["checked"] = true;
-                    let tileX = tile["x"];
-                    let tileY = tile["y"];
-                    if (withinBoundaries(tileX+1, tileY) && !hasTile(tileX+1, tileY)){
-                        tileStorage.push({"x": tileX+1, "y": tileY, "can_walk": canWalk(tileX+1, tileY), "checked": false})
-                    }
-                    if (withinBoundaries(tileX-1, tileY) && !hasTile(tileX-1, tileY)){
-                        tileStorage.push({"x": tileX-1, "y": tileY, "can_walk": canWalk(tileX-1, tileY), "checked": false})
-                    }
-                    if (withinBoundaries(tileX, tileY+1) && !hasTile(tileX, tileY+1)){
-                        tileStorage.push({"x": tileX, "y": tileY+1, "can_walk": canWalk(tileX, tileY+1), "checked": false})
-                    }
-                    if (withinBoundaries(tileX, tileY-1) && !hasTile(tileX, tileY-1)){
-                        tileStorage.push({"x": tileX, "y": tileY-1, "can_walk": canWalk(tileX, tileY-1), "checked": false})
-                    }
-                }
-                // If still haven't found a good path
-                if (!hasPath()){
-                    // Processing break
-                    await apr.attemptToWait();
-                    let toDestroy = null; // Note: No way we don't have a path unless there is something to be destroyed or invalid input
-                    for (let element of tileStorage){
-                        if (!element["can_walk"]){
-                            if (toDestroy === null){
-                                toDestroy = element;
-                            }else{
-                                // Take the closest to end point when possible
-                                let distanceToEnd = Math.sqrt(Math.pow(endX-element["x"], 2) + Math.pow(endY-element["y"], 2));
-                                let distanceToEndExisting = Math.sqrt(Math.pow(endX-toDestroy["x"], 2) + Math.pow(endY-toDestroy["y"], 2));
-                                if (distanceToEnd < distanceToEndExisting){
-                                    toDestroy = element;
-                                }
-                            }
-                        }
-                    }
-                    destroyTile(toDestroy);
-                    toDestroy["can_walk"] = true;
-                }
-            }
-        }
-        
-        // Cut everything outside the chosen zone (extra 1 is because of border)
-        for (let x = -1; x < defaultSize + 1; x++){
-            for (let y = -1; y < defaultSize + 1; y++){
-                // Skip chosen zone
-                if (x >= chosenXStart && x < chosenXStart + size && y >= chosenYStart && y < chosenYStart + size){
-                    continue;
-                }
-
-                await apr.attemptToWait();
-                scene.deletePhysicalTile(x, y);
-                scene.deleteVisualTile(x, y);
-            }
-        }
-        
 
         // Redo border
         let fullBlockDetails = getPhysicalTileDetails("full_block");
@@ -697,10 +659,31 @@ class LevelGenerator extends Gamemode {
         }
 
         let spawnDetails = getPhysicalTileDetails("spawn");
+
+        let destroyTile = (tileObject, scene) => {
+            let tileX = tileObject["tile_x"];
+            let tileY = tileObject["tile_y"];
+            // Destroy the physical tile
+            scene.deletePhysicalTile(tileX, tileY);
+
+            let visualTile = scene.getVisualTileCoveringLocation(tileX, tileY);
+            if (visualTile === null){
+                debugger;
+            }
+
+            // Bridge over water, grass over anything else
+            if (visualTile.getMaterialName() === "water"){
+                scene.placeVisualTile(brigeDetails, tileX, tileY);
+            }else{
+                scene.placeVisualTile(grassDetails, tileX, tileY);
+            }
+        }
+
         // Create paths between the spawns
         for (let i = 0; i < spawns.length - 1; i++){
-            await createPath(spawns[i], spawns[i+1]);
+            await LevelGenerator.createPath(spawns[i], spawns[i+1], scene, destroyTile);
         }
+
         for (let i = 0; i < spawns.length; i++){
             // Place spawn tiles on the spawn points
             scene.placePhysicalTile(spawnDetails, spawns[i][0], spawns[i][1]);
@@ -865,6 +848,7 @@ class LevelGenerator extends Gamemode {
 
         // Place rock clusters
         for (let i = 0; i < rockClusteres; i++){
+            await apr.attemptToWait();
             placeCluster(rockDetails, fullBlockDetails, random.getIntInRangeInclusive(0, defaultSize-1), random.getIntInRangeInclusive(0, defaultSize-1), random.getIntInRangeInclusive(minRockClusterSize, maxRockClusterSize));
         }
 

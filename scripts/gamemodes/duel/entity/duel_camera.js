@@ -12,6 +12,8 @@ class DuelCamera extends Entity {
         this.followedEntity = null;
         this.scrollLock = new Lock();
         this.snapLock = new Lock();
+        this.cursorTileX = undefined;
+        this.cursorTileY = undefined;
     }
 
     setPosition(x, y){
@@ -226,11 +228,25 @@ class DuelCamera extends Entity {
         this.checkMoveY();
         this.checkSnap();
         this.checkScrollTroops();
+        this.updateCursorInfo();
+    }
+
+    updateCursorInfo(){
+        let canvasX = gMouseX;
+        let canvasY = this.getScene().changeFromScreenY(gMouseY);
+        if (canvasX < 0 || canvasX >= this.getScene().getWidth() || canvasY < 0 || canvasY >= this.getScene().getHeight()){ return; }
+        let engineX = canvasX / gameZoom + this.getScene().getLX();
+        let engineY = canvasY / gameZoom + this.getScene().getBY();
+        this.cursorTileX = WTLGameScene.getTileXAt(engineX);
+        this.cursorTileY = WTLGameScene.getTileYAt(engineY);
     }
 
     display(){
         if (this.isFollowingAnEntity()){
             this.followedEntity.displayWhenFocused();
+        }else{
+            MY_HUD.updateElement("Cursor Tile X", this.cursorTileX);
+            MY_HUD.updateElement("Cursor Tile Y", this.cursorTileY);
         }
     }
 }

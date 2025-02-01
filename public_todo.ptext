@@ -1,10 +1,10 @@
 Right now:
-	Do not show corsshair of a dead man
+	Do not show corsshair of a dead man (human or spectating?)
 
 	Add last accessed efficiency to xy sorted thing
 		if x,y are either 1 off or the same to last then you should be able to find the index quickly
 
-	Add a duel level with trees
+	If duel doesn't load fast enough now then make it more efficient
 
 	Add gentlemanly duel
 		Create custom map

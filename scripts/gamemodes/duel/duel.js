@@ -70,6 +70,8 @@ class Duel extends Gamemode {
         MY_HUD.clearElement("seed");
         MY_HUD.clearElement("tile_x");
         MY_HUD.clearElement("tile_y");
+        MY_HUD.clearElement("Cursor Tile X");
+        MY_HUD.clearElement("Cursor Tile Y");
     }
 
     alertBotsOfGunshot(shooterID, gunshotShooterTileX, gunshotShooterTileY, gunshotShooterFacingDirection){

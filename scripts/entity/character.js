@@ -777,6 +777,7 @@ class Character extends Entity {
     }
 
     displayWhenFocused(){
+        if (this.isDead()){ return; }
         this.inventory.display();
         this.staminaBar.display();
     }
@@ -786,7 +787,7 @@ class Character extends Entity {
     }
 
     isMoving(){
-        return this.movementDetails != null;
+        return this.movementDetails != null && this.isAlive();
     }
 
     isSprinting(){

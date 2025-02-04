@@ -113,7 +113,11 @@ class WTLGameScene {
             if (!sameChunk){
                 currentChunk = this.chunks.get(chunkX, chunkY);
             }
-            let tile = currentChunk.getPhysicalTileCoveringLocation(tileX, tileY);
+            // If there is a current chunk
+            let tile = null;
+            if (currentChunk != null){
+                tile = currentChunk.getPhysicalTileCoveringLocation(tileX, tileY);
+            }
 
             let physicalTileIsPresent = tile != null;
             if (physicalTileIsPresent){
@@ -1367,5 +1371,26 @@ class Chunk {
 
     static getBottomTileYOfChunk(chunkY){
         return chunkY * WTL_GAME_DATA["general"]["chunk_size"];
+    }
+
+    getActivePhysicalTiles(){
+        return new SceneActivePhysicalTileIterator(this);
+    }
+}
+
+class SceneActivePhysicalTileIterator{
+    constructor(scene){
+        this.scene = scene;
+    }
+
+    *[Symbol.iterator](){
+        let chunks = this.scene.getChunks();
+        for (let [chunk, chunkX, chunkY] of chunks){
+            if (chunk === null){ continue; }
+            for (let [physicalTile, tileX, tileY] of chunk.getPhysicalTiles()){
+                if (physicalTile === null){ continue; }
+                yield [physicalTile, tileX, tileY];
+            }
+        }
     }
 }

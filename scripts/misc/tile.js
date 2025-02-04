@@ -1,6 +1,6 @@
 class Tile extends VisualItem {
     constructor(scene, chunk, material, tileX, tileY){
-        super(scene, IMAGES[material["name"]].width, IMAGES[material["name"]].height);
+        super(IMAGES[material["name"]].width, IMAGES[material["name"]].height);
         this.scene = scene;
         this.chunk = chunk;
         this.material = material;

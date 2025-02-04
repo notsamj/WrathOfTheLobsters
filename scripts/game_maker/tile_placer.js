@@ -67,7 +67,7 @@ class TilePlacer extends Entity {
         let canvasX = gMouseX;
         let canvasY = this.getScene().changeFromScreenY(gMouseY);
         if (canvasX < 0 || canvasX >= this.getScene().getWidth() || canvasY < 0 || canvasY >= this.getScene().getHeight()){ return; }
-        if (this.gamemode.getUI().blocksWindowLocation(mouseX, mouseY)){ return; }
+        if (this.gamemode.getUI().blocksWindowLocation(gMouseX, gMouseY)){ return; }
         let engineX = canvasX / gameZoom + this.getScene().getLX();
         let engineY = canvasY / gameZoom + this.getScene().getBY();
         let newPlacerTileX = WTLGameScene.getTileXAt(engineX);

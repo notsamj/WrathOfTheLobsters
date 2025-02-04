@@ -76,7 +76,7 @@ class Route {
         let position = this.getIndexOfTile(tileX, tileY);
 
         // If we can't find where the entity is in the sequence
-        if (position == -1){
+        if (position === -1){
             throw new Error("Tile not in route");
         }
 

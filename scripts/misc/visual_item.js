@@ -1,6 +1,5 @@
 class VisualItem {
-    constructor(scene, width=WTL_GAME_DATA["general"]["tile_size"], height=WTL_GAME_DATA["general"]["tile_size"]){
-        this.scene = scene;
+    constructor(width=WTL_GAME_DATA["general"]["tile_size"], height=WTL_GAME_DATA["general"]["tile_size"]){
         this.width = width;
         this.height = height;
         this.x = 0;

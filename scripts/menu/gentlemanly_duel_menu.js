@@ -1,4 +1,4 @@
-class DuelMenu extends Menu {
+class GentlemanlyDuelMenu extends Menu {
     constructor(){
         super();
         // Declare
@@ -11,30 +11,6 @@ class DuelMenu extends Menu {
         this.p2ReactionTimeSlider = undefined;
         this.p1ReactionTime = undefined;
         this.p2ReactionTime = undefined;
-
-        this.p1KnifeImage = undefined;
-        this.p1KnifeBlockImage = undefined;
-
-        this.p1SwordImage = undefined;
-        this.p1SwordBlockImage = undefined;
-
-        this.p1MusketImage = undefined;
-        this.p1MusketBlockImage = undefined;
-
-        this.p1PistolImage = undefined;
-        this.p1PistolBlockImage = undefined;
-
-        this.p2KnifeImage = undefined;
-        this.p2KnifeBlockImage = undefined;
-
-        this.p2SwordImage = undefined;
-        this.p2SwordBlockImage = undefined;
-
-        this.p2MusketImage = undefined;
-        this.p2MusketBlockImage = undefined;
-
-        this.p2PistolImage = undefined;
-        this.p2PistolBlockImage = undefined;
 
         this.buttonFor0 = undefined;
         this.buttonFor1 = undefined;
@@ -52,71 +28,27 @@ class DuelMenu extends Menu {
 
         this.currentSeedLabel = undefined;
 
-        this.currentPresetLabel = undefined;
-        this.leftPresetButton = undefined;
-        this.rightPresetButton = undefined;
-
-        this.maxDigits = WTL_GAME_DATA["menu"]["menus"]["duel_menu"]["max_digits"];
+        this.maxDigits = WTL_GAME_DATA["menu"]["menus"]["gentlemanly_duel_menu"]["max_digits"];
         this.currentSeedString = undefined;
-        this.currentPresetIndex = 0;
-        this.presets = WTL_GAME_DATA["level_generator"]["presets"];
-        if (this.presets.length === 0){
-            throw new Error("Cannot run level generator with no presets");
-        }
         this.resetSavedInfo();
     }
 
     startGame(){
-        let duelMenu =  WTL_GAME_DATA["menu"]["menus"]["duel_menu"];
-        let gameDetails = copyObject(WTL_GAME_DATA["default_settings"]["duel"]);
+        let gentlemanlyDuelMenu =  WTL_GAME_DATA["menu"]["menus"]["gentlemanly_duel_menu"];
+        let gameDetails = copyObject(WTL_GAME_DATA["default_settings"]["gentlemanly_duel"]);
 
         // p1
         gameDetails["participants"][0]["human"] = this.switchToBotButton.isEnabled();
-        gameDetails["participants"][0]["model"] = duelMenu["character_image"]["selection_corresponding_models"][this.p1CharacterImage.getImageIndex()];
+        gameDetails["participants"][0]["model"] = gentlemanlyDuelMenu["character_image"]["selection_corresponding_models"][this.p1CharacterImage.getImageIndex()];
         gameDetails["participants"][0]["bot_extra_details"]["reaction_time_ms"] = this.p1ReactionTimeSlider.accessValue();
-
-        if (!this.p1KnifeBlockImage.isDisplayEnabled()){
-            gameDetails["participants"][0]["swords"].push(duelMenu["weapon_data"]["knife_model"]);
-        }
-
-        if (!this.p1SwordBlockImage.isDisplayEnabled()){
-            gameDetails["participants"][0]["swords"].push(duelMenu["weapon_data"]["sword_model"]);
-        }
-
-        if (!this.p1MusketBlockImage.isDisplayEnabled()){
-            gameDetails["participants"][0]["muskets"].push(duelMenu["weapon_data"]["musket_model"]);
-        }
-
-        if (!this.p1PistolBlockImage.isDisplayEnabled()){
-            gameDetails["participants"][0]["pistols"].push(duelMenu["weapon_data"]["pistol_model"]);
-        }
 
         // p2
         gameDetails["participants"][1]["human"] = false; // p2 is always a bot
-        gameDetails["participants"][1]["model"] = duelMenu["character_image"]["selection_corresponding_models"][this.p2CharacterImage.getImageIndex()];
+        gameDetails["participants"][1]["model"] = gentlemanlyDuelMenu["character_image"]["selection_corresponding_models"][this.p2CharacterImage.getImageIndex()];
         gameDetails["participants"][1]["bot_extra_details"]["reaction_time_ms"] = this.p2ReactionTimeSlider.accessValue();
-
-        if (!this.p2KnifeBlockImage.isDisplayEnabled()){
-            gameDetails["participants"][1]["swords"].push(duelMenu["weapon_data"]["knife_model"]);
-        }
-
-        if (!this.p2SwordBlockImage.isDisplayEnabled()){
-            gameDetails["participants"][1]["swords"].push(duelMenu["weapon_data"]["sword_model"]);
-        }
-
-        if (!this.p2MusketBlockImage.isDisplayEnabled()){
-            gameDetails["participants"][1]["muskets"].push(duelMenu["weapon_data"]["musket_model"]);
-        }
-
-        if (!this.p2PistolBlockImage.isDisplayEnabled()){
-            gameDetails["participants"][1]["pistols"].push(duelMenu["weapon_data"]["pistol_model"]);
-        }
 
         // Set the seed
         gameDetails["seed"] = parseInt(this.getCurrentSeedString());
-
-        // Set the preset data
-        gameDetails["preset_data"] = this.getPresetData();
 
         GAMEMODE_MANAGER.setActiveGamemode(new Duel(gameDetails));
         MENU_MANAGER.switchTo("game");
@@ -161,35 +93,8 @@ class DuelMenu extends Menu {
         }
     }
 
-    getPresetName(){
-        return this.getPresetData()["name"];
-    }
-
-    getPresetData(){
-        return this.presets[this.currentPresetIndex];
-    }
-
-    getPresetText(){
-        return "Preset: " + this.getPresetName();
-    }
-
     getCurrentSeedText(){
         return "Seed: " + this.getCurrentSeedString();
-    }
-
-    shiftPreset(direction){
-        // Update preset index
-        if (direction >= 0){
-            this.currentPresetIndex = (this.currentPresetIndex + direction) % this.presets.length;
-        }else{
-            this.currentPresetIndex = this.currentPresetIndex + direction;
-            if (this.currentPresetIndex < 0){
-                this.currentPresetIndex = this.presets.length - 1;
-            }
-        }
-        
-        // Update the text on the label
-        this.currentPresetLabel.setText(this.getPresetText());
     }
 
     updateCurrentSeedString(newStr){
@@ -258,8 +163,8 @@ class DuelMenu extends Menu {
         let toggleButtonYOffset = toggleButtonData["y_offset"];
         let toggleButtonYSize = toggleButtonData["y_size"];
         let toggleButtonYFunction = (innerHeight) => { return characterImageYFunction(innerHeight) - characterImageHeight - toggleButtonYOffset; }
-        let toggleHumanBotFunction = (duelMenu) => {
-            return duelMenu.toggleP1IsBot();
+        let toggleHumanBotFunction = (gentlemanlyDuelMenu) => {
+            return gentlemanlyDuelMenu.toggleP1IsBot();
         }
 
         // Switch to human button
@@ -299,68 +204,6 @@ class DuelMenu extends Menu {
         this.p1ReactionTimeSlider.fullDisable();
         this.components.push(this.p1ReactionTimeSlider);
 
-        // P1 Weapons
-        let weaponSettings = menuData["weapon_data"];
-        let weaponMaxWidth = weaponSettings["width"];
-        let weaponMaxHeight = weaponSettings["height"];
-        let weaponYOffset = weaponSettings["y_offset"];
-
-        let swordImageYFunction = (innerHeight) => { return reactionTimeYFunction(innerHeight) - reactionTimeSliderYSize - weaponYOffset; }
-        this.p1SwordImage = new StaticImage(IMAGES[weaponSettings["sword_image_name"]], p1StartX, swordImageYFunction, weaponMaxWidth, weaponMaxHeight);
-        this.components.push(this.p1SwordImage);
-        this.p1SwordBlockImage = new StaticImage(IMAGES["crossed_out"], p1StartX, swordImageYFunction, weaponMaxWidth, weaponMaxHeight);
-        this.p1SwordBlockImage.disableDisplay();
-        this.components.push(this.p1SwordBlockImage);
-        this.p1SwordBlockImage.setOnClick(() => {
-            if (this.p1SwordBlockImage.isDisplayEnabled()){
-                this.p1SwordBlockImage.disableDisplay();
-            }else{
-                this.p1SwordBlockImage.enableDisplay();
-            }
-        });
-
-        let knifeImageYFunction = (innerHeight) => { return swordImageYFunction(innerHeight) - weaponMaxHeight - weaponYOffset; }
-        this.p1KnifeImage = new StaticImage(IMAGES[weaponSettings["knife_image_name"]], p1StartX, knifeImageYFunction, weaponMaxWidth, weaponMaxHeight);
-        this.components.push(this.p1KnifeImage);
-        this.p1KnifeBlockImage = new StaticImage(IMAGES["crossed_out"], p1StartX, knifeImageYFunction, weaponMaxWidth, weaponMaxHeight);
-        this.p1KnifeBlockImage.disableDisplay();
-        this.components.push(this.p1KnifeBlockImage);
-        this.p1KnifeBlockImage.setOnClick(() => {
-            if (this.p1KnifeBlockImage.isDisplayEnabled()){
-                this.p1KnifeBlockImage.disableDisplay();
-            }else{
-                this.p1KnifeBlockImage.enableDisplay();
-            }
-        });
-        
-        let pistolImageYFunction = (innerHeight) => { return knifeImageYFunction(innerHeight) - weaponMaxHeight - weaponYOffset; }
-        this.p1PistolImage = new StaticImage(IMAGES[weaponSettings["pistol_image_name"]], p1StartX, pistolImageYFunction, weaponMaxWidth, weaponMaxHeight);
-        this.components.push(this.p1PistolImage);
-        this.p1PistolBlockImage = new StaticImage(IMAGES["crossed_out"], p1StartX, pistolImageYFunction, weaponMaxWidth, weaponMaxHeight);
-        this.p1PistolBlockImage.disableDisplay();
-        this.components.push(this.p1PistolBlockImage);
-        this.p1PistolBlockImage.setOnClick(() => {
-            if (this.p1PistolBlockImage.isDisplayEnabled()){
-                this.p1PistolBlockImage.disableDisplay();
-            }else{
-                this.p1PistolBlockImage.enableDisplay();
-            }
-        });
-        
-        let musketImageYFunction = (innerHeight) => { return pistolImageYFunction(innerHeight) - weaponMaxHeight - weaponYOffset; }
-        this.p1MusketImage = new StaticImage(IMAGES[weaponSettings["musket_image_name"]], p1StartX, musketImageYFunction, weaponMaxWidth, weaponMaxHeight);
-        this.components.push(this.p1MusketImage);
-        this.p1MusketBlockImage = new StaticImage(IMAGES["crossed_out"], p1StartX, musketImageYFunction, weaponMaxWidth, weaponMaxHeight);
-        this.p1MusketBlockImage.disableDisplay();
-        this.components.push(this.p1MusketBlockImage);
-        this.p1MusketBlockImage.setOnClick(() => {
-            if (this.p1MusketBlockImage.isDisplayEnabled()){
-                this.p1MusketBlockImage.disableDisplay();
-            }else{
-                this.p1MusketBlockImage.enableDisplay();
-            }
-        });
-
         // Player 2
         let p2StartX = menuData["p2_start_x"];
 
@@ -386,60 +229,6 @@ class DuelMenu extends Menu {
         let p2ReactionTimeSetter = (newReactionTimeMS) => { this.setP2ReactionTime(newReactionTimeMS); }
         this.p2ReactionTimeSlider = new SelectionSlider(p2StartX, reactionTimeYFunction, reactionTimeSliderSettings["slider_width"], reactionTimeSliderYSliderHeight, reactionTimeSliderYTextHeight, p2ReactionTimeGetter, p2ReactionTimeSetter, reactionTimeOptions, reactionTimeSliderSettings["background_colour_code"], reactionTimeSliderSettings["slider_colour_code"], reactionTimeSliderSettings["text_colour_code"]);
         this.components.push(this.p2ReactionTimeSlider);
-
-        // P2 Weapons
-
-        this.p2SwordImage = new StaticImage(IMAGES[weaponSettings["sword_image_name"]], p2StartX, swordImageYFunction, weaponMaxWidth, weaponMaxHeight);
-        this.components.push(this.p2SwordImage);
-        this.p2SwordBlockImage = new StaticImage(IMAGES["crossed_out"], p2StartX, swordImageYFunction, weaponMaxWidth, weaponMaxHeight);
-        this.p2SwordBlockImage.disableDisplay();
-        this.components.push(this.p2SwordBlockImage);
-        this.p2SwordBlockImage.setOnClick(() => {
-            if (this.p2SwordBlockImage.isDisplayEnabled()){
-                this.p2SwordBlockImage.disableDisplay();
-            }else{
-                this.p2SwordBlockImage.enableDisplay();
-            }
-        });
-
-        this.p2KnifeImage = new StaticImage(IMAGES[weaponSettings["knife_image_name"]], p2StartX, knifeImageYFunction, weaponMaxWidth, weaponMaxHeight);
-        this.components.push(this.p2KnifeImage);
-        this.p2KnifeBlockImage = new StaticImage(IMAGES["crossed_out"], p2StartX, knifeImageYFunction, weaponMaxWidth, weaponMaxHeight);
-        this.p2KnifeBlockImage.disableDisplay();
-        this.components.push(this.p2KnifeBlockImage);
-        this.p2KnifeBlockImage.setOnClick(() => {
-            if (this.p2KnifeBlockImage.isDisplayEnabled()){
-                this.p2KnifeBlockImage.disableDisplay();
-            }else{
-                this.p2KnifeBlockImage.enableDisplay();
-            }
-        });
-        
-        this.p2PistolImage = new StaticImage(IMAGES[weaponSettings["pistol_image_name"]], p2StartX, pistolImageYFunction, weaponMaxWidth, weaponMaxHeight);
-        this.components.push(this.p2PistolImage);
-        this.p2PistolBlockImage = new StaticImage(IMAGES["crossed_out"], p2StartX, pistolImageYFunction, weaponMaxWidth, weaponMaxHeight);
-        this.p2PistolBlockImage.disableDisplay();
-        this.components.push(this.p2PistolBlockImage);
-        this.p2PistolBlockImage.setOnClick(() => {
-            if (this.p2PistolBlockImage.isDisplayEnabled()){
-                this.p2PistolBlockImage.disableDisplay();
-            }else{
-                this.p2PistolBlockImage.enableDisplay();
-            }
-        });
-        
-        this.p2MusketImage = new StaticImage(IMAGES[weaponSettings["musket_image_name"]], p2StartX, musketImageYFunction, weaponMaxWidth, weaponMaxHeight);
-        this.components.push(this.p2MusketImage);
-        this.p2MusketBlockImage = new StaticImage(IMAGES["crossed_out"], p2StartX, musketImageYFunction, weaponMaxWidth, weaponMaxHeight);
-        this.p2MusketBlockImage.disableDisplay();
-        this.components.push(this.p2MusketBlockImage);
-        this.p2MusketBlockImage.setOnClick(() => {
-            if (this.p2MusketBlockImage.isDisplayEnabled()){
-                this.p2MusketBlockImage.disableDisplay();
-            }else{
-                this.p2MusketBlockImage.enableDisplay();
-            }
-        });
 
         // Level generator stuff
         let levelGeneratorStartX = menuData["level_generator_start_x"];
@@ -545,39 +334,15 @@ class DuelMenu extends Menu {
         this.currentSeedLabel = new TextComponent(this.getCurrentSeedText(), generalTextColourCode, currentSeedLabelX, currentSeedLabelY, currentSeedXSize, currentSeedYSize, "center", "center");
         this.components.push(this.currentSeedLabel);
 
-        // Preset stuff
-        let currentPresetLabelX = currentSeedLabelX;
-        let currentPresetLabelY = (innerHeight) => { return innerHeight - Math.floor((innerHeight - numberPadAreaSize) / 2) + numberButtonSize/2; }
-        let currentPresetXSize = numberButtonSize + (numberButtonSize + 1);
-        let currentPresetYSize = numberButtonSize;
-        
-        // Current preset label
-        this.currentPresetLabel = new TextComponent(this.getPresetText(), generalTextColourCode, currentPresetLabelX, currentPresetLabelY, currentPresetXSize, currentPresetYSize, "center", "center");
-        this.components.push(this.currentPresetLabel);
-
-        // Left and right preset buttons
-        let leftPresetButtonX = xOfButton0;
-        let rightPresetButtonX = xOfRandomButton;
-        let lrPresetButtonY = (innerHeight) => { return innerHeight - Math.floor((innerHeight - numberPadAreaSize) / 2) + numberButtonSize + 1; };
-        let lrPresetButtonSize = numberButtonSize;
-        this.leftPresetButton = new RectangleButton('<', buttonColourCode, generalTextColourCode, leftPresetButtonX, lrPresetButtonY, lrPresetButtonSize, lrPresetButtonSize, (menuInstance) => {
-            this.shiftPreset(-1);
-        });
-        this.components.push(this.leftPresetButton);
-        this.rightPresetButton = new RectangleButton('>', buttonColourCode, generalTextColourCode, rightPresetButtonX, lrPresetButtonY, lrPresetButtonSize, lrPresetButtonSize, (menuInstance) => {
-            this.shiftPreset(1);
-        });
-        this.components.push(this.rightPresetButton);
-
         // Set the curretNumberString to a random number
         this.random();
 
         // Start game button
-        let startGameButtonYFunction = (innerHeight) => { return musketImageYFunction(innerHeight) - weaponMaxHeight - weaponYOffset; }
-        this.components.push(new RectangleButton(menuData["start_game_button"]["text"], menuData["start_game_button"]["colour_code"], menuData["start_game_button"]["text_colour_code"], p1StartX, startGameButtonYFunction, (p2StartX - p1StartX) * 2, menuData["start_game_button"]["height"], (menuInstance) => {
+        let startGameButtonY = menuData["start_game_button"]["height"];
+        this.components.push(new RectangleButton(menuData["start_game_button"]["text"], menuData["start_game_button"]["colour_code"], menuData["start_game_button"]["text_colour_code"], p1StartX, startGameButtonY, (p2StartX - p1StartX) * 2, menuData["start_game_button"]["height"], (menuInstance) => {
             this.startGame();
         }));
     }
 }
 
-MENU_MANAGER.registerMenu("duel_menu", new DuelMenu());
+MENU_MANAGER.registerMenu("gentlemanly_duel_menu", new GentlemanlyDuelMenu());

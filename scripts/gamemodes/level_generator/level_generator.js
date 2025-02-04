@@ -126,7 +126,6 @@ class LevelGenerator extends Gamemode {
             }
             if (visualTile.getMaterialName() === "tree"){
                 for (let oY = y; oY > Math.max(y - treeHeight, -1); oY--){
-                    console.log("Destroying tile at", chosenXStart + size - 1, oY);
                     scene.placeVisualTile(grassDetails, chosenXStart + size - 1, oY);
                     scene.deletePhysicalTile(chosenXStart + size - 1, oY);
                 }
@@ -161,7 +160,6 @@ class LevelGenerator extends Gamemode {
             for (let oX = originX; oX < originX + visualTile.getTileWidth(); oX++){
                 for (let oY = originY; oY > originY - visualTile.getTileHeight(); oY--){
                     // Destroy the physical tile
-                    console.log("Destroying tile at", oX, oY);
                     scene.deletePhysicalTile(oX, oY);
                     scene.placeVisualTile(grassDetails, oX, oY);
                 }
@@ -213,6 +211,7 @@ class LevelGenerator extends Gamemode {
         let endTileY = coordSet2[1];
 
         let knownTilesFromStart = new NotSamXYSortedArrayList();
+        knownTilesFromStart.set(startTileX, startTileY, null);
         let edgeTilesFromStart = new NotSamLinkedList([{"tile_x": startTileX, "tile_y": startTileY}]);
 
         // Make sure both ends are clear
@@ -294,6 +293,9 @@ class LevelGenerator extends Gamemode {
 
                 // if this is a no walk tile then ignore
                 if (scene.tileAtLocationHasAttribute(aX, aY, "no_walk")){ continue; }
+
+                // If there is no visual tile here (border)
+                if (!scene.hasVisualTileCoveringLocation(aX, aY)){ continue; }
 
                 // Add to known tiles
                 knownTilesFromStart.set(aX, aY, null);

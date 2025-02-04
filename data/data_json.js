@@ -120,6 +120,11 @@ const WTL_GAME_DATA = {
         ]
     },
 
+    "gentlemanly_duel": {
+        "shot_damage": 1,
+        "search_distance_for_standing_spot": 10 // The maximum distance to move from spawn to the place where the participants will stand and shoot
+    },
+
     "duel": {
         "theme_colour": "#5479ff",
         "area_size": 17, // 15?,
@@ -134,6 +139,7 @@ const WTL_GAME_DATA = {
             "move_speed": DATA_TILE_SIZE*16  
         },
         "ai": {
+            "can_hit_min_angle_range_deg": 10, // In order to consider a tile "hittable" it must have a sufficient range of angle that it can be hit from 
             "search_path_max_length": 9, // A path up to this length will be made when looking for the enemy. Once reached a new one will be made
             "estimated_melee_distance": Math.sqrt(2) + 0.1, // Distance in tiles at which melee combat is estimated to take place <= amount
             "regular_deflect_attempt_probability": 0.6, // [0,1] the proability that a bot will attempt to perform a regular deflect (as opposed to no deflect or stun deflect)
@@ -158,7 +164,6 @@ const WTL_GAME_DATA = {
                 "shoot_tile_selection_x_start": 0.25, // x start for function 1 / x^f for biasing a random selection
                 "shoot_tile_selection_x_end": 3, // x end for function 1 / x^f for biasing a random selection
                 "shoot_tile_selection_f": 5, // f value for function 1 / x^f for biasing a random selection
-                "can_hit_mult": 5, // multiplier for shooting-tiles where you can hit the enemies
                 "from_me_route_mult": -1/15, // multiplier for shooting-tiles that are further from the bot
                 "from_enemy_route_mult": 1/15 * 1, // multiplier for shooting-tiles that have a longer route from the enemy of the bot
                 "from_enemy_mult": 1/64 * 1/21 * 0.25, // multiplier for shooting-tiles that are further from the enemy of the bot
@@ -655,8 +660,8 @@ const WTL_GAME_DATA = {
                 },
                 "gamemodes": [
                     {
-                        "display_name": "Duel",
-                        "menu_name": "duel_menu"
+                        "display_name": "Gentlemanly Duel",
+                        "menu_name": "gentlemanly_duel_menu"
                     },
                     {
                         "display_name": "Level Generator",
@@ -665,6 +670,10 @@ const WTL_GAME_DATA = {
                     {
                         "display_name": "Gamemaker",
                         "menu_name": "game_maker"
+                    },
+                    {
+                        "display_name": "Duel",
+                        "menu_name": "duel_menu"
                     }
                 ]
             },
@@ -739,6 +748,71 @@ const WTL_GAME_DATA = {
                     "pistol_image_name": "flintlock",
                     "musket_model": "brown_bess",
                     "musket_image_name": "brown_bess_right"
+                },
+                "level_generator_start_x": 950,
+                "number_button_size": 50,
+                "max_digits": 3,
+                "number_button_colour_code": "#3bc44b",
+                "number_button_text_colour_code": "#e6f5f4",
+                "start_game_button": {
+                    "text": "START",
+                    "colour_code": "#3bc44b",
+                    "text_colour_code": "#e6f5f4",
+                    "height": 130
+                }
+            },
+            "gentlemanly_duel_menu": {
+                "back_button": {
+                    "colour_code": "#3bc44b",
+                    "text_colour_code": "#e6f5f4",
+                    "text": "Main Menu",
+                    "y_offset": 27,
+                    "x": 50,
+                    "x_size": 200,
+                    "y_size": 76
+                },
+                "p1_start_x": 350,
+                "p2_start_x": 650,
+                "section_head": {
+                    "p1_name": "Player 1",
+                    "p2_name": "Player 2",
+                    "x_size": 250,
+                    "y_size": 100,
+                    "text_colour_code": "#000000"
+                },
+                "character_image": {
+                    "selection": ["british_officer_64", "british_pvt_g_64", "usa_officer_64", "usa_pvt_64"],
+                    "selection_corresponding_models": ["british_officer", "british_pvt_g", "usa_officer", "usa_pvt"],
+                    "y_offset": 0,
+                    "width": 128,
+                    "height": 128
+                },
+                "toggle_bot_button": {
+                    "y_offset": 25,
+                    "x_size": 128,
+                    "y_size": 64,
+                    "human_text": "Human",
+                    "bot_text": "Bot",
+                    "bot_colour_code": "#eb4034",
+                    "human_colour_code": "#3bc44b",
+                    "text_colour_code": "#ffffff"
+                },
+                "reaction_time_text": {
+                    "text": "Bot Reaction time (ms)",
+                    "text_colour_code": "#ffffff",
+                    "y_offset": 15,
+                    "width": 260,
+                    "height": 40
+                },
+                "reaction_time_slider": {
+                    "text_colour_code": "#ffffff",
+                    "slider_colour_code": "#ffffff",
+                    "background_colour_code": "#eb4034",
+                    "slider_width": 128,
+                    "slider_height": 50,
+                    "text_height": 50,
+                    "y_offset": -20,
+                    "reaction_time_options": [0, 50, 100, 150, 200, 250, 300, 350, 400, 450, 500, 550, 600, 650, 700, 750, 800, 850, 900, 950, 1000]
                 },
                 "level_generator_start_x": 950,
                 "number_button_size": 50,

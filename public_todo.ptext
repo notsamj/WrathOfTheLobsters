@@ -1,13 +1,11 @@
 Right now:
-	Do not show corsshair of a dead man (human or spectating?)
-
-	Add last accessed efficiency to xy sorted thing
-		if x,y are either 1 off or the same to last then you should be able to find the index quickly
-
-	If duel doesn't load fast enough now then make it more efficient
-
 	Add gentlemanly duel
-		Create custom map
+		Add a hud thing
+			Add maybe 1 seconds into they game they start getting commands to move (you can configue in data.json)
+			"Shooting turn": model1 or model2 or "free"
+				Add check in decision to shoot
+				Add check in decision to aim
+		Load custom map
 		Add gamemode 
 		Add gamemode menu
 
@@ -41,3 +39,12 @@ Right now:
 
 	Skirmish
 		Set a time you can work on async functions per tick (so you add like a check it you get say 10ms every tick and if it runs out at a check then you wait until given more time)
+
+	OITC
+		Musket 1 shot 1 kill
+		Pistol 2 shots 2 to kill
+		Sword 1 hit 1 kill
+		Cleaver 2 hits to kill
+		Have like 10 bots with different designs
+
+	KOTH

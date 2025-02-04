@@ -17,12 +17,12 @@ class Duel extends Gamemode {
         */
 
         this.gameSetupDetails = gameSetupDetails;
-
+        this.gameSetupDetails["participants"][0]["human"] = false;
         this.seed = gameSetupDetails["seed"];
         // Only using when testing
         if (this.seed === null){
             this.seed = randomNumberInclusive(0, Math.floor(Math.pow(10, 3))-1);
-            ameSetupDetails["seed"] = this.seed;
+            gameSetupDetails["seed"] = this.seed;
         }
         this.aiRandom = new SeededRandomizer(this.seed);
 

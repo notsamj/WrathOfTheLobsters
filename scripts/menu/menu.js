@@ -9,8 +9,16 @@ class Menu {
         Method Description: Constructor
         Method Return: Constructor
     */
-    constructor(){
+    constructor(name){
+        this.name = name;
+        if (name === undefined){
+            throw new Error("Tried to register a menu with a name");
+        }
         this.components = [];
+    }
+
+    getName(){
+        return this.name;
     }
 
     informSwitchedTo(){}

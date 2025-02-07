@@ -3,6 +3,55 @@ if (typeof window === "undefined"){
     WTL_GAME_DATA = require("../../data/data_json.js");
 }
 
+function msToTickCeil(ms){
+    return Math.ceil(ms / calculateMSBetweenTicks());
+}
+
+function floatBandaid(myFloat, numDigits=6){
+    return Number.parseFloat(myFloat).toFixed(numDigits);
+}
+
+function calculateAngleRangeOverlapProportion(coveringRangeCWEnd, coveringRangeCCWEnd, coveredRangeCWEnd, coveredRangeCCWEnd){
+    // Check for one source of error
+    if (coveringRangeCWEnd === coveringRangeCCWEnd){
+        return 0;
+    }
+    if (coveredRangeCWEnd === coveredRangeCCWEnd){
+        return 1;
+    }
+
+    // Cases not detailed anywhere but here
+
+    // Case 6 - Both equal
+    if (coveringRangeCWEnd === coveredRangeCWEnd && coveringRangeCCWEnd === coveredRangeCCWEnd){
+        return 1;
+    }
+    // Case 3 - Covering range covers completely
+    else if (angleBetweenCWRAD(coveredRangeCWEnd, coveringRangeCCWEnd, coveringRangeCWEnd) && angleBetweenCWRAD(coveredRangeCCWEnd, coveringRangeCCWEnd, coveringRangeCWEnd)){
+        return 1;
+    }
+    // Case 4 - Covering range is fully closed by covered range
+    else if (angleBetweenCWRAD(coveringRangeCWEnd, coveredRangeCCWEnd, coveredRangeCWEnd) && angleBetweenCWRAD(coveringRangeCCWEnd, coveredRangeCCWEnd, coveredRangeCWEnd)){
+        return calculateAngleDiffRAD(coveringRangeCWEnd, coveringRangeCCWEnd) / calculateAngleDiffRAD(coveredRangeCWEnd, coveredRangeCCWEnd);
+    }
+    // Case 1 - Covering range is completely distinct
+    else if (angleBetweenCWRAD(coveringRangeCWEnd, coveredRangeCWEnd, coveredRangeCCWEnd) && angleBetweenCWRAD(coveringRangeCCWEnd, coveredRangeCWEnd, coveredRangeCCWEnd)){
+        return 0;
+    }
+    // Case 2 - Covering range partially covers from the left
+    else if (angleBetweenCWRAD(coveringRangeCWEnd, coveredRangeCCWEnd, coveredRangeCWEnd)){
+        return calculateAngleDiffRAD(coveringRangeCWEnd, coveredRangeCCWEnd) / calculateAngleDiffRAD(coveredRangeCWEnd, coveredRangeCCWEnd);
+    }
+    // Case 5 - Covering range partially covers from the right
+    else if (angleBetweenCWRAD(coveringRangeCCWEnd, coveredRangeCCWEnd, coveredRangeCWEnd)){
+        return calculateAngleDiffRAD(coveringRangeCCWEnd, coveredRangeCWEnd) / calculateAngleDiffRAD(coveredRangeCWEnd, coveredRangeCCWEnd);
+    }
+    // Unknown case
+    else{
+        throw new Error("Unhandled case:" + coveringRangeCWEnd.toString() + ',' + coveringRangeCCWEnd.toString() + ',' + coveredRangeCWEnd + ',' + coveredRangeCCWEnd);
+    }
+}
+
 function getIndexOfElementInList(list, value){
     for (let i = 0; i < list.length; i++){
         if (list[i] === value){

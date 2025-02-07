@@ -86,8 +86,8 @@ class TilePlacer extends Entity {
     }
 
     checkMove(){
-        let moveUp = USER_INPUT_MANAGER.isActivated("move_up");
-        let moveDown = USER_INPUT_MANAGER.isActivated("move_down");
+        let moveUp = GAME_USER_INPUT_MANAGER.isActivated("move_up");
+        let moveDown = GAME_USER_INPUT_MANAGER.isActivated("move_down");
         if (moveUp && this.moveUDCD.isReady()){
             this.tileY += 1;
             this.moveUDCD.lock();
@@ -97,8 +97,8 @@ class TilePlacer extends Entity {
             this.moveUDCD.lock();
             this.readyToPlaceLock.unlock();
         }
-        let moveLeft = USER_INPUT_MANAGER.isActivated("move_left");
-        let moveRight = USER_INPUT_MANAGER.isActivated("move_right");
+        let moveLeft = GAME_USER_INPUT_MANAGER.isActivated("move_left");
+        let moveRight = GAME_USER_INPUT_MANAGER.isActivated("move_right");
         if (moveLeft && this.moveLRCD.isReady()){
             this.tileX -= 1;
             this.moveLRCD.lock();
@@ -113,7 +113,7 @@ class TilePlacer extends Entity {
 
     checkPlace(){
         if ((this.usingVisualLayer() && !this.hasVisualMaterial()) || (this.usingPhysicalLayer() && !this.hasPhysicalMaterial())){ return; }
-        let tryingToPlace = USER_INPUT_MANAGER.isActivated("left_click") && USER_INPUT_MANAGER.notActivated("right_click");
+        let tryingToPlace = GAME_USER_INPUT_MANAGER.isActivated("left_click") && GAME_USER_INPUT_MANAGER.notActivated("right_click");
         if (!tryingToPlace){
             this.readyToPlaceLock.unlock();
             return; 
@@ -129,7 +129,7 @@ class TilePlacer extends Entity {
     }
 
     checkDelete(){
-        let tryingToDelete = USER_INPUT_MANAGER.isActivated("right_click") && USER_INPUT_MANAGER.notActivated("left_click");
+        let tryingToDelete = GAME_USER_INPUT_MANAGER.isActivated("right_click") && GAME_USER_INPUT_MANAGER.notActivated("left_click");
         if (!tryingToDelete){
             this.readyToPlaceLock.unlock();
             return; 

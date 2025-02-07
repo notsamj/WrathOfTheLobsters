@@ -19,19 +19,18 @@ class MenuManager {
 
     setup(){
         this.mainMenu = new MainMenu();
-        //this.soundMenu = new SoundMenu();
+        this.helpMenu = new HelpMenu();
         this.pauseMenu = new PauseMenu();
-        //this.extraSettingsMenu = new ExtraSettingsMenu();
         this.gameMakerMenu = new GameMakerUI();
         this.activeMenu = this.mainMenu;
         this.temporaryMessages = new NotSamLinkedList();
         for (let secondaryMenu of this.secondaryMenus){
-            secondaryMenu["instance"].setup();
+            secondaryMenu.setup();
         }
     }
 
-    registerMenu(menuName, menuInstance){
-        this.secondaryMenus.push({"name": menuName, "instance": menuInstance});
+    registerMenu(menuInstance){
+        this.secondaryMenus.push(menuInstance);
     }
 
     /*
@@ -121,21 +120,29 @@ class MenuManager {
     */
     changeToScreenY(y){ return this.changeFromScreenY(y); }
 
-    /*
-        Method Name: setupClickListener
-        Method Parameters: None
-        Method Description: Sets up listeners for clicks and escape
-        Method Return: void
-    */
-    static setupClickListener(){
-        document.getElementById("canvas").addEventListener("click", (event) => {
-            MENU_MANAGER.click(event.clientX, event.clientY);
-        });
-        document.onkeydown = (event) => {
-            if (event.key === "Escape"){
-                MENU_MANAGER.escapeKey();
-            }
-        };
+    tick(){
+        let leftClick = GENERAL_USER_INPUT_MANAGER.isActivated("left_click_ticked");
+        if (leftClick){
+            MENU_MANAGER.click(gLastClickedMouseX, gLastClickedMouseY);
+        }
+
+        let escape = GENERAL_USER_INPUT_MANAGER.isActivated("escape_ticked");
+        if (escape){
+            this.escapeKey();
+        }
+
+        let help = GENERAL_USER_INPUT_MANAGER.isActivated("h_ticked");
+        if (help){
+            this.helpKey();
+        }
+    }
+
+    helpKey(){
+        if (this.activeMenu === this.helpMenu){
+            this.helpMenu.returnToOrigin();
+        }else{
+            this.switchTo(this.helpMenu.getName());
+        }
     }
 
     /*
@@ -146,7 +153,7 @@ class MenuManager {
     */
     lostFocus(){
         if (!this.hasActiveMenu()){
-            this.switchTo("pause_menu");
+            this.switchTo(this.pauseMenu.getName());
         }
     }
 
@@ -160,7 +167,7 @@ class MenuManager {
         if (this.activeMenu === this.pauseMenu){
             this.switchTo("game");
         }else if (!this.hasActiveMenu()){
-            this.switchTo("pause_menu");
+            this.switchTo(this.pauseMenu.getName());
         }
     }
 
@@ -174,17 +181,24 @@ class MenuManager {
     */
     switchTo(newMenuName){
         let enableCursor = true;
-        if (newMenuName == "main"){
+        if (newMenuName === this.mainMenu.getName()){
             this.activeMenu = this.mainMenu;
-        }else if (newMenuName == "pause_menu"){
+        }else if (newMenuName === this.pauseMenu.getName()){
             if (!TICK_SCHEDULER.isPaused()){
                 TICK_SCHEDULER.pause();
             }
             this.activeMenu = this.pauseMenu;
+        }else if (newMenuName === this.helpMenu.getName()){
+            if (!TICK_SCHEDULER.isPaused()){
+                TICK_SCHEDULER.pause();
+            }
+            this.helpMenu.setOrigin(this.activeMenu);
+            this.activeMenu = this.helpMenu;
         }else if (newMenuName === "game"){
             if (TICK_SCHEDULER.isPaused()){
                 TICK_SCHEDULER.unpause();
             }
+            // Maybe enable the cursor
             enableCursor = WTL_GAME_DATA["user_chosen_settings"]["cursor_enabled"];
             this.activeMenu = null;
         }
@@ -201,6 +215,14 @@ class MenuManager {
         // If not the game then inform that it's switched
         if (newMenuName != "game"){
             this.activeMenu.informSwitchedTo();
+        }
+    }
+
+    switchToMenu(menu){
+        if (menu === null){
+            this.switchTo(null);
+        }else{
+            this.switchTo(menu.getName());
         }
     }
 
@@ -221,15 +243,17 @@ class MenuManager {
         Method Return: Menu
     */
     getMenuByName(menuName){
-        if (menuName === "main"){
+        if (menuName === this.mainMenu.getName()){
             return this.mainMenu;
-        }else if (menuName === "pause_menu"){
+        }else if (menuName === this.pauseMenu.getName()){
             return this.pauseMenu;
+        }else if (menuName === this.helpMenu.getName()){
+            return this.helpMenu;
         }
         // Check secondary menus
         for (let secondaryMenu of this.secondaryMenus){
-            if (secondaryMenu["name"] === menuName){
-                return secondaryMenu["instance"];
+            if (secondaryMenu.getName() === menuName){
+                return secondaryMenu;
             }
         }
         // Else

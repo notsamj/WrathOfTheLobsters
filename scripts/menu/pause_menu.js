@@ -10,7 +10,7 @@ class PauseMenu extends Menu {
         Method Return: Constructor
     */
     constructor(){
-        super();
+        super("pause_menu");
         this.setup();
     }
 
@@ -47,6 +47,6 @@ class PauseMenu extends Menu {
         Method Return: void
     */
     goToMainMenu(){
-        MENU_MANAGER.switchTo("main");
+        MENU_MANAGER.switchTo("main_menu");
     }
 }

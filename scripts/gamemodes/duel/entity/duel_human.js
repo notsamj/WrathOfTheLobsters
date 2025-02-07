@@ -99,36 +99,36 @@ class DuelHuman extends DuelCharacter {
             "select_slot": this.inventory.getSelectedSlot(),
         });
         let newSlot = this.selectedSlot;
-        if (USER_INPUT_MANAGER.isActivated("1_ticked")){
+        if (GAME_USER_INPUT_MANAGER.isActivated("1_ticked")){
             newSlot = 0;
-        }else if (USER_INPUT_MANAGER.isActivated("2_ticked")){
+        }else if (GAME_USER_INPUT_MANAGER.isActivated("2_ticked")){
             newSlot = 1;
-        }else if (USER_INPUT_MANAGER.isActivated("3_ticked")){
+        }else if (GAME_USER_INPUT_MANAGER.isActivated("3_ticked")){
             newSlot = 2;
-        }else if (USER_INPUT_MANAGER.isActivated("4_ticked")){
+        }else if (GAME_USER_INPUT_MANAGER.isActivated("4_ticked")){
             newSlot = 3;
-        }else if (USER_INPUT_MANAGER.isActivated("5_ticked")){
+        }else if (GAME_USER_INPUT_MANAGER.isActivated("5_ticked")){
             newSlot = 4;
-        }else if (USER_INPUT_MANAGER.isActivated("6_ticked")){
+        }else if (GAME_USER_INPUT_MANAGER.isActivated("6_ticked")){
             newSlot = 5;
-        }else if (USER_INPUT_MANAGER.isActivated("7_ticked")){
+        }else if (GAME_USER_INPUT_MANAGER.isActivated("7_ticked")){
             newSlot = 6;
-        }else if (USER_INPUT_MANAGER.isActivated("8_ticked")){
+        }else if (GAME_USER_INPUT_MANAGER.isActivated("8_ticked")){
             newSlot = 7;
-        }else if (USER_INPUT_MANAGER.isActivated("9_ticked")){
+        }else if (GAME_USER_INPUT_MANAGER.isActivated("9_ticked")){
             newSlot = 8;
-        }else if (USER_INPUT_MANAGER.isActivated("0_ticked")){
+        }else if (GAME_USER_INPUT_MANAGER.isActivated("0_ticked")){
             newSlot = 9;
         }
-        if (newSlot == this.selectedSlot){ return; }
+        if (newSlot === this.selectedSlot){ return; }
         this.amendDecisions({
             "select_slot": newSlot
         });
     }
 
     makeSwordDecisions(){
-        let tryingToSwing = USER_INPUT_MANAGER.isActivated("left_click_ticked");
-        let tryingToBlock = USER_INPUT_MANAGER.isActivated("right_click");
+        let tryingToSwing = GAME_USER_INPUT_MANAGER.isActivated("left_click_ticked");
+        let tryingToBlock = GAME_USER_INPUT_MANAGER.isActivated("right_click");
         this.amendDecisions({
             "trying_to_swing_sword": tryingToSwing,
             "trying_to_block": tryingToBlock
@@ -138,9 +138,9 @@ class DuelHuman extends DuelCharacter {
     isHuman(){return true;}
 
     makePistolDecisions(){
-        let tryingToAim = USER_INPUT_MANAGER.isActivated("right_click");
-        let tryingToShoot = USER_INPUT_MANAGER.isActivated("left_click_ticked");
-        let tryingToReload = USER_INPUT_MANAGER.isActivated("r_ticked");
+        let tryingToAim = GAME_USER_INPUT_MANAGER.isActivated("right_click");
+        let tryingToShoot = GAME_USER_INPUT_MANAGER.isActivated("left_click_ticked");
+        let tryingToReload = GAME_USER_INPUT_MANAGER.isActivated("r_ticked");
         this.amendDecisions({
             "trying_to_aim": tryingToAim,
             "trying_to_shoot": tryingToShoot,
@@ -150,11 +150,11 @@ class DuelHuman extends DuelCharacter {
     }
 
     makeMusketDecisions(){
-        let tryingToAim = USER_INPUT_MANAGER.isActivated("right_click");
-        let tryingToShoot = USER_INPUT_MANAGER.isActivated("left_click_ticked");
-        let togglingBayonetEquip = USER_INPUT_MANAGER.isActivated("b_ticked");
-        let tryingToReload = USER_INPUT_MANAGER.isActivated("r_ticked");
-        let tryingToStab = USER_INPUT_MANAGER.isActivated("middle_click");
+        let tryingToAim = GAME_USER_INPUT_MANAGER.isActivated("right_click");
+        let tryingToShoot = GAME_USER_INPUT_MANAGER.isActivated("left_click_ticked");
+        let togglingBayonetEquip = GAME_USER_INPUT_MANAGER.isActivated("b_ticked");
+        let tryingToReload = GAME_USER_INPUT_MANAGER.isActivated("r_ticked");
+        let tryingToStab = GAME_USER_INPUT_MANAGER.isActivated("middle_click");
         this.amendDecisions({
             "trying_to_aim": tryingToAim,
             "trying_to_shoot": tryingToShoot,
@@ -170,10 +170,10 @@ class DuelHuman extends DuelCharacter {
     }
 
     makeMovementDecisions(){
-        this.decisions["up"] = USER_INPUT_MANAGER.isActivated("move_up");
-        this.decisions["down"] = USER_INPUT_MANAGER.isActivated("move_down");
-        this.decisions["left"] = USER_INPUT_MANAGER.isActivated("move_left");
-        this.decisions["right"] = USER_INPUT_MANAGER.isActivated("move_right");
-        this.decisions["sprint"] = USER_INPUT_MANAGER.isActivated("sprint");
+        this.decisions["up"] = GAME_USER_INPUT_MANAGER.isActivated("move_up");
+        this.decisions["down"] = GAME_USER_INPUT_MANAGER.isActivated("move_down");
+        this.decisions["left"] = GAME_USER_INPUT_MANAGER.isActivated("move_left");
+        this.decisions["right"] = GAME_USER_INPUT_MANAGER.isActivated("move_right");
+        this.decisions["sprint"] = GAME_USER_INPUT_MANAGER.isActivated("sprint");
     }
 }

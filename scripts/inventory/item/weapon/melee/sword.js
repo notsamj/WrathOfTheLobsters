@@ -14,6 +14,17 @@ class Sword extends MeleeWeapon {
         this.blockStartTick = null;
     }
 
+    reset(){
+        this.swinging = false;
+        this.swingStartTick = null;
+        this.swingLock.restoreDefault();
+        this.swingFacing = null;
+        this.swingCooldownLock.restoreDefault();
+
+        this.blocking = false;
+        this.blockStartTick = null;
+    }
+
     getSwingCooldownMS(){
         return WTL_GAME_DATA["sword_data"]["swords"][this.getModel()]["swing_cooldown_ms"]
     }

@@ -11,7 +11,7 @@ const WTL_GAME_DATA = {
                     "muskets": [], // "brown_bess"
                     "extra_details": {
                         "invincible": false,
-                        "sway_compensation_ability": 0.0 // 0.2 -> 20% reduction in gun sway
+                        "sway_compensation_ability": 0.3 // 0.2 -> 20% reduction in gun sway
                     },
                     "bot_extra_details": {
                         "disabled": false,
@@ -26,7 +26,7 @@ const WTL_GAME_DATA = {
                     "muskets": [],
                     "extra_details": {
                         "invincible": false,
-                        "sway_compensation_ability": 0.0 // 20% reduction in gun sway
+                        "sway_compensation_ability": 0.3 // 20% reduction in gun sway
                     },
                     "bot_extra_details": {
                         "disabled": false,
@@ -36,6 +36,38 @@ const WTL_GAME_DATA = {
             ],
             "seed": null,
             "preset_data": null
+        },
+        "gentlemanly_duel": {
+            "participants": [
+                {
+                    "human": true,
+                    "model": "british_officer",
+                    "pistols": ["flintlock"], // "flintlock"
+                    "extra_details": {
+                        "invincible": false,
+                        "sway_compensation_ability": 0.1 // 0.2 -> 20% reduction in gun sway
+                    },
+                    "bot_extra_details": {
+                        "disabled": false,
+                        "reaction_time_ms": 150
+                    }
+                },
+                {
+                    "human": false,
+                    "model": "usa_officer",
+                    "pistols": ["flintlock"],
+                    "extra_details": {
+                        "invincible": false,
+                        "sway_compensation_ability": 0.1 // 20% reduction in gun sway
+                    },
+                    "bot_extra_details": {
+                        "disabled": false,
+                        "reaction_time_ms": 250
+                    }
+                }
+            ],
+            "seed": null,
+            "map_file_name": "tree_duel.json"
         }
     },
     "test_settings": {
@@ -122,12 +154,37 @@ const WTL_GAME_DATA = {
 
     "gentlemanly_duel": {
         "shot_damage": 1,
-        "search_distance_for_standing_spot": 10 // The maximum distance to move from spawn to the place where the participants will stand and shoot
+        "start_delay_ms": 500,
+        "min_turn_delay_ms": 100,
+        "max_turn_delay_ms": 1200,
+        "ai": {
+            "shoot_offset_sample_time_ms": 1000, // Time to sample the the sway to predict the maximum offset
+            "shot_take_function_a_constant": 5, // 'a' constant for determine how long a bot expects to wait before firing a shot giving a hit probability
+            "shot_take_function_b_constant": 0.1, // 'b' constant for determine how long a bot expects to wait before firing a shot giving a hit probability
+            "max_expected_ms_to_hold_a_shot": 8000, // Will only hold a shot for up totwenty seconds 
+            "good_shot_try_to_aim_delay_ms": 100, // Expected time to wait to start aiming when you have a good shot
+            "aiming_precision_degrees": 3 // The number of degrees the bot is able to adjust between two angles when searching for targets
+        },
+        "gun_data": {
+            "pistol_sway_acceleration_constant": 0.4,
+            "flintlock": {
+                "min_start_sway_deg": 10, // [0,360]
+                "sway_max_angle_deg": 25, // [0,360] Maximum angle it can sway
+                "max_sway_velocity_deg": 25, // Max degrees to sway in a second
+                "sway_decline_a": 1.9, // 1 / [(x+b)^a]
+                "sway_decline_b": 0.5, // 1 / [(x+b)^a]
+                "maximum_random_sway_acceleration_deg": 9,  // Maximum Random sway acceleration deg/second^2
+                "minimum_random_sway_acceleration_deg": 6.2, // Minimum Random sway acceleration deg/second^2
+                "corrective_sway_acceleration_deg": 1.55, // Corrective sway acceleration deg/second^2
+                "corrective_sway_acceleration_constant_c": 0.35, // Constant for slowing down based on angle offset
+                "corrective_sway_acceleration_constant_d": 2.75 // Constant for slowing down based on angular velocity
+            }
+        }
     },
 
     "duel": {
         "theme_colour": "#5479ff",
-        "area_size": 17, // 15?,
+        "area_size": 19, // 17?,
         "enemy_visibility_distance": 12, // 12
         "shot_damage": 0.75,
         "musket_stab_damage": 0.6,
@@ -140,7 +197,7 @@ const WTL_GAME_DATA = {
         },
         "ai": {
             "can_hit_min_angle_range_deg": 10, // In order to consider a tile "hittable" it must have a sufficient range of angle that it can be hit from 
-            "search_path_max_length": 9, // A path up to this length will be made when looking for the enemy. Once reached a new one will be made
+            "search_path_max_length": 15, // A path up to this length will be made when looking for the enemy. Once reached a new one will be made
             "estimated_melee_distance": Math.sqrt(2) + 0.1, // Distance in tiles at which melee combat is estimated to take place <= amount
             "regular_deflect_attempt_probability": 0.6, // [0,1] the proability that a bot will attempt to perform a regular deflect (as opposed to no deflect or stun deflect)
             "expected_swing_delay_ms": 150, // The bot has the ability to swing it's sword at the enemy. This is the expected delay used to calculate probability of swing attmempt per tick
@@ -223,6 +280,18 @@ const WTL_GAME_DATA = {
         "height": 40,
         "border_colour": "#000000",
         "border_thickness": 1,
+        "recovery_delay_ms": 1000 // used 1000ms for a while
+    },
+
+    "health_bar": {
+        "recovery_colour": "#590159",
+        "threshold_3_colour": "#59010b",
+        "threshold_2_colour": "#a10316",
+        "threshold_1_colour": "#c9081f",
+        "threshold_3": 0.2,
+        "threshold_2": 0.4,
+        "width": 651,
+        "height": 5,
         "recovery_delay_ms": 1000 // used 1000ms for a while
     },
 
@@ -402,7 +471,7 @@ const WTL_GAME_DATA = {
         "cooldown_text_size": 40
     },
 
-    "health_bar": {
+    "enviromental_health_bar": {
         "width": 32,
         "height": 8,
         "border_colour": "#000000",
@@ -607,6 +676,17 @@ const WTL_GAME_DATA = {
         },
         "text_box_padding_proportion": 0.1,
         "menus": {
+            "help_menu": {
+                "back_button": {
+                    "colour_code": "#3bc44b",
+                    "text_colour_code": "#e6f5f4",
+                    "text": "Return",
+                    "y_offset": 27,
+                    "x": 50,
+                    "x_size": 200,
+                    "y_size": 76
+                }
+            },
             "level_generator_menu": {
                 "back_button": {
                     "colour_code": "#3bc44b",
@@ -622,7 +702,7 @@ const WTL_GAME_DATA = {
                 "number_button_colour_code": "#3bc44b",
                 "number_button_text_colour_code": "#e6f5f4"
             },
-            "gamemode_viewer": {
+            "gamemode_viewer_menu": {
                 "back_button": {
                     "colour_code": "#3bc44b",
                     "text_colour_code": "#e6f5f4",
@@ -681,7 +761,11 @@ const WTL_GAME_DATA = {
                 "featured_gamemode": {
                     "display_name": "Duel",
                     "menu_name": "duel_menu"
-                }
+                }/*
+                "featured_gamemode": {
+                    "display_name": "Gentlemanly Duel",
+                    "menu_name": "gentlemanly_duel_menu"
+                }*/
             },
             "duel_menu": {
                 "back_button": {
@@ -734,7 +818,9 @@ const WTL_GAME_DATA = {
                     "slider_height": 50,
                     "text_height": 50,
                     "y_offset": -20,
-                    "reaction_time_options": [0, 50, 100, 150, 200, 250, 300, 350, 400, 450, 500, 550, 600, 650, 700, 750, 800, 850, 900, 950, 1000]
+                    "reaction_time_options": [0, 50, 100, 150, 200, 250, 300, 350, 400, 450, 500, 550, 600, 650, 700, 750, 800, 850, 900, 950, 1000],
+                    "p1_default_reaction_time_index": 3,
+                    "p2_default_reaction_time_index": 5
                 },
                 "weapon_data": {
                     "width": 64,
@@ -812,7 +898,28 @@ const WTL_GAME_DATA = {
                     "slider_height": 50,
                     "text_height": 50,
                     "y_offset": -20,
-                    "reaction_time_options": [0, 50, 100, 150, 200, 250, 300, 350, 400, 450, 500, 550, 600, 650, 700, 750, 800, 850, 900, 950, 1000]
+                    "reaction_time_options": [0, 50, 100, 150, 200, 250, 300, 350, 400, 450, 500, 550, 600, 650, 700, 750, 800, 850, 900, 950, 1000],
+                    "p1_default_reaction_time_index": 3,
+                    "p2_default_reaction_time_index": 5
+                },
+                "gun_skill_text": {
+                    "text": "Player Gun Skill",
+                    "text_colour_code": "#ffffff",
+                    "y_offset": 15,
+                    "width": 260,
+                    "height": 60
+                },
+                "gun_skill_slider": {
+                    "text_colour_code": "#ffffff",
+                    "slider_colour_code": "#ffffff",
+                    "background_colour_code": "#eb4034",
+                    "slider_width": 128,
+                    "slider_height": 50,
+                    "text_height": 50,
+                    "y_offset": -20,
+                    "gun_skill_options": [0,1,2,3,4,5,6,7,8,9,10,15,20,25,30,35,40,45,50,55,60,65,70,75,80,85,90,95,100],
+                    "p1_default_gun_skill_index": 25,
+                    "p2_default_gun_skill_index": 25
                 },
                 "level_generator_start_x": 950,
                 "number_button_size": 50,
@@ -846,6 +953,7 @@ const WTL_GAME_DATA = {
                     "y_offset": 32-28 // 32-28
                 }
             },
+            "min_start_sway_deg": 0,
             "sway_max_angle_deg": 70, // [0,360] Maximum angle it can sway
             "max_sway_velocity_deg": 20, // Max degrees to sway in a second
             "sway_decline_a": 1.3, // 1 / [(x+b)^a]
@@ -861,7 +969,7 @@ const WTL_GAME_DATA = {
         "flintlock": {
             "type": "pistol",
             "reload_time_ms": 2500, // 2500
-            "range": 12*DATA_TILE_SIZE,
+            "range": 14*DATA_TILE_SIZE,
             "image_width": 512,
             "image_height": 512,
             "image_scale": 1/16,
@@ -871,6 +979,7 @@ const WTL_GAME_DATA = {
             },
             "handle_offset_x": 70-512/2,
             "handle_offset_y": 512/2-369,
+            "min_start_sway_deg": 0,
             "sway_max_angle_deg": 35, // [0,360] Maximum angle it can sway
             "max_sway_velocity_deg": 35, // Max degrees to sway in a second
             "sway_decline_a": 1.9, // 1 / [(x+b)^a]

@@ -6,6 +6,10 @@ class BotPerception {
         this.data = {};
     }
 
+    clear(){
+        this.data = {};
+    }
+
     getReactionTimeTicks(){
         return this.reactionTimeTicks;
     }

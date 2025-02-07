@@ -1,6 +1,6 @@
 class LevelGeneratorMenu extends Menu {
     constructor(game=null){
-        super();
+        super("level_generator_menu");
         // Declare
         this.buttonFor0 = undefined;
         this.buttonFor1 = undefined;
@@ -122,7 +122,7 @@ class LevelGeneratorMenu extends Menu {
         let backButtonXSize = menuDataBackButton["x_size"];
         let backButtonYSize = menuDataBackButton["y_size"];
         this.components.push(new RectangleButton(menuDataBackButton["text"], menuDataBackButton["colour_code"], menuDataBackButton["text_colour_code"], menuDataBackButton["x"], backButtonY, backButtonXSize, backButtonYSize, (instance) => {
-            MENU_MANAGER.switchTo("main");
+            MENU_MANAGER.switchTo("main_menu");
         }));
 
         // Number pad area
@@ -260,4 +260,4 @@ class LevelGeneratorMenu extends Menu {
     }
 }
 
-MENU_MANAGER.registerMenu("level_generator_menu", new LevelGeneratorMenu());
+MENU_MANAGER.registerMenu(new LevelGeneratorMenu());

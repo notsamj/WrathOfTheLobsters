@@ -19,11 +19,16 @@ class TickLock extends Lock{
     */
     constructor(numTicks, ready=true){
         super(ready);
+        this.startingReady = ready;
         this.numTicks = numTicks;
         this.ticksLeft = 0;
         if (!ready){
             this.lock();
         }
+    }
+
+    restoreDefault(){
+        this.ticksLeft = 0;
     }
     
     /*

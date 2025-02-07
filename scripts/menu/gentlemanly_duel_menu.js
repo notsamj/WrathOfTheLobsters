@@ -1,16 +1,30 @@
 class GentlemanlyDuelMenu extends Menu {
     constructor(){
-        super();
+        super("gentlemanly_duel_menu");
         // Declare
         this.p1CharacterImage = undefined;
         this.switchToHumanButton = undefined;
         this.switchToBotButton = undefined;
+
         this.p1ReactionTimeText = undefined;
         this.p2ReactionTimeText = undefined;
+
         this.p1ReactionTimeSlider = undefined;
         this.p2ReactionTimeSlider = undefined;
+
         this.p1ReactionTime = undefined;
         this.p2ReactionTime = undefined;
+
+        this.p1GunSkillText = undefined;
+        this.p2GunSkillText = undefined;
+
+        this.p1GunSkillSlider = undefined;
+        this.p2GunSkillSlider = undefined;
+
+        this.gunSkillDisplayMultiplier = 100;
+
+        this.p1GunSkill = undefined;
+        this.p2GunSkill = undefined;
 
         this.buttonFor0 = undefined;
         this.buttonFor1 = undefined;
@@ -40,17 +54,19 @@ class GentlemanlyDuelMenu extends Menu {
         // p1
         gameDetails["participants"][0]["human"] = this.switchToBotButton.isEnabled();
         gameDetails["participants"][0]["model"] = gentlemanlyDuelMenu["character_image"]["selection_corresponding_models"][this.p1CharacterImage.getImageIndex()];
-        gameDetails["participants"][0]["bot_extra_details"]["reaction_time_ms"] = this.p1ReactionTimeSlider.accessValue();
+        gameDetails["participants"][0]["bot_extra_details"]["reaction_time_ms"] = this.p1ReactionTime;
+        gameDetails["participants"][0]["extra_details"]["sway_compensation_ability"] = this.p1GunSkill / this.gunSkillDisplayMultiplier;
 
         // p2
         gameDetails["participants"][1]["human"] = false; // p2 is always a bot
         gameDetails["participants"][1]["model"] = gentlemanlyDuelMenu["character_image"]["selection_corresponding_models"][this.p2CharacterImage.getImageIndex()];
-        gameDetails["participants"][1]["bot_extra_details"]["reaction_time_ms"] = this.p2ReactionTimeSlider.accessValue();
+        gameDetails["participants"][1]["bot_extra_details"]["reaction_time_ms"] = this.p2ReactionTime;
+        gameDetails["participants"][1]["extra_details"]["sway_compensation_ability"] = this.p2GunSkill / this.gunSkillDisplayMultiplier;
 
         // Set the seed
         gameDetails["seed"] = parseInt(this.getCurrentSeedString());
 
-        GAMEMODE_MANAGER.setActiveGamemode(new Duel(gameDetails));
+        GAMEMODE_MANAGER.setActiveGamemode(new GentlemanlyDuel(gameDetails));
         MENU_MANAGER.switchTo("game");
     }
 
@@ -68,6 +84,22 @@ class GentlemanlyDuelMenu extends Menu {
     
     setP2ReactionTime(newReactionTimeMS){
         this.p2ReactionTime = newReactionTimeMS;
+    }
+
+    getP1GunSkill(){
+        return this.p1GunSkill;
+    }
+
+    getP2GunSkill(){
+        return this.p2GunSkill;
+    }
+
+    setP1GunSkill(newGunSkill){
+        this.p1GunSkill = newGunSkill;
+    }
+    
+    setP2GunSkill(newGunSkill){
+        this.p2GunSkill = newGunSkill;
     }
 
     resetSavedInfo(){
@@ -131,7 +163,7 @@ class GentlemanlyDuelMenu extends Menu {
         // Background
         this.components.push(new LoadingScreenComponent());
 
-        let menuData = WTL_GAME_DATA["menu"]["menus"]["duel_menu"];
+        let menuData = WTL_GAME_DATA["menu"]["menus"]["gentlemanly_duel_menu"];
 
         // Back Button
         let menuDataBackButton = menuData["back_button"];
@@ -139,7 +171,7 @@ class GentlemanlyDuelMenu extends Menu {
         let backButtonXSize = menuDataBackButton["x_size"];
         let backButtonYSize = menuDataBackButton["y_size"];
         this.components.push(new RectangleButton(menuDataBackButton["text"], menuDataBackButton["colour_code"], menuDataBackButton["text_colour_code"], menuDataBackButton["x"], backButtonY, backButtonXSize, backButtonYSize, (instance) => {
-            MENU_MANAGER.switchTo("main");
+            MENU_MANAGER.switchTo("main_menu");
         }));
 
         let sectionHeadYFunction = (innerHeight) => { return innerHeight; }
@@ -194,15 +226,40 @@ class GentlemanlyDuelMenu extends Menu {
         let reactionTimeSliderYSize = reactionTimeSliderYTextHeight + reactionTimeSliderYSliderHeight;
         let reactionTimeOptions = reactionTimeSliderSettings["reaction_time_options"];
         let reactionTimeYFunction = (innerHeight) => { return reactionTimeTextYFunction(innerHeight) - reactionTimeTextHeight - reactionTimeSliderYOffset; }
-        this.p1ReactionTime = reactionTimeOptions[0];
-        this.p2ReactionTime = reactionTimeOptions[0];
+        this.p1ReactionTime = reactionTimeOptions[reactionTimeSliderSettings["p1_default_reaction_time_index"]];
+        this.p2ReactionTime = reactionTimeOptions[reactionTimeSliderSettings["p2_default_reaction_time_index"]];
 
-        // P1 Slider
+        // P1 Reaction Time Slider
         let p1ReactionTimeGetter = () => { return this.getP1ReactionTime(); }
         let p1ReactionTimeSetter = (newReactionTimeMS) => { this.setP1ReactionTime(newReactionTimeMS); }
         this.p1ReactionTimeSlider = new SelectionSlider(p1StartX, reactionTimeYFunction, reactionTimeSliderSettings["slider_width"], reactionTimeSliderYSliderHeight, reactionTimeSliderYTextHeight, p1ReactionTimeGetter, p1ReactionTimeSetter, reactionTimeOptions, reactionTimeSliderSettings["background_colour_code"], reactionTimeSliderSettings["slider_colour_code"], reactionTimeSliderSettings["text_colour_code"]);
         this.p1ReactionTimeSlider.fullDisable();
         this.components.push(this.p1ReactionTimeSlider);
+
+        // Gun skill text
+        let gunSkillTextSettings = menuData["gun_skill_text"];
+        let gunSkillTextHeight = gunSkillTextSettings["height"];
+        let gunSkillTextYOffset = gunSkillTextSettings["y_offset"];
+        let p1GunSkillTextYFunction = (innerHeight) => { return reactionTimeYFunction(innerHeight) - reactionTimeSliderYSize - gunSkillTextYOffset; }
+        this.p1GunSkillText = new TextComponent(gunSkillTextSettings["text"], gunSkillTextSettings["text_colour_code"], p1StartX, p1GunSkillTextYFunction, gunSkillTextSettings["width"], gunSkillTextHeight);
+        this.components.push(this.p1GunSkillText);
+
+        // Gun skill slider
+        let gunSkillSliderSettings = menuData["gun_skill_slider"];
+        let gunSkillSliderYOffset = gunSkillSliderSettings["y_offset"];
+        let gunSkillSliderYTextHeight = gunSkillSliderSettings["text_height"];
+        let gunSkillSliderYSliderHeight = gunSkillSliderSettings["slider_height"];
+        let gunSkillSliderYSize = gunSkillSliderYTextHeight + gunSkillSliderYSliderHeight;
+        let gunSkillYFunction = (innerHeight) => { return p1GunSkillTextYFunction(innerHeight) - gunSkillTextHeight - gunSkillSliderYOffset; }
+        let gunSkillOptions = gunSkillSliderSettings["gun_skill_options"];
+        this.p1GunSkill = gunSkillOptions[gunSkillSliderSettings["p1_default_gun_skill_index"]];
+        this.p2GunSkill = gunSkillOptions[gunSkillSliderSettings["p2_default_gun_skill_index"]];
+
+        // P1 Gun skill Slider
+        let p1GunSkillGetter = () => { return this.getP1GunSkill(); }
+        let p1GunSkillSetter = (newGunSkill) => { this.setP1GunSkill(newGunSkill); }
+        this.p1GunSkillSlider = new SelectionSlider(p1StartX, gunSkillYFunction, gunSkillSliderSettings["slider_width"], gunSkillSliderYSliderHeight, gunSkillSliderYTextHeight, p1GunSkillGetter, p1GunSkillSetter, gunSkillOptions, gunSkillSliderSettings["background_colour_code"], gunSkillSliderSettings["slider_colour_code"], gunSkillSliderSettings["text_colour_code"]);
+        this.components.push(this.p1GunSkillSlider);
 
         // Player 2
         let p2StartX = menuData["p2_start_x"];
@@ -222,13 +279,22 @@ class GentlemanlyDuelMenu extends Menu {
         this.p2ReactionTimeText = new TextComponent(reactionTimeTextSettings["text"], reactionTimeTextSettings["text_colour_code"], p2StartX, reactionTimeTextYFunction, reactionTimeTextSettings["width"], reactionTimeTextHeight);
         this.components.push(this.p2ReactionTimeText);
 
-        // Reaction time ms slider
-
-        // P2 Slider
+        // P2 Reaction Time Slider
         let p2ReactionTimeGetter = () => { return this.getP2ReactionTime(); }
         let p2ReactionTimeSetter = (newReactionTimeMS) => { this.setP2ReactionTime(newReactionTimeMS); }
         this.p2ReactionTimeSlider = new SelectionSlider(p2StartX, reactionTimeYFunction, reactionTimeSliderSettings["slider_width"], reactionTimeSliderYSliderHeight, reactionTimeSliderYTextHeight, p2ReactionTimeGetter, p2ReactionTimeSetter, reactionTimeOptions, reactionTimeSliderSettings["background_colour_code"], reactionTimeSliderSettings["slider_colour_code"], reactionTimeSliderSettings["text_colour_code"]);
         this.components.push(this.p2ReactionTimeSlider);
+
+        // Gun skill text
+        let p2GunSkillTextYFunction = (innerHeight) => { return reactionTimeYFunction(innerHeight) - reactionTimeSliderYSize - gunSkillTextYOffset; }
+        this.p2GunSkillText = new TextComponent(gunSkillTextSettings["text"], gunSkillTextSettings["text_colour_code"], p2StartX, p2GunSkillTextYFunction, gunSkillTextSettings["width"], gunSkillTextHeight);
+        this.components.push(this.p2GunSkillText);
+
+        // P2 Gun skill Slider
+        let p2GunSkillGetter = () => { return this.getP2GunSkill(); }
+        let p2GunSkillSetter = (newGunSkill) => { this.setP2GunSkill(newGunSkill); }
+        this.p2GunSkillSlider = new SelectionSlider(p2StartX, gunSkillYFunction, gunSkillSliderSettings["slider_width"], gunSkillSliderYSliderHeight, gunSkillSliderYTextHeight, p2GunSkillGetter, p2GunSkillSetter, gunSkillOptions, gunSkillSliderSettings["background_colour_code"], gunSkillSliderSettings["slider_colour_code"], gunSkillSliderSettings["text_colour_code"]);
+        this.components.push(this.p2GunSkillSlider);
 
         // Level generator stuff
         let levelGeneratorStartX = menuData["level_generator_start_x"];
@@ -345,4 +411,4 @@ class GentlemanlyDuelMenu extends Menu {
     }
 }
 
-MENU_MANAGER.registerMenu("gentlemanly_duel_menu", new GentlemanlyDuelMenu());
+MENU_MANAGER.registerMenu(new GentlemanlyDuelMenu());

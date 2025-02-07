@@ -40,8 +40,8 @@ class DuelCamera extends Entity {
         Method Return: void
     */
     checkMoveX(){
-        let leftKey = USER_INPUT_MANAGER.isActivated("move_left");
-        let rightKey = USER_INPUT_MANAGER.isActivated("move_right");
+        let leftKey = GAME_USER_INPUT_MANAGER.isActivated("move_left");
+        let rightKey = GAME_USER_INPUT_MANAGER.isActivated("move_right");
         let numKeysDown = 0;
         numKeysDown += leftKey ? 1 : 0;
         numKeysDown += rightKey ? 1 : 0;
@@ -63,8 +63,8 @@ class DuelCamera extends Entity {
         Method Return: void
     */
     checkMoveY(){
-        let upKey = USER_INPUT_MANAGER.isActivated("move_up");
-        let downKey = USER_INPUT_MANAGER.isActivated("move_down");
+        let upKey = GAME_USER_INPUT_MANAGER.isActivated("move_up");
+        let downKey = GAME_USER_INPUT_MANAGER.isActivated("move_down");
         let numKeysDown = 0;
         numKeysDown += upKey ? 1 : 0;
         numKeysDown += downKey ? 1 : 0;
@@ -104,7 +104,7 @@ class DuelCamera extends Entity {
     }
 
     checkSnap(){
-        let wantsToSnap = USER_INPUT_MANAGER.isActivated("f_ticked");
+        let wantsToSnap = GAME_USER_INPUT_MANAGER.isActivated("f_ticked");
         if (wantsToSnap && this.snapLock.isUnlocked()){
             this.snapLock.lock();
             if (this.isFollowingAnEntity()){
@@ -187,8 +187,8 @@ class DuelCamera extends Entity {
     }
 
     checkScrollTroops(){
-        let wantsToScrollLeft = USER_INPUT_MANAGER.isActivated("left_arrow");
-        let wantsToScrollRight = USER_INPUT_MANAGER.isActivated("right_arrow");
+        let wantsToScrollLeft = GAME_USER_INPUT_MANAGER.isActivated("left_arrow");
+        let wantsToScrollRight = GAME_USER_INPUT_MANAGER.isActivated("right_arrow");
 
         if (this.scrollLock.isLocked()){
             this.scrollLock.unlock();

@@ -1,6 +1,6 @@
 class DuelMenu extends Menu {
     constructor(){
-        super();
+        super("duel_menu");
         // Declare
         this.p1CharacterImage = undefined;
         this.switchToHumanButton = undefined;
@@ -234,7 +234,7 @@ class DuelMenu extends Menu {
         let backButtonXSize = menuDataBackButton["x_size"];
         let backButtonYSize = menuDataBackButton["y_size"];
         this.components.push(new RectangleButton(menuDataBackButton["text"], menuDataBackButton["colour_code"], menuDataBackButton["text_colour_code"], menuDataBackButton["x"], backButtonY, backButtonXSize, backButtonYSize, (instance) => {
-            MENU_MANAGER.switchTo("main");
+            MENU_MANAGER.switchTo("main_menu");
         }));
 
         let sectionHeadYFunction = (innerHeight) => { return innerHeight; }
@@ -289,8 +289,8 @@ class DuelMenu extends Menu {
         let reactionTimeSliderYSize = reactionTimeSliderYTextHeight + reactionTimeSliderYSliderHeight;
         let reactionTimeOptions = reactionTimeSliderSettings["reaction_time_options"];
         let reactionTimeYFunction = (innerHeight) => { return reactionTimeTextYFunction(innerHeight) - reactionTimeTextHeight - reactionTimeSliderYOffset; }
-        this.p1ReactionTime = reactionTimeOptions[0];
-        this.p2ReactionTime = reactionTimeOptions[0];
+        this.p1ReactionTime = reactionTimeOptions[reactionTimeSliderSettings["p1_default_reaction_time_index"]];
+        this.p2ReactionTime = reactionTimeOptions[reactionTimeSliderSettings["p2_default_reaction_time_index"]];
 
         // P1 Slider
         let p1ReactionTimeGetter = () => { return this.getP1ReactionTime(); }
@@ -580,4 +580,4 @@ class DuelMenu extends Menu {
     }
 }
 
-MENU_MANAGER.registerMenu("duel_menu", new DuelMenu());
+MENU_MANAGER.registerMenu(new DuelMenu());

@@ -2,6 +2,7 @@ class LevelGenerator extends Gamemode {
     constructor(presetData, seed){
         super();
 
+        //this.camera = new DebuggerCamera(this);
         this.camera = new LevelGeneratorCamera(this);
 
         this.loadingLock = new Lock();
@@ -157,8 +158,10 @@ class LevelGenerator extends Gamemode {
             let visualTile = scene.getVisualTileCoveringLocation(tileX, tileY);
             let originX = visualTile.getTileX();
             let originY = visualTile.getTileY();
-            for (let oX = originX; oX < originX + visualTile.getTileWidth(); oX++){
-                for (let oY = originY; oY > originY - visualTile.getTileHeight(); oY--){
+            let visualTileWidth = visualTile.getTileWidth();
+            let visualTileHeight = visualTile.getTileHeight();
+            for (let oX = originX; oX < originX + visualTileWidth; oX++){
+                for (let oY = originY; oY > originY - visualTileHeight; oY--){
                     // Destroy the physical tile
                     scene.deletePhysicalTile(oX, oY);
                     scene.placeVisualTile(grassDetails, oX, oY);
@@ -181,24 +184,28 @@ class LevelGenerator extends Gamemode {
         for (let y = chosenYStart - 1; y <= chosenYStart + size; y++){
             await apr.attemptToWait();
             scene.placePhysicalTile(fullBlockDetails, chosenXStart - 1, y);
+            scene.deleteVisualTile(chosenXStart - 1, y);
         }
 
         // Right
         for (let y = chosenYStart - 1; y <= chosenYStart + size; y++){
             await apr.attemptToWait();
             scene.placePhysicalTile(fullBlockDetails, chosenXStart + size, y);
+            scene.deleteVisualTile(chosenXStart + size, y);
         }
 
         // Bottom
         for (let x = chosenXStart - 1; x <= chosenXStart + size; x++){
             await apr.attemptToWait();
             scene.placePhysicalTile(fullBlockDetails, x, chosenYStart - 1);
+            scene.deleteVisualTile(x, chosenYStart - 1);
         }
 
         // Top
         for (let x = chosenXStart - 1; x <= chosenXStart + size; x++){
             await apr.attemptToWait();
             scene.placePhysicalTile(fullBlockDetails, x, chosenYStart + size);
+            scene.deleteVisualTile(x, chosenYStart + size);
         }
 
         return spawns;
@@ -250,6 +257,12 @@ class LevelGenerator extends Gamemode {
                     }
                 }
             }
+
+            let tileNotFound = bestDistance === null;
+            if (tileNotFound){
+                throw new Error("Failed to find a tile to destroy");
+            }
+
             return {"tile_x": bestTileX, "tile_y": bestTileY};
         }
 
@@ -463,7 +476,7 @@ class LevelGenerator extends Gamemode {
         let minRockClusterSize = 2;
         let maxRockClusterSize = 4;
         let smallBushes = 300;
-        let trees = 500;
+        let trees = 800;
 
         let random = new SeededRandomizer(seed);
 
@@ -583,8 +596,8 @@ class LevelGenerator extends Gamemode {
             for (let oX = x; oX < x + treeWidth; oX++){
                 for (let oY = y; oY > y - treeHeight; oY--){
                     let tileAtLocation = scene.getVisualTileCoveringLocation(oX, oY);
-                    // If there's a tree then don't place
-                    if (tileAtLocation != null && tileAtLocation.getMaterialName() === "tree"){
+                    // If there's anything but grass then don't place
+                    if (tileAtLocation != null && tileAtLocation.getMaterialName() != "grass"){
                         return;
                     }
                 }
@@ -600,7 +613,7 @@ class LevelGenerator extends Gamemode {
         }
 
         // Place Trees
-        for (let i = 0; i < smallBushes; i++){
+        for (let i = 0; i < trees; i++){
             await apr.attemptToWait();
             let x = random.getIntInRangeInclusive(0, defaultSize-1);
             let y = random.getIntInRangeInclusive(0, defaultSize-1);
@@ -1017,12 +1030,12 @@ class LevelGenerator extends Gamemode {
     }
 
     tickUI(){
-        let togglingUI = USER_INPUT_MANAGER.isActivated("u_ticked");
+        let togglingUI = GAME_USER_INPUT_MANAGER.isActivated("u_ticked");
         if (togglingUI){
             this.uiEnabled = !this.uiEnabled;
         }
 
-        let clicking = USER_INPUT_MANAGER.isActivated("left_click_ticked");
+        let clicking = GAME_USER_INPUT_MANAGER.isActivated("left_click_ticked");
         if (this.uiEnabled && clicking){
             this.ingameUI.click(gMouseX, MENU_MANAGER.changeFromScreenY(gMouseY));
         }

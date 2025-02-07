@@ -178,8 +178,8 @@ class SkirmishMatchStats {
 
     tick(){
         let newKillFeedOffset = this.killFeedOffset;
-        let up = USER_INPUT_MANAGER.isActivated("kill_feed_up");
-        let down = USER_INPUT_MANAGER.isActivated("kill_feed_down");
+        let up = GAME_USER_INPUT_MANAGER.isActivated("kill_feed_up");
+        let down = GAME_USER_INPUT_MANAGER.isActivated("kill_feed_down");
         // If both / neither button are pressed then do nothing
         if ((up && down) || (!up && !down)){
             this.killFeedOffsetLock.unlock();

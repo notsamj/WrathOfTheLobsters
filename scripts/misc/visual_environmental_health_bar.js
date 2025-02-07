@@ -6,11 +6,11 @@ class VisualEnvironmentHealthBar {
 
     getThreshold(){
         let progressProportion = (this.maxValue - this.value) / this.maxValue;
-        if (progressProportion > WTL_GAME_DATA["health_bar"]["threshold_4"]){
+        if (progressProportion > WTL_GAME_DATA["enviromental_health_bar"]["threshold_4"]){
             return "threshold_4";
-        }else if (progressProportion > WTL_GAME_DATA["health_bar"]["threshold_3"]){
+        }else if (progressProportion > WTL_GAME_DATA["enviromental_health_bar"]["threshold_3"]){
             return "threshold_3";
-        }else if (progressProportion > WTL_GAME_DATA["health_bar"]["threshold_2"]){
+        }else if (progressProportion > WTL_GAME_DATA["enviromental_health_bar"]["threshold_2"]){
             return "threshold_2";
         }else{
             return "threshold_1";
@@ -32,10 +32,10 @@ class VisualEnvironmentHealthBar {
 
     display(displayLeftX, displayTopY){
         if (this.getValue() == this.getMaxValue()){ return; }
-        let barWidth = WTL_GAME_DATA["health_bar"]["width"];
-        let barHeight = WTL_GAME_DATA["health_bar"]["height"];
-        let barBorderColour = WTL_GAME_DATA["health_bar"]["border_colour"];
-        let borderThickness = WTL_GAME_DATA["health_bar"]["border_thickness"];
+        let barWidth = WTL_GAME_DATA["enviromental_health_bar"]["width"];
+        let barHeight = WTL_GAME_DATA["enviromental_health_bar"]["height"];
+        let barBorderColour = WTL_GAME_DATA["enviromental_health_bar"]["border_colour"];
+        let borderThickness = WTL_GAME_DATA["enviromental_health_bar"]["border_thickness"];
         let barColour;
         let progressProportion = (this.maxValue - this.value) / this.maxValue;
         let threshold = this.getThreshold();
@@ -45,13 +45,13 @@ class VisualEnvironmentHealthBar {
         let centerYOffset = -32;
         // Determine bar colour
         if (threshold == "threshold_4"){
-            barColour = WTL_GAME_DATA["health_bar"]["threshold_4_colour"];
+            barColour = WTL_GAME_DATA["enviromental_health_bar"]["threshold_4_colour"];
         }else if (threshold == "threshold_3"){
-            barColour = WTL_GAME_DATA["health_bar"]["threshold_3_colour"];
+            barColour = WTL_GAME_DATA["enviromental_health_bar"]["threshold_3_colour"];
         }else if (threshold == "threshold_2"){
-            barColour = WTL_GAME_DATA["health_bar"]["threshold_2_colour"];
+            barColour = WTL_GAME_DATA["enviromental_health_bar"]["threshold_2_colour"];
         }else{
-            barColour = WTL_GAME_DATA["health_bar"]["threshold_1_colour"];
+            barColour = WTL_GAME_DATA["enviromental_health_bar"]["threshold_1_colour"];
         }
 
         // Change from code to colour object
@@ -61,7 +61,7 @@ class VisualEnvironmentHealthBar {
         centerYOffset += borderThickness * 2 + barHeight;
 
         // Display borders
-        let borderColour = Colour.fromCode(WTL_GAME_DATA["health_bar"]["border_colour"]);
+        let borderColour = Colour.fromCode(WTL_GAME_DATA["enviromental_health_bar"]["border_colour"]);
 
         translate(displayLeftX, bottomY);
         scale(gameZoom, gameZoom);

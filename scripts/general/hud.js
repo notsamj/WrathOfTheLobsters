@@ -98,7 +98,6 @@ class HUDElement {
     */
     constructor(name, value){
         this.name = name;
-        this.readyToDisplay = true;
         this.value = null;
         this.disabled = false;
         this.priority = objectHasKey(WTL_GAME_DATA["hud"]["priorities"], name) ? WTL_GAME_DATA["hud"]["priorities"][name] : 0;
@@ -164,7 +163,7 @@ class HUDElement {
     }
 
     isReadyToDisplay(){
-        return this.readyToDisplay;
+        return !this.isDisabled();
     }
 
     disable(){

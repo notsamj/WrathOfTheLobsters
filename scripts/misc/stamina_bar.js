@@ -196,7 +196,7 @@ class StaminaBar {
         // Right Border
         noStrokeRectangle(borderColour, staminaBarWidth + 2 * staminaBarBorderThickness - 1, screenHeight - 1 - staminaBarHeight - staminaBarBorderThickness * 2 + 1- (staminaBarHeight+staminaBarBorderThickness*2-1) * offset, staminaBarBorderThickness, staminaBarHeight + 2 * staminaBarBorderThickness);
         
-        // Display Heat
+        // Display Stamina
         noStrokeRectangle(staminaBarColour, staminaBarBorderThickness, screenHeight - staminaBarHeight - staminaBarBorderThickness - (staminaBarHeight+staminaBarBorderThickness*2-1) * offset, staminaBarWidth*interpolatedStaminaPercentage, staminaBarHeight);
     }
 }

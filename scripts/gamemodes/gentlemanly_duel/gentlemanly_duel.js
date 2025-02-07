@@ -7,15 +7,14 @@ class GentlemanlyDuel extends Gamemode {
         this.seed = gameSetupDetails["seed"];
         // Only using when testing
         if (this.seed === null){
-            this.seed = randomNumberInclusive(0, Math.floor(Math.pow(10, 3))-1);
+            this.seed = this.generateRandomSeed();
             gameSetupDetails["seed"] = this.seed;
         }
         this.aiRandom = new SeededRandomizer(this.seed);
 
         this.participants = [];
 
-        this.stats = new DuelMatchStats();
-        this.random = null; // Declare
+        this.stats = new GentlemanlyDuelMatchStats();
         this.spawns = []; // Declare
 
         let scene = this.getScene();
@@ -32,6 +31,7 @@ class GentlemanlyDuel extends Gamemode {
         this.eventHandler.addHandler("gun_shot", (eventObj) => {
             scene.addExpiringVisual(SmokeCloud.create(eventObj["x"], eventObj["y"]));
             SOUND_MANAGER.play("gunshot", eventObj["x"], eventObj["y"]);
+            this.handleGunShot(eventObj);
         });
 
 
@@ -45,85 +45,75 @@ class GentlemanlyDuel extends Gamemode {
         this.inPosition = false;
         this.noShotsFired = true;
 
+        // Declare
+        this.startUnlockTick = undefined;
+        this.turnUnlockTick = undefined;
+
         this.startUpLock = new Lock();
         this.startUpLock.lock();
         this.startUp();
     }
 
+    generateRandomSeed(){
+        return randomNumberInclusive(0, Math.floor(Math.pow(10, 3))-1);
+    }
+
+    randomReset(){
+        this.gameOver = false;
+        this.noShotsFired = true;
+        this.inPosition = false;
+        this.shooterTurnID = null;
+        this.stats.reset();
+        this.seed = this.generateRandomSeed();
+        this.aiRandom = new SeededRandomizer(this.seed);
+        if (this.isABotGame()){
+            this.setCameraPosition();
+        }
+
+        this.prepareTroops();
+        this.prepareGameState();
+    }
+
+    prepareGameState(){
+        this.startUnlockTick = this.getCurrentTick() + msToTickCeil(WTL_GAME_DATA["gentlemanly_duel"]["start_delay_ms"]);
+    }
+
+    setCameraPosition(){
+        let cameraSpawnX = Math.floor((this.spawns[0][0] + this.spawns[1][0])/2);
+        let cameraSpawnY = Math.floor((this.spawns[0][1] + this.spawns[1][1])/2);
+        this.camera.setTilePosition(cameraSpawnX, cameraSpawnY);
+    }
+
+    hasDuelStarted(){
+        return this.inPosition && this.getCurrentTick() >= this.turnUnlockTick;
+    }
+
+    handleGunShot(eventObj){
+        let shooterID = eventObj["shooter_id"];
+
+        // If this person is not allowed to shoot then its unexpected
+        if (!this.noShotsFired && shooterID != this.shooterTurnID){
+            throw new Error("Unexpected shot");
+        }
+
+        // Acknowledge that shows have been fired
+        if (this.noShotsFired){
+            this.noShotsFired = false;
+        }
+
+        // Set the allowed shooter to the new one
+        this.shooterTurnID = this.getOtherPlayerID(shooterID);
+    }
+
     gameTick(){
+        this.checkForResetRequest();
         if (this.isOver()){ return; }
-        if (this.inPosition){
+        if (!this.inPosition){
             this.checkInPosition();
         }
     }
 
     checkInPosition(){
-        let getTileBehind = (tileX, tileY, facingDirection) => {
-            let bX;
-            let bY;
-            if (facingDirection === "up"){
-                bX = tileX;
-                bY = tileY - 1;
-            }else if (facingDirection === "down"){
-                bX = tileX;
-                bY = tileY + 1;
-            }else if (facingDirection === "left"){
-                bX = tileX + 1;
-                bY = tileY;
-            }else if (facingDirection === "right"){
-                bX = tileX - 1;
-                bY = tileY;
-            }
-            return {"tile_x": bX, "tile_y": bY}
-        }
-
-        // Check if the participants are ready
-        for (let participant of this.participants){
-            // If one is moving then they are not ready
-            if (participant.isMoving()){
-                return;
-            }
-
-            let tileBehind = getTileBehind(participant.getTileX(), participant.getTileY(), participant.getFacingUDLRDirection());
-            let tBX = tileBehind["tile_x"];
-            let tBY = tileBehind["tile_y"];
-
-            // If the location behind the participant isn't a "no_walk" then they certainly aren't in position
-            if (!this.scene.tileAtLocationHasAttribute(tBX, tBY, "no_walk")){
-                return;
-            }
-        }
-
-        // If they are both not moving and have a no_walk tile behind them then they MUST be ready (just based on the level design)
-
-        // They are now in position
-        this.inPosition = true;
-    }
-
-    canShoot(id){
-        if (!this.inPosition){ return false; }
-        return this.noShotsFired || this.shooterTurnID === id;
-    }
-
-    getCommandFromGame(participantID){
-        let getTileBehind = (tileX, tileY, facingDirection) => {
-            let bX;
-            let bY;
-            if (facingDirection === "up"){
-                bX = tileX;
-                bY = tileY - 1;
-            }else if (facingDirection === "down"){
-                bX = tileX;
-                bY = tileY + 1;
-            }else if (facingDirection === "left"){
-                bX = tileX + 1;
-                bY = tileY;
-            }else if (facingDirection === "right"){
-                bX = tileX - 1;
-                bY = tileY;
-            }
-            return {"tile_x": bX, "tile_y": bY}
-        }
         let getTileInFront = (tileX, tileY, facingDirection) => {
             let bX;
             let bY;
@@ -143,93 +133,134 @@ class GentlemanlyDuel extends Gamemode {
             return {"tile_x": bX, "tile_y": bY}
         }
 
-        // If not in position then check if a command is needed
-        if (!this.inPosition){
-            let relevantParticipant = null;
-            let otherParticipant = null;
-            for (let participant of this.participants){
-                if (participant.getID() === participantID){
-                    relevantParticipant = participant;
-                }else{
-                    otherParticipant = participant;
-                }
-            }
-
-            if (relevantParticipant === null){
-                throw new Error("Failed to find participant");
-            }
-
-            // No need to do anything if I'm currently moving
-            if (relevantParticipant.isMoving()){
+        // Check if the participants are ready
+        for (let participant of this.participants){
+            // If one is moving then they are not ready
+            if (participant.isMoving()){
                 return;
             }
 
-            if (otherParticipant === null){
-                throw new Error("Failed to find other participant");
+            let tileBehind = getTileInFront(participant.getTileX(), participant.getTileY(), participant.getFacingUDLRDirection());
+            let tFX = tileBehind["tile_x"];
+            let tFY = tileBehind["tile_y"];
+
+            // If the location in front the participant isn't a "no_walk" then they certainly aren't in position
+            if (!this.scene.tileAtLocationHasAttribute(tFX, tFY, "no_walk")){
+                return;
             }
+        }
 
-            let amTopParticipant = relevantParticipant.getTileY() > otherParticipant.getTileY();
+        // If they are both not moving and have a no_walk tile in front them then they MUST be ready (just based on the level design)
 
-            // If I am the participant going to the top standing position (I also started above the other one)
-            if (amTopParticipant){
-                let facingUDLR = relevantParticipant.getFacingUDLRDirection();
-                if (facingUDLR === "down"){
-                    let tileBehindMe = getTileBehind(relevantParticipant.getTileX(), relevantParticipant.getTileY(), facingDirection);
-                    let tileBehindMeIsBlocked = this.scene.tileAtLocationHasAttribute(tileBehindMe["tile_x"], tileBehindMe["tile_y"], "no_walk");
-                    // Nothing to do, I'm clearly ready to start the game
-                    if (tileBehindMeIsBlocked){
-                        return {}
-                    }
-                    // Else this is probably the starting state. Go up -> 
-                    else{
-                        return {"up": true}
-                    }
+        // They are now in position
+        this.inPosition = true;
+        this.turnUnlockTick = this.getCurrentTick() + Math.max(1, this.getRandom().getIntInRangeInclusive(msToTickCeil(WTL_GAME_DATA["gentlemanly_duel"]["min_turn_delay_ms"]), msToTickCeil(WTL_GAME_DATA["gentlemanly_duel"]["max_turn_delay_ms"])));
+    }
+
+    canShoot(id){
+        if (!this.hasDuelStarted()){ return false; }
+        return this.noShotsFired || this.shooterTurnID === id;
+    }
+
+    getCommandFromGame(participantID){
+        // No commands after start
+        if (this.hasDuelStarted()){ return {}; }
+
+        let getTileInFront = (tileX, tileY, facingDirection) => {
+            let fX;
+            let fY;
+            if (facingDirection === "up"){
+                fX = tileX;
+                fY = tileY + 1;
+            }else if (facingDirection === "down"){
+                fX = tileX;
+                fY = tileY - 1;
+            }else if (facingDirection === "left"){
+                fX = tileX - 1;
+                fY = tileY;
+            }else if (facingDirection === "right"){
+                fX = tileX + 1;
+                fY = tileY;
+            }
+            return {"tile_x": fX, "tile_y": fY}
+        }
+
+        let relevantParticipant = null;
+        let otherParticipant = null;
+        for (let participant of this.participants){
+            if (participant.getID() === participantID){
+                relevantParticipant = participant;
+            }else{
+                otherParticipant = participant;
+            }
+        }
+
+        if (relevantParticipant === null){
+            throw new Error("Failed to find participant");
+        }
+
+        let facingUDLR = relevantParticipant.getFacingUDLRDirection();
+
+        if (otherParticipant === null){
+            throw new Error("Failed to find other participant");
+        }
+
+        let amLeftParticipant = relevantParticipant.getTileX() < otherParticipant.getTileX();
+
+        // If not in position then check if a command is needed
+        if (!this.inPosition){
+            // If I am the participant going to the right standing position (I also started above the other one)
+            if (amLeftParticipant){
+                if (facingUDLR === "right"){
+                    // this is probably the starting state. Go left -> 
+                    return {"left": true}
                 }
-                // Else assume they are facing up
+                // Else assume they are facing left
                 else{
-                    let tileInFrontOfMe = getTileInFront(relevantParticipant.getTileX(), relevantParticipant.getTileY(), facingDirection);
+                    let tileInFrontOfMe = getTileInFront(relevantParticipant.getTileX(), relevantParticipant.getTileY(), facingUDLR);
                     let tileInFrontOfMeIsBlocked = this.scene.tileAtLocationHasAttribute(tileInFrontOfMe["tile_x"], tileInFrontOfMe["tile_y"], "no_walk");
-                    // I've reached the correct position. Face the other way
+                    // I've reached the correct position. Stay there
                     if (tileInFrontOfMeIsBlocked){
-                        return {"down": true, "break_stride": true}
+                        return {}
                     }
                     // Else keep going
                     else{
-                        return {"up": true}
+                        return {"left": true}
                     }
                 }
             }else{
-                let facingUDLR = relevantParticipant.getFacingUDLRDirection();
-                if (facingUDLR === "up"){
-                    let tileBehindMe = getTileBehind(relevantParticipant.getTileX(), relevantParticipant.getTileY(), facingDirection);
-                    let tileBehindMeIsBlocked = this.scene.tileAtLocationHasAttribute(tileBehindMe["tile_x"], tileBehindMe["tile_y"], "no_walk");
-                    // Nothing to do, I'm clearly ready to start the game
-                    if (tileBehindMeIsBlocked){
-                        return {}
-                    }
-                    // Else this is probably the starting state. Go down -> 
-                    else{
-                        return {"down": true}
-                    }
+                if (facingUDLR === "left"){
+                    // this is probably the starting state. Go right -> 
+                    return {"right": true}
                 }
-                // Else assume they are facing down
+                // Else assume they are facing right
                 else{
-                    let tileInFrontOfMe = getTileInFront(relevantParticipant.getTileX(), relevantParticipant.getTileY(), facingDirection);
+                    let tileInFrontOfMe = getTileInFront(relevantParticipant.getTileX(), relevantParticipant.getTileY(), facingUDLR);
                     let tileInFrontOfMeIsBlocked = this.scene.tileAtLocationHasAttribute(tileInFrontOfMe["tile_x"], tileInFrontOfMe["tile_y"], "no_walk");
-                    // I've reached the correct position. Face the other way
+                    // I've reached the correct position. Stay there
                     if (tileInFrontOfMeIsBlocked){
-                        return {"up": true, "break_stride": true}
+                        return {}
                     }
                     // Else keep going
                     else{
-                        return {"down": true}
+                        return {"right": true}
                     }
                 }
             }
         }
-
-        // No command needed
-        return {}
+        // Otherwise in position
+        else{
+            // If this is the tick before the unlock (unlock is always at least 1 tick after inPosition is set and this comes in the same tick after inPosition is set)
+            if (this.getCurrentTick() === this.turnUnlockTick - 1){
+                if (amLeftParticipant){
+                    return {"right": true}
+                }else{
+                    return {"left": true}
+                }
+            }else{
+                return {}
+            }
+        }
     }
 
     end(){
@@ -257,7 +288,7 @@ class GentlemanlyDuel extends Gamemode {
         this.gameOver = true;
         let winner = this.findParticipantFromID(winnerID);
         if (winner.isHuman()){
-            this.stats.setWinner("Player");
+            this.stats.setWinner("Human Player");
         }else{
             this.stats.setWinner("Bot_" + winnerID);
         }
@@ -282,9 +313,7 @@ class GentlemanlyDuel extends Gamemode {
         this.spawns = await this.loadMap();
 
         if (this.isABotGame()){
-            let cameraSpawnX = Math.floor((this.spawns[0][0] + this.spawns[1][0])/2);
-            let cameraSpawnY = Math.floor((this.spawns[0][1] + this.spawns[1][1])/2);
-            this.camera.setTilePosition(cameraSpawnX, cameraSpawnY);
+            this.setCameraPosition();
         }
 
         this.spawnTroops();
@@ -298,7 +327,7 @@ class GentlemanlyDuel extends Gamemode {
     }
 
     async loadMap(){
-        let mapName = "tree_duel.json"; // TODO: Save in data_json.js
+        let mapName = this.gameSetupDetails["map_file_name"];
         await this.scene.loadTilesFromJSON(LEVEL_DATA[mapName]);
         let spawns = []; 
         for (let [physicalTile, tileX, tileY] of this.scene.getActivePhysicalTiles()){
@@ -363,20 +392,25 @@ class GentlemanlyDuel extends Gamemode {
             for (let pistolModelName of participantObject["pistols"]){
                 participant.getInventory().add(new Pistol(pistolModelName, {
                     "player": participant,
-                    "sway_acceleration_constant": participantSwayMultiplier * WTL_GAME_DATA["duel"]["pistol_sway_acceleration_constant"],
-                    "max_sway_velocity_deg": participantSwayMultiplier * WTL_GAME_DATA["gun_data"][pistolModelName]["max_sway_velocity_deg"],
-                    "maximum_random_sway_acceleration_deg": participantSwayMultiplier * WTL_GAME_DATA["gun_data"][pistolModelName]["maximum_random_sway_acceleration_deg"],
-                    "minimum_random_sway_acceleration_deg": participantSwayMultiplier * WTL_GAME_DATA["gun_data"][pistolModelName]["minimum_random_sway_acceleration_deg"],
-                    "corrective_sway_acceleration_deg": participantSwayMultiplier * WTL_GAME_DATA["gun_data"][pistolModelName]["corrective_sway_acceleration_deg"],
-                    "sway_decline_a": participantSwayMultiplier * WTL_GAME_DATA["gun_data"][pistolModelName]["sway_decline_a"],
-                    "sway_decline_b": participantSwayMultiplier * WTL_GAME_DATA["gun_data"][pistolModelName]["sway_decline_b"],
-                    "corrective_sway_acceleration_constant_c": participantSwayMultiplier * WTL_GAME_DATA["gun_data"][pistolModelName]["corrective_sway_acceleration_constant_c"],
-                    "corrective_sway_acceleration_constant_d": participantSwayMultiplier * WTL_GAME_DATA["gun_data"][pistolModelName]["corrective_sway_acceleration_constant_d"],
-                    "sway_max_angle_deg": participantSwayMultiplier * WTL_GAME_DATA["gun_data"][pistolModelName]["sway_max_angle_deg"]
+                    "sway_acceleration_constant": participantSwayMultiplier * WTL_GAME_DATA["gentlemanly_duel"]["gun_data"]["pistol_sway_acceleration_constant"],
+                    "max_sway_velocity_deg": participantSwayMultiplier * WTL_GAME_DATA["gentlemanly_duel"]["gun_data"][pistolModelName]["max_sway_velocity_deg"],
+                    "maximum_random_sway_acceleration_deg": participantSwayMultiplier * WTL_GAME_DATA["gentlemanly_duel"]["gun_data"][pistolModelName]["maximum_random_sway_acceleration_deg"],
+                    "minimum_random_sway_acceleration_deg": participantSwayMultiplier * WTL_GAME_DATA["gentlemanly_duel"]["gun_data"][pistolModelName]["minimum_random_sway_acceleration_deg"],
+                    "corrective_sway_acceleration_deg": participantSwayMultiplier * WTL_GAME_DATA["gentlemanly_duel"]["gun_data"][pistolModelName]["corrective_sway_acceleration_deg"],
+                    "sway_decline_a": participantSwayMultiplier * WTL_GAME_DATA["gentlemanly_duel"]["gun_data"][pistolModelName]["sway_decline_a"],
+                    "sway_decline_b": participantSwayMultiplier * WTL_GAME_DATA["gentlemanly_duel"]["gun_data"][pistolModelName]["sway_decline_b"],
+                    "corrective_sway_acceleration_constant_c": participantSwayCompensationAbility * WTL_GAME_DATA["gentlemanly_duel"]["gun_data"][pistolModelName]["corrective_sway_acceleration_constant_c"],
+                    "corrective_sway_acceleration_constant_d": participantSwayCompensationAbility * WTL_GAME_DATA["gentlemanly_duel"]["gun_data"][pistolModelName]["corrective_sway_acceleration_constant_d"],
+                    "sway_max_angle_deg": participantSwayMultiplier * WTL_GAME_DATA["gentlemanly_duel"]["gun_data"][pistolModelName]["sway_max_angle_deg"],
+                    "min_start_sway_deg": participantSwayMultiplier * WTL_GAME_DATA["gentlemanly_duel"]["gun_data"][pistolModelName]["min_start_sway_deg"]
                 }))
             }
         }
+        this.prepareTroops();
+        this.prepareGameState();
+    }
 
+    prepareTroops(){
         let spawns = copyArray(this.spawns);
 
         // Make sure there aren't too many spawns
@@ -386,6 +420,8 @@ class GentlemanlyDuel extends Gamemode {
 
         // Get associated random
         let random = this.getRandom();
+
+        let leftSpawnX = Math.min(this.spawns[0][0], this.spawns[1][0]);
 
         // Spawn participants randomly
         for (let participant of this.participants){
@@ -397,7 +433,32 @@ class GentlemanlyDuel extends Gamemode {
             spawns.pop();
             participant.setTileX(spawn[0]);
             participant.setTileY(spawn[1]);
+            participant.setHealth(1);
+            participant.setAlive(true);
+
+            let isLeftSpawn = spawn[0] === leftSpawnX;
+            if (isLeftSpawn){
+                participant.setFacingUDLRDirection("right");
+            }else{
+                participant.setFacingUDLRDirection("left");
+            }
+
+            // Reload all weapons
+            for (let item of participant.getInventory().getItems()){
+                if (item === null){ continue; }
+                item.reset();
+            }
         }
+    }
+
+    getOtherPlayerID(id){
+        for (let participant of this.participants){
+            let otherID = participant.getID();
+            if (otherID != id){
+                return otherID;
+            }
+        }
+        throw new Error("Failed to find other participant.");
     }
 
     display(){
@@ -410,12 +471,18 @@ class GentlemanlyDuel extends Gamemode {
         MY_HUD.updateElement("seed", this.seed);
     }
 
+    checkForResetRequest(){
+        if (GAME_USER_INPUT_MANAGER.isActivated("g_ticked")){
+            this.randomReset();
+        }
+    }
+
     tick(){
         if (this.startUpLock.isLocked()){ return; }
         if (this.camera != null){
             this.camera.tick();
         }
-        this.game.tick();
+        this.gameTick();
         this.scene.tick();
     }
 }

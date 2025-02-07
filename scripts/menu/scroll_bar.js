@@ -13,7 +13,7 @@ class ScrollBar extends Component {
         this.entryYSize = entryYSize;
         this.numEntries = 0;
         this.entryYSpaceFunction = entryYSpaceFunction;
-        this.scrollWheelMultiplier = WTL_GAME_DATA["menu"]["menus"]["gamemode_viewer"]["scrollable_display"]["scroll_bar"]["wheel_multiplier"];
+        this.scrollWheelMultiplier = WTL_GAME_DATA["menu"]["menus"]["gamemode_viewer_menu"]["scrollable_display"]["scroll_bar"]["wheel_multiplier"];
     }
 
     getMinHeight(){
@@ -55,13 +55,13 @@ class ScrollBar extends Component {
 
     tick(){
         let hasMouseOn = this.covers(gMouseX, gMouseY);
-        let activated = USER_INPUT_MANAGER.isActivated("scroll_bar_grab");
+        let activated = GENERAL_USER_INPUT_MANAGER.isActivated("scroll_bar_grab");
         // If they clicked on the bar
         if (activated && hasMouseOn){ 
             // Sliding
             this.moveToY(gMouseY);
         }else{
-            let scrollValue = USER_INPUT_MANAGER.get("scroll_in_dir").getValue();
+            let scrollValue = GENERAL_USER_INPUT_MANAGER.get("scroll_in_dir").getValue();
             if (scrollValue != 0){
                 this.moveByScrollValue(scrollValue);
             }

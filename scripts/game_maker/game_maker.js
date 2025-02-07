@@ -117,7 +117,7 @@ class GameMaker extends Gamemode {
     }
     
     tick(){
-        if (USER_INPUT_MANAGER.isActivated("g_ticked")){
+        if (GAME_USER_INPUT_MANAGER.isActivated("g_ticked")){
            this.setDisplayingHUD(!this.isDisplayingHUD());
         }
         this.getScene().tick();

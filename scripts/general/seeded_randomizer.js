@@ -22,6 +22,14 @@ class SeededRandomizer {
         this.lastNumber = seed;
     }
 
+    getLastNumber(){
+        return this.lastNumber;
+    }
+
+    reset(){
+        this.lastNumber = this.seed;
+    }
+
     /*
         Method Name: getBigNumber
         Method Parameters: None

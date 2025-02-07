@@ -9,6 +9,16 @@ class Musket extends Gun {
         this.stabFacing = null;
     }
 
+    reset(){
+        super.reset();
+        this.bayonetOn = false;
+        
+        this.stabbing = false;
+        this.stabLock.restoreDefault();
+        this.stabAngle = null; // value doesn't matter
+        this.stabFacing = null;
+    }
+
     resetDecisions(){
         this.player.amendDecisions({
             "trying_to_aim": false,

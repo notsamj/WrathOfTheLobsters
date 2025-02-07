@@ -6,6 +6,14 @@ class Entity extends VisualItem {
         this.dead = false;
     }
 
+    setDead(value){
+        this.dead = value;
+    }
+
+    setAlive(value){
+        this.setDead(!value);
+    }
+
     couldSeeEntityIfOnTile(){ throw new Error("Expect this to be overridden."); }
 
     isHuman(){

@@ -14,6 +14,10 @@ class TemporaryOperatingData {
         this.dataList = new NotSamSortedArrayList(comparisonFunction);
     }
 
+    clear(){
+        this.dataList.clear();
+    }
+
     findObj(dataKeyStr){
         let index = this.dataList.search({"data_key_str": dataKeyStr});
         if (index === -1){

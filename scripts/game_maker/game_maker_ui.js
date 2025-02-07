@@ -1,6 +1,6 @@
 class GameMakerUI extends Menu {
     constructor(){
-        super();
+        super("game_maker_menu");
         this.imageSelector = null; // Placeholder
         this.visualImages = [];
         this.physicalImages = [];
@@ -78,7 +78,7 @@ class GameMakerUI extends Menu {
         // Back Button
         let backButtonWidth = 100;
         this.topBar.addComponent(new RectangleButton("Main Menu", purpleColour.toCode(), "#ffffff", (innerWidth) => { return innerWidth - backButtonWidth; }, (innerHeight) => { return innerHeight }, backButtonWidth, topBarHeight, (menuInstance) => {
-            MENU_MANAGER.switchTo("main");
+            MENU_MANAGER.switchTo("main_menu");
             GAMEMODE_MANAGER.getActiveGamemode().end();
             GAMEMODE_MANAGER.deleteActiveGamemode();
         }));
@@ -442,4 +442,4 @@ class SelectableImage {
     }
 }
 
-MENU_MANAGER.registerMenu("game_maker", new GameMakerUI());
+MENU_MANAGER.registerMenu(new GameMakerUI());

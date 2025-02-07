@@ -10,7 +10,7 @@ class SoundMenu extends Menu {
         Method Return: Constructor
     */
     constructor(){
-        super();
+        super("sound_menu");
     }
 
     /*
@@ -96,7 +96,7 @@ class SoundMenu extends Menu {
         Method Return: void
     */
     goToMainMenu(){
-        MENU_MANAGER.switchTo("main");
+        MENU_MANAGER.switchTo("main_menu");
     }
 }
-MENU_MANAGER.registerMenu("sound", new SoundMenu());
+MENU_MANAGER.registerMenu(new SoundMenu());

@@ -1,5 +1,5 @@
 
-class GentlemanlyDuelHuman extends DuelCharacter {
+class GentlemanlyDuelHuman extends GentlemanlyDuelCharacter {
     constructor(gamemode, model, extraDetails){
         super(gamemode, model, extraDetails);
     }
@@ -46,22 +46,25 @@ class GentlemanlyDuelHuman extends DuelCharacter {
 
     makeDecisions(){
         this.resetDecisions();
-        this.makeMovementDecisions();
-        this.inventory.makeDecisions();
+        //this.inventory.makeDecisions();
         if (this.inventory.hasSelectedItem()){
             this.inventory.getSelectedItem().makeDecisions();
         }
+        this.updateFromCommands();
     }
-
-    // Not needed in the gentlemanly duel
-    makeInventoryDecisions(){}
 
     isHuman(){return true;}
 
+    updateFromCommands(){
+        let command = this.gamemode.getCommandFromGame(this.getID());
+        this.amendDecisions(command);
+    }
+
     makePistolDecisions(){
-        let tryingToAim = USER_INPUT_MANAGER.isActivated("right_click");
-        let tryingToShoot = USER_INPUT_MANAGER.isActivated("left_click_ticked");
-        let tryingToReload = USER_INPUT_MANAGER.isActivated("r_ticked");
+        let canShoot = this.gamemode.canShoot(this.getID());
+        let tryingToAim = GAME_USER_INPUT_MANAGER.isActivated("right_click") && canShoot;
+        let tryingToShoot = GAME_USER_INPUT_MANAGER.isActivated("left_click_ticked") && canShoot; // Adding it doubly just because
+        let tryingToReload = GAME_USER_INPUT_MANAGER.isActivated("r_ticked");
         this.amendDecisions({
             "trying_to_aim": tryingToAim,
             "trying_to_shoot": tryingToShoot,

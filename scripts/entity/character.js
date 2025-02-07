@@ -5,7 +5,7 @@
 class Character extends Entity {
     constructor(gamemode, model){
         super(gamemode);
-        this.health = 1;
+        this.healthBar = new HealthBar();
         this.model = model;
         this.animationManager = new CharacterAnimationManager();
         this.stunLock = new TickLock(Math.ceil(WTL_GAME_DATA["human"]["max_stun_time_ms"]/calculateMSBetweenTicks()));
@@ -28,12 +28,20 @@ class Character extends Entity {
         }
     }
 
-    // Abstract
-    drawGunCrosshair(){}
-
     getRandom(){
         return this.gamemode.getRandom();
     }
+
+    setHealth(newHealth){
+        this.healthBar.setHealth(newHealth);
+    }
+
+    resetMovement(){
+        this.movementDetails = null;
+    }
+
+    // Abstract
+    drawGunCrosshair(){}
 
     stun(ticks){
         this.stunLock.addTime(ticks);
@@ -428,7 +436,7 @@ class Character extends Entity {
     damage(amount){
         if (amount < 0){ throw new Error("Invalid damage amount: " + amount.toString()); }
         if (amount === 0){ return; }
-        this.setHealth(this.health - amount);
+        this.healthBar.useHealth(amount);
         this.gamemode.getEventHandler().emit({
             "center_x": this.getInterpolatedTickCenterX(),
             "center_y": this.getInterpolatedTickCenterY(),
@@ -440,11 +448,7 @@ class Character extends Entity {
     }
 
     getHealth(){
-        return this.health;
-    }
-
-    setHealth(amount){
-        this.health = amount;
+        return this.healthBar.getHealth();
     }
 
     getStabbed(stabItem){
@@ -570,7 +574,7 @@ class Character extends Entity {
             "last_location_x": lastLocationX,
             "last_location_y": lastLocationY,
             "last_location_tick": numTicks,
-            "reached_destination_tick": numTicks + WTL_GAME_DATA["general"]["tile_size"] / desiredMoveSpeed * 1000 / WTL_GAME_DATA["general"]["ms_between_ticks"] - tickProgressFromPrevious
+            "reached_destination_tick": floatBandaid(numTicks + (WTL_GAME_DATA["general"]["tile_size"] * 1000) / (desiredMoveSpeed * WTL_GAME_DATA["general"]["ms_between_ticks"]) - tickProgressFromPrevious, 8)
         }
         this.tileX = newTileX;
         this.tileY = newTileY;
@@ -590,6 +594,10 @@ class Character extends Entity {
 
     isVisibleTo(observer){
         return observer.canSee(this);
+    }
+
+    setFacingUDLRDirection(direction){
+        this.animationManager.setVisualDirectionFromMovementDirection(direction);
     }
 
     canSee(entity){
@@ -695,6 +703,17 @@ class Character extends Entity {
         }
     }
 
+
+    // Note: From center to side
+    getHalfWidth(){
+        return (this.getWidth() - 1)/2;
+    }
+
+    // Note: From center to side
+    getHalfHeight(){
+        return (this.getHeight() - 1)/2;
+    }
+
     getWidth(){
         return WTL_GAME_DATA["general"]["tile_size"];
     }
@@ -780,6 +799,7 @@ class Character extends Entity {
         if (this.isDead()){ return; }
         this.inventory.display();
         this.staminaBar.display();
+        this.healthBar.display();
     }
 
     getImage(){

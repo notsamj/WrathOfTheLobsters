@@ -17,7 +17,7 @@ class WTLGameScene {
         for (let [entity, entityIndex] of this.entities){
             if (entity.isDead()){ continue; }
             if (entityExceptionFunction(entity)){ continue; }
-            targetEntities.push({"center_x": entity.getInterpolatedTickCenterX(), "center_y": entity.getInterpolatedTickCenterY(), "width": entity.getWidth(), "height": entity.getHeight(), "entity": entity});
+            targetEntities.push({"center_x": entity.getInterpolatedTickCenterX(), "center_y": entity.getInterpolatedTickCenterY(), "half_width": entity.getHalfWidth(), "half_height": entity.getHalfHeight(), "entity": entity});
         }
         return this.findInstantCollisionForProjectileWithTargets(startX, startY, angleRAD, range, targetEntities);
     }
@@ -128,13 +128,13 @@ class WTLGameScene {
                         hitX = tileX * WTL_GAME_DATA["general"]["tile_size"];
                         hitY = startY + Math.abs(safeDivide((hitX - startX), Math.cos(angleRAD), 1e-7, 0)) * Math.sin(angleRAD);
                     }else if (tileEntrySide === "right"){
-                        hitX = (tileX+1) * WTL_GAME_DATA["general"]["tile_size"];
+                        hitX = (tileX+1) * WTL_GAME_DATA["general"]["tile_size"] - 1; // The -1 is important because its the right of the tile NOT the pixel AFTER the right
                         hitY = startY + Math.abs(safeDivide((hitX - startX), Math.cos(angleRAD), 1e-7, 0)) * Math.sin(angleRAD);
                     }else if (tileEntrySide === "top"){
                         hitY = this.getYOfTile(tileY); // Note: This is because tile y is the bottom left, the display is weird, sorry
                         hitX = startX + Math.abs(safeDivide((hitY - startY), Math.sin(angleRAD), 1e-7, 0)) * Math.cos(angleRAD);
                     }else{ // tileEntrySide === "bottom"
-                        hitY = this.getYOfTile(tileY) - WTL_GAME_DATA["general"]["tile_size"];
+                        hitY = this.getYOfTile(tileY) - WTL_GAME_DATA["general"]["tile_size"] + 1; // The +1 is important because its the bottom of the tile NOT the pixel BELOW the BOTTOM
                         hitX = startX + Math.abs(safeDivide((hitY - startY), Math.sin(angleRAD), 1e-7, 0)) * Math.cos(angleRAD);
                     }
                     let distance = Math.sqrt(Math.pow(hitX - startX, 2) + Math.pow(hitY - startY, 2));
@@ -188,12 +188,12 @@ class WTLGameScene {
             let entity = targetEntity["entity"];
             let entityX = targetEntity["center_x"];
             let entityY = targetEntity["center_y"];
-            let entityWidth = targetEntity["width"];
-            let entityHeight = targetEntity["height"];
-            let entityLeftX = entityX - entityWidth/2;
-            let entityRightX = entityX + entityWidth/2;
-            let entityBottomY = entityY - entityHeight/2;
-            let entityTopY = entityY + entityHeight/2;
+            let entityWidth = targetEntity["half_width"];
+            let entityHeight = targetEntity["half_height"];
+            let entityLeftX = entityX - entityWidth;
+            let entityRightX = entityX + entityWidth;
+            let entityBottomY = entityY - entityHeight;
+            let entityTopY = entityY + entityHeight;
             // Simple checks
             if (startX < entityLeftX && endX < entityLeftX){ continue; }
             if (startX > entityRightX && endX > entityRightX){ continue; }
@@ -597,7 +597,7 @@ class WTLGameScene {
     }
 
     tick(timeMS){
-        if (USER_INPUT_MANAGER.isActivated("p_ticked")){
+        if (GAME_USER_INPUT_MANAGER.isActivated("p_ticked")){
            this.setDisplayPhysicalLayer(!this.isDisplayingPhysicalLayer());
         }
         // Tick the entities
@@ -1066,6 +1066,10 @@ class WTLGameScene {
     displayPageBackground(){
         drawingContext.drawImage(IMAGES["page_background"], 0, 0); // TODO: This should be variable in the future
     }
+
+    getActivePhysicalTiles(){
+        return new SceneActivePhysicalTileIterator(this);
+    }
 }
 
 class Chunk {
@@ -1371,10 +1375,6 @@ class Chunk {
 
     static getBottomTileYOfChunk(chunkY){
         return chunkY * WTL_GAME_DATA["general"]["chunk_size"];
-    }
-
-    getActivePhysicalTiles(){
-        return new SceneActivePhysicalTileIterator(this);
     }
 }
 

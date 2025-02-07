@@ -97,7 +97,7 @@ class OptionSlider extends Component {
     tick(){
         let hasMouseOnY = this.coveredByY(MENU_MANAGER.changeFromScreenY(gMouseY));
         let hasMouseOn = this.covers(gMouseX, MENU_MANAGER.changeFromScreenY(gMouseY));
-        let activated = USER_INPUT_MANAGER.isActivated("option_slider_grab");
+        let activated = GENERAL_USER_INPUT_MANAGER.isActivated("option_slider_grab");
 
         // If currently sliding and either the user is not clicking OR mouse if off it in y axis
         if (this.isSliding() && (!activated || !hasMouseOnY)){

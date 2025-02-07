@@ -10,7 +10,7 @@ class MainMenu extends Menu {
         Method Return: Constructor
     */
     constructor(){
-        super();
+        super("main_menu");
         this.setup();
     }
 
@@ -46,7 +46,7 @@ class MainMenu extends Menu {
         // Gamemode viewer
         let gamemodeViewerBottomY = (innerHeight) => { return gameBottonY(innerHeight) - buttonSizeY - gapSize; }
         this.components.push(new RectangleButton("Gamemode Viewer", "#3bc44b", "#e6f5f4", buttonX, gamemodeViewerBottomY, buttonSizeX, buttonSizeY, (menuInstance) => {
-            MENU_MANAGER.switchTo("gamemode_viewer");
+            MENU_MANAGER.switchTo("gamemode_viewer_menu");
             //GAMEMODE_MANAGER.setActiveGamemode(new TurnBasedSkirmish(WTL_GAME_DATA["test_settings"]["turn_based_skirmish"]["british_are_human"], WTL_GAME_DATA["test_settings"]["turn_based_skirmish"]["americans_are_human"]))
             //MENU_MANAGER.switchTo("game");
         }));

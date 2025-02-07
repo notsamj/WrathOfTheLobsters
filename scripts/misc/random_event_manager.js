@@ -4,6 +4,10 @@ class RandomEventManager {
         this.events = [];
     }
 
+    setRandom(seededRandomGenerator){
+        this.seededRandomGenerator = seededRandomGenerator;
+    }
+
     getRandom(){
         return this.seededRandomGenerator;
     }

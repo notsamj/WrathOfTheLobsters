@@ -17,7 +17,6 @@ class Duel extends Gamemode {
         */
 
         this.gameSetupDetails = gameSetupDetails;
-        this.gameSetupDetails["participants"][0]["human"] = false;
         this.seed = gameSetupDetails["seed"];
         // Only using when testing
         if (this.seed === null){
@@ -66,6 +65,22 @@ class Duel extends Gamemode {
         this.startUp();
     }
 
+    randomReset(){
+        this.gameOver = false;
+        this.stats.reset();
+        if (this.isABotGame()){
+            this.setCameraPosition();
+        }
+
+        this.prepareTroops();
+    }
+
+    setCameraPosition(){
+        let cameraSpawnX = Math.floor((this.spawns[0][0] + this.spawns[3][0])/2);
+        let cameraSpawnY = Math.floor((this.spawns[0][1] + this.spawns[3][1])/2);
+        this.camera.setTilePosition(cameraSpawnX, cameraSpawnY);
+    }
+
     end(){
         MY_HUD.clearElement("seed");
         MY_HUD.clearElement("tile_x");
@@ -100,7 +115,7 @@ class Duel extends Gamemode {
         this.gameOver = true;
         let winner = this.findParticipantFromID(winnerID);
         if (winner.isHuman()){
-            this.stats.setWinner("Player");
+            this.stats.setWinner("Human Player");
         }else{
             this.stats.setWinner("Bot_" + winnerID);
         }
@@ -121,17 +136,24 @@ class Duel extends Gamemode {
         return true;
     }
 
+
+    checkForResetRequest(){
+        if (GAME_USER_INPUT_MANAGER.isActivated("g_ticked")){
+            this.randomReset();
+        }
+    }
+
     gameTick(){
-        if (this.isOver()){ return; }
+        if (this.isOver()){ 
+            this.checkForResetRequest();
+        }
     }
 
     async startUp(){
         this.spawns = await LevelGenerator.loadCornerSpawnsPreset(this.getScene(), this.gameSetupDetails["preset_data"], this.gameSetupDetails["seed"], WTL_GAME_DATA["duel"]["area_size"]);
 
         if (this.isABotGame()){
-            let cameraSpawnX = Math.floor((this.spawns[0][0] + this.spawns[3][0])/2);
-            let cameraSpawnY = Math.floor((this.spawns[0][1] + this.spawns[3][1])/2);
-            this.camera.setTilePosition(cameraSpawnX, cameraSpawnY);
+            this.setCameraPosition();
         }
 
         this.spawnTroops();
@@ -201,8 +223,8 @@ class Duel extends Gamemode {
                     "corrective_sway_acceleration_deg": participantSwayMultiplier * WTL_GAME_DATA["gun_data"][pistolModelName]["corrective_sway_acceleration_deg"],
                     "sway_decline_a": participantSwayMultiplier * WTL_GAME_DATA["gun_data"][pistolModelName]["sway_decline_a"],
                     "sway_decline_b": participantSwayMultiplier * WTL_GAME_DATA["gun_data"][pistolModelName]["sway_decline_b"],
-                    "corrective_sway_acceleration_constant_c": participantSwayMultiplier * WTL_GAME_DATA["gun_data"][pistolModelName]["corrective_sway_acceleration_constant_c"],
-                    "corrective_sway_acceleration_constant_d": participantSwayMultiplier * WTL_GAME_DATA["gun_data"][pistolModelName]["corrective_sway_acceleration_constant_d"],
+                    "corrective_sway_acceleration_constant_c": participantSwayCompensationAbility * WTL_GAME_DATA["gun_data"][pistolModelName]["corrective_sway_acceleration_constant_c"],
+                    "corrective_sway_acceleration_constant_d": participantSwayCompensationAbility * WTL_GAME_DATA["gun_data"][pistolModelName]["corrective_sway_acceleration_constant_d"],
                     "sway_max_angle_deg": participantSwayMultiplier * WTL_GAME_DATA["gun_data"][pistolModelName]["sway_max_angle_deg"]
                 }))
             }
@@ -216,8 +238,8 @@ class Duel extends Gamemode {
                     "corrective_sway_acceleration_deg": participantSwayMultiplier * WTL_GAME_DATA["gun_data"][musketModelName]["corrective_sway_acceleration_deg"],
                     "sway_decline_a": participantSwayMultiplier * WTL_GAME_DATA["gun_data"][musketModelName]["sway_decline_a"],
                     "sway_decline_b": participantSwayMultiplier * WTL_GAME_DATA["gun_data"][musketModelName]["sway_decline_b"],
-                    "corrective_sway_acceleration_constant_c": participantSwayMultiplier * WTL_GAME_DATA["gun_data"][musketModelName]["corrective_sway_acceleration_constant_c"],
-                    "corrective_sway_acceleration_constant_d": participantSwayMultiplier * WTL_GAME_DATA["gun_data"][musketModelName]["corrective_sway_acceleration_constant_d"],
+                    "corrective_sway_acceleration_constant_c": participantSwayCompensationAbility * WTL_GAME_DATA["gun_data"][musketModelName]["corrective_sway_acceleration_constant_c"],
+                    "corrective_sway_acceleration_constant_d": participantSwayCompensationAbility * WTL_GAME_DATA["gun_data"][musketModelName]["corrective_sway_acceleration_constant_d"],
                     "sway_max_angle_deg": participantSwayMultiplier * WTL_GAME_DATA["gun_data"][musketModelName]["sway_max_angle_deg"]
                 }))
             }
@@ -228,7 +250,14 @@ class Duel extends Gamemode {
             }
         }
 
+        this.prepareTroops();
+    }
+
+    prepareTroops(){
         let spawns = copyArray(this.spawns);
+
+        // Reset the AI random
+        this.aiRandom.reset();
 
         // Make sure there aren't too many spawns
         if (this.participants.length > spawns.length){
@@ -246,8 +275,24 @@ class Duel extends Gamemode {
             // Swap with last spawn and remove last one
             spawns[spawnNumber] = spawns[spawns.length - 1];
             spawns.pop();
+            participant.resetMovement();
+            participant.resetDecisions();
             participant.setTileX(spawn[0]);
             participant.setTileY(spawn[1]);
+            participant.setFacingUDLRDirection("down");
+            participant.setHealth(1);
+            participant.setAlive(true);
+
+            // Reload all weapons
+            for (let item of participant.getInventory().getItems()){
+                if (item === null){ continue; }
+                item.reset();
+            }
+
+            // Reset bot ai
+            if (participant instanceof DuelBot){
+                participant.reset();
+            }
         }
     }
 

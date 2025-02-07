@@ -17,10 +17,21 @@ class Gun extends RangedWeapon {
         this.swayConstantC = objectHasKey(details, "corrective_sway_acceleration_constant_c") ? details["corrective_sway_acceleration_constant_c"] : WTL_GAME_DATA["gun_data"][this.getModel()]["corrective_sway_acceleration_constant_c"];
         this.swayConstantD = objectHasKey(details, "corrective_sway_acceleration_constant_d") ? details["corrective_sway_acceleration_constant_d"] : WTL_GAME_DATA["gun_data"][this.getModel()]["corrective_sway_acceleration_constant_d"];
         this.swayMaxAngleRAD = toRadians(objectHasKey(details, "sway_max_angle_deg") ? details["sway_max_angle_deg"] : WTL_GAME_DATA["gun_data"][this.getModel()]["sway_max_angle_deg"]);
+        this.minSwayStartAngleRAD = toRadians(objectHasKey(details, "min_start_sway_deg") ? details["min_start_sway_deg"] : WTL_GAME_DATA["gun_data"][this.getModel()]["min_start_sway_deg"]);
         this.currentAngleOffsetRAD = 0;
         this.currentAngleOffsetVelocity = 0;
         this.swaying = false;
         this.swayStartTick = -1;
+    }
+
+    reset(){
+        this.currentAngleOffsetRAD = 0;
+        this.currentAngleOffsetVelocity = 0;
+        this.swaying = false;
+        this.swayStartTick = -1;
+        this.loaded = true;
+        this.reloading = false;
+        this.reloadLock.restoreDefault();
     }
 
     displayUIAssociated(){
@@ -51,7 +62,8 @@ class Gun extends RangedWeapon {
         }
         let swayMaxAngleRAD = this.getSwayMaxAngleRAD();
         let maxVelocity = this.getMaxSwayVelocityRAD();
-        this.currentAngleOffsetRAD = this.player.getRandom().getFloatInRange(-1 * swayMaxAngleRAD, swayMaxAngleRAD);
+        this.currentAngleOffsetRAD = this.player.getRandom().getFloatInRange(this.minSwayStartAngleRAD, swayMaxAngleRAD);
+        this.currentAngleOffsetRAD *= (this.player.getRandom().getIntInRangeInclusive(0,1) === 0) ? -1 : 1;
         this.currentAngleOffsetVelocity = this.player.getRandom().getFloatInRange(-1 * maxVelocity, maxVelocity);
         this.swaying = false;
     }
@@ -215,11 +227,6 @@ class Gun extends RangedWeapon {
 
     // Abstract
     getSimulatedGunEndPosition(){}
-
-    // Note: Assumes this instance of Gun has decisions
-    getDecisions(){
-        return this.decisions;
-    }
 
     getScene(){
         return this.player.getScene();

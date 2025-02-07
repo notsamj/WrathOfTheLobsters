@@ -1,4 +1,4 @@
-class LevelGeneratorCamera extends Entity {
+class DebuggerCamera extends Entity {
     constructor(gamemode, x=0, y=0){
         super(gamemode);
         this.x = x;
@@ -11,7 +11,15 @@ class LevelGeneratorCamera extends Entity {
         this.cursorTileX = undefined;
         this.cursorTileY = undefined;
         this.id = "camera";
+
+        // Current debugging stuff
+        this.debugDot1 = new DebuggingDot("#000000", 0, 0, 5);
+        this.debugDot2 = new DebuggingDot("#000000", 0, 0, 5);
+        this.debugChar = new Character(this.gamemode, "british_officer");
+        this.getScene().addEntity(this.debugChar);
     }
+
+    canSee(){ return true; }
 
     setPosition(x, y){
         this.x = x;
@@ -80,6 +88,57 @@ class LevelGeneratorCamera extends Entity {
         return this.getInterpolatedY();
     }
 
+    updateDebuggingActions(){
+        let leftClick = GAME_USER_INPUT_MANAGER.isActivated("left_click_ticked");
+        let rightClick = GAME_USER_INPUT_MANAGER.isActivated("right_click_ticked");
+        let middleClick = GAME_USER_INPUT_MANAGER.isActivated("middle_click_ticked");
+
+        // If neither clicked then do nothing
+        if (!(leftClick || rightClick || middleClick)){
+            return;
+        }
+
+        if (leftClick){
+            this.debugDot1.setX(this.cursorEngineX);
+            this.debugDot1.setY(this.cursorEngineY);
+        }
+
+        if (rightClick){
+            this.debugDot2.setX(this.cursorEngineX);
+            this.debugDot2.setY(this.cursorEngineY);
+        }
+
+        if (middleClick){
+            this.debugChar.setTileX(this.cursorTileX);
+            this.debugChar.setTileY(this.cursorTileY);
+        }
+
+        let x1 = this.debugDot1.getX();
+        let y1 = this.debugDot1.getY();
+
+        let x2 = this.debugDot2.getX();
+        let y2 = this.debugDot2.getY();
+
+        let scene = this.getScene();
+        let distance = calculateEuclideanDistance(x1, y1, x2, y2);
+        let angle = displacementToRadians(x2-x1, y2-y1);
+        
+        if (isRDebugging()){
+            debugger;
+        }
+        let collisionResult = scene.findInstantCollisionForProjectile(x1, y1, angle, distance);
+        if (collisionResult["collision_type"] === "entity"){
+            // red
+            this.debugDot2.setColourCode("#ff000");
+        }else if (collisionResult["collision_type"] === "physical_tile"){
+            // blue
+            this.debugDot2.setColourCode("#0000ff");
+        }else{
+            // green
+            this.debugDot2.setColourCode("#00ff00");
+        }
+    }
+
     tick(){
         // Update tick locks
         this.xLock.tick();
@@ -90,6 +149,7 @@ class LevelGeneratorCamera extends Entity {
         this.checkMoveX();
         this.checkMoveY();
         this.updateCursorInfo();
+        this.updateDebuggingActions();
     }
 
     updateCursorInfo(){
@@ -98,12 +158,16 @@ class LevelGeneratorCamera extends Entity {
         if (canvasX < 0 || canvasX >= this.getScene().getWidth() || canvasY < 0 || canvasY >= this.getScene().getHeight()){ return; }
         let engineX = canvasX / gameZoom + this.getScene().getLX();
         let engineY = canvasY / gameZoom + this.getScene().getBY();
+        this.cursorEngineX = engineX;
+        this.cursorEngineY = engineY;
         this.cursorTileX = WTLGameScene.getTileXAt(engineX);
         this.cursorTileY = WTLGameScene.getTileYAt(engineY);
     }
 
-    display(){
+    display(lX, rX, bY, tY){
         MY_HUD.updateElement("Cursor Tile X", this.cursorTileX);
         MY_HUD.updateElement("Cursor Tile Y", this.cursorTileY);
+        this.debugDot1.display(this.getScene(), lX, rX, bY, tY);
+        this.debugDot2.display(this.getScene(), lX, rX, bY, tY);
     }
 }

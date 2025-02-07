@@ -4,7 +4,8 @@ const FRAME_COUNTER = new FrameRateCounter(WTL_GAME_DATA["general"]["frame_rate"
 const MY_HUD = new HUD();
 const TICK_SCHEDULER = new TickScheduler(Math.floor(1000/WTL_GAME_DATA["general"]["tick_rate"]));
 const GAMEMODE_MANAGER = new GamemodeManager();
-const USER_INPUT_MANAGER = new UserInputManager();
+const GENERAL_USER_INPUT_MANAGER = new UserInputManager();
+const GAME_USER_INPUT_MANAGER = new UserInputManager();
 const SOUND_MANAGER = new SoundManager();
 const GENERAL_DEBUGGER = new GeneralDebugger();
 const LOADING_SCREEN = new LoadingScreen();
@@ -15,6 +16,8 @@ const ZOOM_MONITOR = {"button": null, "start_time_ms": null};
 // Global Variables
 var gMouseX = 0;
 var gMouseY = 0;
+var gLastClickedMouseX = 0;
+var gLastClickedMouseY = 0;
 var programOver = false;
 var ramshackleDebugToolValue = false;
 var setupOngoing = false;
@@ -53,6 +56,7 @@ const KEY_CODE_PGDOWN = 34;
 const KEY_CODE_SHIFT = 16;
 const KEY_CODE_LARROW = 37;
 const KEY_CODE_RARROW = 39;
+const KEY_CODE_ESCAPE = 27;
 const KEY_CODE_LEFT_CLICK = 1;
 const KEY_CODE_MIDDLE_CLICK = 2;
 const KEY_CODE_RIGHT_CLICK = 3;
@@ -97,97 +101,110 @@ async function setup() {
         gMouseY = event.clientY;
     }
 
-    // Game Maker
-    USER_INPUT_MANAGER.register("option_slider_grab", "mousedown", (event) => { return true; });
-    USER_INPUT_MANAGER.register("option_slider_grab", "mouseup", (event) => { return true; }, false);
+    document.onclick = (event) => {
+        gLastClickedMouseX = event.clientX;
+        gLastClickedMouseY = event.clientY;
+    }
 
-    USER_INPUT_MANAGER.register("scroll_bar_grab", "mousedown", (event) => { return true; });
-    USER_INPUT_MANAGER.register("scroll_bar_grab", "mouseup", (event) => { return true; }, false);
-    
-    USER_INPUT_MANAGER.register("left_click", "mousedown", (event) => { return event.which===KEY_CODE_LEFT_CLICK; });
-    USER_INPUT_MANAGER.register("left_click", "mouseup", (event) => { return event.which===KEY_CODE_LEFT_CLICK; }, false);
+    // Game Maker
+
+    GAME_USER_INPUT_MANAGER.register("left_click", "mousedown", (event) => { return event.which===KEY_CODE_LEFT_CLICK; });
+    GAME_USER_INPUT_MANAGER.register("left_click", "mouseup", (event) => { return event.which===KEY_CODE_LEFT_CLICK; }, false);
 
     // Game
-    USER_INPUT_MANAGER.register("move_up", "keydown", (event) => { return event.keyCode===KEY_CODE_W; });
-    USER_INPUT_MANAGER.register("move_up", "keyup", (event) => { return event.keyCode===KEY_CODE_W; }, false);
+    GAME_USER_INPUT_MANAGER.register("move_up", "keydown", (event) => { return event.keyCode===KEY_CODE_W; });
+    GAME_USER_INPUT_MANAGER.register("move_up", "keyup", (event) => { return event.keyCode===KEY_CODE_W; }, false);
 
-    USER_INPUT_MANAGER.register("move_down", "keydown", (event) => { return event.keyCode===KEY_CODE_S; });
-    USER_INPUT_MANAGER.register("move_down", "keyup", (event) => { return event.keyCode===KEY_CODE_S; }, false);
+    GAME_USER_INPUT_MANAGER.register("move_down", "keydown", (event) => { return event.keyCode===KEY_CODE_S; });
+    GAME_USER_INPUT_MANAGER.register("move_down", "keyup", (event) => { return event.keyCode===KEY_CODE_S; }, false);
 
-    USER_INPUT_MANAGER.register("move_left", "keydown", (event) => { return event.keyCode===KEY_CODE_A; });
-    USER_INPUT_MANAGER.register("move_left", "keyup", (event) => { return event.keyCode===KEY_CODE_A; }, false);
+    GAME_USER_INPUT_MANAGER.register("move_left", "keydown", (event) => { return event.keyCode===KEY_CODE_A; });
+    GAME_USER_INPUT_MANAGER.register("move_left", "keyup", (event) => { return event.keyCode===KEY_CODE_A; }, false);
 
-    USER_INPUT_MANAGER.register("move_right", "keydown", (event) => { return event.keyCode===KEY_CODE_D; });
-    USER_INPUT_MANAGER.register("move_right", "keyup", (event) => { return event.keyCode===KEY_CODE_D; }, false);
+    GAME_USER_INPUT_MANAGER.register("move_right", "keydown", (event) => { return event.keyCode===KEY_CODE_D; });
+    GAME_USER_INPUT_MANAGER.register("move_right", "keyup", (event) => { return event.keyCode===KEY_CODE_D; }, false);
 
-    USER_INPUT_MANAGER.register("sprint", "keydown", (event) => { return event.keyCode===KEY_CODE_SHIFT; });
-    USER_INPUT_MANAGER.register("sprint", "keyup", (event) => { return event.keyCode===KEY_CODE_SHIFT; }, false);
+    GAME_USER_INPUT_MANAGER.register("sprint", "keydown", (event) => { return event.keyCode===KEY_CODE_SHIFT; });
+    GAME_USER_INPUT_MANAGER.register("sprint", "keyup", (event) => { return event.keyCode===KEY_CODE_SHIFT; }, false);
 
-    USER_INPUT_MANAGER.register("right_click", "mousedown", (event) => { return event.which===KEY_CODE_RIGHT_CLICK; });
-    USER_INPUT_MANAGER.register("right_click", "mouseup", (event) => { return event.which===KEY_CODE_RIGHT_CLICK; }, false);
+    GAME_USER_INPUT_MANAGER.register("right_click", "mousedown", (event) => { return event.which===KEY_CODE_RIGHT_CLICK; });
+    GAME_USER_INPUT_MANAGER.register("right_click", "mouseup", (event) => { return event.which===KEY_CODE_RIGHT_CLICK; }, false);
 
-    USER_INPUT_MANAGER.register("middle_click", "mousedown", (event) => { return event.which===KEY_CODE_MIDDLE_CLICK; });
-    USER_INPUT_MANAGER.register("middle_click", "mouseup", (event) => { return event.which===KEY_CODE_MIDDLE_CLICK; }, false);
+    GAME_USER_INPUT_MANAGER.register("middle_click", "mousedown", (event) => { return event.which===KEY_CODE_MIDDLE_CLICK; });
+    GAME_USER_INPUT_MANAGER.register("middle_click", "mouseup", (event) => { return event.which===KEY_CODE_MIDDLE_CLICK; }, false);
 
-    USER_INPUT_MANAGER.register("left_click_ticked", "click", (event) => { return event.which===KEY_CODE_LEFT_CLICK; }, true, {"ticked": true, "ticked_activation": false});
+    GAME_USER_INPUT_MANAGER.register("left_click_ticked", "click", (event) => { return event.which===KEY_CODE_LEFT_CLICK; }, true, {"ticked": true, "ticked_activation": false});
+   
+    GAME_USER_INPUT_MANAGER.register("right_click_ticked", "mousedown", (event) => { return event.which===KEY_CODE_RIGHT_CLICK; }, true, {"ticked": true, "ticked_activation": false});
+    GAME_USER_INPUT_MANAGER.register("middle_click_ticked", "mousedown", (event) => { return event.which===KEY_CODE_MIDDLE_CLICK; }, true, {"ticked": true, "ticked_activation": false});
 
-    USER_INPUT_MANAGER.register("g_ticked", "keydown", (event) => { return event.keyCode===KEY_CODE_G; }, true, {"ticked": true, "ticked_activation": false});
+    GAME_USER_INPUT_MANAGER.register("g_ticked", "keydown", (event) => { return event.keyCode===KEY_CODE_G; }, true, {"ticked": true, "ticked_activation": false});
 
-    // TODO: Add help
-    USER_INPUT_MANAGER.register("h_ticked", "keydown", (event) => { return event.keyCode===KEY_CODE_H; }, true, {"ticked": true, "ticked_activation": false});
+    GAME_USER_INPUT_MANAGER.register("p_ticked", "keydown", (event) => { return event.keyCode===KEY_CODE_P; }, true, {"ticked": true, "ticked_activation": false});
 
-    USER_INPUT_MANAGER.register("p_ticked", "keydown", (event) => { return event.keyCode===KEY_CODE_P; }, true, {"ticked": true, "ticked_activation": false});
+    GAME_USER_INPUT_MANAGER.register("f_ticked", "keydown", (event) => { return event.keyCode===KEY_CODE_F; }, true, {"ticked": true, "ticked_activation": false});
 
-    USER_INPUT_MANAGER.register("f_ticked", "keydown", (event) => { return event.keyCode===KEY_CODE_F; }, true, {"ticked": true, "ticked_activation": false});
+    GAME_USER_INPUT_MANAGER.register("left_arrow", "keydown", (event) => { return event.keyCode===KEY_CODE_LARROW; });
+    GAME_USER_INPUT_MANAGER.register("left_arrow", "keyup", (event) => { return event.keyCode===KEY_CODE_LARROW; }, false);
 
-    USER_INPUT_MANAGER.register("left_arrow", "keydown", (event) => { return event.keyCode===KEY_CODE_LARROW; });
-    USER_INPUT_MANAGER.register("left_arrow", "keyup", (event) => { return event.keyCode===KEY_CODE_LARROW; }, false);
+    GAME_USER_INPUT_MANAGER.register("right_arrow", "keydown", (event) => { return event.keyCode===KEY_CODE_RARROW; });
+    GAME_USER_INPUT_MANAGER.register("right_arrow", "keyup", (event) => { return event.keyCode===KEY_CODE_RARROW; }, false);
 
-    USER_INPUT_MANAGER.register("right_arrow", "keydown", (event) => { return event.keyCode===KEY_CODE_RARROW; });
-    USER_INPUT_MANAGER.register("right_arrow", "keyup", (event) => { return event.keyCode===KEY_CODE_RARROW; }, false);
+    GAME_USER_INPUT_MANAGER.register("1/8zoomhold", "keydown", (event) => { return event.keyCode === KEY_CODE_NUMPAD_5; }, true);
+    GAME_USER_INPUT_MANAGER.register("1/8zoomhold", "keyup", (event) => { return event.keyCode === KEY_CODE_NUMPAD_5; }, false);
 
-    USER_INPUT_MANAGER.register("1/8zoomhold", "keydown", (event) => { return event.keyCode === KEY_CODE_NUMPAD_5; }, true);
-    USER_INPUT_MANAGER.register("1/8zoomhold", "keyup", (event) => { return event.keyCode === KEY_CODE_NUMPAD_5; }, false);
+    GAME_USER_INPUT_MANAGER.register("1/4zoomhold", "keydown", (event) => { return event.keyCode === KEY_CODE_NUMPAD_4; }, true);
+    GAME_USER_INPUT_MANAGER.register("1/4zoomhold", "keyup", (event) => { return event.keyCode === KEY_CODE_NUMPAD_4; }, false);
 
-    USER_INPUT_MANAGER.register("1/4zoomhold", "keydown", (event) => { return event.keyCode === KEY_CODE_NUMPAD_4; }, true);
-    USER_INPUT_MANAGER.register("1/4zoomhold", "keyup", (event) => { return event.keyCode === KEY_CODE_NUMPAD_4; }, false);
+    GAME_USER_INPUT_MANAGER.register("1/2zoomhold", "keydown", (event) => { return event.keyCode === KEY_CODE_NUMPAD_3; }, true);;
+    GAME_USER_INPUT_MANAGER.register("1/2zoomhold", "keyup", (event) => { return event.keyCode === KEY_CODE_NUMPAD_3; }, false);
 
-    USER_INPUT_MANAGER.register("1/2zoomhold", "keydown", (event) => { return event.keyCode === KEY_CODE_NUMPAD_3; }, true);;
-    USER_INPUT_MANAGER.register("1/2zoomhold", "keyup", (event) => { return event.keyCode === KEY_CODE_NUMPAD_3; }, false);
+    GAME_USER_INPUT_MANAGER.register("1zoomhold", "keydown", (event) => { return event.keyCode === KEY_CODE_NUMPAD_2; }, true);
+    GAME_USER_INPUT_MANAGER.register("1zoomhold", "keyup", (event) => { return event.keyCode === KEY_CODE_NUMPAD_2; }, false);
 
-    USER_INPUT_MANAGER.register("1zoomhold", "keydown", (event) => { return event.keyCode === KEY_CODE_NUMPAD_2; }, true);
-    USER_INPUT_MANAGER.register("1zoomhold", "keyup", (event) => { return event.keyCode === KEY_CODE_NUMPAD_2; }, false);
+    GAME_USER_INPUT_MANAGER.register("2zoomhold", "keydown", (event) => { return event.keyCode === KEY_CODE_NUMPAD_1; }, true);
+    GAME_USER_INPUT_MANAGER.register("2zoomhold", "keyup", (event) => { return event.keyCode === KEY_CODE_NUMPAD_1; }, false);
 
-    USER_INPUT_MANAGER.register("2zoomhold", "keydown", (event) => { return event.keyCode === KEY_CODE_NUMPAD_1; }, true);
-    USER_INPUT_MANAGER.register("2zoomhold", "keyup", (event) => { return event.keyCode === KEY_CODE_NUMPAD_1; }, false);
+    GAME_USER_INPUT_MANAGER.register("1_ticked", "keydown", (event) => { return event.keyCode===KEY_CODE_1; }, true, {"ticked": true, "ticked_activation": false});
+    GAME_USER_INPUT_MANAGER.register("2_ticked", "keydown", (event) => { return event.keyCode===KEY_CODE_2; }, true, {"ticked": true, "ticked_activation": false});
+    GAME_USER_INPUT_MANAGER.register("3_ticked", "keydown", (event) => { return event.keyCode===KEY_CODE_3; }, true, {"ticked": true, "ticked_activation": false});
+    GAME_USER_INPUT_MANAGER.register("4_ticked", "keydown", (event) => { return event.keyCode===KEY_CODE_4; }, true, {"ticked": true, "ticked_activation": false});
+    GAME_USER_INPUT_MANAGER.register("5_ticked", "keydown", (event) => { return event.keyCode===KEY_CODE_5; }, true, {"ticked": true, "ticked_activation": false});
+    GAME_USER_INPUT_MANAGER.register("6_ticked", "keydown", (event) => { return event.keyCode===KEY_CODE_6; }, true, {"ticked": true, "ticked_activation": false});
+    GAME_USER_INPUT_MANAGER.register("7_ticked", "keydown", (event) => { return event.keyCode===KEY_CODE_7; }, true, {"ticked": true, "ticked_activation": false});
+    GAME_USER_INPUT_MANAGER.register("8_ticked", "keydown", (event) => { return event.keyCode===KEY_CODE_8; }, true, {"ticked": true, "ticked_activation": false});
+    GAME_USER_INPUT_MANAGER.register("9_ticked", "keydown", (event) => { return event.keyCode===KEY_CODE_9; }, true, {"ticked": true, "ticked_activation": false});
+    GAME_USER_INPUT_MANAGER.register("0_ticked", "keydown", (event) => { return event.keyCode===KEY_CODE_0; }, true, {"ticked": true, "ticked_activation": false});
 
-    USER_INPUT_MANAGER.register("1_ticked", "keydown", (event) => { return event.keyCode===KEY_CODE_1; }, true, {"ticked": true, "ticked_activation": false});
-    USER_INPUT_MANAGER.register("2_ticked", "keydown", (event) => { return event.keyCode===KEY_CODE_2; }, true, {"ticked": true, "ticked_activation": false});
-    USER_INPUT_MANAGER.register("3_ticked", "keydown", (event) => { return event.keyCode===KEY_CODE_3; }, true, {"ticked": true, "ticked_activation": false});
-    USER_INPUT_MANAGER.register("4_ticked", "keydown", (event) => { return event.keyCode===KEY_CODE_4; }, true, {"ticked": true, "ticked_activation": false});
-    USER_INPUT_MANAGER.register("5_ticked", "keydown", (event) => { return event.keyCode===KEY_CODE_5; }, true, {"ticked": true, "ticked_activation": false});
-    USER_INPUT_MANAGER.register("6_ticked", "keydown", (event) => { return event.keyCode===KEY_CODE_6; }, true, {"ticked": true, "ticked_activation": false});
-    USER_INPUT_MANAGER.register("7_ticked", "keydown", (event) => { return event.keyCode===KEY_CODE_7; }, true, {"ticked": true, "ticked_activation": false});
-    USER_INPUT_MANAGER.register("8_ticked", "keydown", (event) => { return event.keyCode===KEY_CODE_8; }, true, {"ticked": true, "ticked_activation": false});
-    USER_INPUT_MANAGER.register("9_ticked", "keydown", (event) => { return event.keyCode===KEY_CODE_9; }, true, {"ticked": true, "ticked_activation": false});
-    USER_INPUT_MANAGER.register("0_ticked", "keydown", (event) => { return event.keyCode===KEY_CODE_0; }, true, {"ticked": true, "ticked_activation": false});
+    GAME_USER_INPUT_MANAGER.register("b_ticked", "keydown", (event) => { return event.keyCode===KEY_CODE_B; }, true, {"ticked": true, "ticked_activation": false});
 
-    USER_INPUT_MANAGER.register("b_ticked", "keydown", (event) => { return event.keyCode===KEY_CODE_B; }, true, {"ticked": true, "ticked_activation": false});
+    GAME_USER_INPUT_MANAGER.register("r_ticked", "keydown", (event) => { return event.keyCode===KEY_CODE_R; }, true, {"ticked": true, "ticked_activation": false});
 
-    USER_INPUT_MANAGER.register("r_ticked", "keydown", (event) => { return event.keyCode===KEY_CODE_R; }, true, {"ticked": true, "ticked_activation": false});
+    GAME_USER_INPUT_MANAGER.register("ticked_toggle_camera", "keydown", (event) => { return event.keyCode===KEY_CODE_C; }, true, {"ticked": true, "ticked_activation": false});
 
-    USER_INPUT_MANAGER.register("ticked_toggle_camera", "keydown", (event) => { return event.keyCode===KEY_CODE_C; }, true, {"ticked": true, "ticked_activation": false});
+    GAME_USER_INPUT_MANAGER.register("kill_feed_up", "keydown", (event) => { return event.keyCode===KEY_CODE_PGUP; });
+    GAME_USER_INPUT_MANAGER.register("kill_feed_up", "keyup", (event) => { return event.which===KEY_CODE_PGUP; }, false);
+    GAME_USER_INPUT_MANAGER.register("kill_feed_down", "keydown", (event) => { return event.keyCode===KEY_CODE_PGDOWN; });
+    GAME_USER_INPUT_MANAGER.register("kill_feed_down", "keyup", (event) => { return event.which===KEY_CODE_PGDOWN; }, false);
 
-    USER_INPUT_MANAGER.register("kill_feed_up", "keydown", (event) => { return event.keyCode===KEY_CODE_PGUP; });
-    USER_INPUT_MANAGER.register("kill_feed_up", "keyup", (event) => { return event.which===KEY_CODE_PGUP; }, false);
-    USER_INPUT_MANAGER.register("kill_feed_down", "keydown", (event) => { return event.keyCode===KEY_CODE_PGDOWN; });
-    USER_INPUT_MANAGER.register("kill_feed_down", "keyup", (event) => { return event.which===KEY_CODE_PGDOWN; }, false);
+    GAME_USER_INPUT_MANAGER.register("m_ticked", "keydown", (event) => { return event.keyCode===KEY_CODE_M; }, true, {"ticked": true, "ticked_activation": false});
 
-    USER_INPUT_MANAGER.register("m_ticked", "keydown", (event) => { return event.keyCode===KEY_CODE_M; }, true, {"ticked": true, "ticked_activation": false});
+    GAME_USER_INPUT_MANAGER.register("u_ticked", "keydown", (event) => { return event.keyCode===KEY_CODE_U; }, true, {"ticked": true, "ticked_activation": false});
 
-    USER_INPUT_MANAGER.register("u_ticked", "keydown", (event) => { return event.keyCode===KEY_CODE_U; }, true, {"ticked": true, "ticked_activation": false});
+    // menu
+    GENERAL_USER_INPUT_MANAGER.registerSpecialType(new TickedValueNode("scroll_in_dir", "wheel", (event) => { return event.deltaY; }, 0));
+    GENERAL_USER_INPUT_MANAGER.register("h_ticked", "keydown", (event) => { return event.keyCode===KEY_CODE_H; }, true, {"ticked": true, "ticked_activation": false});
+    
+    GENERAL_USER_INPUT_MANAGER.register("escape_ticked", "keydown", (event) => { return event.keyCode===KEY_CODE_ESCAPE; }, true, {"ticked": true, "ticked_activation": false});
+    
+    GENERAL_USER_INPUT_MANAGER.register("left_click_ticked", "click", (event) => { return event.which===KEY_CODE_LEFT_CLICK; }, true, {"ticked": true, "ticked_activation": false});
+    
+    GENERAL_USER_INPUT_MANAGER.register("option_slider_grab", "mousedown", (event) => { return true; });
+    GENERAL_USER_INPUT_MANAGER.register("option_slider_grab", "mouseup", (event) => { return true; }, false);
 
-    USER_INPUT_MANAGER.registerSpecialType(new TickedValueNode("scroll_in_dir", "wheel", (event) => { return event.deltaY; }, 0));
+    GENERAL_USER_INPUT_MANAGER.register("scroll_bar_grab", "mousedown", (event) => { return true; });
+    GENERAL_USER_INPUT_MANAGER.register("scroll_bar_grab", "mouseup", (event) => { return true; }, false);
+
 
     // Disable context menu
     document.getElementById("main_area").addEventListener("contextmenu", (event) => {event.preventDefault()});
@@ -215,7 +232,6 @@ async function setup() {
     TICK_SCHEDULER.setStartTime(Date.now());
 
     MENU_MANAGER.setup();
-    MenuManager.setupClickListener();
     
     setupOngoing = false;
     requestAnimationFrame(tick);
@@ -229,11 +245,11 @@ async function setup() {
 */
 function setGameZoom(){
     let buttonCount = 0;
-    let eighth = USER_INPUT_MANAGER.isActivated("1/8zoomhold");
-    let quarter = USER_INPUT_MANAGER.isActivated("1/4zoomhold");
-    let half = USER_INPUT_MANAGER.isActivated("1/2zoomhold");
-    let whole = USER_INPUT_MANAGER.isActivated("1zoomhold");
-    let two = USER_INPUT_MANAGER.isActivated("2zoomhold");
+    let eighth = GAME_USER_INPUT_MANAGER.isActivated("1/8zoomhold");
+    let quarter = GAME_USER_INPUT_MANAGER.isActivated("1/4zoomhold");
+    let half = GAME_USER_INPUT_MANAGER.isActivated("1/2zoomhold");
+    let whole = GAME_USER_INPUT_MANAGER.isActivated("1zoomhold");
+    let two = GAME_USER_INPUT_MANAGER.isActivated("2zoomhold");
     buttonCount += eighth ? 1 : 0;
     buttonCount += quarter ? 1 : 0;
     buttonCount += half ? 1 : 0;
@@ -312,6 +328,9 @@ async function tick(){
     let expectedTicks = TICK_SCHEDULER.getExpectedNumberOfTicksPassed();
     let tickDifference = expectedTicks - TICK_SCHEDULER.getNumTicks()
 
+    // Tick the menu manager
+    MENU_MANAGER.tick();
+
     // If ready for a tick then execute
     if (tickDifference > 0 && !TICK_SCHEDULER.isPaused()){
         // Destroy extra ticks
@@ -324,14 +343,17 @@ async function tick(){
 
         // Tick the game mode
         await GAMEMODE_MANAGER.tick();
-        
-        // Tick the USER_INPUT_MANAGER
-        USER_INPUT_MANAGER.tick();
+
+        // Tick the GAME_USER_INPUT_MANAGER
+        GAME_USER_INPUT_MANAGER.tick();
 
         // Count the tick
         TICK_SCHEDULER.countTick();
         TICK_SCHEDULER.getTickLock().unlock();
     }
+
+    // Tick the GENERAL_USER_INPUT_MANAGER
+    GENERAL_USER_INPUT_MANAGER.tick();
 
      // Once within main tick lock, set zoom
     setGameZoom();

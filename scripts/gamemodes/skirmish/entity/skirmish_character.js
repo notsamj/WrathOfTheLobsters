@@ -9,7 +9,7 @@ class SkirmishCharacter extends Character {
         this.tileYOnTurnStart = null;
         this.rankName = rankName;
         this.walkingBar = new ProgressBar(WTL_GAME_DATA["skirmish"]["distance_per_turn"][this.rankName]);
-        this.visualEnvironmentHealthBar = new VisualEnvironmentHealthBar(this.health);
+        this.visualEnvironmentHealthBar = new VisualEnvironmentHealthBar(this.healthBar.getHealth());
     }
 
     getShot(model, killerID){

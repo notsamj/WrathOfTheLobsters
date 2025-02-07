@@ -14,4 +14,5 @@ class Item {
     }
     breakAction(){}
     displayUIAssociated(){}
+    reset(){ throw new Error("Expect this to be overwritten.")}
 }

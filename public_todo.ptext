@@ -1,16 +1,4 @@
 Right now:
-	Add gentlemanly duel
-		Add a hud thing
-			Add maybe 1 seconds into they game they start getting commands to move (you can configue in data.json)
-			"Shooting turn": model1 or model2 or "free"
-				Add check in decision to shoot
-				Add check in decision to aim
-		Load custom map
-		Add gamemode 
-		Add gamemode menu
-
-	Add proper spectating to both
-
 	Press H for help on any menu or game
 
 	Review current_todo.txt
@@ -24,11 +12,15 @@ Right now:
 
 	Publish
 
+	Come up with stable float (store integers that are safe to represent and have limits)
+		Like Math.ceil(1.0 + 2.0) == 3 or == 4 sometimes due to unstable floats 2.9999/3.00001
+
 	Idea:
 		Partially solid tile
 			Shots fired from within are valid if shot within certain subregion
 			Shots from without are valid if hit within certain subregion
 			You can use this to give an advantage to shooting through say a gap in a wall (partial physical cover)
+			Or instead just make it so only some sides of the physical tile are enterable
 
 	Gamemaker
 		Add offline loading of saved levels for viewing

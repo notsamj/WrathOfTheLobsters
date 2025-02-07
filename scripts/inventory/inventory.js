@@ -6,6 +6,10 @@ class Inventory {
         this.selectedSlot = 0;
     }
 
+    resetSelection(){
+        this.selectedSlot = 0;
+    }
+
     makeDecisions(){
         this.player.makeInventoryDecisions();
     }
@@ -34,7 +38,7 @@ class Inventory {
 
     actOnDecisions(){
         let newSlot = this.getDecision("select_slot");
-        if (newSlot === -1 || newSlot === this.selectedSlot){ return; }
+        if (newSlot === -1 || newSlot === null || newSlot === undefined || newSlot === this.selectedSlot){ return; }
 
         if (this.hasSelectedItem()){
             this.getItemAtSelectedSlot().deselect();

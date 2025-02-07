@@ -44,8 +44,8 @@ class SkirmishCamera extends Entity {
         Method Return: void
     */
     checkMoveX(){
-        let leftKey = USER_INPUT_MANAGER.isActivated("move_left");
-        let rightKey = USER_INPUT_MANAGER.isActivated("move_right");
+        let leftKey = GAME_USER_INPUT_MANAGER.isActivated("move_left");
+        let rightKey = GAME_USER_INPUT_MANAGER.isActivated("move_right");
         let numKeysDown = 0;
         numKeysDown += leftKey ? 1 : 0;
         numKeysDown += rightKey ? 1 : 0;
@@ -67,8 +67,8 @@ class SkirmishCamera extends Entity {
         Method Return: void
     */
     checkMoveY(){
-        let upKey = USER_INPUT_MANAGER.isActivated("move_up");
-        let downKey = USER_INPUT_MANAGER.isActivated("move_down");
+        let upKey = GAME_USER_INPUT_MANAGER.isActivated("move_up");
+        let downKey = GAME_USER_INPUT_MANAGER.isActivated("move_down");
         let numKeysDown = 0;
         numKeysDown += upKey ? 1 : 0;
         numKeysDown += downKey ? 1 : 0;

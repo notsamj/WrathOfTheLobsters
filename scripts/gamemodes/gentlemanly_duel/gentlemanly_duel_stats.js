@@ -1,8 +1,8 @@
 /*
-    Class Name: DuelMatchStats
-    Description: Records the events taking place in a duel for later review
+    Class Name: GentlemanlyDuelMatchStats
+    Description: Records the events taking place in a gentlemanly duel for later review
 */
-class DuelMatchStats {
+class GentlemanlyDuelMatchStats {
     /*
         Method Name: constructor
         Method Parameters: None
@@ -55,9 +55,4 @@ class DuelMatchStats {
         let textToDisplay = winnerText + "\n\n" + "Press 'G' to play again!";
         Menu.makeText(textToDisplay, winnerColour, Math.floor(getScreenWidth()/2), Math.floor(getScreenHeight() * 0.9), Math.floor(getScreenWidth()*0.70), Math.floor(getScreenHeight()/4), "center", "hanging");
     }
-}
-
-// If using NodeJS then export the lock class
-if (typeof window === "undefined"){
-    module.exports = DuelMatchStats;
 }

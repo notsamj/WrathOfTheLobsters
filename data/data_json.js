@@ -1,4 +1,3 @@
-const DATA_TILE_SIZE = 64;
 const WTL_GAME_DATA = {
     "default_settings": {
         "duel": {
@@ -138,7 +137,7 @@ const WTL_GAME_DATA = {
 
     "level_generator": {
         "camera": {
-            "move_speed": DATA_TILE_SIZE*16  
+            "move_speed": 64*16  
         },
         "presets": [
             {
@@ -193,7 +192,7 @@ const WTL_GAME_DATA = {
         "pistol_sway_acceleration_constant": 0.4,
         "musket_sway_acceleration_constant": 0.4,
         "camera": {
-            "move_speed": DATA_TILE_SIZE*16  
+            "move_speed": 64*16  
         },
         "ai": {
             "can_hit_min_angle_range_deg": 10, // In order to consider a tile "hittable" it must have a sufficient range of angle that it can be hit from 
@@ -592,7 +591,7 @@ const WTL_GAME_DATA = {
         "shot_damage": 0.75,
         "stab_damage": 1,
         "camera": {
-            "move_speed": DATA_TILE_SIZE*16
+            "move_speed": 64*16
         },
         "max_seed": 100000, // Self-explanatory
         "good_seeds": [78518, 39352, 3833, 4216, 93276],
@@ -676,15 +675,126 @@ const WTL_GAME_DATA = {
         },
         "text_box_padding_proportion": 0.1,
         "menus": {
+            "my_projects_menu": {
+                "back_button": {
+                    "colour_code": "#3bc44b",
+                    "text_colour_code": "#e6f5f4",
+                    "text": "Main Menu",
+                    "y_offset": 27,
+                    "x": 25,
+                    "x_size": 100,
+                    "y_size": 50
+                },
+                "project_image": {
+                    "min_x_size": 800,
+                    "min_y_size": 450,
+                    "images": [
+                        "wrath_of_the_lobsters",
+                        "lobster_ace_ww2"
+                    ]
+                },
+                "arrow_buttons": {
+                    "x_size": 100,
+                    "y_size": 50,
+                    "colour_code": "#3bc44b",
+                    "disabled_colour_code": "#dad7d6",
+                    "text_colour_code": "#e6f5f4",
+                    "y_offset": 25,
+                    "x_offset": 50,
+                },
+                "slide_info_text": {
+                    "x_size": 150,
+                    "y_size": 50,
+                    "y_offset": 0,
+                    "text_colour_code": "#e6f5f4"
+                }
+            },
             "help_menu": {
                 "back_button": {
                     "colour_code": "#3bc44b",
                     "text_colour_code": "#e6f5f4",
                     "text": "Return",
                     "y_offset": 27,
-                    "x": 50,
-                    "x_size": 200,
-                    "y_size": 76
+                    "x": 25,
+                    "x_size": 100,
+                    "y_size": 50
+                },
+                "help_image": {
+                    "min_x_size": 800,
+                    "min_y_size": 450,
+                    "images": {
+                        "default": [
+                            "help_menu_error" // .png
+                        ],
+                        "main_menu": [
+                            "help_menu_main_menu_1"
+                        ],
+                        "extra_settings_menu": [
+                            "help_extra_settings_menu_1"
+                        ],
+                        "sound_menu": [
+                            "help_menu_sound_menu_1"
+                        ],
+                        "gamemode_viewer_menu": [
+                            "help_menu_gamemode_viewer_menu_1"
+                        ],
+                        "duel_menu": [
+                            "help_menu_duel_menu_1",
+                            "help_menu_duel_menu_2"
+                        ],
+                        "gentlemanly_duel_menu": [
+                            "help_menu_gentlemanly_duel_menu_1",
+                            "help_menu_gentlemanly_duel_menu_2"
+                        ],
+                        "gentlemanly_duel": [
+                            "help_menu_gentlemanly_duel_overview",
+                            "help_menu_gentlemanly_duel_general_controls",
+                            "help_menu_gentlemanly_duel_gun_controls",
+                            "help_menu_gentlemanly_duel_spectator_controls",
+                            "help_menu_gentlemanly_duel_1",
+                            "help_menu_gentlemanly_duel_2",
+                            "help_menu_gentlemanly_duel_3"
+                        ],
+                        "duel": [
+                            "help_menu_duel_overview",
+                            "help_menu_duel_general_controls",
+                            "help_menu_duel_human_controls",
+                            "help_menu_duel_gun_controls",
+                            "help_menu_duel_melee_weapon_controls",
+                            "help_menu_duel_spectator_controls",
+                            "help_menu_duel_1",
+                            "help_menu_duel_2",
+                            "help_menu_duel_3",
+                            "help_menu_duel_4",
+                            "help_menu_duel_5",
+                            "help_menu_duel_6"
+                        ],
+                        "level_generator_menu": [
+                            "help_menu_level_generator_menu_1"
+                        ],
+                        "level_generator": [
+                            "help_menu_level_generator_overview",
+                            "help_menu_level_generator_general_controls",
+                            "help_menu_level_generator_camera_controls",
+                            "help_menu_level_generator_1",
+                            "help_menu_level_generator_2",
+                        ]
+                    }
+                },
+                "arrow_buttons": {
+                    "x_size": 100,
+                    "y_size": 50,
+                    "colour_code": "#3bc44b",
+                    "disabled_colour_code": "#dad7d6",
+                    "text_colour_code": "#e6f5f4",
+                    "y_offset": 25,
+                    "x_offset": 50,
+                },
+                "slide_info_text": {
+                    "x_size": 150,
+                    "y_size": 50,
+                    "y_offset": 0,
+                    "text_colour_code": "#e6f5f4"
                 }
             },
             "level_generator_menu": {
@@ -749,7 +859,7 @@ const WTL_GAME_DATA = {
                     },
                     {
                         "display_name": "Gamemaker",
-                        "menu_name": "game_maker"
+                        "menu_name": "game_maker_menu"
                     },
                     {
                         "display_name": "Duel",
@@ -757,15 +867,62 @@ const WTL_GAME_DATA = {
                     }
                 ]
             },
+            "settings_menu": {
+                "back_button": {
+                    "colour_code": "#3bc44b",
+                    "text_colour_code": "#e6f5f4",
+                    "text": "Main Menu",
+                    "y_offset": 27,
+                    "x": 50,
+                    "x_size": 200,
+                    "y_size": 76
+                },
+                "scrollable_display": {
+                    "scroll_bar": {
+                        "x_offset": 150,
+                        "y_offset": 150,
+                        "width": 40,
+                        "min_height": 400,
+                        "slider_height": 40,
+                        "background_colour_code": "#ffffff",
+                        "slider_colour_code": "#ff00ff",
+                        "wheel_multiplier": 0.25
+                    },
+                    "entry": {
+                        "y_size": 250,
+                        "y_offset": 150,
+                        "x_offset": 150,
+                        "x_size": 900,
+                        "display_name_x_size": 400,
+                        "display_name_y_size": 150,
+                        "display_name_text_colour_code": "#ffffff",
+                        "go_to_menu_button_text": "View",
+                        "go_to_menu_button_x_size": 400,
+                        "go_to_menu_button_y_size": 100,
+                        "go_to_menu_button_background_colour_code": "#3bc44b",
+                        "go_to_menu_button_text_colour_code": "#ffffff"
+                    }
+                },
+                "settings_menus": [
+                    {
+                        "display_name": "Sound",
+                        "menu_name": "sound_menu"
+                    },
+                    {
+                        "display_name": "Extra Settings",
+                        "menu_name": "extra_settings_menu"
+                    },
+                ]
+            },
             "main_menu": {
-                "featured_gamemode": {
+                /*"featured_gamemode": {
                     "display_name": "Duel",
                     "menu_name": "duel_menu"
-                }/*
+                }*/
                 "featured_gamemode": {
                     "display_name": "Gentlemanly Duel",
                     "menu_name": "gentlemanly_duel_menu"
-                }*/
+                }
             },
             "duel_menu": {
                 "back_button": {
@@ -918,7 +1075,7 @@ const WTL_GAME_DATA = {
                     "text_height": 50,
                     "y_offset": -20,
                     "gun_skill_options": [0,1,2,3,4,5,6,7,8,9,10,15,20,25,30,35,40,45,50,55,60,65,70,75,80,85,90,95,100],
-                    "p1_default_gun_skill_index": 25,
+                    "p1_default_gun_skill_index": 7,
                     "p2_default_gun_skill_index": 25
                 },
                 "level_generator_start_x": 950,
@@ -941,8 +1098,8 @@ const WTL_GAME_DATA = {
             "type": "musket",
             "reload_time_ms": 5000,
             "stab_time_ms": 600,
-            "stab_range": 0.95 * DATA_TILE_SIZE,
-            "range": 25*DATA_TILE_SIZE,
+            "stab_range": 0.95 * 64,
+            "range": 25*64,
             "display": {
                 "left": {
                     "x_offset": 2-32,
@@ -969,7 +1126,7 @@ const WTL_GAME_DATA = {
         "flintlock": {
             "type": "pistol",
             "reload_time_ms": 2500, // 2500
-            "range": 14*DATA_TILE_SIZE,
+            "range": 14*64,
             "image_width": 512,
             "image_height": 512,
             "image_scale": 1/16,
@@ -1035,7 +1192,7 @@ const WTL_GAME_DATA = {
     "general": {
         "tick_rate": 20, // Tick rate of 20 is expected, keep in mind that if the user moves > 1 tile per tick it will cause issues
         "frame_rate": 60,
-        "tile_size": DATA_TILE_SIZE, // 64
+        "tile_size": 64, // 64
         "walk_speed": 120,
         "sprint_multiplier": 1.5,
         "animation_frame_time": 100,
@@ -1280,7 +1437,4 @@ const WTL_GAME_DATA = {
             }
         }
     }
-}
-if (typeof window === "undefined"){
-    module.exports=WTL_GAME_DATA;
 }

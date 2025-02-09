@@ -82,6 +82,8 @@ class TurnBasedSkirmish extends Gamemode {
         this.startUp();
     }
 
+    getName(){ return "skirmish"; }
+
     isTeamBot(teamName){
         return this.gameState["operation_type"][getProperAdjective(teamName)] === "bot";
     }

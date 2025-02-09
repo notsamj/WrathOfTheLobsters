@@ -1,0 +1,2 @@
+python3 create_index.py
+pause

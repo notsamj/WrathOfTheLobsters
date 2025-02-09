@@ -38,6 +38,16 @@ class LevelGeneratorMenu extends Menu {
         }
     }
 
+
+    tick(){
+        if (GENERAL_USER_INPUT_MANAGER.isActivated("left_arrow_ticked")){
+            this.shiftPreset(-1);
+        }else if (GENERAL_USER_INPUT_MANAGER.isActivated("right_arrow_ticked")){
+            this.shiftPreset(1);
+        }
+        super.tick();
+    }
+
     getPresetName(){
         return this.getPresetData()["name"];
     }
@@ -100,7 +110,7 @@ class LevelGeneratorMenu extends Menu {
             GAMEMODE_MANAGER.setActiveGamemode(new LevelGenerator(this.getPresetData(), parseInt(this.getCurrentSeedString())));
             MENU_MANAGER.switchTo("game");
         }else{
-            this.game.loadPreset(this.getPresetName(), parseInt(this.getCurrentSeedString()));
+            this.game.loadPreset(this.getPresetData(), parseInt(this.getCurrentSeedString()));
         }
     }
 
@@ -109,21 +119,21 @@ class LevelGeneratorMenu extends Menu {
     }
 
     setup(){
+        let menuData = WTL_GAME_DATA["menu"]["menus"]["level_generator_menu"];
+
         // Background
         if (!this.ingame){
             this.components.push(new LoadingScreenComponent());
+
+            // Back Button
+            let menuDataBackButton = menuData["back_button"];
+            let backButtonY = (innerHeight) => { return innerHeight-menuDataBackButton["y_offset"]; }
+            let backButtonXSize = menuDataBackButton["x_size"];
+            let backButtonYSize = menuDataBackButton["y_size"];
+            this.components.push(new RectangleButton(menuDataBackButton["text"], menuDataBackButton["colour_code"], menuDataBackButton["text_colour_code"], menuDataBackButton["x"], backButtonY, backButtonXSize, backButtonYSize, (instance) => {
+                MENU_MANAGER.switchTo("main_menu");
+            }));
         }
-
-        let menuData = WTL_GAME_DATA["menu"]["menus"]["level_generator_menu"];
-
-        // Back Button
-        let menuDataBackButton = menuData["back_button"];
-        let backButtonY = (innerHeight) => { return innerHeight-menuDataBackButton["y_offset"]; }
-        let backButtonXSize = menuDataBackButton["x_size"];
-        let backButtonYSize = menuDataBackButton["y_size"];
-        this.components.push(new RectangleButton(menuDataBackButton["text"], menuDataBackButton["colour_code"], menuDataBackButton["text_colour_code"], menuDataBackButton["x"], backButtonY, backButtonXSize, backButtonYSize, (instance) => {
-            MENU_MANAGER.switchTo("main_menu");
-        }));
 
         // Number pad area
         let numberButtonSize = menuData["number_button_size"];

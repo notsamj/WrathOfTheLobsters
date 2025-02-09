@@ -65,6 +65,14 @@ class Duel extends Gamemode {
         this.startUp();
     }
 
+    getName(){ return "duel"; }
+
+    handleUnpause(){
+        for (let participant of this.participants){
+            participant.handleUnpause();
+        }
+    }
+
     randomReset(){
         this.gameOver = false;
         this.stats.reset();
@@ -301,6 +309,7 @@ class Duel extends Gamemode {
             LOADING_SCREEN.display();
             return;
         }
+        //console.log(this.getCurrentTick())
         this.scene.display();
         this.stats.display();
         MY_HUD.updateElement("seed", this.seed);
@@ -312,6 +321,7 @@ class Duel extends Gamemode {
         if (this.camera != null){
             this.camera.tick();
         }
+        //console.log("Ticking scene")
         this.scene.tick();
     }
 }

@@ -544,7 +544,7 @@ class Sword extends MeleeWeapon {
             let startAngle = rotateCCWRAD(positionalAngleRAD, rangeRAD/2);
 
             let timePassedTick = (this.swingLock.getCooldown() - this.swingLock.getTicksLeft()) * WTL_GAME_DATA["general"]["ms_between_ticks"];
-            let timePassedNonTick = FRAME_COUNTER.getLastFrameTime() - TICK_SCHEDULER.getLastTickTime();
+            let timePassedNonTick = FRAME_COUNTER.getLastFrameTime() - GAME_TICK_SCHEDULER.getLastTickTime();
             let totalTimePassedMS = timePassedTick + timePassedNonTick;
             let proportion = totalTimePassedMS / this.getSwingTimeMS();
             proportion = Math.min(1, Math.max(0, proportion));

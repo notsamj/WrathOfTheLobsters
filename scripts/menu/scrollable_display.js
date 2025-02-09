@@ -82,7 +82,6 @@ class ScrollableDisplay extends Component {
     }
 
     display(){
-        this.tick();
         this.displayEntries();
         this.scrollBar.display();
     }

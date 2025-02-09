@@ -36,8 +36,10 @@ class StaticImage extends Component {
         Method Return: int
     */
     getMaxWidth(){
-        if (this.maxWidth == null){
+        if (this.maxWidth === null){
             return this.getWidth();
+        }else if (typeof this.maxWidth === "function"){
+            return this.maxWidth(getScreenWidth());
         }
         return this.maxWidth;
     }
@@ -49,8 +51,10 @@ class StaticImage extends Component {
         Method Return: int
     */
     getMaxHeight(){
-        if (this.maxWidth == null){
+        if (this.maxWidth === null){
             return this.getHeight();
+        }else if (typeof this.maxWidth === "function"){
+            return this.maxHeight(getScreenHeight());
         }
         return this.maxHeight;
     }
@@ -63,7 +67,7 @@ class StaticImage extends Component {
     */
     getX(){
         if (typeof this.x === "function"){
-            return this.x(getScreenWidth());
+            return this.x(getScreenWidth(), this.getMaxWidth());
         }else{
             return this.x;
         }
@@ -77,7 +81,7 @@ class StaticImage extends Component {
     */
     getY(){
         if (typeof this.y === "function"){
-            return this.y(getScreenHeight());
+            return this.y(getScreenHeight(), this.getMaxHeight());
         }else{
             return this.y;
         }
@@ -161,7 +165,7 @@ class StaticImage extends Component {
         let image = this.getImage();
         let translateX = this.getX() + this.getMaxWidth()/2;
         let translateY = screenY + this.getMaxHeight()/2;
-        
+
         // Translate
         translate(translateX, translateY);
 

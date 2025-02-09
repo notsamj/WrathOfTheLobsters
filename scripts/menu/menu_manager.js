@@ -21,7 +21,6 @@ class MenuManager {
         this.mainMenu = new MainMenu();
         this.helpMenu = new HelpMenu();
         this.pauseMenu = new PauseMenu();
-        this.gameMakerMenu = new GameMakerUI();
         this.activeMenu = this.mainMenu;
         this.temporaryMessages = new NotSamLinkedList();
         for (let secondaryMenu of this.secondaryMenus){
@@ -135,6 +134,12 @@ class MenuManager {
         if (help){
             this.helpKey();
         }
+
+        if (this.hasActiveMenu()){
+            // Tick active menu
+            this.activeMenu.tick();
+        }
+
     }
 
     helpKey(){
@@ -184,19 +189,20 @@ class MenuManager {
         if (newMenuName === this.mainMenu.getName()){
             this.activeMenu = this.mainMenu;
         }else if (newMenuName === this.pauseMenu.getName()){
-            if (!TICK_SCHEDULER.isPaused()){
-                TICK_SCHEDULER.pause();
+            if (!GAME_TICK_SCHEDULER.isPaused()){
+                GAME_TICK_SCHEDULER.pause();
             }
             this.activeMenu = this.pauseMenu;
         }else if (newMenuName === this.helpMenu.getName()){
-            if (!TICK_SCHEDULER.isPaused()){
-                TICK_SCHEDULER.pause();
+            if (!GAME_TICK_SCHEDULER.isPaused()){
+                GAME_TICK_SCHEDULER.pause();
             }
             this.helpMenu.setOrigin(this.activeMenu);
             this.activeMenu = this.helpMenu;
         }else if (newMenuName === "game"){
-            if (TICK_SCHEDULER.isPaused()){
-                TICK_SCHEDULER.unpause();
+            if (GAME_TICK_SCHEDULER.isPaused()){
+                GAME_TICK_SCHEDULER.unpause();
+                GAMEMODE_MANAGER.handleUnpause();
             }
             // Maybe enable the cursor
             enableCursor = WTL_GAME_DATA["user_chosen_settings"]["cursor_enabled"];
@@ -220,7 +226,7 @@ class MenuManager {
 
     switchToMenu(menu){
         if (menu === null){
-            this.switchTo(null);
+            this.switchTo("game");
         }else{
             this.switchTo(menu.getName());
         }

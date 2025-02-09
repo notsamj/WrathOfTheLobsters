@@ -8,7 +8,12 @@ class TickScheduler {
         this.paused = false;
         this.pauseStartTime = null;
         this.timeDebt = 0;
+        this.latestTimeDebt = 0;
         this.lastTickTime = Date.now();
+    }
+
+    getLatestTimeDebt(){
+        return this.latestTimeDebt;
     }
 
     pause(){
@@ -22,6 +27,7 @@ class TickScheduler {
     }
 
     addTimeDebt(ms){
+        this.latestTimeDebt = ms;
         this.timeDebt += ms;
     }
 
@@ -38,7 +44,7 @@ class TickScheduler {
     }
 
     getExpectedNumberOfTicksPassedFloat(time=Date.now()){
-        return ((time - this.startTime - this.timeDebt) / this.tickGapMS);
+        return (time - (this.startTime + this.timeDebt)) / this.tickGapMS;
     }
 
     getExpectedNumberOfTicksPassed(time=Date.now()){

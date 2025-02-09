@@ -80,11 +80,11 @@ class DuelCamera extends Entity {
     }
 
     getFreeCamX(){
-        return this.x + this.xVelocity * (FRAME_COUNTER.getLastFrameTime() - TICK_SCHEDULER.getLastTickTime()) / 1000;
+        return this.x + this.xVelocity * (FRAME_COUNTER.getLastFrameTime() - GAME_TICK_SCHEDULER.getLastTickTime()) / 1000;
     }
 
     getFreeCamY(){
-        return this.y + this.yVelocity * (FRAME_COUNTER.getLastFrameTime() - TICK_SCHEDULER.getLastTickTime()) / 1000;
+        return this.y + this.yVelocity * (FRAME_COUNTER.getLastFrameTime() - GAME_TICK_SCHEDULER.getLastTickTime()) / 1000;
     }
 
     getInterpolatedCenterX(){

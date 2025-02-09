@@ -2,7 +2,7 @@
 const IMAGES = {};
 const FRAME_COUNTER = new FrameRateCounter(WTL_GAME_DATA["general"]["frame_rate"]);
 const MY_HUD = new HUD();
-const TICK_SCHEDULER = new TickScheduler(Math.floor(1000/WTL_GAME_DATA["general"]["tick_rate"]));
+const GAME_TICK_SCHEDULER = new TickScheduler(Math.floor(1000/WTL_GAME_DATA["general"]["tick_rate"]));
 const GAMEMODE_MANAGER = new GamemodeManager();
 const GENERAL_USER_INPUT_MANAGER = new UserInputManager();
 const GAME_USER_INPUT_MANAGER = new UserInputManager();
@@ -74,6 +74,29 @@ function isRDebugging(){
     return ramshackleDebugToolValue;
 }
 
+async function loadHelpImages(){
+    let imageJSON = WTL_GAME_DATA["menu"]["menus"]["help_menu"]["help_image"]["images"];
+    let folderURL = "help/";
+    for (let helpScreenName of Object.keys(imageJSON)){
+        for (let imageName of imageJSON[helpScreenName]){
+            // Do not load if already exists
+            if (objectHasKey(IMAGES, imageName)){ continue; }
+            await loadToImages(imageName, folderURL + helpScreenName + "/");
+        }
+    }
+}
+
+async function loadProjectImages(){
+    let images = WTL_GAME_DATA["menu"]["menus"]["my_projects_menu"]["project_image"]["images"];
+    let folderURL = "my_projects/";
+    for (let imageName of images){
+        // Do not load if already exists
+        if (objectHasKey(IMAGES, imageName)){ continue; }
+        await loadToImages(imageName, folderURL);
+    }
+    
+}
+
 async function setup() {
     setupOngoing = true;
     try {
@@ -85,6 +108,8 @@ async function setup() {
         await Sword.loadAllImages();
         await Pistol.loadAllImages();
         await TurnBasedSkirmish.loadImages();
+        await loadHelpImages();
+        await loadProjectImages();
     }catch(error){
         console.error("Failed to load images:", error);
     }
@@ -198,6 +223,9 @@ async function setup() {
     GENERAL_USER_INPUT_MANAGER.register("escape_ticked", "keydown", (event) => { return event.keyCode===KEY_CODE_ESCAPE; }, true, {"ticked": true, "ticked_activation": false});
     
     GENERAL_USER_INPUT_MANAGER.register("left_click_ticked", "click", (event) => { return event.which===KEY_CODE_LEFT_CLICK; }, true, {"ticked": true, "ticked_activation": false});
+
+    GENERAL_USER_INPUT_MANAGER.register("left_arrow_ticked", "keydown", (event) => { return event.which===KEY_CODE_LARROW; }, true, {"ticked": true, "ticked_activation": false});
+    GENERAL_USER_INPUT_MANAGER.register("right_arrow_ticked", "keydown", (event) => { return event.which===KEY_CODE_RARROW; }, true, {"ticked": true, "ticked_activation": false});
     
     GENERAL_USER_INPUT_MANAGER.register("option_slider_grab", "mousedown", (event) => { return true; });
     GENERAL_USER_INPUT_MANAGER.register("option_slider_grab", "mouseup", (event) => { return true; }, false);
@@ -210,14 +238,15 @@ async function setup() {
     document.getElementById("main_area").addEventListener("contextmenu", (event) => {event.preventDefault()});
 
     window.onblur = () => {
-        if (!TICK_SCHEDULER.isPaused()){
-            TICK_SCHEDULER.pause();
+        if (!GAME_TICK_SCHEDULER.isPaused()){
+            GAME_TICK_SCHEDULER.pause();
         }
     }
 
     window.onfocus = () => {
-        if (TICK_SCHEDULER.isPaused() && !(MENU_MANAGER.getActiveMenu() === MENU_MANAGER.getMenuByName("pause_menu"))){
-            TICK_SCHEDULER.unpause();
+        if (GAME_TICK_SCHEDULER.isPaused() && !(MENU_MANAGER.getActiveMenu() === MENU_MANAGER.getMenuByName("pause_menu"))){
+            GAME_TICK_SCHEDULER.unpause();
+            GAMEMODE_MANAGER.handleUnpause();
         }
     }
 
@@ -229,7 +258,7 @@ async function setup() {
     // Set global variable drawingContext
     drawingContext = canvasDOM.getContext("2d");
 
-    TICK_SCHEDULER.setStartTime(Date.now());
+    GAME_TICK_SCHEDULER.setStartTime(Date.now());
 
     MENU_MANAGER.setup();
     
@@ -320,26 +349,29 @@ function stop(){
 
 async function tick(){
     if (programOver){ return; }
-    if (TICK_SCHEDULER.getTickLock().notReady()){ 
+    if (GAME_TICK_SCHEDULER.getTickLock().notReady()){ 
         requestAnimationFrame(tick);
         return; 
     }
 
-    let expectedTicks = TICK_SCHEDULER.getExpectedNumberOfTicksPassed();
-    let tickDifference = expectedTicks - TICK_SCHEDULER.getNumTicks()
-
     // Tick the menu manager
     MENU_MANAGER.tick();
 
+    // Tick the GENERAL_USER_INPUT_MANAGER
+    GENERAL_USER_INPUT_MANAGER.tick();
+
+    let expectedTicks = GAME_TICK_SCHEDULER.getExpectedNumberOfTicksPassed();
+    let tickDifference = expectedTicks - GAME_TICK_SCHEDULER.getNumTicks()
+
     // If ready for a tick then execute
-    if (tickDifference > 0 && !TICK_SCHEDULER.isPaused()){
+    if (tickDifference > 0 && !GAME_TICK_SCHEDULER.isPaused()){
         // Destroy extra ticks
         if (tickDifference > 1){
             let ticksToDestroy = tickDifference - 1;
-            TICK_SCHEDULER.addTimeDebt(calculateMSBetweenTicks() * ticksToDestroy);
+            GAME_TICK_SCHEDULER.addTimeDebt(calculateMSBetweenTicks() * ticksToDestroy);
         }
 
-        TICK_SCHEDULER.getTickLock().lock()
+        GAME_TICK_SCHEDULER.getTickLock().lock()
 
         // Tick the game mode
         await GAMEMODE_MANAGER.tick();
@@ -348,12 +380,9 @@ async function tick(){
         GAME_USER_INPUT_MANAGER.tick();
 
         // Count the tick
-        TICK_SCHEDULER.countTick();
-        TICK_SCHEDULER.getTickLock().unlock();
+        GAME_TICK_SCHEDULER.countTick();
+        GAME_TICK_SCHEDULER.getTickLock().unlock();
     }
-
-    // Tick the GENERAL_USER_INPUT_MANAGER
-    GENERAL_USER_INPUT_MANAGER.tick();
 
      // Once within main tick lock, set zoom
     setGameZoom();
@@ -414,6 +443,8 @@ class WTLGame extends Gamemode {
         this.startUpLock.lock();
         this.startUp();
     }
+
+    getName(){ return "wtl_game"; }
 
     getEnemyVisibilityDistance(){
         return Number.MAX_SAFE_INTEGER;

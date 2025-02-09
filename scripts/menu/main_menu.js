@@ -51,22 +51,22 @@ class MainMenu extends Menu {
             //MENU_MANAGER.switchTo("game");
         }));
 
-        // Sound
-        let soundButtonY = (innerHeight) => { return gamemodeViewerBottomY(innerHeight) - buttonSizeY - gapSize; }
-        this.components.push(new RectangleButton("Sound", "#3bc44b", "#e6f5f4", buttonX, soundButtonY, buttonSizeX, buttonSizeY, async (menuInstance) => {
-            MENU_MANAGER.switchTo("sound");
+        // Other Projects
+        let otherProjectsY = (innerHeight) => { return gamemodeViewerBottomY(innerHeight) - buttonSizeY - gapSize; }
+        this.components.push(new RectangleButton("My Projects", "#3bc44b", "#e6f5f4", buttonX, otherProjectsY, buttonSizeX, buttonSizeY, async (menuInstance) => {
+            MENU_MANAGER.switchTo("my_projects_menu");
         }));
 
-        // Extra Settings
-        let extraSettingsY = (innerHeight) => { return soundButtonY(innerHeight) - buttonSizeY - gapSize; }
-        this.components.push(new RectangleButton("Settings", "#3bc44b", "#e6f5f4", buttonX, extraSettingsY, buttonSizeX, buttonSizeY, async (menuInstance) => {
-            MENU_MANAGER.switchTo("extra_settings");
+        // Settings
+        let settingsY = (innerHeight) => { return otherProjectsY(innerHeight) - buttonSizeY - gapSize; }
+        this.components.push(new RectangleButton("Settings", "#3bc44b", "#e6f5f4", buttonX, settingsY, buttonSizeX, buttonSizeY, async (menuInstance) => {
+            MENU_MANAGER.switchTo("settings_menu");
         }));
 
         // Information
         let infoY = 250;
         let infoXSize = (WTL_GAME_DATA["general"]["expected_canvas_width"] - buttonSizeX)/2;
         let infoYSize = 200;
-        this.components.push(new TextComponent("Made by notsamj.", "#000000", 0, infoY, infoXSize, infoYSize));
+        this.components.push(new TextComponent("Made by notsamj.\nPress 'H' at any time for help!", "#000000", 0, infoY, infoXSize, infoYSize));
     }
 }

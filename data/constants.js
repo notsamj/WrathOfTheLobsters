@@ -1,0 +1,1 @@
+const DATA_TILE_SIZE = 64;

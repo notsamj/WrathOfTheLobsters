@@ -18,8 +18,12 @@ class Gamemode {
         this.eventHandler = new NSEventHandler();
     }
 
+    getName(){throw new Error("Expect this to be implemented.")}
+
+    handleUnpause(){}
+
     getCurrentTick(){
-        return TICK_SCHEDULER.getNumTicks();
+        return GAME_TICK_SCHEDULER.getNumTicks();
     }
 
     getEventHandler(){

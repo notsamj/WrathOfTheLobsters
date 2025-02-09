@@ -14,6 +14,8 @@ class Component {
         this.displayEnabled = true;
     }
 
+    tick(){}
+
     /*
         Method Name: enable
         Method Parameters: None

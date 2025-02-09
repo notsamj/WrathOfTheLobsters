@@ -15,6 +15,8 @@ class GameMaker extends Gamemode {
 
     }
 
+    getName(){ return "game_maker"; }
+
     getUI(){
         return this.ui;
     }

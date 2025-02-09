@@ -13,6 +13,8 @@ class LevelGenerator extends Gamemode {
         this.startUp(presetData, seed);
     }
 
+    getName(){ return "level_generator"; }
+
     async startUp(presetData, seed){
         // Setup camera
         this.scene.setFocusedEntity(this.camera);

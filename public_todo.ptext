@@ -1,19 +1,10 @@
 Right now:
-	Press H for help on any menu or game
-
-	Review current_todo.txt
-
-	Make make_index.py to make index.html
-		Web data disables game maker launch thing
-		Web data replaced server_connection.js with server_connection_dud.js
-
 	Comment and look through code
-	Remove all debugger
+		Remove all debugger
 
-	Publish
+	Test README in Github
 
-	Come up with stable float (store integers that are safe to represent and have limits)
-		Like Math.ceil(1.0 + 2.0) == 3 or == 4 sometimes due to unstable floats 2.9999/3.00001
+	Publish AND MAKE SURE https://notsamj.github.io/WrathOfTheLobsters/ works (or change myprojects image and domain forwarding)
 
 	Idea:
 		Partially solid tile
@@ -21,6 +12,9 @@ Right now:
 			Shots from without are valid if hit within certain subregion
 			You can use this to give an advantage to shooting through say a gap in a wall (partial physical cover)
 			Or instead just make it so only some sides of the physical tile are enterable
+
+		Come up with stable float (store integers that are safe to represent and have limits)
+		Like Math.ceil(1.0 + 2.0) == 3 or == 4 sometimes due to unstable floats 2.9999/3.00001
 
 	Gamemaker
 		Add offline loading of saved levels for viewing

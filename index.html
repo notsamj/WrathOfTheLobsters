@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Wrath Of The Lobsters</title>
+
+    <link rel="icon" type="image/x-icon" href="./images/favicon.ico">
+    <link rel="stylesheet" href="stylesheets/main.css">
+
+    <!-- Data -->
+    <script src="data/constants.js"></script>
+    <!--<script src="data/data_json.js"></script>-->
+<script src="data/index_data_json.js"></script>
+    <script src="data/level_data.js"></script>
+
+    <!-- Dependencies -->
+
+    <!-- General -->
+    <script src="scripts/general/loading_screen.js"></script>
+    <script src="scripts/general/hud.js"></script>
+    <script src="scripts/general/hitboxes.js"></script>
+    <script src="scripts/general/notsam_linked_list.js"></script>
+    <script src="scripts/general/notsam_array_list.js"></script>
+    <script src="scripts/general/notsam_xy_sorted_array_list.js"></script>
+    <script src="scripts/general/notsam_xy_capped_length_sorted_array_list.js"></script>
+    <script src="scripts/general/notsam_sorted_array_list.js"></script>
+    <script src="scripts/general/frame_rate_counter.js"></script>
+    <script src="scripts/general/helper_functions.js"></script>
+    <script src="scripts/general/lock.js"></script>
+    <script src="scripts/general/cooldown_lock.js"></script>
+    <script src="scripts/general/tick_lock.js"></script>
+    <script src="scripts/general/user_input_manager.js"></script>
+    <script src="scripts/general/tick_scheduler.js"></script>
+    <script src="scripts/general/notsam_linked_set.js"></script>
+    <script src="scripts/general/mail_service.js"></script>
+    <script src="scripts/general/sound_manager.js"></script>
+    <script src="scripts/general/infinite_loop_finder.js"></script>
+    <script src="scripts/general/seeded_randomizer.js"></script>
+    <script src="scripts/general/ns_event_handler.js"></script>
+    <script src="scripts/general/progress_bar.js"></script>
+    <script src="scripts/general/math_helper.js"></script>
+    <script src="scripts/general/async_processing_regulator.js"></script>
+
+    <!-- Game Specific -->
+    <script src="scripts/misc/route.js"></script>
+    <script src="scripts/misc/visual_item.js"></script>
+    <script src="scripts/misc/tile.js"></script>
+    <script src="scripts/misc/animation_manager.js"></script>
+    <script src="scripts/misc/character_animation_manager.js"></script>
+    <script src="scripts/misc/wtl_game_scene.js"></script>
+    <script src="scripts/misc/visual_environmental_health_bar.js"></script>
+    <script src="scripts/misc/stamina_bar.js"></script>
+    <script src="scripts/misc/health_bar.js"></script>
+    <script src="scripts/misc/random_event_manager.js"></script>
+    <script src="scripts/misc/temporary_operating_data.js"></script>
+
+    <!-- Visual Effects -->
+    <script src="scripts/visual_effects/smoke_cloud.js"></script>
+    <script src="scripts/visual_effects/blood_pool.js"></script>
+    <script src="scripts/visual_effects/cannon_smoke.js"></script>
+    <script src="scripts/visual_effects/bullet_impact.js"></script>
+    <script src="scripts/visual_effects/basic_fading_effect.js"></script>
+    <script src="scripts/visual_effects/sword_sparks.js"></script>
+    <script src="scripts/visual_effects/blood_spray.js"></script>
+
+    <!-- Inventory -->
+    <script src="scripts/inventory/inventory.js"></script>
+        <!-- Item -->
+        <script src="scripts/inventory/item/item.js"></script>
+            <!-- Weapon -->
+            <script src="scripts/inventory/item/weapon/weapon.js"></script>
+                <!-- Melee Weapon -->
+                    <script src="scripts/inventory/item/weapon/melee/melee_weapon.js"></script>
+                    <script src="scripts/inventory/item/weapon/melee/sword.js"></script>
+                <!-- Ranged Weapon -->
+                    <script src="scripts/inventory/item/weapon/ranged_weapon/ranged_weapon.js"></script>
+                    <!-- Guns -->
+                        <script src="scripts/inventory/item/weapon/ranged_weapon/gun/gun.js"></script>
+                        <script src="scripts/inventory/item/weapon/ranged_weapon/gun/pistol.js"></script>
+                        <script src="scripts/inventory/item/weapon/ranged_weapon/gun/musket.js"></script>
+
+    <!-- Entities -->
+    <script src="scripts/entity/entity.js"></script>
+    <script src="scripts/entity/character.js"></script>
+    <script src="scripts/entity/human_character.js"></script>
+
+    <!-- Menu Specific -->
+    <script src="scripts/menu/menu_manager.js"></script>
+    <script src="scripts/menu/component.js"></script>
+    <script src="scripts/menu/static_image.js"></script>
+    <script src="scripts/menu/loading_screen_component.js"></script>
+    <script src="scripts/menu/simple_component.js"></script>
+    <script src="scripts/menu/text_component.js"></script>
+    <script src="scripts/menu/rectangle_button.js"></script>
+    <script src="scripts/menu/option_slider.js"></script>
+    <script src="scripts/menu/quantity_slider.js"></script>
+    <script src="scripts/menu/selection_slider.js"></script>
+    <script src="scripts/menu/menu.js"></script>
+    <script src="scripts/menu/main_menu.js"></script>
+    <script src="scripts/menu/sound_menu.js"></script>
+    <script src="scripts/menu/my_projects_menu.js"></script>
+    <script src="scripts/menu/extra_settings_menu.js"></script>
+    <script src="scripts/menu/pause_menu.js"></script>
+    <script src="scripts/menu/rotating_static_image.js"></script>
+    <script src="scripts/menu/scroll_bar.js"></script>
+    <script src="scripts/menu/scrollable_display.js"></script>
+    <script src="scripts/menu/gamemode_viewer.js"></script>
+    <script src="scripts/menu/settings_menu.js"></script>
+    <script src="scripts/menu/gentlemanly_duel_menu.js"></script>
+    <script src="scripts/menu/duel_menu.js"></script>
+    <script src="scripts/menu/level_generator_menu.js"></script>
+    <script src="scripts/menu/help_menu.js"></script>
+
+    <!-- Server -->
+    <!--<script src="scripts/server_communication/server_connection.js"></script>-->
+
+    <!-- Gamemode -->
+    <script src="scripts/gamemodes/gamemode.js"></script>
+    <script src="scripts/gamemodes/gamemode_manager.js"></script>
+
+    <!-- Level Generator -->
+    <script src="scripts/gamemodes/level_generator/level_generator.js"></script>
+        <!-- Camera -->
+        <script src="scripts/gamemodes/level_generator/camera/level_generator_camera.js"></script>
+
+    <!-- Skirmish -->
+    <script src="scripts/gamemodes/skirmish/turn_based_skirmish.js"></script>
+    <script src="scripts/gamemodes/skirmish/bot_plan.js"></script>
+    <script src="scripts/gamemodes/skirmish/bot_shared_brain.js"></script>
+    <script src="scripts/gamemodes/skirmish/skirmish_match_stats.js"></script>
+        <!-- Skirmish Entity -->
+        <script src="scripts/gamemodes/skirmish/entity/rock_hitbox.js"></script>
+        <script src="scripts/gamemodes/skirmish/entity/skirmish_character.js"></script>
+        <script src="scripts/gamemodes/skirmish/entity/skirmish_human.js"></script>
+        <script src="scripts/gamemodes/skirmish/entity/skirmish_bot.js"></script>
+        <script src="scripts/gamemodes/skirmish/entity/skirmish_camera.js"></script>
+
+        <!-- Skirmish Item -->
+            <!-- Skirmish Special Item -->
+            <script src="scripts/gamemodes/skirmish/item/special/white_flag.js"></script>
+
+            <script src="scripts/gamemodes/skirmish/item/special/point_to_shoot.js"></script>
+
+            <script src="scripts/gamemodes/skirmish/item/special/point_to_shoot_cannon.js"></script>
+
+            <script src="scripts/gamemodes/skirmish/item/special/point_to_move.js"></script>
+            <!-- Skirmish Weapon -->
+                <!-- Skirmish Melee Weapon -->
+                    <script src="scripts/gamemodes/skirmish/item/weapon/melee/skirmish_sword.js"></script>
+                <!-- Skirmish Gun -->
+                    <script src="scripts/gamemodes/skirmish/item/weapon/gun/skirmish_musket.js"></script>
+                    <script src="scripts/gamemodes/skirmish/item/weapon/gun/skirmish_pistol.js"></script>
+
+    <!-- Duel -->
+    <script src="scripts/gamemodes/duel/duel.js"></script>
+    <script src="scripts/gamemodes/duel/duel_match_stats.js"></script>
+    <script src="scripts/gamemodes/duel/bot_perception.js"></script>
+        <!-- Duel Entity -->
+        <script src="scripts/gamemodes/duel/entity/duel_camera.js"></script>
+        <script src="scripts/gamemodes/duel/entity/duel_character.js"></script>
+        <script src="scripts/gamemodes/duel/entity/duel_human.js"></script>
+        <script src="scripts/gamemodes/duel/entity/duel_bot.js"></script>
+
+    <!-- Gentlemanly Duel -->
+    <script src="scripts/gamemodes/gentlemanly_duel/gentlemanly_duel.js"></script>
+    <script src="scripts/gamemodes/gentlemanly_duel/gentlemanly_duel_stats.js"></script>
+        <!-- Gentlemanly Duel Entity -->
+        <script src="scripts/gamemodes/gentlemanly_duel/entity/gentlemanly_duel_character.js"></script>
+        <script src="scripts/gamemodes/gentlemanly_duel/entity/gentlemanly_duel_human.js"></script>
+        <script src="scripts/gamemodes/gentlemanly_duel/entity/gentlemanly_duel_bot.js"></script>
+
+    <!-- Unique to Game Maker -->
+    <!--<script src="scripts/game_maker/game_maker.js"></script>-->
+    <!--<script src="scripts/game_maker/tile_placer.js"></script>-->
+    <!--<script src="scripts/game_maker/game_maker_ui.js"></script>-->
+
+    <!-- DebuggingTools -->
+    <script src="scripts/debugging_tools/path_creation_debugger.js"></script>
+    <script src="scripts/debugging_tools/general_debugger.js"></script>
+    <script src="scripts/debugging_tools/debugger_camera.js"></script>
+    <script src="scripts/debugging_tools/debugging_dot.js"></script>
+    <script src="scripts/debugging_tools/event_tracker.js"></script>
+    
+    <!-- Main Script --> 
+    <script src="scripts/gamemodes/wtl_game.js"></script>
+
+    <!-- 2d Canvas Helper --> 
+    <script src="scripts/general/simple_2d_canvas_helper.js"></script>
+</head>
+<body>
+    <main id="main_area">
+        <canvas id="canvas"></canvas>
+    </main>
+</body>
+</html>

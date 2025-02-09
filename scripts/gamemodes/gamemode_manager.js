@@ -13,6 +13,19 @@ class GamemodeManager {
         this.gamemode = null;
     }
 
+    getActiveGameName(){
+        if (!this.hasActiveGamemode()){
+            return null;
+        }
+        return this.gamemode.getName();
+    }
+
+    handleUnpause(){
+        if (this.hasActiveGamemode()){
+            this.gamemode.handleUnpause();
+        }
+    }
+
     /*
         Method Name: hasActiveGamemode
         Method Parameters: None
@@ -74,8 +87,8 @@ class GamemodeManager {
     */
     display(){
         if (!this.hasActiveGamemode()){ return; }
-        this.gamemode.display();
         let fps = FRAME_COUNTER.getFPS();
+        this.gamemode.display();
         MY_HUD.updateElement("fps", fps);
         MY_HUD.display();
     }

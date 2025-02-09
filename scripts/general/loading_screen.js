@@ -20,15 +20,11 @@ class LoadingScreen {
         //this.y = 0;
     }
 
-    /*
-        Method Name: display
-        Method Parameters:
-        Method Description: Displays the sky and meshs
-        Method Return: void
-    */
-    display(){
-        this.x += this.xVelocity / gameZoom;
-        this.y += this.yVelocity / gameZoom;
+    display(allowMovement=true){
+        if (allowMovement){
+            this.x += this.xVelocity / gameZoom;
+            this.y += this.yVelocity / gameZoom;
+        }
         this.displayMeshes(this.x, this.y);
     }
 

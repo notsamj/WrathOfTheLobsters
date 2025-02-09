@@ -29,8 +29,8 @@ class ExtraSettingsMenu extends Menu {
         let backButtonY = (innerHeight) => { return innerHeight-27; }
         let backButtonXSize = 200;
         let backButtonYSize = 76;
-        this.components.push(new RectangleButton("Main Menu", "#3bc44b", "#e6f5f4", backButtonX, backButtonY, backButtonXSize, backButtonYSize, (menuInstance) => {
-            menuInstance.goToMainMenu();
+        this.components.push(new RectangleButton("Settings Menu", "#3bc44b", "#e6f5f4", backButtonX, backButtonY, backButtonXSize, backButtonYSize, (menuInstance) => {
+            MENU_MANAGER.switchTo("settings_menu");
         }));
 
         // Interface for changing settings
@@ -179,16 +179,6 @@ class ExtraSettingsMenu extends Menu {
         }
         let selectionSlider = new SelectionSlider(settingModifierButtonX, settingModifierButtonY, WTL_GAME_DATA["menu"]["option_slider"]["x_size"], settingModifierButtonSize, getValueFunction, setValueFunction, setting["options"], undefined, "#108700");
         this.components.push(selectionSlider);
-    }
-
-    /*
-        Method Name: goToMainMenu
-        Method Parameters: None
-        Method Description: Switches from this menu to the main menu
-        Method Return: void
-    */
-    goToMainMenu(){
-        MENU_MANAGER.switchTo("main_menu");
     }
 }
 MENU_MANAGER.registerMenu(new ExtraSettingsMenu());

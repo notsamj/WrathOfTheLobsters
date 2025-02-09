@@ -161,8 +161,21 @@ class RectangleButton extends Component {
                 A string representing a colour
         Method Description: Setter
         Method Return: void
+        TODO: Deprecate!
     */
     setColour(colourCode){
+        this.colourCode = colourCode; 
+    }
+
+    /*
+        Method Name: setColourCode
+        Method Parameters:
+            colourCode:
+                A string representing a colour
+        Method Description: Setter
+        Method Return: void
+    */
+    setColourCode(colourCode){
         this.colourCode = colourCode; 
     }
 }

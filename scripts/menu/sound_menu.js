@@ -29,8 +29,8 @@ class SoundMenu extends Menu {
         let backButtonY = (innerHeight) => { return innerHeight-27; }
         let backButtonXSize = 200;
         let backButtonYSize = 76;
-        this.components.push(new RectangleButton("Main Menu", "#3bc44b", "#e6f5f4", backButtonX, backButtonY, backButtonXSize, backButtonYSize, (instance) => {
-            instance.goToMainMenu();
+        this.components.push(new RectangleButton("Settings Menu", "#3bc44b", "#e6f5f4", backButtonX, backButtonY, backButtonXSize, backButtonYSize, (instance) => {
+            MENU_MANAGER.switchTo("settings_menu");
         }));
 
         // Interface for sound amounts

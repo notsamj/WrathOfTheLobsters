@@ -505,7 +505,8 @@ async function loadLocalImage(url){
         newImage.onload = function(){
             resolve();
         }
-        newImage.onerror = function(){
+        newImage.onerror = function(error){
+            console.error("Error loading image at url", url, "error:", error);
             reject();
         }
         newImage.src = url;

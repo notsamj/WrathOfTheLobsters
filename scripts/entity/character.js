@@ -28,6 +28,12 @@ class Character extends Entity {
         }
     }
 
+    handleUnpause(){
+        if (this.movementDetails != null){
+            this.movementDetails["last_frame_time"] += GAME_TICK_SCHEDULER.getLatestTimeDebt();
+        }
+    }
+
     getRandom(){
         return this.gamemode.getRandom();
     }
@@ -568,7 +574,7 @@ class Character extends Entity {
             "sprinting": goingToSprint,
             "speed": desiredMoveSpeed,
             "last_frame_time": FRAME_COUNTER.getLastFrameTime(),
-            "last_tick_number": TICK_SCHEDULER.getNumTicks(),
+            "last_tick_number": GAME_TICK_SCHEDULER.getNumTicks(),
             "last_stood_tile_x": this.tileX,
             "last_stood_tile_y": this.tileY,
             "last_location_x": lastLocationX,
@@ -835,7 +841,7 @@ class Character extends Entity {
     }
 
     getInterpolatedX(){
-        if (TICK_SCHEDULER.isPaused()){
+        if (GAME_TICK_SCHEDULER.isPaused()){
             return this.getInterpolatedTickX();
         }
         let xOfTile = this.gamemode.getScene().getXOfTile(this.tileX);
@@ -854,7 +860,7 @@ class Character extends Entity {
     }
 
     getInterpolatedY(){
-        if (TICK_SCHEDULER.isPaused()){
+        if (GAME_TICK_SCHEDULER.isPaused()){
             return this.getInterpolatedTickY();
         }
         let yOfTile = this.gamemode.getScene().getYOfTile(this.tileY);

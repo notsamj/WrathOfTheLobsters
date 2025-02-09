@@ -58,8 +58,6 @@ class OptionSlider extends Component {
         Method Return: void
     */
     display(){
-        // Update position and such things
-        this.tick();
         
         // Background Rectangle
         let screenYForRects = MENU_MANAGER.changeToScreenY(this.getY() - this.textHeight);

@@ -54,6 +54,14 @@ class GentlemanlyDuel extends Gamemode {
         this.startUp();
     }
 
+    handleUnpause(){
+        for (let participant of this.participants){
+            participant.handleUnpause();
+        }
+    }
+
+    getName(){ return "gentlemanly_duel"; }
+
     generateRandomSeed(){
         return randomNumberInclusive(0, Math.floor(Math.pow(10, 3))-1);
     }

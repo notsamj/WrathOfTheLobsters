@@ -66,6 +66,15 @@ class DuelMenu extends Menu {
         this.resetSavedInfo();
     }
 
+    tick(){
+        if (GENERAL_USER_INPUT_MANAGER.isActivated("left_arrow_ticked")){
+            this.shiftPreset(-1);
+        }else if (GENERAL_USER_INPUT_MANAGER.isActivated("right_arrow_ticked")){
+            this.shiftPreset(1);
+        }
+        super.tick();
+    }
+
     startGame(){
         let duelMenu =  WTL_GAME_DATA["menu"]["menus"]["duel_menu"];
         let gameDetails = copyObject(WTL_GAME_DATA["default_settings"]["duel"]);

@@ -100,7 +100,7 @@ class Pistol extends Gun {
 
         if (this.isReloading()){
             let timePassedTick = (this.reloadLock.getCooldown() - this.reloadLock.getTicksLeft()) * WTL_GAME_DATA["general"]["ms_between_ticks"];
-            let timePassedNonTick = FRAME_COUNTER.getLastFrameTime() - TICK_SCHEDULER.getLastTickTime();
+            let timePassedNonTick = FRAME_COUNTER.getLastFrameTime() - GAME_TICK_SCHEDULER.getLastTickTime();
             let totalTimePassedMS = timePassedTick + timePassedNonTick;
             let proportion = totalTimePassedMS / WTL_GAME_DATA["gun_data"][this.model]["reload_time_ms"];
             proportion = Math.min(1, Math.max(0, proportion));

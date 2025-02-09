@@ -153,6 +153,13 @@ class Menu {
         }
     }
 
+    tick(){
+        for (let component of this.components){
+            if (component.isDisabled()){ continue; }
+            component.tick();
+        }
+    }
+
     /*
         Method Name: click
         Method Parameters:

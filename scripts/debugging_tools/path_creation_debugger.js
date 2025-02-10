@@ -14,8 +14,8 @@ class PathCreationDebugger {
                 An integer representing the x coordinate of a tile at the end of a path
             endTileY:
                 An integer representing the y coordinate of a tile at the end of a path
-        Method Description: TODO
-        Method Return: TODO
+        Method Description: constructor
+        Method Return: constructor
     */
     constructor(startTileX, startTileY, endTileX, endTileY){
         this.data = {

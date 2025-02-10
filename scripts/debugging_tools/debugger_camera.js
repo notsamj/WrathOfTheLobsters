@@ -1,4 +1,20 @@
+/*
+    Class Name: DebuggerCamera
+    Class Description: A camera used in debugging
+*/
 class DebuggerCamera extends Entity {
+    /*
+        Method Name: constructor
+        Method Parameters: 
+            gamemode:
+                Related gamemode
+            x:
+                x position of the camera
+            y:
+                y position of the camera
+        Method Description: Constructor
+        Method Return: None
+    */
     constructor(gamemode, x=0, y=0){
         super(gamemode);
         this.x = x;
@@ -19,8 +35,24 @@ class DebuggerCamera extends Entity {
         this.getScene().addEntity(this.debugChar);
     }
 
-    canSee(){ return true; }
+    /*
+        Method Name: canSee
+        Method Parameters: None
+        Method Description: Checks if the camera can see a given entity
+        Method Return: Boolean, true -> can see the entity, false -> cannot see
+    */
+    canSee(entity){ return true; }
 
+    /*
+        Method Name: setPosition
+        Method Parameters: 
+            x:
+                New x location for the camera
+            y:
+                New y location for the camera
+        Method Description: Sets the new position of the camera
+        Method Return: void
+    */
     setPosition(x, y){
         this.x = x;
         this.y = y;
@@ -72,22 +104,52 @@ class DebuggerCamera extends Entity {
         this.yVelocity *= downKey ? -1 : 1; 
     }
 
+    /*
+        Method Name: getInterpolatedX
+        Method Parameters: None
+        Method Description: Calculates the x value for display
+        Method Return: float
+    */
     getInterpolatedX(){
         return this.x + this.xVelocity * (FRAME_COUNTER.getLastFrameTime() - GAME_TICK_SCHEDULER.getLastTickTime()) / 1000;
     }
 
+    /*
+        Method Name: getInterpolatedY
+        Method Parameters: None
+        Method Description: Calculates the y value for display
+        Method Return: float
+    */
     getInterpolatedY(){
         return this.y + this.yVelocity * (FRAME_COUNTER.getLastFrameTime() - GAME_TICK_SCHEDULER.getLastTickTime()) / 1000;
     }
 
+    /*
+        Method Name: getInterpolatedCenterX
+        Method Parameters: None
+        Method Description: Calculates the center x value for display
+        Method Return: float
+    */
     getInterpolatedCenterX(){
         return this.getInterpolatedX();
     }
 
+    /*
+        Method Name: getInterpolatedCenterY
+        Method Parameters: None
+        Method Description: Calculates the center y value for display
+        Method Return: float
+    */
     getInterpolatedCenterY(){
         return this.getInterpolatedY();
     }
 
+    /*
+        Method Name: updateDebuggingActions
+        Method Parameters: None
+        Method Description: Checks for user input and acts
+        Method Return: void
+    */
     updateDebuggingActions(){
         let leftClick = GAME_USER_INPUT_MANAGER.isActivated("left_click_ticked");
         let rightClick = GAME_USER_INPUT_MANAGER.isActivated("right_click_ticked");
@@ -139,6 +201,12 @@ class DebuggerCamera extends Entity {
         }
     }
 
+    /*
+        Method Name: tick
+        Method Parameters: None
+        Method Description: Permforms actions for a tick
+        Method Return: void
+    */
     tick(){
         // Update tick locks
         this.xLock.tick();
@@ -152,6 +220,12 @@ class DebuggerCamera extends Entity {
         this.updateDebuggingActions();
     }
 
+    /*
+        Method Name: updateCursorInfo
+        Method Parameters: None
+        Method Description: Calculates and sets a new cursor position
+        Method Return: void
+    */
     updateCursorInfo(){
         let canvasX = gMouseX;
         let canvasY = this.getScene().changeFromScreenY(gMouseY);
@@ -164,6 +238,20 @@ class DebuggerCamera extends Entity {
         this.cursorTileY = WTLGameScene.getTileYAt(engineY);
     }
 
+    /*
+        Method Name: display
+        Method Parameters: 
+            lX:
+                The x value of the left of the screen
+            rX:
+                The x value of the right of the screen
+            bY:
+                The y value of the bottom of the screen
+            tY:
+                The y value of the top of the screen
+        Method Description: TODO
+        Method Return: TODO
+    */
     display(lX, rX, bY, tY){
         MY_HUD.updateElement("Cursor Tile X", this.cursorTileX);
         MY_HUD.updateElement("Cursor Tile Y", this.cursorTileY);

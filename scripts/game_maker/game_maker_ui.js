@@ -1,4 +1,14 @@
+/*  
+    Class Name: GameMakerUI
+    Class Description: The UI for the gamemaker gamemode. Subclass of Menu.
+*/
 class GameMakerUI extends Menu {
+    /*
+        Method Name: constructor
+        Method Parameters: None
+        Method Description: constructor
+        Method Return: constructor
+    */
     constructor(){
         super("game_maker_menu");
         this.imageSelector = null; // Placeholder
@@ -7,22 +17,50 @@ class GameMakerUI extends Menu {
         this.game = undefined; // Declare
     }
 
+    /*
+        Method Name: setup
+        Method Parameters: None
+        Method Description: Sets up the menu 
+        Method Return: void
+    */
     setup(){
         this.loadPhysicalImages();
         this.setupTopBar();
         this.setupBottomBar();
     }
 
+    /*
+        Method Name: informSwitchedTo
+        Method Parameters: None
+        Method Description: Takes actions when menu is switched to
+        Method Return: void
+    */
     informSwitchedTo(){
         this.game = new GameMaker(this);
         GAMEMODE_MANAGER.setActiveGamemode(this.game);
     }
 
+    /*
+        Method Name: blocksWindowLocation
+        Method Parameters: 
+            windowX:
+                A window x coordinate
+            windowY:
+                A window y coordinate
+        Method Description: TODO
+        Method Return: TODO
+    */
     blocksWindowLocation(windowX, windowY){
         if (!this.game.isDisplayingHUD()){ return false; }
         return windowY <= WTL_GAME_DATA["ui"]["game_maker"]["top_bar_height"] || windowY >= getScreenHeight() - WTL_GAME_DATA["ui"]["game_maker"]["bottom_bar_height"];
     }
 
+    /*
+        Method Name: loadPhysicalImages
+        Method Parameters: None
+        Method Description: Loads the physical tile images to the bottom bar
+        Method Return: void
+    */
     loadPhysicalImages(){
         let tiles = WTL_GAME_DATA["physical_tiles"];
         let selectableImages = [];
@@ -38,6 +76,14 @@ class GameMakerUI extends Menu {
         this.physicalImages = selectableImages;
     }
 
+    /*
+        Method Name: setVisualImages
+        Method Parameters: 
+            visualImages:
+                A list of SelectableImage instances
+        Method Description: Updates the visual images
+        Method Return: void
+    */
     setVisualImages(visualImages){
         this.visualImages = visualImages;
         // Make sure to update if not showing physical layer atm
@@ -46,24 +92,54 @@ class GameMakerUI extends Menu {
         }
     }
 
-    // Note: This function exists because the ui is persistent wheras GameMaker instances get delete and remade. Each time one is remade it triggers this reset function
+    /*
+        Method Name: reset
+        Method Parameters: None
+        Method Description: Resets the connection and images
+        Method Return: void
+        Note: This function exists because the ui is persistent whereas GameMaker instances get delete and remade. Each time one is remade it triggers this reset function
+    */
     reset(){
         this.connectionButton.setNotConnected();
         this.imageSelector.clear();
     }
 
+    /*
+        Method Name: isConnected
+        Method Parameters: None
+        Method Description: Checks if the app is connected to the server
+        Method Return: Boolean
+    */
     isConnected(){
         return this.connectionButton.isConnected();
     }
 
+    /*
+        Method Name: notConnected
+        Method Parameters: None
+        Method Description: Checks if the app is NOT connected to the server
+        Method Return: Boolean
+    */
     notConnected(){
         return this.connectButton.notConnected();
     }
 
+    /*
+        Method Name: getConnectionButton
+        Method Parameters: None
+        Method Description: Getter
+        Method Return: Getter
+    */
     getConnectionButton(){
         return this.connectionButton;
     }
 
+    /*
+        Method Name: setupTopBar
+        Method Parameters: None
+        Method Description: Sets up the top bar
+        Method Return: void
+    */
     setupTopBar(){
         let topBarHeight = 100;
         this.topBar = new ComponentGroup();
@@ -108,6 +184,12 @@ class GameMakerUI extends Menu {
         }));
     }
 
+    /*
+        Method Name: setupBottomBar
+        Method Parameters: None
+        Method Description: Sets up the bottom bar
+        Method Return: void
+    */
     setupBottomBar(){
         let bottomBarHeight = 100;
         this.bottomBar = new ComponentGroup();
@@ -133,8 +215,14 @@ class GameMakerUI extends Menu {
         this.bottomBar.addComponent(this.imageSelector);
     }
 
+    /*
+        Method Name: toggleVisualPhysical
+        Method Parameters: None
+        Method Description: Toggles between visual and physical tiles to add
+        Method Return: void
+    */
     toggleVisualPhysical(){
-        let currentlyVisual = this.toggleButton.getText() == "Visual";
+        let currentlyVisual = this.toggleButton.getText() === "Visual";
         let gameMaker = GAMEMODE_MANAGER.getActiveGamemode();
         gameMaker.setDisplayPhysicalLayer(currentlyVisual);
         this.toggleButton.setText(currentlyVisual ? "Physical" : "Visual");
@@ -146,6 +234,12 @@ class GameMakerUI extends Menu {
         }
     }
 
+    /*
+        Method Name: display
+        Method Parameters: None
+        Method Description: Displays the UI
+        Method Return: void
+    */
     display(){
         if (!this.game.isDisplayingHUD()){
             return;
@@ -177,6 +271,16 @@ class GameMakerUI extends Menu {
         }
     }
 
+    /*
+        Method Name: covers
+        Method Parameters: 
+            x:
+                An x coordinate
+            y:
+                A y coordinate in the coordinate system where the bottom of the screen is 0
+        Method Description: Checks if any components cover a given x,y
+        Method Return: BOolean
+    */
     covers(x, y){
         // Note: y is using game coordinate system (bottom of screen is 0)
         let components = this.getAllComponents();
@@ -189,6 +293,12 @@ class GameMakerUI extends Menu {
         return false;
     }
 
+    /*
+        Method Name: getAllComponents
+        Method Parameters: None
+        Method Description: Gets all the components
+        Method Return: List of Component (subclass) instances
+    */
     getAllComponents(){
         let components = [];
         components = appendLists(components, this.topBar.getComponents());
@@ -196,13 +306,39 @@ class GameMakerUI extends Menu {
         return components;
     }
 
+    /*
+        Method Name: getImageSelector
+        Method Parameters: None
+        Method Description: Getter
+        Method Return: Getter
+    */
     getImageSelector(){
         return this.imageSelector;
     }
 
 }
 
+/*  
+    Class Name: ImageSelector
+    Class Description: An image selector component
+*/
 class ImageSelector extends Component {
+    /*
+        Method Name: constructor
+        Method Parameters: 
+            x:
+                x position function
+            y:
+                y position function
+            width:
+                width calculator function
+            imageWidth:
+                The width of each image
+            imageHeight:
+                The height of each image
+        Method Description: constructor
+        Method Return: constructor
+    */
     constructor(x, y, width, imageWidth, imageHeight){
         super();
         this.x = x;
@@ -214,27 +350,65 @@ class ImageSelector extends Component {
         this.startingIndex = 0;
     }
 
+    /*
+        Method Name: clear
+        Method Parameters: None
+        Method Description: Clears the images
+        Method Return: void
+    */
     clear(){
         this.setImages([]);
     }
 
+    /*
+        Method Name: getX
+        Method Parameters: None
+        Method Description: Calculates the x position
+        Method Return: int
+    */
     getX(){
         return this.x(getScreenWidth());
     }
 
+    /*
+        Method Name: getY
+        Method Parameters: None
+        Method Description: Calculates the y position
+        Method Return: int
+    */
     getY(){
         return this.y(getScreenHeight());
     }
 
+    /*
+        Method Name: getWidth
+        Method Parameters: None
+        Method Description: Calculates the width of the image selector
+        Method Return: float
+    */
     getWidth(){
         return this.width(getScreenWidth());
     }
 
+    /*
+        Method Name: setImages
+        Method Parameters: 
+            images:
+                A list of ImageSelector instances
+        Method Description: Sets the image list
+        Method Return: void
+    */
     setImages(images){
         this.images = images;
         this.startingIndex = 0;
     }
 
+    /*
+        Method Name: display
+        Method Parameters: None
+        Method Description: Displays the image selector
+        Method Return: void
+    */
     display(){
         let scrollButtonWidth = WTL_GAME_DATA["ui"]["game_maker"]["scroll_button_width"];
 
@@ -287,7 +461,6 @@ class ImageSelector extends Component {
             usedWidth += this.imageWidth;
             displayedImages++;
         }
-        //console.log("Displaying right button @", x + scrollButtonWidth + usedWidth)
         // Right Scroll Button
         Menu.makeRectangleWithText(">", WTL_GAME_DATA["ui"]["game_maker"]["purple_code"], "#ffffff", x + scrollButtonWidth + usedWidth, y, scrollButtonWidth, height);
     }
@@ -313,7 +486,10 @@ class ImageSelector extends Component {
         Method Parameters:
             instance:
                 The menu responsible for the click
-            TODO
+            x:
+                An x coordinate
+            y:
+                A y coordinate
         Method Description: Handles what occurs when clicked on
         Method Return: void
     */
@@ -353,7 +529,27 @@ class ImageSelector extends Component {
     }
 }
 
+/*  
+    Class Name: ConnectButton
+    Class Description: A button used to connect to the server
+*/
 class ConnectButton extends RectangleButton {
+    /*
+        Method Name: constructor
+        Method Parameters: 
+            textColour:
+                The background colour of the button
+            x:
+                The x location (or function to calculate)
+            y:
+                The y location (or function to calculate)
+            width:
+                The width of the button
+            height:
+                The height of the button
+        Method Description: constructor
+        Method Return: constructor
+    */
     constructor(textColour, x, y, width, height){
         super("connect", WTL_GAME_DATA["ui"]["game_maker"]["red_code"], textColour, x, y, width, height, () => {});
         this.connectLock = new Lock();
@@ -399,26 +595,56 @@ class ConnectButton extends RectangleButton {
         this.connectLock.unlock();
     }
 
+    /*
+        Method Name: isConnected
+        Method Parameters: None
+        Method Description: Checks if connected
+        Method Return: boolean
+    */
     isConnected(){
         return this.connected;
     }
 
+    /*
+        Method Name: notConnected
+        Method Parameters: None
+        Method Description: Checks if not connected
+        Method Return: boolean
+    */
     notConnected(){
         return !this.isConnected();
     }
 
+    /*
+        Method Name: setConnected
+        Method Parameters: None
+        Method Description: Sets the button to connected status
+        Method Return: void
+    */
     setConnected(){
         this.colourCode = WTL_GAME_DATA["ui"]["game_maker"]["green_code"];
         this.textStr = "Connected";
         this.connected = true;
     }
 
+    /*
+        Method Name: setNotConnected
+        Method Parameters: None
+        Method Description: Sets the button to disconnected status
+        Method Return: void
+    */
     setNotConnected(){
         this.colourCode = WTL_GAME_DATA["ui"]["game_maker"]["red_code"];
         this.textStr = "Disconnected";
         this.connected = false;
     }
 
+    /*
+        Method Name: setUpdating
+        Method Parameters: None
+        Method Description: Sets the button to updating dstatus
+        Method Return: void
+    */
     setUpdating(){
         this.colourCode = WTL_GAME_DATA["ui"]["game_maker"]["yellow_code"];
         this.textStr = "Connecting...";
@@ -426,17 +652,43 @@ class ConnectButton extends RectangleButton {
     }
 }
 
+/*
+    Class Name: SelectableImage
+    Class Description: An image which may be selected by the user
+*/
 class SelectableImage {
+    /*
+        Method Name: constructor
+        Method Parameters: 
+            imageDetails:
+                A json with details about the image
+            callWhenSelected:
+                A function to call when selected
+        Method Description: constructor
+        Method Return: constructor
+    */
     constructor(imageDetails, callWhenSelected){
         this.name = imageDetails["name"];
         this.details = imageDetails;
         this.callWhenSelected = callWhenSelected;
     }
 
+    /*
+        Method Name: select
+        Method Parameters: None
+        Method Description: Handle what happens when selected
+        Method Return: void
+    */
     select(){
         this.callWhenSelected(this.details);
     }
 
+    /*
+        Method Name: getName
+        Method Parameters: None
+        Method Description: Getter
+        Method Return: Getter
+    */
     getName(){
         return this.name;
     }

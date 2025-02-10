@@ -1,10 +1,36 @@
+/*  
+    Class Name: HumanCharacter
+    Class Description: A human character (and controlled by a human) in the game
+*/
 class HumanCharacter extends Character {
+    /*
+        Method Name: constructor
+        Method Parameters: 
+            gamemode:
+                The associated gamemode instance
+            model:
+                String, model of character
+        Method Description: constructor
+        Method Return: constructor
+    */
     constructor(gamemode, model){
         super(gamemode, model);
     }
 
+    /*
+        Method Name: isHuman
+        Method Parameters: None
+        Method Description: Checks if the character is a human
+        Method Return: Boolean
+    */
     isHuman(){return true;}
 
+    /*
+        Method Name: makeDecisions
+        Method Parameters: None
+        Method Description: Instructs character to make decisions
+        Method Return: void
+    */
     makeDecisions(){
         this.resetDecisions();
         this.makeMovementDecisions();
@@ -14,6 +40,12 @@ class HumanCharacter extends Character {
         }
     }
 
+    /*
+        Method Name: makeMovementDecisions
+        Method Parameters: None
+        Method Description: Checks for human input to make movement decisions
+        Method Return: void
+    */
     makeMovementDecisions(){
         this.decisions["up"] = GAME_USER_INPUT_MANAGER.isActivated("move_up");
         this.decisions["down"] = GAME_USER_INPUT_MANAGER.isActivated("move_down");
@@ -22,6 +54,12 @@ class HumanCharacter extends Character {
         this.decisions["sprint"] = GAME_USER_INPUT_MANAGER.isActivated("sprint");
     }
 
+    /*
+        Method Name: makeInventoryDecisions
+        Method Parameters: None
+        Method Description: Checks for human input to make inventory decisions
+        Method Return: void
+    */
     makeInventoryDecisions(){
         // Reset
         this.amendDecisions({
@@ -55,6 +93,12 @@ class HumanCharacter extends Character {
         });
     }
 
+    /*
+        Method Name: makeSwordDecisions
+        Method Parameters: None
+        Method Description: Checks to see if the user wishes to swing/block
+        Method Return: void
+    */
     makeSwordDecisions(){
         let tryingToSwing = GAME_USER_INPUT_MANAGER.isActivated("left_click_ticked");
         let tryingToBlock = GAME_USER_INPUT_MANAGER.isActivated("right_click");
@@ -64,8 +108,12 @@ class HumanCharacter extends Character {
         });
     }
 
-    isHuman(){return true;}
-
+    /*
+        Method Name: makePistolDecisions
+        Method Parameters: None
+        Method Description: Checks to see if the user wishes to aim/shoot/reload
+        Method Return: void
+    */
     makePistolDecisions(){
         let tryingToAim = GAME_USER_INPUT_MANAGER.isActivated("right_click");
         let tryingToShoot = GAME_USER_INPUT_MANAGER.isActivated("left_click_ticked");
@@ -78,6 +126,12 @@ class HumanCharacter extends Character {
         });
     }
 
+    /*
+        Method Name: makeMusketDecisions
+        Method Parameters: None
+        Method Description: Checks to see if the user wishes to make decisions for their held musket
+        Method Return: void
+    */
     makeMusketDecisions(){
         let tryingToAim = GAME_USER_INPUT_MANAGER.isActivated("right_click");
         let tryingToShoot = GAME_USER_INPUT_MANAGER.isActivated("left_click_ticked");
@@ -94,6 +148,12 @@ class HumanCharacter extends Character {
         });
     }
 
+    /*
+        Method Name: getGunHoldingAngleRAD
+        Method Parameters: None
+        Method Description: Determines where the user is point at with their crosshair
+        Method Return: float in [0,2*PI)
+    */
     getGunHoldingAngleRAD(){
         return getAngleFromMouseToScreenCenter(this.getScene());
     }

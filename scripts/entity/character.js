@@ -1,8 +1,20 @@
-/*
+/*  
+    Class Name: Character
+    Class Description: A human entity in the game
     Notes:
         Assuming player does not move > 1 tile / tick
 */
 class Character extends Entity {
+    /*
+        Method Name: constructor
+        Method Parameters: 
+            gamemode:
+                Associate gamemode instance
+            model:
+                Model of the human character
+        Method Description: constructor
+        Method Return: constructor
+    */
     constructor(gamemode, model){
         super(gamemode);
         this.healthBar = new HealthBar();
@@ -28,27 +40,61 @@ class Character extends Entity {
         }
     }
 
+    /*
+        Method Name: handleUnpause
+        Method Parameters: None
+        Method Description: Makes adjustments when the game is unpaused
+        Method Return: void
+    */
     handleUnpause(){
         if (this.movementDetails != null){
             this.movementDetails["last_frame_time"] += GAME_TICK_SCHEDULER.getLatestTimeDebt();
         }
     }
 
+    /*
+        Method Name: getRandom
+        Method Parameters: None
+        Method Description: Gets the SeededRandom instance from the gamemode
+        Method Return: SeededRandomizer
+    */
     getRandom(){
         return this.gamemode.getRandom();
     }
 
+    /*
+        Method Name: setHealth
+        Method Parameters: 
+            newHealth:
+                The new amount of health
+        Method Description: Sets the new amount of character health in the health bar
+        Method Return: void
+    */
     setHealth(newHealth){
         this.healthBar.setHealth(newHealth);
     }
 
+    /*
+        Method Name: resetMovement
+        Method Parameters: None
+        Method Description: Stops the character from moving
+        Method Return: void
+    */
     resetMovement(){
         this.movementDetails = null;
     }
 
-    // Abstract
+    // Abstract -> Expected to be implemented by subclasses otherwise blank
     drawGunCrosshair(){}
 
+    /*
+        Method Name: stun
+        Method Parameters: 
+            ticks:
+                The number of ticks to stun the character for
+        Method Description: Stuns the character
+        Method Return: void
+    */
     stun(ticks){
         this.stunLock.addTime(ticks);
 
@@ -57,10 +103,22 @@ class Character extends Entity {
         }
     }
 
+    /*
+        Method Name: getStaminaBar
+        Method Parameters: None
+        Method Description: Getter
+        Method Return: Getter
+    */
     getStaminaBar(){
         return this.staminaBar;
     }
 
+    /*
+        Method Name: resetDecisions
+        Method Parameters: None
+        Method Description: Resets the character's decisions
+        Method Return: void
+    */
     resetDecisions(){
         this.amendDecisions({
             "up": false,
@@ -75,33 +133,101 @@ class Character extends Entity {
         }
     }
 
+    /*
+        Method Name: amendDecisions
+        Method Parameters: 
+            decisionObject:
+                A JSON object with decisions
+        Method Description: Modifies the character's decisions based on the received JSON
+        Method Return: void
+    */
     amendDecisions(decisionObject){
         for (let key of Object.keys(decisionObject)){
             this.decisions[key] = decisionObject[key];
         }
     }
 
+    /*
+        Method Name: getDecision
+        Method Parameters: 
+            decisionName:
+                The name of the decision to look for
+        Method Description: Returns the value associated with a decision
+        Method Return: Variable
+    */
     getDecision(decisionName){
         return this.decisions[decisionName];
     }
 
 
+    /*
+        Method Name: distance
+        Method Parameters: 
+            otherCharacter:
+                Another character
+        Method Description: Calcualtes the distance to another character
+        Method Return: float
+    */
     distance(otherCharacter){
         return calculateEuclideanDistance(this.getInterpolatedTickCenterX(), this.getInterpolatedTickCenterY(), otherCharacter.getInterpolatedTickCenterX(), otherCharacter.getInterpolatedTickCenterY());
     }
 
+    /*
+        Method Name: distanceToTile
+        Method Parameters: 
+            tileX:
+                A tile x coordinate
+            tileY:
+                A tile y coordinate
+        Method Description: Calculates the distance between the character and a tile
+        Method Return: float
+    */
     distanceToTile(tileX, tileY){
         return calculateEuclideanDistance(this.getInterpolatedTickCenterX(), this.getInterpolatedTickCenterY(), this.getScene().getCenterXOfTile(tileX), this.getScene().getCenterYOfTile(tileY));
     }
 
+    /*
+        Method Name: generateShortestRouteToPoint
+        Method Parameters: 
+            endTileX:
+                A tile x coordinate
+            endTileY:
+                A tile y coordinate
+            routeLengthLimit:
+                The number of tiles length that the route is limited to
+        Method Description: Generates the shortests possible route from the character to a point
+        Method Return: Route or null
+    */
     generateShortestRouteToPoint(endTileX, endTileY, routeLengthLimit=Number.MAX_SAFE_INTEGER){
         return this.generateShortestRouteFromPointToPoint(this.getTileX(), this.getTileY(), endTileX, endTileY, routeLengthLimit);
     }
 
+    /*
+        Method Name: canWalkOnTile
+        Method Parameters: 
+            tileX:
+                A tile x coordinate
+            tileY:
+                A tile y coordinate
+        Method Description: Checks if a given tile location is walkable
+        Method Return: Boolean, true -> yes it is walkable, false -> no it's not walkable
+    */
     canWalkOnTile(tileX, tileY){
         return !this.getScene().tileAtLocationHasAttribute(tileX, tileY, "no_walk");
     }
 
+    /*
+        Method Name: exploreAvailableTiles
+        Method Parameters: 
+            maxRouteLength:
+                The number of tiles length that a route is limited to when exploring tiles
+            startTileX:
+                A tile x coordinate
+            startTileY:
+                A tile y coordinate
+        Method Description: Generates a list of tiles that can be reached within a given distance
+        Method Return: List of JSON objects with tile information
+    */
     exploreAvailableTiles(maxRouteLength, startTileX, startTileY){
         if (maxRouteLength === undefined){
             throw new Error("Please supply a valid max route length.");
@@ -181,6 +307,22 @@ class Character extends Entity {
         return knownTiles.toList();
     }
 
+    /*
+        Method Name: generateShortestRouteFromPointToPoint
+        Method Parameters: 
+            startTileX:
+                A tile x coordinate
+            startTileY:
+                A tile y coordinate
+            endTileX:
+                A tile x coordinate
+            endTileY:
+                A tile y coordinate
+            routeLengthLimit:
+                The number of tiles length that a route is limited to
+        Method Description: Creates the shortest possible route from one point to another
+        Method Return: Route or null
+    */
     generateShortestRouteFromPointToPoint(startTileX, startTileY, endTileX, endTileY, routeLengthLimit=Number.MAX_SAFE_INTEGER){
         if (startTileX === endTileX && startTileY === endTileY){ return Route.fromPath([{"tile_x": startTileX, "tile_y": startTileY}]); }
         if (!this.canWalkOnTile(startTileX, startTileY)){ throw new Error("Invalid start tile."); }
@@ -431,14 +573,34 @@ class Character extends Entity {
         return null;
     }
 
+    /*
+        Method Name: getSelectedItem
+        Method Parameters: None
+        Method Description: Gets the selected item from the inventory
+        Method Return: Item or null
+    */
     getSelectedItem(){
         return this.inventory.getSelectedItem();
     }
 
+    /*
+        Method Name: getUpdatedHitbox
+        Method Parameters: None
+        Method Description: Creates a hitbox for the character
+        Method Return: RectangleHitbox
+    */
     getUpdatedHitbox(){
         return new RectangleHitbox(this.getWidth(), this.getHeight(), this.getInterpolatedTickX(), this.getInterpolatedTickY());
     }
 
+    /*
+        Method Name: damage
+        Method Parameters: 
+            amount:
+                Amount of damage to deal
+        Method Description: Damages the character
+        Method Return: void
+    */
     damage(amount){
         if (amount < 0){ throw new Error("Invalid damage amount: " + amount.toString()); }
         if (amount === 0){ return; }
@@ -453,14 +615,34 @@ class Character extends Entity {
         }
     }
 
+    /*
+        Method Name: getHealth
+        Method Parameters: None
+        Method Description: Gets the health from the health bar
+        Method Return: float
+    */
     getHealth(){
         return this.healthBar.getHealth();
     }
 
+    /*
+        Method Name: getStabbed
+        Method Parameters: 
+            stabItem:
+                The item using in the stabbing
+        Method Description: Administers damage from a stab attack
+        Method Return: void
+    */
     getStabbed(stabItem){
         this.damage(0.75);
     }
 
+    /*
+        Method Name: updateMovement
+        Method Parameters: None
+        Method Description: Updates the position of a character
+        Method Return: void
+    */
     updateMovement(){
         // Nothing to do if between tiles
         if (this.isBetweenTiles()){ return; }
@@ -586,26 +768,72 @@ class Character extends Entity {
         this.tileY = newTileY;
     }
 
+    /*
+        Method Name: setTileX
+        Method Parameters: 
+            tileX:
+                A tile x coordinate
+        Method Description: Setter
+        Method Return: Setter
+    */
     setTileX(tileX){
         this.tileX = tileX;
     }
 
+    /*
+        Method Name: setTileY
+        Method Parameters: 
+            tileY:
+                A tile y coordinate
+        Method Description: Setter
+        Method Return: Setter
+    */
     setTileY(tileY){
         this.tileY = tileY;
     }
 
+    /*
+        Method Name: hasVisionRestrictions
+        Method Parameters: None
+        Method Description: Checks if the character has any vision restrictions. 
+        Method Return: Boolean, true -> yes it has vision restrictions, false -> no vision restrictions
+    */
     hasVisionRestrictions(){
         return true;
     }
 
+    /*
+        Method Name: isVisibleTo
+        Method Parameters: 
+            observer:
+                An observer
+        Method Description: Checks if the character is visible to the observer
+        Method Return: Boolean, true -> yes visible, false -> not visible
+    */
     isVisibleTo(observer){
         return observer.canSee(this);
     }
 
+    /*
+        Method Name: setFacingUDLRDirection
+        Method Parameters: 
+            direction:
+                A direction in ["left", "right", "up", "down"]
+        Method Description: Changes the facing direction of the character
+        Method Return: void
+    */
     setFacingUDLRDirection(direction){
         this.animationManager.setVisualDirectionFromMovementDirection(direction);
     }
 
+    /*
+        Method Name: canSee
+        Method Parameters: 
+            entity:
+                Another entity
+        Method Description: Checks if the character can see another entity
+        Method Return: Boolean, true -> can see, false -> cannot see
+    */
     canSee(entity){
         let seeOnCurrentTile = this.couldSeeEntityIfOnTile(entity.getTileX(), entity.getTileY());
         // If I can see the enemy on their current tile then yes I can see them
@@ -640,10 +868,34 @@ class Character extends Entity {
         return this.couldSeeEntityIfOnTile(previousTileX, previousTileY);
     }
 
+    /*
+        Method Name: couldSeeEntityIfOnTile
+        Method Parameters: 
+            tileX:
+                A tile x coordinate
+            tileY:
+                A tile y coordinate
+        Method Description: Checks if the character could see an entity on a given tile
+        Method Return: Boolean, yes -> could see, false -> no could not see
+    */
     couldSeeEntityIfOnTile(tileX, tileY){
         return this.couldISeeEntityAtTileFromTile(this.getTileX(), this.getTileY(), tileX, tileY);
     }
 
+    /*
+        Method Name: couldISeeEntityAtTileFromTile
+        Method Parameters: 
+            mySupposedTileX:
+                A tile x coordinate
+            mySupposedTileY:
+                A tile y coordinate
+            otherTileX:
+                A tile x coordinate
+            otherTileY:
+                A tile y coordinate
+        Method Description: Checks if the character could see an entity on a given tile when standing on another given tile
+        Method Return: Boolean, yes -> could see, false -> no could not see
+    */
     couldISeeEntityAtTileFromTile(mySupposedTileX, mySupposedTileY, otherTileX, otherTileY){
         // If the observer (this) does not have vision restrictions
         if (!this.hasVisionRestrictions()){
@@ -678,6 +930,12 @@ class Character extends Entity {
         return distance <= 1 || this.getScene().tilesInSameMultiCover(otherTileX, otherTileY, mySupposedTileX, mySupposedTileY);   
     }
 
+    /*
+        Method Name: isInSingleCover
+        Method Parameters: None
+        Method Description: Checks if the character is in single cover
+        Method Return: Boolean, true -> yes in single cover, false -> not in single cover
+    */
     isInSingleCover(){
         if (!this.isMoving()){
             return this.getScene().tileAtLocationHasAttribute(this.tileX, this.tileY, "single_cover");
@@ -685,6 +943,12 @@ class Character extends Entity {
         return this.getScene().tileAtLocationHasAttribute(this.tileX, this.tileY, "single_cover") && this.getScene().tileAtLocationHasAttribute(this.movementDetails["last_location_x"], this.movementDetails["last_location_y"], "single_cover");
     }
 
+    /*
+        Method Name: isInMultipleCover
+        Method Parameters: None
+        Method Description: Checks if the character is in multi cover
+        Method Return: Boolean, true -> yes in single cover, false -> not in single cover
+    */
     isInMultipleCover(){
         if (!this.isMoving()){
             return this.getScene().tileAtLocationHasAttribute(this.tileX, this.tileY, "multi_cover");
@@ -692,14 +956,24 @@ class Character extends Entity {
         return this.getScene().tileAtLocationHasAttribute(this.tileX, this.tileY, "multi_cover") && this.getScene().tileAtLocationHasAttribute(this.movementDetails["last_location_x"], this.movementDetails["last_location_y"], "multi_cover");
     }
 
-    getShot(model, killerID){
+    /*
+        Method Name: getShot
+        Method Parameters: 
+            model:
+                Model of shooter
+            shooterID:
+                Id of shooter
+        Method Description: handles being shot by another character
+        Method Return: void
+    */
+    getShot(model, shooterID){
         this.damage(1);
         // Assumes not dead prior to damage
         if (this.isDead()){
             this.gamemode.getEventHandler().emit({
                 "victim_class": this.getModel(),
                 "killer_class": model,
-                "killer_id": killerID,
+                "killer_id": shooterID,
                 "tile_x": this.getTileX(),
                 "tile_y": this.getTileY(),
                 "center_x": this.getInterpolatedTickCenterX(),
@@ -710,68 +984,165 @@ class Character extends Entity {
     }
 
 
-    // Note: From center to side
+    /*
+        Method Name: getHalfWidth
+        Method Parameters: None
+        Method Description: Calculates the distance from the center of the character to its side (left/right)
+        Method Return: float
+        Note: From center to side
+    */
     getHalfWidth(){
         return (this.getWidth() - 1)/2;
     }
 
     // Note: From center to side
+    /*
+        Method Name: getHalfHeight
+        Method Parameters: None
+        Method Description: Calculates the distance from the center of the character to its side (up/down)
+        Method Return: float
+        Note: From center to side
+    */
     getHalfHeight(){
         return (this.getHeight() - 1)/2;
     }
 
+    /*
+        Method Name: getWidth
+        Method Parameters: None
+        Method Description: Gets the width of the character
+        Method Return: float/int
+    */
     getWidth(){
         return WTL_GAME_DATA["general"]["tile_size"];
     }
 
+    /*
+        Method Name: getHeight
+        Method Parameters: None
+        Method Description: Gets the height of the character
+        Method Return: float/int
+    */
     getHeight(){
         return WTL_GAME_DATA["general"]["tile_size"];
     }
 
+    /*
+        Method Name: getInventory
+        Method Parameters: None
+        Method Description: Getter
+        Method Return: Getter
+    */
     getInventory(){
         return this.inventory;
     }
 
+    /*
+        Method Name: getFacingDirection
+        Method Parameters: None
+        Method Description: Gets the visual/facing direction of the chracter
+        Method Return: String in ["front", "back", "left", "right"]
+    */
     getFacingDirection(){
         return this.animationManager.getVisualDirection();
     }
 
+    /*
+        Method Name: getFacingUDLRDirection
+        Method Parameters: None
+        Method Description: Gets the visual/facing direction of the chracter
+        Method Return: String in ["up", "down", "left", "right"]
+    */
     getFacingUDLRDirection(){
         return getMovementDirectionOf(this.getFacingDirection());
     }
 
+    /*
+        Method Name: getModel
+        Method Parameters: None
+        Method Description: Getter
+        Method Return: String
+    */
     getModel(){
         return this.model;
     }
 
+    /*
+        Method Name: getModelCategory
+        Method Parameters: None
+        Method Description: Gets the model category of the character
+        Method Return: String
+    */
     getModelCategory(){
         return WTL_GAME_DATA["model_to_model_category"][this.getModel()];
     }
 
+    /*
+        Method Name: getInterpolatedCenterX
+        Method Parameters: None
+        Method Description: Gets the center x of the character for display
+        Method Return: float
+    */
     getInterpolatedCenterX(){
         return this.getInterpolatedX() + (this.getImage().width - 1) / 2;
     }
 
+    /*
+        Method Name: getInterpolatedCenterY
+        Method Parameters: None
+        Method Description: Gets the center y of the character for display
+        Method Return: float
+    */
     getInterpolatedCenterY(){
         return this.getInterpolatedY() - (this.getImage().height - 1) / 2;
     }
 
+    /*
+        Method Name: getInterpolatedTickCenterX
+        Method Parameters: None
+        Method Description: Gets the center x of the character
+        Method Return: float
+    */
     getInterpolatedTickCenterX(){
         return this.getInterpolatedTickX() + (this.getImage().width - 1) / 2;
     }
 
+    /*
+        Method Name: getInterpolatedTickCenterY
+        Method Parameters: None
+        Method Description: Gets the center y of the character
+        Method Return: float
+    */
     getInterpolatedTickCenterY(){
         return this.getInterpolatedTickY() - (this.getImage().height - 1) / 2;
     }
 
+    /*
+        Method Name: getX
+        Method Parameters: None
+        Method Description: Gets the center x of the character
+        Method Return: float
+    */
     getX(){
         return this.getInterpolatedCenterX();
     }
 
+    /*
+        Method Name: getY
+        Method Parameters: None
+        Method Description: Gets the center y of the character
+        Method Return: float
+    */
     getY(){
         return this.getInterpolatedCenterY();
     }
 
+    /*
+        Method Name: tick
+        Method Parameters: None
+        Method Description: Acts during a tick
+        Method Return: void
+    */
     tick(){
         if (this.isDead()){ return; }
         this.lookingDetails["look_lock"].tick();
@@ -785,8 +1156,20 @@ class Character extends Entity {
     }
 
     // Abstract
+    /*
+        Method Name: makeDecisions
+        Method Parameters: None
+        Method Description: TODO
+        Method Return: TODO
+    */
     makeDecisions(){}
 
+    /*
+        Method Name: makeDecisionsForSelectedItem
+        Method Parameters: None
+        Method Description: Makes decisions for the held/selected item
+        Method Return: void
+    */
     makeDecisionsForSelectedItem(){
         let selectedItem = this.getInventory().getSelectedItem();
         if (selectedItem != null){
@@ -794,6 +1177,12 @@ class Character extends Entity {
         }
     }
 
+    /*
+        Method Name: actOnDecisions
+        Method Parameters: None
+        Method Description: Takes actions based on decisions
+        Method Return: void
+    */
     actOnDecisions(){
         this.updateMovement();
         if (this.stunLock.isLocked()){ return; }
@@ -801,6 +1190,12 @@ class Character extends Entity {
         this.inventory.actOnDecisionsForSelectedItem();
     }
 
+    /*
+        Method Name: displayWhenFocused
+        Method Parameters: None
+        Method Description: Displays special things when focused by the scene
+        Method Return: void
+    */
     displayWhenFocused(){
         if (this.isDead()){ return; }
         this.inventory.display();
@@ -808,26 +1203,62 @@ class Character extends Entity {
         this.healthBar.display();
     }
 
+    /*
+        Method Name: getImage
+        Method Parameters: None
+        Method Description: Gets the image of the character
+        Method Return: Image
+    */
     getImage(){
         return IMAGES[this.model + this.animationManager.getCurrentImageSuffix(this.getXVelocity(), this.getYVelocity())];
     }
 
+    /*
+        Method Name: isMoving
+        Method Parameters: None
+        Method Description: Checks if moving
+        Method Return: true -> moving, false -> not moving
+    */
     isMoving(){
         return this.movementDetails != null && this.isAlive();
     }
 
+    /*
+        Method Name: isSprinting
+        Method Parameters: None
+        Method Description: Checks if sprining
+        Method Return: true -> sprinting, false -> not sprinting
+    */
     isSprinting(){
         return this.movementDetails != null && this.movementDetails["sprinting"];
     }
 
+    /*
+        Method Name: getTileX
+        Method Parameters: None
+        Method Description: Getter
+        Method Return: Getter
+    */
     getTileX(){
         return this.tileX;
     }
 
+    /*
+        Method Name: getTileY
+        Method Parameters: None
+        Method Description: Getter
+        Method Return: Getter
+    */
     getTileY(){
         return this.tileY;
     }
 
+    /*
+        Method Name: getInterpolatedTickX
+        Method Parameters: None
+        Method Description: Gets the x location of the top left pixel of the character
+        Method Return: float
+    */
     getInterpolatedTickX(){
         let xOfTile = this.gamemode.getScene().getXOfTile(this.tileX);
         // If not moving (or moving u/d) then x is just tile x
@@ -840,6 +1271,12 @@ class Character extends Entity {
         return x + this.movementDetails["speed"] * dir * (this.getCurrentTick() - this.movementDetails["last_tick_number"]) * WTL_GAME_DATA["general"]["ms_between_ticks"] / 1000;
     }
 
+    /*
+        Method Name: getInterpolatedX
+        Method Parameters: None
+        Method Description: Gets the x location of the top left pixel of the character. In between ticks.
+        Method Return: float
+    */
     getInterpolatedX(){
         if (GAME_TICK_SCHEDULER.isPaused()){
             return this.getInterpolatedTickX();
@@ -855,10 +1292,24 @@ class Character extends Entity {
         return x + this.movementDetails["speed"] * dir * (FRAME_COUNTER.getLastFrameTime() - this.movementDetails["last_frame_time"]) / 1000;
     }
 
+    /*
+        Method Name: getDisplayX
+        Method Parameters: 
+            lX:
+                The x of the left side of the screen
+        Method Description: Comes up with a x position for the character center in relation to the position of the scene's focus
+        Method Return: float
+    */
     getDisplayX(lX){
         return (this.getInterpolatedCenterX() - lX) * gameZoom;
     }
 
+    /*
+        Method Name: getInterpolatedY
+        Method Parameters: None
+        Method Description: Gets the y location of the top left pixel of the character. In between ticks.
+        Method Return: float
+    */
     getInterpolatedY(){
         if (GAME_TICK_SCHEDULER.isPaused()){
             return this.getInterpolatedTickY();
@@ -874,6 +1325,12 @@ class Character extends Entity {
         return y + this.movementDetails["speed"] * dir * (FRAME_COUNTER.getLastFrameTime() - this.movementDetails["last_frame_time"]) / 1000;
     }
 
+    /*
+        Method Name: getInterpolatedTickY
+        Method Parameters: None
+        Method Description: Gets the y location of the top left pixel of the character
+        Method Return: float
+    */
     getInterpolatedTickY(){
         let yOfTile = this.gamemode.getScene().getYOfTile(this.tileY);
         // If not moving (or moving l/r) then y is just tile y
@@ -886,14 +1343,34 @@ class Character extends Entity {
         return y + this.movementDetails["speed"] * dir * (this.getCurrentTick() - this.movementDetails["last_tick_number"]) * WTL_GAME_DATA["general"]["ms_between_ticks"] / 1000;
     }
 
+    /*
+        Method Name: getDisplayY
+        Method Parameters: 
+            bY:
+                The y of the bottom of the screen
+        Method Description: Comes up with a x position for the character center in relation to the position of the scene's focus
+        Method Return: float
+    */
     getDisplayY(bY){
         return this.gamemode.getScene().changeToScreenY((this.getInterpolatedCenterY() - bY) * gameZoom);
     }
 
+    /*
+        Method Name: getCurrentTick
+        Method Parameters: None
+        Method Description: Gets the current tick
+        Method Return: integer
+    */
     getCurrentTick(){
         return this.gamemode.getCurrentTick();
     }
 
+    /*
+        Method Name: isBetweenTiles
+        Method Parameters: None
+        Method Description: Checks if the character is between tiles
+        Method Return: Boolean, true -> between tiles, false -> not between tiles
+    */
     isBetweenTiles(){
         if (!this.isMoving()){
             return false;
@@ -901,18 +1378,44 @@ class Character extends Entity {
         return Math.ceil(this.movementDetails["reached_destination_tick"]) != this.getCurrentTick();
     }
 
+    /*
+        Method Name: getXVelocity
+        Method Parameters: None
+        Method Description: Gets the character x velocity
+        Method Return: float
+    */
     getXVelocity(){
         if (!this.isMoving()){ return 0; }
         if (this.movementDetails["direction"] === "up" || this.movementDetails["direction"] === "down"){ return 0; }
         return this.movementDetails["speed"] * (this.movementDetails["direction"] === "left" ? -1 : 1);
     }
 
+    /*
+        Method Name: getYVelocity
+        Method Parameters: None
+        Method Description: Gets the character y velocity
+        Method Return: float
+    */
     getYVelocity(){
         if (!this.isMoving()){ return 0; }
         if (this.movementDetails["direction"] === "left" || this.movementDetails["direction"] === "right"){ return 0; }
         return this.movementDetails["speed"] * (this.movementDetails["direction"] === "down" ? -1 : 1);
     }
 
+    /*
+        Method Name: display
+        Method Parameters: 
+            lX:
+                The x of the left of the screen
+            rX:
+                The x of the right of the screen
+            bY:
+                The y of the bottom of the screen
+            tY:
+                The y of the top of the screen
+        Method Description: Displays the character
+        Method Return: void
+    */
     display(lX, rX, bY, tY){
         if (this.isDead()){ return; }
         let x = this.getDisplayX(lX); // center of character

@@ -1,4 +1,20 @@
+/*  
+    Class Name: LevelGeneratorCamera
+    Class Description: A camera to be operated when using the level generator gamemode
+*/
 class LevelGeneratorCamera extends Entity {
+    /*
+        Method Name: constructor
+        Method Parameters: 
+            gamemode:
+                A levelgenerator instance
+            x:
+                Starting x   
+            y:
+                Starting y
+        Method Description: constructor
+        Method Return: constructor
+    */
     constructor(gamemode, x=0, y=0){
         super(gamemode);
         this.x = x;
@@ -13,6 +29,16 @@ class LevelGeneratorCamera extends Entity {
         this.id = "camera";
     }
 
+    /*
+        Method Name: setPosition
+        Method Parameters: 
+            x:
+                x coordinate
+            y:
+                y coordinate
+        Method Description: Changes the position of the camera
+        Method Return: void
+    */
     setPosition(x, y){
         this.x = x;
         this.y = y;
@@ -64,22 +90,52 @@ class LevelGeneratorCamera extends Entity {
         this.yVelocity *= downKey ? -1 : 1; 
     }
 
+    /*
+        Method Name: getInterpolatedX
+        Method Parameters: None
+        Method Description: Gets the current x of the camera for display purposes
+        Method Return: float
+    */
     getInterpolatedX(){
         return this.x + this.xVelocity * (FRAME_COUNTER.getLastFrameTime() - GAME_TICK_SCHEDULER.getLastTickTime()) / 1000;
     }
 
+    /*
+        Method Name: getInterpolatedY
+        Method Parameters: None
+        Method Description: Gets the current y of the camera for display purposes
+        Method Return: float
+    */
     getInterpolatedY(){
         return this.y + this.yVelocity * (FRAME_COUNTER.getLastFrameTime() - GAME_TICK_SCHEDULER.getLastTickTime()) / 1000;
     }
 
+    /*
+        Method Name: getInterpolatedCenterX
+        Method Parameters: None
+        Method Description: Gets the current x of the camera for display purposes
+        Method Return: float
+    */
     getInterpolatedCenterX(){
         return this.getInterpolatedX();
     }
 
+    /*
+        Method Name: getInterpolatedCenterY
+        Method Parameters: None
+        Method Description: Gets the current y of the camera for display purposes
+        Method Return: float
+    */
     getInterpolatedCenterY(){
         return this.getInterpolatedY();
     }
 
+    /*
+        Method Name: tick
+        Method Parameters: None
+        Method Description: Runs processes during a tick
+        Method Return: void
+    */
     tick(){
         // Update tick locks
         this.xLock.tick();
@@ -92,6 +148,12 @@ class LevelGeneratorCamera extends Entity {
         this.updateCursorInfo();
     }
 
+    /*
+        Method Name: updateCursorInfo
+        Method Parameters: None
+        Method Description: Updates information about the cursor position
+        Method Return: void
+    */
     updateCursorInfo(){
         let canvasX = gMouseX;
         let canvasY = this.getScene().changeFromScreenY(gMouseY);
@@ -102,6 +164,12 @@ class LevelGeneratorCamera extends Entity {
         this.cursorTileY = WTLGameScene.getTileYAt(engineY);
     }
 
+    /*
+        Method Name: display
+        Method Parameters: None
+        Method Description: Displays the focused entity or hud info
+        Method Return: void
+    */
     display(){
         MY_HUD.updateElement("Cursor Tile X", this.cursorTileX);
         MY_HUD.updateElement("Cursor Tile Y", this.cursorTileY);

@@ -54,7 +54,7 @@ class DebuggingDot {
             newColourCode:
                 A new color code
         Method Description: Setter
-        Method Return: Setter
+        Method Return: void
     */
     setColourCode(newColourCode){
         this.colourCode = newColourCode;
@@ -66,7 +66,7 @@ class DebuggingDot {
             x:
                 A new x value
         Method Description: Setter
-        Method Return: Setter
+        Method Return: void
     */
     setX(x){
         this.x = x;
@@ -76,7 +76,7 @@ class DebuggingDot {
         Method Name: getX
         Method Parameters: None
         Method Description: Getter
-        Method Return: Getter
+        Method Return: float
     */
     getX(){
         return this.x;
@@ -88,7 +88,7 @@ class DebuggingDot {
             y:
                 A new y value
         Method Description: Setter
-        Method Return: Setter
+        Method Return: void
     */
     setY(y){
         this.y = y;
@@ -98,7 +98,7 @@ class DebuggingDot {
         Method Name: getY
         Method Parameters: None
         Method Description: Getter
-        Method Return: Getter
+        Method Return: float
     */
     getY(){
         return this.y;

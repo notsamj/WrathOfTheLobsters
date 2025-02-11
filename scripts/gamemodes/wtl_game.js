@@ -62,18 +62,42 @@ const KEY_CODE_MIDDLE_CLICK = 2;
 const KEY_CODE_RIGHT_CLICK = 3;
 
 // Functions
+/*
+    Function Name: rDebug
+    Function Parameters: None
+    Function Description: Starts the 'r' (ramshackle) debugger
+    Function Return: void
+*/
 function rDebug(){
     ramshackleDebugToolValue = true;
 }
 
+/*
+    Function Name: stopRDebugging
+    Function Parameters: None
+    Function Description: Stops the 'r' (ramshackle) debugger
+    Function Return: void
+*/
 function stopRDebugging(){
     ramshackleDebugToolValue = false;
 }
 
+/*
+    Function Name: isRDebugging
+    Function Parameters: None
+    Function Description: Checks if the 'r' (ramshackle) debugger is active
+    Function Return: boolean
+*/
 function isRDebugging(){
     return ramshackleDebugToolValue;
 }
 
+/*
+    Function Name: loadHelpImages
+    Function Parameters: None
+    Function Description: Loads help images
+    Function Return: Promise (implicit)
+*/
 async function loadHelpImages(){
     let imageJSON = WTL_GAME_DATA["menu"]["menus"]["help_menu"]["help_image"]["images"];
     let folderURL = "help/";
@@ -86,6 +110,12 @@ async function loadHelpImages(){
     }
 }
 
+/*
+    Function Name: loadProjectImages
+    Function Parameters: None
+    Function Description: Loads project images
+    Function Return: Promise (implicit)
+*/
 async function loadProjectImages(){
     let images = WTL_GAME_DATA["menu"]["menus"]["my_projects_menu"]["project_image"]["images"];
     let folderURL = "my_projects/";
@@ -97,6 +127,12 @@ async function loadProjectImages(){
     
 }
 
+/*
+    Function Name: setup
+    Function Parameters: None
+    Function Description: Sets up the game
+    Function Return: Promise (implicit)
+*/
 async function setup() {
     setupOngoing = true;
     try {
@@ -320,6 +356,18 @@ function setGameZoom(){
     }
 }
 
+/*
+    Function Name: drawCustomCrosshair
+    Function Parameters: 
+        crosshairImage:
+            Image to display
+        customX:
+            Specified x for display
+        customY=null:
+            Specified y for display
+    Function Description: Displays a custom crosshair
+    Function Return: void
+*/
 function drawCustomCrosshair(crosshairImage, customX=null, customY=null){
     let x = gMouseX;
     let y = gMouseY;
@@ -336,6 +384,12 @@ function drawCustomCrosshair(crosshairImage, customX=null, customY=null){
     drawingContext.drawImage(crosshairImage, displayX, displayY); 
 }
 
+/*
+    Function Name: draw
+    Function Parameters: None
+    Function Description: Draws things on the canvas
+    Function Return: void
+*/
 function draw() {
     // Temporary white background
     noStrokeRectangle(Colour.fromCode("#ffffff"), 0, 0, getScreenWidth(), getScreenHeight());
@@ -343,10 +397,22 @@ function draw() {
     MENU_MANAGER.display();
 }
 
+/*
+    Function Name: stop
+    Function Parameters: None
+    Function Description: Stops ticks
+    Function Return: void
+*/
 function stop(){
     programOver = true;
 }
 
+/*
+    Function Name: tick
+    Function Parameters: None
+    Function Description: Runs a tick
+    Function Return: Promise (implicit)
+*/
 async function tick(){
     if (programOver){ return; }
     if (GAME_TICK_SCHEDULER.getTickLock().notReady()){ 
@@ -402,10 +468,22 @@ async function tick(){
     requestAnimationFrame(tick);
 }
 
+/*
+    Function Name: getCanvasWidth
+    Function Parameters: None
+    Function Description: Gets the canvas width
+    Function Return: int
+*/
 function getCanvasWidth(){
     return getScreenWidth();
 }
 
+/*
+    Function Name: getCanvasHeight
+    Function Parameters: None
+    Function Description: Gets the canvas height
+    Function Return: int
+*/
 function getCanvasHeight(){
     return getScreenHeight();
 }
@@ -415,17 +493,39 @@ window.addEventListener("load", () => {
     setup();
 });
 
+/*
+    Function Name: startGame
+    Function Parameters: None
+    Function Description: Starts a game (for testing)
+    Function Return: void
+*/
 function startGame(){
     //GAMEMODE_MANAGER.setActiveGamemode(new WTLGame());
     let gameDetails = WTL_GAME_DATA["test_settings"]["duel"];
     GAMEMODE_MANAGER.setActiveGamemode(new Duel(gameDetails));
 }
 
+/*
+    Function Name: startGameMaker
+    Function Parameters: None
+    Function Description: Starts the gamemaker
+    Function Return: void
+*/
 function startGameMaker(){
     GAMEMODE_MANAGER.setActiveGamemode(new GameMaker());
 }
 
+/*
+    Class Name: WTLGame
+    Description: Basic gamemode for testing
+*/
 class WTLGame extends Gamemode {
+    /*
+        Method Name: constructor
+        Method Parameters: None
+        Method Description: constructor
+        Method Return: constructor
+    */
     constructor(){
         super();
 
@@ -444,12 +544,30 @@ class WTLGame extends Gamemode {
         this.startUp();
     }
 
+    /*
+        Method Name: getName
+        Method Parameters: None
+        Method Description: Gets the name
+        Method Return: String
+    */
     getName(){ return "wtl_game"; }
 
+    /*
+        Method Name: getEnemyVisibilityDistance
+        Method Parameters: None
+        Method Description: Gets the enemy visibility distance
+        Method Return: int
+    */
     getEnemyVisibilityDistance(){
         return Number.MAX_SAFE_INTEGER;
     }
 
+    /*
+        Method Name: startUp
+        Method Parameters: None
+        Method Description: Starts up the game
+        Method Return: Promise (implicit)
+    */
     async startUp(){
         await this.scene.loadTilesFromJSON(LEVEL_DATA["default.json"]);
         let samuel = new HumanCharacter(this, "usa_officer");
@@ -497,11 +615,23 @@ class WTLGame extends Gamemode {
 
     }
 
+    /*
+        Method Name: display
+        Method Parameters: None
+        Method Description: Displays the game
+        Method Return: void
+    */
     display(){
         if (this.startUpLock.isLocked()){ return; }
         this.scene.display();
     }
 
+    /*
+        Method Name: tick
+        Method Parameters: None
+        Method Description: Ticks the game
+        Method Return: void
+    */
     tick(){
         if (this.startUpLock.isLocked()){ return; }
         this.scene.tick();

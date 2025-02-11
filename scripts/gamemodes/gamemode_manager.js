@@ -13,6 +13,12 @@ class GamemodeManager {
         this.gamemode = null;
     }
 
+    /*
+        Method Name: getActiveGameName
+        Method Parameters: None
+        Method Description: Gets the active game game
+        Method Return: String or null
+    */
     getActiveGameName(){
         if (!this.hasActiveGamemode()){
             return null;
@@ -20,6 +26,12 @@ class GamemodeManager {
         return this.gamemode.getName();
     }
 
+    /*
+        Method Name: handleUnpause
+        Method Parameters: None
+        Method Description: Tells game to handle the unpause
+        Method Return: void
+    */
     handleUnpause(){
         if (this.hasActiveGamemode()){
             this.gamemode.handleUnpause();

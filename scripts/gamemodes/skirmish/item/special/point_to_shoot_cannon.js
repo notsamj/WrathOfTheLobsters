@@ -1,4 +1,16 @@
+/*  
+    Class Name: PointToMove
+    Class Description: A took for indicating a place for troops to move
+*/
 class PointToShootCannon extends Item {
+    /*
+        Method Name: constructor
+        Method Parameters: 
+            details:
+                JSON object with information
+        Method Description: constructor
+        Method Return: constructor
+    */
     constructor(details){
         super();
         this.player = objectHasKey(details, "player") ? details["player"] : null;
@@ -7,6 +19,12 @@ class PointToShootCannon extends Item {
         this.unlocksAtTurnNumber = this.getGamemode().getTurnCounter() + WTL_GAME_DATA["cannon"]["turn_cooldown"] * 2;
     }
 
+    /*
+        Method Name: resetDecisions
+        Method Parameters: None
+        Method Description: Resets the decisions
+        Method Return: void
+    */
     resetDecisions(){
         this.player.amendDecisions({
             "crosshair_center_x": null,
@@ -16,14 +34,32 @@ class PointToShootCannon extends Item {
         });
     }
 
+    /*
+        Method Name: makeDecisions
+        Method Parameters: None
+        Method Description: Indicates that the player should make move cannon pointer decisions
+        Method Return: void
+    */
     makeDecisions(){
         this.player.makeCannonPointerDecisions();
     }
 
+    /*
+        Method Name: getGamemode
+        Method Parameters: None
+        Method Description: Gets the player's gamemode
+        Method Return: Skirmish instance
+    */
     getGamemode(){
         return this.player.getGamemode();
     }
 
+    /*
+        Method Name: actOnDecisions
+        Method Parameters: None
+        Method Description: Acts on decisions
+        Method Return: void
+    */
     actOnDecisions(){
         if (this.getDecision("new_crosshair_center")){
             this.crosshairCenterX = this.getDecision("crosshair_center_x");
@@ -36,6 +72,12 @@ class PointToShootCannon extends Item {
         }
     }
 
+    /*
+        Method Name: shootCannon
+        Method Parameters: None
+        Method Description: Shoots the cannon
+        Method Return: void
+    */
     shootCannon(){
         let scene = this.player.getScene();
 
@@ -99,7 +141,6 @@ class PointToShootCannon extends Item {
                     let distanceFromHitLocation = calculateEuclideanDistance(hitX, hitY, rockHitboxCenterX, rockHitboxCenterY);
                     let distanceFromHitLocationInTiles = distanceFromHitLocation/WTL_GAME_DATA["general"]["tile_size"];
                     rockHitbox.damage(calculateCannonDamage(distanceFromHitLocationInTiles, rockMultiplier));
-                    //console.log("Damaging rock", tileX, tileY, calculateCannonDamage(distanceFromHitLocationInTiles, rockMultiplier));
                     // If the rock is dead -> Destroy it
                     if (rockHitbox.isDead()){
                         // Destroy the tile
@@ -126,17 +167,51 @@ class PointToShootCannon extends Item {
         this.unlocksAtTurnNumber = this.getGamemode().getTurnCounter() + WTL_GAME_DATA["cannon"]["turn_cooldown"] * 2;
     }
 
+    /*
+        Method Name: select
+        Method Parameters: None
+        Method Description: dud
+        Method Return: void
+    */
     select(){}
+    /*
+        Method Name: deselect
+        Method Parameters: None
+        Method Description: dud
+        Method Return: void
+    */
     deselect(){}
 
+    /*
+        Method Name: getScene
+        Method Parameters: None
+        Method Description: Gets the player's scene
+        Method Return: WTLGameScene
+    */
     getScene(){
         return this.player.getScene();
     }
 
+    /*
+        Method Name: getDisplayedCooldown
+        Method Parameters: None
+        Method Description: Gets the cooldown to display
+        Method Return: int
+    */
     getDisplayedCooldown(){
         return Math.ceil((this.unlocksAtTurnNumber - this.getGamemode().getTurnCounter())/2);
     }
 
+    /*
+        Method Name: displayItemSlot
+        Method Parameters: 
+            providedX:
+                The x of the item slot
+            providedY:
+                The y of the item slot
+        Method Description: Displays in the hotbar
+        Method Return: void
+    */
     displayItemSlot(providedX, providedY){
         let image = IMAGES["point_to_shoot_cannon"];
         let displayScale = WTL_GAME_DATA["inventory"]["slot_size"] / image.width;
@@ -160,13 +235,35 @@ class PointToShootCannon extends Item {
         translate(-1 * scaleX, -1 * scaleY);
     }
 
+    /*
+        Method Name: tick
+        Method Parameters: None
+        Method Description: Handles tick processes
+        Method Return: void
+    */
     tick(){
     }
 
+    /*
+        Method Name: isOnCooldown
+        Method Parameters: None
+        Method Description: Checks if on cooldown
+        Method Return: boolean
+    */
     isOnCooldown(){
         return this.unlocksAtTurnNumber > this.getGamemode().getTurnCounter();
     }
 
+    /*
+        Method Name: display
+        Method Parameters: 
+            lX:
+                The x coordinate of the left side of the screen
+            bY:
+                The y coordinate of the bottom of the screen
+        Method Description: Displays the crosshair
+        Method Return: void
+    */
     display(lX, bY){
         if (!this.player.isMakingAMove()){ return; }
         let x = this.getScene().getDisplayXOfPoint(this.crosshairCenterX, lX);

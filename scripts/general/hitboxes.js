@@ -35,6 +35,16 @@ class CircleHitbox {
         this.y = y;
     }
 
+    /*
+        Method Name: coversPoint
+        Method Parameters: 
+            x:
+                An x coordinate
+            y:
+                A y coordinate
+        Method Description: Checks if the hitbox covers a point
+        Method Return: float
+    */
     coversPoint(x, y){
         let xDisplacement = x - this.x;
         let yDisplacement = y - this.y;
@@ -201,6 +211,16 @@ class RectangleHitbox {
         }
     }
 
+    /*
+        Method Name: coversPoint
+        Method Parameters: 
+            x:
+                An x coordinate
+            y:
+                A y coordinate
+        Method Description: Checks if the hitbox covers a point
+        Method Return: float
+    */
     coversPoint(x, y){
         return pointInRectangle(x, y, this.x1, this.x2, this.y1, this.y2);
     }

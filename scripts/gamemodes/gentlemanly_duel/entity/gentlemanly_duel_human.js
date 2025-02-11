@@ -1,9 +1,36 @@
-
+/*  
+    Class Name: GentlemanlyDuelHuman
+    Class Description: A human-controlled character taking part in a gentlemanly duel
+*/
 class GentlemanlyDuelHuman extends GentlemanlyDuelCharacter {
+    /*
+        Method Name: constructor
+        Method Parameters: 
+            gamemode:
+                Gentlemanly duel instance
+            model:
+                The character model
+            extraDetails:
+                Extra information about the character (JSON)
+        Method Description: constructor
+        Method Return: constructor
+    */
     constructor(gamemode, model, extraDetails){
         super(gamemode, model, extraDetails);
     }
 
+    /*
+        Method Name: drawGunCrosshair
+        Method Parameters: 
+            gun:
+                A gun instance
+            lX:
+                The x coordinate of the left side of the screen
+            bY:
+                The y coordinate of the bottom of the screen
+        Method Description: Draws the crosshair on the screen
+        Method Return: void
+    */
     drawGunCrosshair(gun, lX, bY){
         let mouseX = gMouseX;
         let mouseY = gMouseY;
@@ -44,6 +71,12 @@ class GentlemanlyDuelHuman extends GentlemanlyDuelCharacter {
         translate(-1 * x, -1 * y);
     }
 
+    /*
+        Method Name: makeDecisions
+        Method Parameters: None
+        Method Description: Makes decisions
+        Method Return: void
+    */
     makeDecisions(){
         this.resetDecisions();
         //this.inventory.makeDecisions();
@@ -53,13 +86,31 @@ class GentlemanlyDuelHuman extends GentlemanlyDuelCharacter {
         this.updateFromCommands();
     }
 
+    /*
+        Method Name: isHuman
+        Method Parameters: None
+        Method Description: Checks if the character is a human
+        Method Return: boolean
+    */
     isHuman(){return true;}
 
+    /*
+        Method Name: updateFromCommands
+        Method Parameters: None
+        Method Description: Makes decisions from game commands
+        Method Return: void
+    */
     updateFromCommands(){
         let command = this.gamemode.getCommandFromGame(this.getID());
         this.amendDecisions(command);
     }
 
+    /*
+        Method Name: makePistolDecisions
+        Method Parameters: None
+        Method Description: Checks if the human user wishes to shoot/aim/reload their pistol
+        Method Return: void
+    */
     makePistolDecisions(){
         let canShoot = this.gamemode.canShoot(this.getID());
         let tryingToAim = GAME_USER_INPUT_MANAGER.isActivated("right_click") && canShoot;
@@ -73,6 +124,12 @@ class GentlemanlyDuelHuman extends GentlemanlyDuelCharacter {
         });
     }
 
+    /*
+        Method Name: getGunHoldingAngleRAD
+        Method Parameters: None
+        Method Description: TODO
+        Method Return: TODO
+    */
     getGunHoldingAngleRAD(){
         return getAngleFromMouseToScreenCenter(this.getScene());
     }

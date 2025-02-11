@@ -107,7 +107,7 @@ class Character extends Entity {
         Method Name: getStaminaBar
         Method Parameters: None
         Method Description: Getter
-        Method Return: Getter
+        Method Return: StaminaBar
     */
     getStaminaBar(){
         return this.staminaBar;
@@ -774,7 +774,7 @@ class Character extends Entity {
             tileX:
                 A tile x coordinate
         Method Description: Setter
-        Method Return: Setter
+        Method Return: void
     */
     setTileX(tileX){
         this.tileX = tileX;
@@ -786,7 +786,7 @@ class Character extends Entity {
             tileY:
                 A tile y coordinate
         Method Description: Setter
-        Method Return: Setter
+        Method Return: void
     */
     setTileY(tileY){
         this.tileY = tileY;
@@ -1031,7 +1031,7 @@ class Character extends Entity {
         Method Name: getInventory
         Method Parameters: None
         Method Description: Getter
-        Method Return: Getter
+        Method Return: Inventory
     */
     getInventory(){
         return this.inventory;
@@ -1237,7 +1237,7 @@ class Character extends Entity {
         Method Name: getTileX
         Method Parameters: None
         Method Description: Getter
-        Method Return: Getter
+        Method Return: int
     */
     getTileX(){
         return this.tileX;
@@ -1247,7 +1247,7 @@ class Character extends Entity {
         Method Name: getTileY
         Method Parameters: None
         Method Description: Getter
-        Method Return: Getter
+        Method Return: int
     */
     getTileY(){
         return this.tileY;

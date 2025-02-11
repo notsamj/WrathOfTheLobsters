@@ -1,7 +1,6 @@
 /*
     Class Name: FrameRateCounter
     Description: A class to count frame rate
-    TODO: Comment this class
 */
 class FrameRateCounter {
     static FRAME_GAP_CONSTANT = 0.9;
@@ -21,6 +20,12 @@ class FrameRateCounter {
         for (let i = 0; i < maxFPS; i++){ this.frameTimes.push(0); }
     }
 
+    /*
+        Method Name: getLastFrameTime
+        Method Parameters: None
+        Method Description: Gets the time of the last frame
+        Method Return: int
+    */
     getLastFrameTime(){
         return this.lastFrameTime;
     }
@@ -59,12 +64,22 @@ class FrameRateCounter {
         return fps;
     }
 
-    // TODO: Comments
+    /*
+        Method Name: getMaxFPS
+        Method Parameters: None
+        Method Description: Gets the maximum fps
+        Method Return: int
+    */
     getMaxFPS(){
         return this.maxFPS;
     }
 
-    // TODO: Comments
+    /*
+        Method Name: ready
+        Method Parameters: None
+        Method Description: Checks if the frame counter is ready to have another frame
+        Method Return: boolean
+    */
     ready(){
         return this.getFPS() < this.getMaxFPS() && Date.now() - this.lastFrameTime > this.minFrameGap;
     }

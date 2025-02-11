@@ -1,6 +1,6 @@
 /*
     Class Name: LoadingScreen
-    Description: TODO
+    Description: A loading screen of squares
 */
 class LoadingScreen {
     /*
@@ -20,6 +20,14 @@ class LoadingScreen {
         //this.y = 0;
     }
 
+    /*
+        Method Name: display
+        Method Parameters: 
+            allowMovement:
+                Allows the movement of squares
+        Method Description: Displays squares
+        Method Return: void
+    */
     display(allowMovement=true){
         if (allowMovement){
             this.x += this.xVelocity / gameZoom;
@@ -112,6 +120,18 @@ class LoadingScreen {
     Description: A collection of mesh objects in a x, y region
 */
 class Mesh {
+    /*
+        Method Name: constructor
+        Method Parameters: 
+            meshX:
+                The x coordinate of the mesh
+            meshY:
+                The y coordinate of the mesh
+            backgroundManager:
+                The loading screen instance
+        Method Description: constructor
+        Method Return: constructor
+    */
     constructor(meshX, meshY, backgroundManager){
         this.backgroundManager = backgroundManager;
         this.meshX = meshX;
@@ -199,6 +219,16 @@ class Mesh {
         }
     }
 
+    /*
+        Method Name: getColourOfMesh
+        Method Parameters: 
+            meshX:
+                Mesh x coordinate
+            meshY:
+                Mesh y coordinate
+        Method Description: Gets the color of a mesh with a given coordinate set
+        Method Return: Colour
+    */
     getColourOfMesh(meshX, meshY){
         let seed = XYToSeed(meshX, meshY);
         let random = new SeededRandomizer(seed);
@@ -231,6 +261,22 @@ class Mesh {
     Description: A collection of circles.
 */
 class LSTile {
+    /*
+        Method Name: constructor
+        Method Parameters: 
+            x:
+                x coordinate
+            y:
+                y coordinate
+            tileWidth:
+                The tile width
+            tileHeight:
+                The tile height
+            colour:
+                The colour of the tile
+        Method Description: constructor
+        Method Return: constructor
+    */
     constructor(x, y, tileWidth, tileHeight, colour){
         this.x = x;
         this.y = y;
@@ -256,10 +302,31 @@ class LSTile {
         noStrokeRectangle(this.colour, screenX, screenY, this.tileWidth*gameZoom, this.tileHeight*gameZoom);
     }
 
+    /*
+        Method Name: getDisplayX
+        Method Parameters: 
+            centerX:
+                The center x
+            lX:
+                The x of the left of the screen
+        Method Description: Gets the display x
+        Method Return: float
+    */
     getDisplayX(centerX, lX){
         return (centerX - lX) * gameZoom;
     }
 
+    /*
+        Method Name: getDisplayY
+        Method Parameters: 
+            centerY:
+                The center y
+            bY:
+                The y of the bottom of the screen
+            centerX:
+        Method Description: Gets the display y
+        Method Return: float
+    */
     getDisplayY(centerY, bY){
         return getCanvasHeight() - (centerY - bY) * gameZoom;
     }

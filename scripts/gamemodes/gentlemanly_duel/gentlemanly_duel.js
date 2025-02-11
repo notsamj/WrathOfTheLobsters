@@ -1,4 +1,16 @@
+/*
+    Class Name: GentlemanlyDuel
+    Class Description: A duel gamemode
+*/
 class GentlemanlyDuel extends Gamemode {
+    /*
+        Method Name: constructor
+        Method Parameters: 
+            gameSetupDetails:
+                A JSON with details about the game
+        Method Description: constructor
+        Method Return: constructor
+    */
     constructor(gameSetupDetails){
         super();
 
@@ -54,18 +66,42 @@ class GentlemanlyDuel extends Gamemode {
         this.startUp();
     }
 
+    /*
+        Method Name: handleUnpause
+        Method Parameters: None
+        Method Description: Takes actions when the game is unpaused
+        Method Return: void
+    */
     handleUnpause(){
         for (let participant of this.participants){
             participant.handleUnpause();
         }
     }
 
+    /*
+        Method Name: getName
+        Method Parameters: None
+        Method Description: Gets the name of the game
+        Method Return: String
+    */
     getName(){ return "gentlemanly_duel"; }
 
+    /*
+        Method Name: generateRandomSeed
+        Method Parameters: None
+        Method Description: Comes up with a seed
+        Method Return: int
+    */
     generateRandomSeed(){
         return randomNumberInclusive(0, Math.floor(Math.pow(10, 3))-1);
     }
 
+    /*
+        Method Name: randomReset
+        Method Parameters: None
+        Method Description: Resets the game
+        Method Return: void
+    */
     randomReset(){
         this.gameOver = false;
         this.noShotsFired = true;
@@ -82,20 +118,46 @@ class GentlemanlyDuel extends Gamemode {
         this.prepareGameState();
     }
 
+    /*
+        Method Name: prepareGameState
+        Method Parameters: None
+        Method Description: Prepares the game state
+        Method Return: void
+    */
     prepareGameState(){
         this.startUnlockTick = this.getCurrentTick() + msToTickCeil(WTL_GAME_DATA["gentlemanly_duel"]["start_delay_ms"]);
     }
 
+    /*
+        Method Name: setCameraPosition
+        Method Parameters: None
+        Method Description: Sets the starting camera position
+        Method Return: void
+    */
     setCameraPosition(){
         let cameraSpawnX = Math.floor((this.spawns[0][0] + this.spawns[1][0])/2);
         let cameraSpawnY = Math.floor((this.spawns[0][1] + this.spawns[1][1])/2);
         this.camera.setTilePosition(cameraSpawnX, cameraSpawnY);
     }
 
+    /*
+        Method Name: hasDuelStarted
+        Method Parameters: None
+        Method Description: Checks if the duel has started
+        Method Return: boolean 
+    */
     hasDuelStarted(){
         return this.inPosition && this.getCurrentTick() >= this.turnUnlockTick;
     }
 
+    /*
+        Method Name: handleGunShot
+        Method Parameters: 
+            eventObj:
+                Event info about gun shot
+        Method Description: Takes actions based on a gunshot
+        Method Return: void
+    */
     handleGunShot(eventObj){
         let shooterID = eventObj["shooter_id"];
 
@@ -113,6 +175,12 @@ class GentlemanlyDuel extends Gamemode {
         this.shooterTurnID = this.getOtherPlayerID(shooterID);
     }
 
+    /*
+        Method Name: gameTick
+        Method Parameters: None
+        Method Description: Handles game logic
+        Method Return: void
+    */
     gameTick(){
         this.checkForResetRequest();
         if (this.isOver()){ return; }
@@ -121,6 +189,12 @@ class GentlemanlyDuel extends Gamemode {
         }
     }
 
+    /*
+        Method Name: checkInPosition
+        Method Parameters: None
+        Method Description: Checks if both players are in position
+        Method Return: void
+    */
     checkInPosition(){
         let getTileInFront = (tileX, tileY, facingDirection) => {
             let bX;
@@ -165,11 +239,27 @@ class GentlemanlyDuel extends Gamemode {
         this.turnUnlockTick = this.getCurrentTick() + Math.max(1, this.getRandom().getIntInRangeInclusive(msToTickCeil(WTL_GAME_DATA["gentlemanly_duel"]["min_turn_delay_ms"]), msToTickCeil(WTL_GAME_DATA["gentlemanly_duel"]["max_turn_delay_ms"])));
     }
 
+    /*
+        Method Name: canShoot
+        Method Parameters: 
+            id:
+                Id of a player
+        Method Description: Checks if a player can shoot
+        Method Return: boolean
+    */
     canShoot(id){
         if (!this.hasDuelStarted()){ return false; }
         return this.noShotsFired || this.shooterTurnID === id;
     }
 
+    /*
+        Method Name: getCommandFromGame
+        Method Parameters: 
+            participantID:
+                Participant to look for command for
+        Method Description: Looks to see if there is a command for the player
+        Method Return: JSON Object
+    */
     getCommandFromGame(participantID){
         // No commands after start
         if (this.hasDuelStarted()){ return {}; }
@@ -271,6 +361,12 @@ class GentlemanlyDuel extends Gamemode {
         }
     }
 
+    /*
+        Method Name: end
+        Method Parameters: None
+        Method Description: Handles actions on game end
+        Method Return: void
+    */
     end(){
         MY_HUD.clearElement("seed");
         MY_HUD.clearElement("tile_x");
@@ -279,10 +375,24 @@ class GentlemanlyDuel extends Gamemode {
         MY_HUD.clearElement("Cursor Tile Y");
     }
 
+    /*
+        Method Name: getParticipants
+        Method Parameters: None
+        Method Description: Getter
+        Method Return: List of GentlemanlyDuelCharacter
+    */
     getParticipants(){
         return this.participants;
     }
 
+    /*
+        Method Name: findParticipantFromID
+        Method Parameters: 
+            participantID:
+                Participant ID to search for
+        Method Description: Finds a participant given an id
+        Method Return: DuelCharacter
+    */
     findParticipantFromID(participantID){
         for (let participant of this.participants){
             if (participant.getID() === participantID){
@@ -292,6 +402,14 @@ class GentlemanlyDuel extends Gamemode {
         throw new Error("Failed to find participant with ID: " + participantID);
     }
 
+    /*
+        Method Name: endGame
+        Method Parameters: 
+            winnerID:
+                The winner'd id
+        Method Description: Ends th egame
+        Method Return: void
+    */
     endGame(winnerID){
         this.gameOver = true;
         let winner = this.findParticipantFromID(winnerID);
@@ -302,14 +420,32 @@ class GentlemanlyDuel extends Gamemode {
         }
     }
 
+    /*
+        Method Name: getEnemyVisibilityDistance
+        Method Parameters: None
+        Method Description: Gets the visibility distance for enemies
+        Method Return: float
+    */
     getEnemyVisibilityDistance(){
         return Number.MAX_SAFE_INTEGER;
     }
 
+    /*
+        Method Name: getRandom
+        Method Parameters: None
+        Method Description: Getter
+        Method Return: Getter
+    */
     getRandom(){
         return this.aiRandom;
     }
 
+    /*
+        Method Name: isABotGame
+        Method Parameters: None
+        Method Description: Checks if the game is bot vs bot
+        Method Return: boolean, true -> all participants are bots, false -> not all participants are bots
+    */
     isABotGame(){
         for (let participantObject of this.gameSetupDetails["participants"]){
             if (participantObject["human"]){ return false; }
@@ -317,6 +453,12 @@ class GentlemanlyDuel extends Gamemode {
         return true;
     }
 
+    /*
+        Method Name: startUp
+        Method Parameters: None
+        Method Description: Starts up the game
+        Method Return: Promise (implicit)
+    */
     async startUp(){
         this.spawns = await this.loadMap();
 
@@ -334,6 +476,12 @@ class GentlemanlyDuel extends Gamemode {
         this.startUpLock.unlock();
     }
 
+    /*
+        Method Name: loadMap
+        Method Parameters: None
+        Method Description: Loads a map from level data
+        Method Return: List of spawn point info 
+    */
     async loadMap(){
         let mapName = this.gameSetupDetails["map_file_name"];
         await this.scene.loadTilesFromJSON(LEVEL_DATA[mapName]);
@@ -350,10 +498,22 @@ class GentlemanlyDuel extends Gamemode {
         return spawns;
     }
 
+    /*
+        Method Name: isOver
+        Method Parameters: None
+        Method Description: Checks if the game is over
+        Method Return: boolean
+    */
     isOver(){
         return this.gameOver;
     }
 
+    /*
+        Method Name: checkWin
+        Method Parameters: None
+        Method Description: Checks if a player has won the game
+        Method Return: void
+    */
     checkWin(){
         let aliveCount = 0;
         let winnerID = null;
@@ -372,6 +532,12 @@ class GentlemanlyDuel extends Gamemode {
         this.gameOver = true;
     }
 
+    /*
+        Method Name: spawnTroops
+        Method Parameters: None
+        Method Description: Spawns the troops
+        Method Return: void
+    */
     spawnTroops(){
         let participantID = 0;
         for (let participantObject of this.gameSetupDetails["participants"]){
@@ -418,6 +584,12 @@ class GentlemanlyDuel extends Gamemode {
         this.prepareGameState();
     }
 
+    /*
+        Method Name: prepareTroops
+        Method Parameters: None
+        Method Description: Prepares the troops
+        Method Return: void
+    */
     prepareTroops(){
         let spawns = copyArray(this.spawns);
 
@@ -459,6 +631,14 @@ class GentlemanlyDuel extends Gamemode {
         }
     }
 
+    /*
+        Method Name: getOtherPlayerID
+        Method Parameters: 
+            id:
+                ID of a player
+        Method Description: Finds the id of the other player in the game
+        Method Return: String
+    */
     getOtherPlayerID(id){
         for (let participant of this.participants){
             let otherID = participant.getID();
@@ -469,6 +649,12 @@ class GentlemanlyDuel extends Gamemode {
         throw new Error("Failed to find other participant.");
     }
 
+    /*
+        Method Name: display
+        Method Parameters: None
+        Method Description: Displays the game
+        Method Return: void
+    */
     display(){
         if (this.startUpLock.isLocked()){
             LOADING_SCREEN.display();
@@ -479,12 +665,24 @@ class GentlemanlyDuel extends Gamemode {
         MY_HUD.updateElement("seed", this.seed);
     }
 
+    /*
+        Method Name: checkForResetRequest
+        Method Parameters: None
+        Method Description: Checks if the user wishes to reset the game
+        Method Return: void
+    */
     checkForResetRequest(){
         if (GAME_USER_INPUT_MANAGER.isActivated("g_ticked")){
             this.randomReset();
         }
     }
 
+    /*
+        Method Name: tick
+        Method Parameters: None
+        Method Description: Performs tick processes
+        Method Return: void
+    */
     tick(){
         if (this.startUpLock.isLocked()){ return; }
         if (this.camera != null){

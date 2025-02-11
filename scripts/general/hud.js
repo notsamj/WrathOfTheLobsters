@@ -76,6 +76,14 @@ class HUD {
         }
     }
 
+    /*
+        Method Name: clearElement
+        Method Parameters: 
+            elementName:
+                The name of the element
+        Method Description: Clears an element
+        Method Return: void
+    */
     clearElement(elementName){
         for (let element of this.hudElements){
             if (elementName === element.getName()){
@@ -103,6 +111,12 @@ class HUDElement {
         this.priority = objectHasKey(WTL_GAME_DATA["hud"]["priorities"], name) ? WTL_GAME_DATA["hud"]["priorities"][name] : 0;
     }
 
+    /*
+        Method Name: getPriority
+        Method Parameters: None
+        Method Description: Getter
+        Method Return: int
+    */
     getPriority(){
         return this.priority;
     }
@@ -158,18 +172,42 @@ class HUDElement {
         makeText(`${this.value}`, x + xOffset, y, getScreenWidth(), getScreenHeight(), Colour.fromCode(WTL_GAME_DATA["hud"]["value_colour"]), WTL_GAME_DATA["hud"]["text_size"], "left", "top");
     }
 
+    /*
+        Method Name: isDisabled
+        Method Parameters: None
+        Method Description: Checks if disabled
+        Method Return: boolean
+    */
     isDisabled(){
         return this.disabled;
     }
 
+    /*
+        Method Name: isReadyToDisplay
+        Method Parameters: None
+        Method Description: Checks if ready to display
+        Method Return: boolean
+    */
     isReadyToDisplay(){
         return !this.isDisabled();
     }
 
+    /*
+        Method Name: disable
+        Method Parameters: None
+        Method Description: Disables the hud
+        Method Return: void
+    */
     disable(){
         this.disabled = true;
     }
 
+    /*
+        Method Name: clear
+        Method Parameters: None
+        Method Description: Disables the hud
+        Method Return: void
+    */
     clear(){
         this.disable();
     }

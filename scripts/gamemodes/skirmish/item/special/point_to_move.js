@@ -1,10 +1,22 @@
+/*  
+    Class Name: PointToMove
+    Class Description: A took for indicating a place for troops to move
+*/
 class PointToMove extends Item {
+    /*
+        Method Name: constructor
+        Method Parameters: 
+            details:
+                JSON object with information
+        Method Description: constructor
+        Method Return: constructor
+    */
     constructor(details){
         super();
         // Note: if player is null an error will occur I know I'm not handling this perfectly
         this.player = objectHasKey(details, "player") ? details["player"] : null;
         this.moveTileX = this.player.getTileX();
-    	this.moveTileY = this.player.getTileY();
+        this.moveTileY = this.player.getTileY();
 
         this.selectionLastUpdatedTurn = -1;
         this.selectionMadeAtX = 0;
@@ -19,6 +31,12 @@ class PointToMove extends Item {
         this.selectedTroopIndex = -1;
     }
 
+    /*
+        Method Name: updateCrosshairColour
+        Method Parameters: None
+        Method Description: Updates the rosshair color
+        Method Return: void
+    */
     updateCrosshairColour(){
         // If no selected troops its always red
         if (this.selectedTroops.length === 0){
@@ -64,10 +82,22 @@ class PointToMove extends Item {
         }
     }
 
+    /*
+        Method Name: getCrosshairColour
+        Method Parameters: None
+        Method Description: Getter
+        Method Return: String
+    */
     getCrosshairColour(){
         return this.crosshairColour;
     }
 
+    /*
+        Method Name: toggleMode
+        Method Parameters: None
+        Method Description: Toggles the point to move mode
+        Method Return: void
+    */
     toggleMode(){
         if (this.getMode() === "move_all"){
             this.mode = "move_individual";
@@ -77,10 +107,22 @@ class PointToMove extends Item {
         }
     }
 
+    /*
+        Method Name: getMode
+        Method Parameters: None
+        Method Description: Gets the point to move mode
+        Method Return: String
+    */
     getMode(){
         return this.mode;
     }
 
+    /*
+        Method Name: resetDecisions
+        Method Parameters: None
+        Method Description: Resets the decisions
+        Method Return: void
+    */
     resetDecisions(){
         this.player.amendDecisions({
             "move_tile_x": null,
@@ -91,10 +133,22 @@ class PointToMove extends Item {
         });
     }
 
+    /*
+        Method Name: isMovingTroops
+        Method Parameters: None
+        Method Description: TODO
+        Method Return: TODO
+    */
     isMovingTroops(){
         return this.troopMovementInProgress;
     }
 
+    /*
+        Method Name: checkIfMovementFinished
+        Method Parameters: None
+        Method Description: Checks if the movement is finished
+        Method Return: void
+    */
     checkIfMovementFinished(){
         if (!this.isMovingTroops()){ return; }
         for (let troop of this.selectedTroops){
@@ -111,6 +165,14 @@ class PointToMove extends Item {
         this.player.indicateMoveDone();
     }
 
+    /*
+        Method Name: getCommandForTroop
+        Method Parameters: 
+            troop:
+                A character
+        Method Description: Checks if there is a command available for a troop
+        Method Return: void
+    */
     getCommandForTroop(troop){
         if (!this.troopMovementInProgress){ return; }
         if (!objectHasKey(this.troopMovementDetails, troop.getID())){
@@ -142,7 +204,6 @@ class PointToMove extends Item {
         let startOfRouteY = startTile["tile_y"];
         //debugger;
         let distanceFromStart = Math.sqrt(Math.pow(troopXAfter - startOfRouteX, 2) + Math.pow(troopYAfter - startOfRouteY, 2));
-        //console.log(distanceFromStart, troop.getWalkingBar().getMaxValue())
         // Don't let troop keep moving if the troop has moved far enough
         if (distanceFromStart > troop.getWalkingBar().getMaxValue()){
             return null;
@@ -150,6 +211,12 @@ class PointToMove extends Item {
         return route.getDecisionAt(troop.getTileX(), troop.getTileY());
     }
 
+    /*
+        Method Name: generateTroopMovementDetails
+        Method Parameters: None
+        Method Description: Comes up with routes for troops
+        Method Return: void
+    */
     generateTroopMovementDetails(){
         for (let troop of this.selectedTroops){
             // Note: Don't cap the length because we want it to move as if it was on the unlimited route and just go as far as it can
@@ -157,6 +224,12 @@ class PointToMove extends Item {
         }
     }
 
+    /*
+        Method Name: generateIndividualTroopMovementDetails
+        Method Parameters: None
+        Method Description: Comes up with a route for an individual
+        Method Return: void
+    */
     generateIndividualTroopMovementDetails(){
         let troopToBeMoved = this.selectedTroops[this.selectedTroopIndex];
         // Note: Don't cap the length because we want it to move as if it was on the unlimited route and just go as far as it can
@@ -165,6 +238,12 @@ class PointToMove extends Item {
         this.selectedTroopIndex++;
     }
 
+    /*
+        Method Name: getSelectedTroops
+        Method Parameters: None
+        Method Description: Gets the selected troops
+        Method Return: List of SkirmishCharacter
+    */
     getSelectedTroops(){
         if (this.getMode() === "move_all"){
             return this.selectedTroops;
@@ -181,16 +260,22 @@ class PointToMove extends Item {
         }
     }
 
+    /*
+        Method Name: actOnDecisions
+        Method Parameters: None
+        Method Description: Acts on decisions
+        Method Return: void
+    */
     actOnDecisions(){
-    	if (this.getDecision("toggle_mode")){
+        if (this.getDecision("toggle_mode")){
             this.toggleMode();
         }
         if (this.getDecision("new_move_tile") && !this.player.hasCommitedToAction()){
-        	this.moveTileX = this.getDecision("move_tile_x");
-        	this.moveTileY = this.getDecision("move_tile_y");
+            this.moveTileX = this.getDecision("move_tile_x");
+            this.moveTileY = this.getDecision("move_tile_y");
             this.updateCrosshairColour();
-    	}
-    	if (this.getDecision("trying_to_move_troops") && !this.player.hasCommitedToAction() && this.selectedTroops.length > 0){
+        }
+        if (this.getDecision("trying_to_move_troops") && !this.player.hasCommitedToAction() && this.selectedTroops.length > 0){
             let canWalkOnTile = !this.getScene().tileAtLocationHasAttribute(this.moveTileX, this.moveTileY, "no_walk");
             if (canWalkOnTile){
                 let tryingToCompleteMove = false;
@@ -209,18 +294,36 @@ class PointToMove extends Item {
                     this.troopMovementInProgress = true;
                 }
             }
-    	}
+        }
         this.checkIfMovementFinished();
     }
 
+    /*
+        Method Name: getScene
+        Method Parameters: None
+        Method Description: Gets the player's scene
+        Method Return: void
+    */
     getScene(){
-    	return this.player.getScene();
+        return this.player.getScene();
     }
 
+    /*
+        Method Name: makeDecisions
+        Method Parameters: None
+        Method Description: Indicates that the player should make move pointer decisions
+        Method Return: void
+    */
     makeDecisions(){
         this.player.makeMovePointerDecisions();
     }
 
+    /*
+        Method Name: select
+        Method Parameters: None
+        Method Description: Selects the item
+        Method Return: void
+    */
     select(){
         let newTurn = this.player.getGamemode().getTurnCounter();
         let playerStandingX = this.player.getTileX();
@@ -230,22 +333,40 @@ class PointToMove extends Item {
             return;
         }
         this.selectionLastUpdatedTurn = newTurn;
-    	this.moveTileX = playerStandingX; // Placeholder
-    	this.moveTileY = playerStandingY; // Placeholder
+        this.moveTileX = playerStandingX; // Placeholder
+        this.moveTileY = playerStandingY; // Placeholder
         this.selectionMadeAtX = playerStandingX;
         this.selectionMadeAtY = playerStandingY;
         this.resetSelectedTroopsForCurrentPosition();
     }
 
+    /*
+        Method Name: resetSelectedTroopsForCurrentPosition
+        Method Parameters: None
+        Method Description: Resets the selected troops
+        Method Return: void
+    */
     resetSelectedTroopsForCurrentPosition(){
         this.selectedTroops = this.generateSelectedTroops();
         this.selectedTroopIndex = 0;
     }
 
+    /*
+        Method Name: getGamemode
+        Method Parameters: None
+        Method Description: Gets the player's gamemode
+        Method Return: Skirmish instance
+    */
     getGamemode(){
         return this.player.getGamemode();
     }
 
+    /*
+        Method Name: generateSelectedTroops
+        Method Parameters: None
+        Method Description: Generates the selected troops list
+        Method Return: List of SKirmishCharacter
+    */
     generateSelectedTroops(){
         let allTroopsOnMyTeam = this.getGamemode().getLivingTeamRosterFromName(this.player.getTeamName());
         let myPlayerTileX = this.player.getTileX();
@@ -265,10 +386,26 @@ class PointToMove extends Item {
         return selectedTroops;
     }
 
+    /*
+        Method Name: deselect
+        Method Parameters: None
+        Method Description: Handles deselection
+        Method Return: void
+    */
     deselect(){
         MY_HUD.clearElement("Item Mode");
     }
 
+    /*
+        Method Name: displayItemSlot
+        Method Parameters: 
+            providedX:
+                The x of the item slot
+            providedY:
+                The y of the item slot
+        Method Description: Displays in the hotbar
+        Method Return: void
+    */
     displayItemSlot(providedX, providedY){
         let image = IMAGES["point_to_move"];
         let displayScale = WTL_GAME_DATA["inventory"]["slot_size"] / image.width;
@@ -286,15 +423,31 @@ class PointToMove extends Item {
         translate(-1 * scaleX, -1 * scaleY);
     }
 
+    /*
+        Method Name: tick
+        Method Parameters: None
+        Method Description: Handles tick processes
+        Method Return: void
+    */
     tick(){
         // Moved this.checkIfMovementFinished();
         MY_HUD.updateElement("Item Mode", this.getMode());
     }
 
+    /*
+        Method Name: display
+        Method Parameters: 
+            lX:
+                The x coordinate of the left side of the screen
+            bY:
+                The y coordinate of the bottom of the screen
+        Method Description: TODO
+        Method Return: TODO
+    */
     display(lX, bY){
         if (!this.player.isMakingAMove()){ return; }
         
-    	let x = this.getScene().getDisplayXFromTileX(lX, this.moveTileX);
+        let x = this.getScene().getDisplayXFromTileX(lX, this.moveTileX);
         let y = this.getScene().getDisplayYFromTileY(bY, this.moveTileY);
         let crosshairImage = IMAGES["point_to_move_crosshair_" + this.getCrosshairColour()];
         let crosshairWidth = crosshairImage.width;

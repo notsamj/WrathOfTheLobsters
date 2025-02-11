@@ -39,7 +39,7 @@ class GameMaker extends Gamemode {
         Method Name: getUI
         Method Parameters: None
         Method Description: Getter
-        Method Return: Getter
+        Method Return: GameMakerUI
     */
     getUI(){
         return this.ui;
@@ -61,7 +61,7 @@ class GameMaker extends Gamemode {
             value:
                 Boolean value
         Method Description: Setter
-        Method Return: Setter
+        Method Return: void
     */
     setDisplayingHUD(value){
         this.displayingHUD = value;
@@ -73,7 +73,7 @@ class GameMaker extends Gamemode {
             value:
                 Boolean value
         Method Description: Setter
-        Method Return: Setter
+        Method Return: void
     */
     setDisplayPhysicalLayer(value){
         this.scene.setDisplayPhysicalLayer(value);
@@ -164,7 +164,7 @@ class GameMaker extends Gamemode {
         Method Name: getTilePlacer
         Method Parameters: None
         Method Description: Getter
-        Method Return: Getter
+        Method Return: TilePlacer
     */
     getTilePlacer(){
         return this.tilePlacer;
@@ -174,7 +174,7 @@ class GameMaker extends Gamemode {
         Method Name: getServerConnection
         Method Parameters: None
         Method Description: Getter
-        Method Return: Getter
+        Method Return: ServerConnection
     */
     getServerConnection(){
         return this.serverConnection;

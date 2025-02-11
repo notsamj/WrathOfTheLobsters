@@ -1,9 +1,36 @@
-
+/*  
+    Class Name: DuelHuman
+    Class Description: A human-controlled character taking part in a duel
+*/
 class DuelHuman extends DuelCharacter {
+    /*
+        Method Name: constructor
+        Method Parameters: 
+            gamemode:
+                Duel instance
+            model:
+                The character model
+            extraDetails:
+                Extra information about the character (JSON)
+        Method Description: constructor
+        Method Return: constructor
+    */
     constructor(gamemode, model, extraDetails){
         super(gamemode, model, extraDetails);
     }
 
+    /*
+        Method Name: drawGunCrosshair
+        Method Parameters: 
+            gun:
+                A gun instance
+            lX:
+                The x coordinate of the left side of the screen
+            bY:
+                The y coordinate of the bottom of the screen
+        Method Description: Draws the crosshair on the screen
+        Method Return: void
+    */
     drawGunCrosshair(gun, lX, bY){
         let mouseX = gMouseX;
         let mouseY = gMouseY;
@@ -44,46 +71,24 @@ class DuelHuman extends DuelCharacter {
         translate(-1 * x, -1 * y);
     }
 
-    /*drawGunCrosshair(gun, lX, bY){
-        let enemy = this.gamemode.participants[1];
-
-        let enemyX = enemy.getInterpolatedTickCenterX();
-        let enemyY = enemy.getInterpolatedTickCenterY();
-
-        let humanCenterX = this.getInterpolatedTickCenterX();
-        let humanCenterY = this.getInterpolatedTickCenterY();
-
-        let distance = Math.sqrt(Math.pow(enemyX - humanCenterX, 2) + Math.pow(enemyY - humanCenterY, 2));
-        let swayedAngleRAD = gun.getSwayedAngleRAD();
-
-        let crosshairCenterX = Math.cos(swayedAngleRAD) * distance + humanCenterX;
-        let crosshairCenterY = Math.sin(swayedAngleRAD) * distance + humanCenterY;
-        console.log("Distance", distance, gun)
-
-        let x = this.getScene().getDisplayXOfPoint(crosshairCenterX, lX);
-        let y = this.getScene().getDisplayYOfPoint(crosshairCenterY, bY);
-        let crosshairImage = IMAGES["crosshair"];
-        let crosshairWidth = crosshairImage.width;
-        let crosshairHeight = crosshairImage.height;
-        translate(x, y);
-
-        // Game zoom
-        scale(gameZoom, gameZoom);
-
-        drawingContext.drawImage(crosshairImage, -1 * crosshairWidth / 2, -1 * crosshairHeight / 2);
-
-        // Game zoom
-        scale(1 / gameZoom, 1 / gameZoom);
-
-        translate(-1 * x, -1 * y);
-    }*/
-
+    /*
+        Method Name: tick
+        Method Parameters: None
+        Method Description: Runs processes during a tick
+        Method Return: void
+    */
     tick(){
         super.tick();
         MY_HUD.updateElement("tile_x", this.getTileX());
         MY_HUD.updateElement("tile_y", this.getTileY());
     }
 
+    /*
+        Method Name: makeDecisions
+        Method Parameters: None
+        Method Description: Makes decisions
+        Method Return: void
+    */
     makeDecisions(){
         this.resetDecisions();
         this.makeMovementDecisions();
@@ -93,6 +98,12 @@ class DuelHuman extends DuelCharacter {
         }
     }
 
+    /*
+        Method Name: makeInventoryDecisions
+        Method Parameters: None
+        Method Description: Make decisions for the inventory
+        Method Return: void
+    */
     makeInventoryDecisions(){
         // Reset
         this.amendDecisions({
@@ -126,6 +137,12 @@ class DuelHuman extends DuelCharacter {
         });
     }
 
+    /*
+        Method Name: makeSwordDecisions
+        Method Parameters: None
+        Method Description: Makes decisions for the sword
+        Method Return: void
+    */
     makeSwordDecisions(){
         let tryingToSwing = GAME_USER_INPUT_MANAGER.isActivated("left_click_ticked");
         let tryingToBlock = GAME_USER_INPUT_MANAGER.isActivated("right_click");
@@ -135,8 +152,20 @@ class DuelHuman extends DuelCharacter {
         });
     }
 
+    /*
+        Method Name: isHuman
+        Method Parameters: None
+        Method Description: Checks if the character is a human
+        Method Return: boolean
+    */
     isHuman(){return true;}
 
+    /*
+        Method Name: makePistolDecisions
+        Method Parameters: None
+        Method Description: Checks if the human user wishes to shoot/aim/reload their pistol
+        Method Return: void
+    */
     makePistolDecisions(){
         let tryingToAim = GAME_USER_INPUT_MANAGER.isActivated("right_click");
         let tryingToShoot = GAME_USER_INPUT_MANAGER.isActivated("left_click_ticked");
@@ -149,6 +178,12 @@ class DuelHuman extends DuelCharacter {
         });
     }
 
+    /*
+        Method Name: makeMusketDecisions
+        Method Parameters: None
+        Method Description: Checks if the human user wishes to shoot/aim/reload/stab their musket
+        Method Return: void
+    */
     makeMusketDecisions(){
         let tryingToAim = GAME_USER_INPUT_MANAGER.isActivated("right_click");
         let tryingToShoot = GAME_USER_INPUT_MANAGER.isActivated("left_click_ticked");
@@ -165,10 +200,22 @@ class DuelHuman extends DuelCharacter {
         });
     }
 
+    /*
+        Method Name: getGunHoldingAngleRAD
+        Method Parameters: None
+        Method Description: Gets the angle to the human user's crosshair
+        Method Return: float [0,2*MathPI)
+    */
     getGunHoldingAngleRAD(){
         return getAngleFromMouseToScreenCenter(this.getScene());
     }
 
+    /*
+        Method Name: makeMovementDecisions
+        Method Parameters: None
+        Method Description: Makes movement decisions based on human user actions
+        Method Return: void
+    */
     makeMovementDecisions(){
         this.decisions["up"] = GAME_USER_INPUT_MANAGER.isActivated("move_up");
         this.decisions["down"] = GAME_USER_INPUT_MANAGER.isActivated("move_down");

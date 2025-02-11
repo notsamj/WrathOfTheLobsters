@@ -1,4 +1,16 @@
+/*
+    Class Name: Duel
+    Class Description: A duel gamemode
+*/
 class Duel extends Gamemode {
+    /*
+        Method Name: constructor
+        Method Parameters: 
+            gameSetupDetails:
+                A JSON with info about the game
+        Method Description: constructor
+        Method Return: constructor
+    */
     constructor(gameSetupDetails){
         super();
 
@@ -65,14 +77,32 @@ class Duel extends Gamemode {
         this.startUp();
     }
 
+    /*
+        Method Name: getName
+        Method Parameters: None
+        Method Description: Gets the name of the game
+        Method Return: String
+    */
     getName(){ return "duel"; }
 
+    /*
+        Method Name: handleUnpause
+        Method Parameters: None
+        Method Description: Takes actions when the game is unpaused
+        Method Return: void
+    */
     handleUnpause(){
         for (let participant of this.participants){
             participant.handleUnpause();
         }
     }
 
+    /*
+        Method Name: randomReset
+        Method Parameters: None
+        Method Description: Resets the game
+        Method Return: void
+    */
     randomReset(){
         this.gameOver = false;
         this.stats.reset();
@@ -83,12 +113,24 @@ class Duel extends Gamemode {
         this.prepareTroops();
     }
 
+    /*
+        Method Name: setCameraPosition
+        Method Parameters: None
+        Method Description: Sets the starting camera position
+        Method Return: void
+    */
     setCameraPosition(){
         let cameraSpawnX = Math.floor((this.spawns[0][0] + this.spawns[3][0])/2);
         let cameraSpawnY = Math.floor((this.spawns[0][1] + this.spawns[3][1])/2);
         this.camera.setTilePosition(cameraSpawnX, cameraSpawnY);
     }
 
+    /*
+        Method Name: end
+        Method Parameters: None
+        Method Description: Handles actions on game end
+        Method Return: void
+    */
     end(){
         MY_HUD.clearElement("seed");
         MY_HUD.clearElement("tile_x");
@@ -97,6 +139,20 @@ class Duel extends Gamemode {
         MY_HUD.clearElement("Cursor Tile Y");
     }
 
+    /*
+        Method Name: alertBotsOfGunshot
+        Method Parameters: 
+            shooterID:
+                ID of the gun shooter
+            gunshotShooterTileX:
+                Tile X of the shooter
+            gunshotShooterTileY:
+                tile y of the shooter
+            gunshotShooterFacingDirection:
+                Shooter facing direction when shooting the gun
+        Method Description: Alerts bots of gun shots
+        Method Return: void
+    */
     alertBotsOfGunshot(shooterID, gunshotShooterTileX, gunshotShooterTileY, gunshotShooterFacingDirection){
         for (let participant of this.participants){
             if (participant instanceof DuelBot){
@@ -106,10 +162,24 @@ class Duel extends Gamemode {
         }
     }
 
+    /*
+        Method Name: getParticipants
+        Method Parameters: None
+        Method Description: Getter
+        Method Return: List of DuelCharacter
+    */
     getParticipants(){
         return this.participants;
     }
 
+    /*
+        Method Name: findParticipantFromID
+        Method Parameters: 
+            participantID:
+                Participant ID to search for
+        Method Description: Finds a participant given an id
+        Method Return: DuelCharacter
+    */
     findParticipantFromID(participantID){
         for (let participant of this.participants){
             if (participant.getID() === participantID){
@@ -119,6 +189,14 @@ class Duel extends Gamemode {
         throw new Error("Failed to find participant with ID: " + participantID);
     }
 
+    /*
+        Method Name: endGame
+        Method Parameters: 
+            winnerID:
+                The winner'd id
+        Method Description: Ends th egame
+        Method Return: void
+    */
     endGame(winnerID){
         this.gameOver = true;
         let winner = this.findParticipantFromID(winnerID);
@@ -129,14 +207,32 @@ class Duel extends Gamemode {
         }
     }
 
+    /*
+        Method Name: getEnemyVisibilityDistance
+        Method Parameters: None
+        Method Description: Gets the visibility distance for enemies
+        Method Return: float
+    */
     getEnemyVisibilityDistance(){
         return WTL_GAME_DATA["duel"]["enemy_visibility_distance"];
     }
 
+    /*
+        Method Name: getRandom
+        Method Parameters: None
+        Method Description: Getter
+        Method Return: SeededRandomizer
+    */
     getRandom(){
         return this.aiRandom;
     }
 
+    /*
+        Method Name: isABotGame
+        Method Parameters: None
+        Method Description: Checks if the game is bot vs bot
+        Method Return: boolean, true -> all participants are bots, false -> not all participants are bots
+    */
     isABotGame(){
         for (let participantObject of this.gameSetupDetails["participants"]){
             if (participantObject["human"]){ return false; }
@@ -145,18 +241,36 @@ class Duel extends Gamemode {
     }
 
 
+    /*
+        Method Name: checkForResetRequest
+        Method Parameters: None
+        Method Description: Checks if the user wishes to reset
+        Method Return: void
+    */
     checkForResetRequest(){
         if (GAME_USER_INPUT_MANAGER.isActivated("g_ticked")){
             this.randomReset();
         }
     }
 
+    /*
+        Method Name: gameTick
+        Method Parameters: None
+        Method Description: Handles some game logic
+        Method Return: void
+    */
     gameTick(){
         if (this.isOver()){ 
             this.checkForResetRequest();
         }
     }
 
+    /*
+        Method Name: startUp
+        Method Parameters: None
+        Method Description: Starts up the game
+        Method Return: Promise (implicit)
+    */
     async startUp(){
         this.spawns = await LevelGenerator.loadCornerSpawnsPreset(this.getScene(), this.gameSetupDetails["preset_data"], this.gameSetupDetails["seed"], WTL_GAME_DATA["duel"]["area_size"]);
 
@@ -174,10 +288,22 @@ class Duel extends Gamemode {
         this.startUpLock.unlock();
     }
 
+    /*
+        Method Name: isOver
+        Method Parameters: None
+        Method Description: Checks if the game is over
+        Method Return: boolean
+    */
     isOver(){
         return this.gameOver;
     }
 
+    /*
+        Method Name: checkWin
+        Method Parameters: None
+        Method Description: Checks if a player has won the game
+        Method Return: void
+    */
     checkWin(){
         let aliveCount = 0;
         let winnerID = null;
@@ -196,6 +322,12 @@ class Duel extends Gamemode {
         this.gameOver = true;
     }
 
+    /*
+        Method Name: spawnTroops
+        Method Parameters: None
+        Method Description: Spawns the troops
+        Method Return: void
+    */
     spawnTroops(){
         let participantID = 0;
         for (let participantObject of this.gameSetupDetails["participants"]){
@@ -261,6 +393,12 @@ class Duel extends Gamemode {
         this.prepareTroops();
     }
 
+    /*
+        Method Name: prepareTroops
+        Method Parameters: None
+        Method Description: Prepares the troops
+        Method Return: void
+    */
     prepareTroops(){
         let spawns = copyArray(this.spawns);
 
@@ -304,24 +442,34 @@ class Duel extends Gamemode {
         }
     }
 
+    /*
+        Method Name: display
+        Method Parameters: None
+        Method Description: Displays the game
+        Method Return: void
+    */
     display(){
         if (this.startUpLock.isLocked()){
             LOADING_SCREEN.display();
             return;
         }
-        //console.log(this.getCurrentTick())
         this.scene.display();
         this.stats.display();
         MY_HUD.updateElement("seed", this.seed);
     }
 
+    /*
+        Method Name: tick
+        Method Parameters: None
+        Method Description: Performs tick processes
+        Method Return: void
+    */
     tick(){
         if (this.startUpLock.isLocked()){ return; }
         this.gameTick();
         if (this.camera != null){
             this.camera.tick();
         }
-        //console.log("Ticking scene")
         this.scene.tick();
     }
 }

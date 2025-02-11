@@ -3,6 +3,20 @@
     Description: A subclass of Entity that acts as a camera, able to fly around.
 */
 class SkirmishCamera extends Entity {
+    /*
+        Method Name: constructor
+        Method Parameters: 
+            gamemode:
+                A skirmish game
+            team:
+                The team name of the camera
+            x:
+                Starting x   
+            y:
+                Starting y
+        Method Description: constructor
+        Method Return: constructor
+    */
     constructor(gamemode, team, x=0, y=0){
         super(gamemode);
         this.teamName = team;
@@ -16,23 +30,61 @@ class SkirmishCamera extends Entity {
         this.id = this.teamName + "_camera";
     }
 
+    /*
+        Method Name: setPosition
+        Method Parameters: 
+            x:
+                x coordinate
+            y:
+                y coordinate
+        Method Description: Changes the position of the camera
+        Method Return: void
+    */
     setPosition(x, y){
         this.x = x;
         this.y = y;
     }
 
+    /*
+        Method Name: focusOn
+        Method Parameters: 
+            currentlyMovingCharacter:
+                A character
+        Method Description: Focuses on a character
+        Method Return: void
+    */
     focusOn(currentlyMovingCharacter){
-        // TODO
+        // Note: Not implemented but this gamemode is currently dead
     }
 
+    /*
+        Method Name: getTeamName
+        Method Parameters: None
+        Method Description: Getter
+        Method Return: String
+    */
     getTeamName(){
         return this.teamName;
     }
 
+    /*
+        Method Name: isOnSameTeam
+        Method Parameters: 
+            troop:
+                A character
+        Method Description: Checks if the camera and troop are on the same team
+        Method Return: TODO
+    */
     isOnSameTeam(troop){
-        return this.getTeamName() == troop.getTeamName();
+        return this.getTeamName() === troop.getTeamName();
     }
 
+    /*
+        Method Name: hasVisionRestrictions
+        Method Parameters: None
+        Method Description: Checks if the camera has vision restrictions
+        Method Return: boolean
+    */
     hasVisionRestrictions(){
         return this.getTeamName() != "neutral";
     }
@@ -83,22 +135,52 @@ class SkirmishCamera extends Entity {
         this.yVelocity *= downKey ? -1 : 1; 
     }
 
+    /*
+        Method Name: getInterpolatedX
+        Method Parameters: None
+        Method Description: Gets the current x of the camera for display purposes
+        Method Return: float
+    */
     getInterpolatedX(){
         return this.x + this.xVelocity * (FRAME_COUNTER.getLastFrameTime() - GAME_TICK_SCHEDULER.getLastTickTime()) / 1000;
     }
 
+    /*
+        Method Name: getInterpolatedX
+        Method Parameters: None
+        Method Description: Gets the current y of the camera for display purposes
+        Method Return: float
+    */
     getInterpolatedY(){
         return this.y + this.yVelocity * (FRAME_COUNTER.getLastFrameTime() - GAME_TICK_SCHEDULER.getLastTickTime()) / 1000;
     }
 
+    /*
+        Method Name: getInterpolatedCenterX
+        Method Parameters: None
+        Method Description: Gets the current x of the camera for display purposes
+        Method Return: float
+    */
     getInterpolatedCenterX(){
         return this.getInterpolatedX();
     }
 
+    /*
+        Method Name: getInterpolatedCenterY
+        Method Parameters: None
+        Method Description: Gets the current y of the camera for display purposes
+        Method Return: float
+    */
     getInterpolatedCenterY(){
         return this.getInterpolatedY();
     }
 
+    /*
+        Method Name: tick
+        Method Parameters: None
+        Method Description: Runs processes during a tick
+        Method Return: void
+    */
     tick(){
         // Update tick locks
         this.xLock.tick();
@@ -108,9 +190,15 @@ class SkirmishCamera extends Entity {
         this.y += this.yVelocity / WTL_GAME_DATA["general"]["tick_rate"];
         this.checkMoveX();
         this.checkMoveY();
-        // TODO: Add something to snap on to nearest troop
-        // TODO: Add something to scroll the troops
+        // Note: in the future (if game is revived) Add something to snap on to nearest troop
+        // Note: in the future (if game is revived) Add something to scroll the troops
     }
 
+    /*
+        Method Name: display
+        Method Parameters: None
+        Method Description: Display something
+        Method Return: void
+    */
     display(){}
 }

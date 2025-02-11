@@ -1,4 +1,18 @@
+/*  
+    Class Name: BotPlan
+    Class Description: Plan for a bot to perform action(s)
+*/
 class BotPlan {
+    /*
+        Method Name: constructor
+        Method Parameters: 
+            player:
+                A player
+            planDetails:
+                JSON details about the plan
+        Method Description: constructor
+        Method Return: constructor
+    */
     constructor(player, planDetails){
         this.player = player;
         this.planDetails = planDetails;
@@ -7,14 +21,32 @@ class BotPlan {
         this.finished = false;
     }
 
+    /*
+        Method Name: finishPlan
+        Method Parameters: None
+        Method Description: Finishes the plan
+        Method Return: void
+    */
     finishPlan(){
         this.finished = true;
     }
 
+    /*
+        Method Name: isFinished
+        Method Parameters: None
+        Method Description: Checks if the plan is finished
+        Method Return: boolean
+    */
     isFinished(){
         return this.finished;
     }
 
+    /*
+        Method Name: generateRouteIfNeeded
+        Method Parameters: None
+        Method Description: Generates a route if necessary
+        Method Return: void
+    */
     generateRouteIfNeeded(){
         let planType = this.planDetails["type"];
         // If this is a simple move then set the round
@@ -34,15 +66,26 @@ class BotPlan {
         }
     }
 
+    /*
+        Method Name: getRoute
+        Method Parameters: None
+        Method Description: Gets the route
+        Method Return: Route
+    */
     getRoute(){
         return this.planDetails["route"];
     }
 
+    /*
+        Method Name: execute
+        Method Parameters: 
+            decisions:
+                Decisions to execute (JSON)
+        Method Description: Executes the plan
+        Method Return: void
+    */
     execute(decisions){
         if (this.isFinished()){
-            if (this.planDetails["type"] === "order_move"){
-                debugger; // Temp
-            }
             return;
         }
         let updateFromMoveDecisions = (moveObj) => {
@@ -358,6 +401,14 @@ class BotPlan {
         }
     }
 
+    /*
+        Method Name: delay
+        Method Parameters: 
+            id:
+                Delay id
+        Method Description: Checks if delayed
+        Method Return: boolean
+    */
     delay(id){
         // Check for invalid id
         if (id > this.delayLocks.length){

@@ -13,6 +13,12 @@ class DuelMatchStats {
         this.winner = "None";
     }
 
+    /*
+        Method Name: reset
+        Method Parameters: None
+        Method Description: Resets the winner
+        Method Return: void
+    */
     reset(){
         this.winner = "None";
     }

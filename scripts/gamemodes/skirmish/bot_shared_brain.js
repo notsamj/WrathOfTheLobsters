@@ -1,4 +1,18 @@
+/*
+    Class Name: BotSharedBrain
+    Class Description: A brain shared between bots
+*/
 class BotSharedBrain {
+    /*
+        Method Name: constructor
+        Method Parameters: 
+            gamemode:
+                Skirmish game instance
+            teamName:
+                Team name of brain
+        Method Description: constructor
+        Method Return: constructor
+    */
     constructor(gamemode, teamName){
         this.gamemode = gamemode;
         this.teamName = teamName;
@@ -13,10 +27,26 @@ class BotSharedBrain {
         });
     }
 
+    /*
+        Method Name: getGamemode
+        Method Parameters: None
+        Method Description: Getter
+        Method Return: Gammode
+    */
     getGamemode(){
         return this.gamemode;
     }
 
+    /*
+        Method Name: informOfShot
+        Method Parameters: 
+            shooterTileX:
+                the tile x of the shooter
+            shooterTileY:
+                the tile y of the shooter
+        Method Description: Informs the brain of a shot
+        Method Return: void
+    */
     informOfShot(shooterTileX, shooterTileY){
         // If this position is visible then do nothing its fine
         let roster = this.getGamemode().getLivingTeamRosterFromName(this.getTeamName());
@@ -57,6 +87,12 @@ class BotSharedBrain {
         }
     }
 
+    /*
+        Method Name: initializeSpawnPointKnowledge
+        Method Parameters: None
+        Method Description: Sets up the knowledge of spawn points
+        Method Return: void
+    */
     initializeSpawnPointKnowledge(){
         let size = WTL_GAME_DATA["skirmish"]["area_size"];
         this.spawnPointKnowledge = [{"tile_x": 0, "tile_y": 0, "has_been_explored": false}, {"tile_x": 0, "tile_y": size-1, "has_been_explored": false}, {"tile_x": size-1, "tile_y": 0, "has_been_explored": false}, {"tile_x": size-1, "tile_y": size-1, "has_been_explored": false}];
@@ -70,6 +106,16 @@ class BotSharedBrain {
         }
     }
 
+    /*
+        Method Name: checkForExploredSpawnPoints
+        Method Parameters: 
+            troopID:
+                A character
+            troopTeam:
+                Team of the character
+        Method Description: Checks if the character is able to clear any unexplored spawn points
+        Method Return: void
+    */
     checkForExploredSpawnPoints(troopID, troopTeam){
         let movingTroop = this.gamemode.getTroop(troopTeam, troopID);
         // If troop is on the wrong team
@@ -88,14 +134,32 @@ class BotSharedBrain {
         }
     }
 
+    /*
+        Method Name: getTeamName
+        Method Parameters: None
+        Method Description: Getter
+        Method Return: String
+    */
     getTeamName(){
         return this.teamName;
     }
 
+    /*
+        Method Name: hasUnexploredSpawnpoints
+        Method Parameters: None
+        Method Description: Checks if there are any unexplored spawnpoints to check off
+        Method Return: boolean
+    */
     hasUnexploredSpawnpoints(){
         return this.getUnexploredSpawnpoints().length > 0;
     }
 
+    /*
+        Method Name: getUnexploredSpawnpoints
+        Method Parameters: None
+        Method Description: Gets the unexplored spawn points
+        Method Return: List of JSON
+    */
     getUnexploredSpawnpoints(){
         let unexploredSpawnpoints = [];
         for (let spawnPointObj of this.spawnPointKnowledge){
@@ -106,6 +170,12 @@ class BotSharedBrain {
         return unexploredSpawnpoints;
     }
 
+    /*
+        Method Name: getEnemyData
+        Method Parameters: None
+        Method Description: Creates data about enemies
+        Method Return: List of JSON
+    */
     getEnemyData(){
         let teamName = this.getTeamName();
         let otherTeamName = this.gamemode.getOtherTeam(teamName);
@@ -130,15 +200,20 @@ class BotSharedBrain {
         return enemyData;
     }
 
+    /*
+        Method Name: getHealthOfEnemy
+        Method Parameters: 
+            enemyID:
+                The id of an enemy
+        Method Description: Finds the enemy's health or assumes full health
+        Method Return: float
+    */
     getHealthOfEnemy(enemyID){
         let teamName = this.getTeamName();
         let otherTeamName = this.gamemode.getOtherTeam(teamName);
         // If visible return health
         if (this.gamemode.isVisibleToTeam(teamName, otherTeamName, enemyID)){
             let enemy = this.gamemode.getTroop(otherTeamName, enemyID);
-            if (enemy === null || enemy == null){
-                debugger;
-            }
             return enemy.getHealth();
         }
         // If was seen before return last recorded heatlh
@@ -151,18 +226,54 @@ class BotSharedBrain {
         }
     }
 
+    /*
+        Method Name: troopVanishes
+        Method Parameters: 
+            enemyID:
+                ID of vanishing troop
+            health:
+                Health of vanishing troop
+            newTileX:
+                The tile x the troop is traveling to
+            newTileY:
+                The tile y the troop is traveling to
+        Method Description: Stores info on a troop vanishing
+        Method Return: void
+    */
     troopVanishes(enemyID, health, newTileX, newTileY){
         this.lastKnownLocations[enemyID] = {"status": "last_known", "tile_x": newTileX, "tile_y": newTileY, "health": health};
     }
 
+    /*
+        Method Name: hasLastKnownLocationForTroop
+        Method Parameters: 
+            enemyID:
+                ID of the enemy troop
+        Method Description: Checks if there is a last known location for this troop
+        Method Return: boolean
+    */
     hasLastKnownLocationForTroop(enemyID){
         return objectHasKey(this.lastKnownLocations, enemyID);
     }
 
+    /*
+        Method Name: getScene
+        Method Parameters: None
+        Method Description: Gets the scene from the game
+        Method Return: WTLGameScene
+    */
     getScene(){
         return this.gamemode.getScene();
     }
 
+    /*
+        Method Name: getEnemyConfidence
+        Method Parameters: 
+            enemyID:
+                ID of the enemy troop
+        Method Description: Gets the confidence in the enemy's location
+        Method Return: float
+    */
     getEnemyConfidence(enemyID){
         let teamName = this.getTeamName();
         let otherTeamName = this.gamemode.getOtherTeam(teamName);

@@ -1,4 +1,18 @@
+/*
+    Class Name: LevelGenerator
+    Class Description: A gamemode for viewing generated levels
+*/
 class LevelGenerator extends Gamemode {
+    /*
+        Method Name: constructor
+        Method Parameters: 
+            presetData:
+                JSON details about a preset
+            seed:
+                int. Seed for generation
+        Method Description: constructor
+        Method Return: constructor
+    */
     constructor(presetData, seed){
         super();
 
@@ -13,8 +27,24 @@ class LevelGenerator extends Gamemode {
         this.startUp(presetData, seed);
     }
 
+    /*
+        Method Name: getName
+        Method Parameters: None
+        Method Description: Gets the name of the game
+        Method Return: String
+    */
     getName(){ return "level_generator"; }
 
+    /*
+        Method Name: startUp
+        Method Parameters: 
+            presetData:
+                JSON details about a preset
+            seed:
+                int. Seed for generation
+        Method Description: Starts up the game
+        Method Return: Promise (implicit)
+    */
     async startUp(presetData, seed){
         // Setup camera
         this.scene.setFocusedEntity(this.camera);
@@ -22,6 +52,16 @@ class LevelGenerator extends Gamemode {
         await this.loadPreset(presetData, seed);
     }
 
+    /*
+        Method Name: loadPreset
+        Method Parameters: 
+            presetData:
+                JSON details about a preset
+            seed:
+                int. Seed for generation
+        Method Description: Loads a preset
+        Method Return: Promise (implicit)
+    */
     async loadPreset(presetData, seed){
         this.loadingLock.lock();
 
@@ -45,6 +85,20 @@ class LevelGenerator extends Gamemode {
         this.loadingLock.unlock();
     }
 
+    /*
+        Method Name: loadCornerSpawnsPreset
+        Method Parameters: 
+            scene:
+                Associated scene
+            presetData:
+                JSON details about a preset
+            seed:
+                int. Seed for generation
+            size:
+                int. Size of level
+        Method Description: Loads a preset and adds corner spawns and does cutting
+        Method Return: Promise (implicit)
+    */
     static async loadCornerSpawnsPreset(scene, presetData, seed, size){
         let presetName = presetData["name"];
 
@@ -69,6 +123,20 @@ class LevelGenerator extends Gamemode {
         return spawns;
     }
 
+    /*
+        Method Name: refitOakForest1PresetForCornerSpawns
+        Method Parameters: 
+            scene:
+                Associated scene
+            seed:
+                int. Seed for generation
+            size:
+                int. Size of level
+            presetData:
+                JSON details about a oak forest 1
+        Method Description: adds corner spawns and does cutting
+        Method Return: Promise (implicit)
+    */
     static async refitOakForest1PresetForCornerSpawns(scene, seed, size, presetData){
         let defaultSize = presetData["size"];
         if (defaultSize < size){
@@ -213,6 +281,20 @@ class LevelGenerator extends Gamemode {
         return spawns;
     }
 
+    /*
+        Method Name: createPath
+        Method Parameters: 
+            coordSet1:
+                int array, 2 elements
+            coordSet2:
+                int array, 2 elements
+            scene:
+                Relevant scene
+            destroyTileFunc:
+                Function that destroys tiles (usually replaces with grass)
+        Method Description: Creates a path between two points
+        Method Return: Promsie (implicit)
+    */
     static async createPath(coordSet1, coordSet2, scene, destroyTileFunc){
         let startTileX = coordSet1[0];
         let startTileY = coordSet1[1];
@@ -351,6 +433,22 @@ class LevelGenerator extends Gamemode {
         }
     }
 
+    /*
+        Method Name: deleteAllOutsideOfRegion
+        Method Parameters: 
+            scene:
+                Relevant scene
+            lowerX:
+                Lower x of region
+            higherXEX:
+                Higher x of region (not included)
+            lowerY:
+                Lower y of region
+            higherYEX:
+                Higher y of region (not included)
+        Method Description: Deletes all tiles outside of a given region
+        Method Return: Promise (implicit)
+    */
     static async deleteAllOutsideOfRegion(scene, lowerX, higherXEX, lowerY, higherYEX){
         let apr = new AsyncProcessingRegulator();
         let chunks = scene.getChunks();
@@ -398,6 +496,18 @@ class LevelGenerator extends Gamemode {
         }
     }
 
+    /*
+        Method Name: generateOakForest1Preset
+        Method Parameters: 
+            scene:
+                Associated scene
+            seed:
+                int. Seed for generation
+            presetData:
+                JSON details about a oak forest 1
+        Method Description: Loads a the oak forest1 preset.
+        Method Return: Promise (implicit)
+    */
     static async generateOakForest1Preset(scene, seed, presetData){
         let defaultSize = presetData["size"];
         let apr = new AsyncProcessingRegulator();
@@ -623,12 +733,32 @@ class LevelGenerator extends Gamemode {
         }
     }
 
+    /*
+        Method Name: end
+        Method Parameters: None
+        Method Description: TODO
+        Method Return: TODO
+    */
     end(){
         MY_HUD.clearElement("seed");
         MY_HUD.clearElement("Cursor Tile X");
         MY_HUD.clearElement("Cursor Tile Y");
     }
 
+    /*
+        Method Name: refitRiver1PresetForCornerSpawns
+        Method Parameters: 
+            scene:
+                Associated scene
+            seed:
+                int. Seed for generation
+            size:
+                int. Size of level
+            presetData:
+                JSON details about a river 1
+        Method Description: adds corner spawns and does cutting
+        Method Return: Promise (implicit)
+    */
     static async refitRiver1PresetForCornerSpawns(scene, seed, size, presetData){
         let defaultSize = presetData["size"];
         if (defaultSize < size){
@@ -708,6 +838,18 @@ class LevelGenerator extends Gamemode {
         return spawns;
     }
 
+    /*
+        Method Name: generateRiver1Preset
+        Method Parameters: 
+            scene:
+                Associated scene
+            seed:
+                int. Seed for generation
+            presetData:
+                JSON details about a river1 preset
+        Method Description: Loads a the river1 preset
+        Method Return: Promise (implicit)
+    */
     static async generateRiver1Preset(scene, seed, presetData){
         let defaultSize = presetData["size"];
         let apr = new AsyncProcessingRegulator();
@@ -1011,6 +1153,12 @@ class LevelGenerator extends Gamemode {
         }
     }
 
+    /*
+        Method Name: display
+        Method Parameters: None
+        Method Description: Displays the game
+        Method Return: void
+    */
     display(){
         if (this.loadingLock.isLocked()){
             LOADING_SCREEN.display();
@@ -1024,6 +1172,12 @@ class LevelGenerator extends Gamemode {
         this.camera.display();
     }
 
+    /*
+        Method Name: tick
+        Method Parameters: None
+        Method Description: Performs tick processes
+        Method Return: void
+    */
     tick(){
         if (this.loadingLock.isLocked()){ return; }
         this.tickUI();
@@ -1031,6 +1185,12 @@ class LevelGenerator extends Gamemode {
         this.scene.tick();
     }
 
+    /*
+        Method Name: tick
+        Method Parameters: None
+        Method Description: Performs tick processes for the UI
+        Method Return: void
+    */
     tickUI(){
         let togglingUI = GAME_USER_INPUT_MANAGER.isActivated("u_ticked");
         if (togglingUI){

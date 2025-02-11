@@ -3,14 +3,46 @@ if (typeof window === "undefined"){
     WTL_GAME_DATA = require("../../data/data_json.js");
 }
 
+/*
+    Function Name: msToTickCeil
+    Function Parameters: 
+        ms:
+            Number of miliseconds
+    Function Description: Converts a number of miliseconds to ticks (rounds up)
+    Function Return: int
+*/
 function msToTickCeil(ms){
     return Math.ceil(ms / calculateMSBetweenTicks());
 }
 
+/*
+    Function Name: floatBandaid
+    Function Parameters: 
+        myFloat:
+            A float
+        numDigits=6:
+            The maximum number of digits for the float
+    Function Description: Limits a float to a number of digits
+    Function Return: float
+*/
 function floatBandaid(myFloat, numDigits=6){
     return Number.parseFloat(myFloat).toFixed(numDigits);
 }
 
+/*
+    Function Name: calculateAngleRangeOverlapProportion
+    Function Parameters: 
+        coveringRangeCWEnd:
+            The covering range clockwise end
+        coveringRangeCCWEnd:
+            The covering range counter-clockwise end
+        coveredRangeCWEnd:
+            The covered range clockwise end
+        coveredRangeCCWEnd:
+            The covered range counter-clockwise end
+    Function Description: Calculates the proportion that the covered range that is covered by the covering range
+    Function Return: float [0,1]
+*/
 function calculateAngleRangeOverlapProportion(coveringRangeCWEnd, coveringRangeCCWEnd, coveredRangeCWEnd, coveredRangeCCWEnd){
     // Check for one source of error
     if (coveringRangeCWEnd === coveringRangeCCWEnd){
@@ -52,6 +84,16 @@ function calculateAngleRangeOverlapProportion(coveringRangeCWEnd, coveringRangeC
     }
 }
 
+/*
+    Function Name: getIndexOfElementInList
+    Function Parameters: 
+        list:
+            A list
+        value:
+            A value to search for
+    Function Description: Finds the index of an element in a list
+    Function Return: int
+*/
 function getIndexOfElementInList(list, value){
     for (let i = 0; i < list.length; i++){
         if (list[i] === value){
@@ -61,6 +103,16 @@ function getIndexOfElementInList(list, value){
     return -1;
 }
 
+/*
+    Method Name: XYToSeed
+    Method Parameters: 
+        x:
+            An x coordinate
+        y:
+            A y coordinate
+    Method Description: Takes an x and y coordinate and converts them to a more-or-less unique seed
+    Method Return: int
+*/
 function XYToSeed(x, y){
     let sqrtExtreme = Math.floor(Math.sqrt(Number.MAX_SAFE_INTEGER));
     let halfSquareRootExtreme = Math.floor(sqrtExtreme/2);
@@ -76,6 +128,22 @@ function XYToSeed(x, y){
     return seed;
 }
 
+/*
+    Method Name: binarySearch
+    Method Parameters: 
+        value:
+            Value to search for
+        array:
+            Array to search
+        comparisonFunction:
+            Function that compares two values (returns 0, -1, 1)
+        start:
+            Start index
+        end:
+            End index (inclusive)
+    Method Description: Searches a sorted array
+    Method Return: int
+*/
 function binarySearch(value, array, comparisonFunction, start=0, end=array.length-1){
     // If empty return -1
     if (end < 0 || start > end){ return -1; }
@@ -100,6 +168,24 @@ function binarySearch(value, array, comparisonFunction, start=0, end=array.lengt
     }
 }
 
+/*
+    Function Name: findInsertionPoint
+    Function Parameters: 
+        value:
+            Value to search for
+        array:
+            Array to search
+        comparisonFunction:
+            Function that compares two values (returns 0, -1, 1)
+        start:
+            Start index
+        end:
+            End index (exclusive)
+        hardEnd:
+            Length of the array
+    Function Description: Finds a point at which one can insert a value into the array
+    Function Return: int
+*/
 function findInsertionPoint(value, array, comparisonFunction, start=0, end=array.length, hardEnd=array.length){
     // Handle empty case
     if (end === 0){ return 0; }
@@ -126,53 +212,6 @@ function findInsertionPoint(value, array, comparisonFunction, start=0, end=array
     // End point is in the first half of the array
     else{
         return findInsertionPoint(value, array, start, mid, hardEnd);
-    }
-}
-
-function calculateRangeOverlapProportion(coveringRangeLow, coveringRangeHigh, coveredRangeLow, coveredRangeHigh){
-    // Check for one source of error
-    if (coveredRangeHigh === coveredRangeLow){
-        throw new Error("Invalid covered range supplied:" + coveredRangeLow.toString() + ',' + coveredRangeHigh.toString());
-    }
-    // 6 cases handed in overlapping_ranges_problem.png
-
-    // Case 7 - Both equal
-    if (coveringRangeLow === coveredRangeLow && coveringRangeHigh === coveredRangeHigh){
-        return 1;
-    }
-    // Case 3 - Covering range covers completely
-    else if (coveringRangeLow <= coveredRangeLow && coveringRangeHigh >= coveredRangeHigh){
-        return 1;
-    }
-    // Case 4 - Covering range is fully closed by covered range
-    else if (coveringRangeLow >= coveredRangeLow && coveringRangeHigh <= coveredRangeHigh){
-        return (coveringRangeHigh - coveringRangeLow) / (coveredRangeHigh - coveredRangeLow);
-    }
-    // Case 1 - Covering range is completely distinct (to the left)
-    else if (coveringRangeHigh <= coveredRangeLow){
-        return 0;
-    }
-    // Case 6 - Covering range is completely distinct (to the right)
-    else if (coveringRangeLow >= coveredRangeHigh){
-        return 0;
-    }
-    // Case 2 - Covering range partially covers from the left
-    else if (coveringRangeLow < coveredRangeLow && coveringRangeHigh > coveredRangeLow){
-        if ((coveredRangeHigh - coveringRangeHigh) / (coveredRangeHigh - coveredRangeLow) < 0){
-            debugger;
-        }
-        return (coveredRangeHigh - coveringRangeHigh) / (coveredRangeHigh - coveredRangeLow);
-    }
-    // Case 5 - Covering range partially covers from the right
-    else if (coveringRangeLow > coveredRangeLow && coveringRangeHigh > coveredRangeHigh){
-        if ((coveredRangeHigh - coveringRangeLow) / (coveredRangeHigh - coveredRangeLow) < 0){
-            debugger;
-        }
-        return (coveredRangeHigh - coveringRangeLow) / (coveredRangeHigh - coveredRangeLow);
-    }
-    // Unknown case
-    else{
-        throw new Error("Unhandled case:" + coveredRangeLow.toString() + ',' + coveredRangeHigh.toString() + ',' + coveringRangeLow + ',' + coveringRangeHigh);
     }
 }
 
@@ -226,6 +265,16 @@ function getDataJSONObjAtPath(path){
 }
 
 
+/*
+    Function Name: isMovingInSameDirection
+    Function Parameters: 
+        value1:
+            A number
+        value2:
+            A number
+    Function Description: Checks if two numbers have the same sign
+    Function Return: boolean
+*/
 function isMovingInSameDirection(value1, value2){
     if (value1 < 0 && value2 < 0){ return true; }
     if (value1 > 0 && value2 > 0){ return true; }
@@ -233,16 +282,46 @@ function isMovingInSameDirection(value1, value2){
     return false;
 }
 
+/*
+    Function Name: teamNameIsEqual
+    Function Parameters: 
+        team1:
+            A team name. String
+        team2:
+            A team name. String
+    Function Description: Checks if two team names are the same
+    Function Return: boolean
+*/
 function teamNameIsEqual(team1, team2){
     return getProperAdjective(team1) === getProperAdjective(team2);
 }
 
+/*
+    Function Name: addToArraySet
+    Function Parameters: 
+        array:
+            An array
+        element:
+            A value of variable type
+    Function Description: Adds a value to an array but treats the array like a set
+    Function Return: void
+*/
 function addToArraySet(array, element){
     // Don't add if already present
     if (getIndexOfElementInArray(array, element) != -1){ return; }
     array.push(element);
 }
 
+/*
+    Function Name: getIndexOfElementInArray
+    Function Parameters: 
+        array:
+            An array
+        value:
+            A value to search for
+    Function Description: Finds the index of an element in a list
+    Function Return: int
+*/
 function getIndexOfElementInArray(array, element){
     for (let i = 0; i < array.length; i++){
         if (array[i] === element){
@@ -252,16 +331,46 @@ function getIndexOfElementInArray(array, element){
     return -1;
 }
 
+/*
+    Function Name: arraySwap
+    Function Parameters: 
+        array:
+            An array
+        index1:
+            An index
+        index2:
+            An index
+    Function Description: Swaps elements at two indices in an array
+    Function Return: void
+*/
 function arraySwap(array, index1, index2){
     let temp = array[index1];
     array[index1] = array[index2];
     array[index2] = temp;
 }
 
+/*
+    Function Name: areDirectionsEqual
+    Function Parameters: 
+        direction1:
+            A direction String (visual or movement)
+        direction2:
+            A direction String (visual or movement)
+    Function Description: Checks if two directions are equivalent
+    Function Return: boolean
+*/
 function areDirectionsEqual(direction1, direction2){
     return getMovementDirectionOf(direction1) === getMovementDirectionOf(direction2);
 }
 
+/*
+    Function Name: getMovementDirectionOf
+    Function Parameters: 
+        direction:
+            Visual or movement direction string
+    Function Description: Converts a visual direction to movement direction
+    Function Return: String
+*/
 function getMovementDirectionOf(direction){
     if (direction === "front" || direction === "down"){
         return "down";
@@ -275,6 +384,14 @@ function getMovementDirectionOf(direction){
     throw new Error("Invalid direction: " + direction);
 }
 
+/*
+    Function Name: getVisualDirectionOf
+    Function Parameters: 
+        direction:
+            Movement or visual direction string
+    Function Description: Converts a movement direction to visual direction
+    Function Return: String
+*/
 function getVisualDirectionOf(direction){
     if (direction === "down" || direction === "front"){
         return "front";
@@ -288,6 +405,14 @@ function getVisualDirectionOf(direction){
     throw new Error("Invalid direction: " + direction);
 }
 
+/*
+    Function Name: getOppositeDirectionOf
+    Function Parameters: 
+        direction:
+            Movement or visual direction string
+    Function Description: Gets the opposite direction string
+    Function Return: String
+*/
 function getOppositeDirectionOf(direction){
     if (direction === "up"){
         return "down";
@@ -305,6 +430,14 @@ function getOppositeDirectionOf(direction){
     throw new Error("Invalid direction: " + direction);
 }
 
+/*
+    Function Name: getAngleFromMouseToScreenCenter
+    Function Parameters: 
+        scene:
+            A WTLGameScene
+    Function Description: Gets the angle from the mouse to screen center
+    Function Return: float [0, 2*Math.PI)
+*/
 function getAngleFromMouseToScreenCenter(scene){
     let x = gMouseX;
     let y = scene.changeFromScreenY(gMouseY);
@@ -326,6 +459,14 @@ function getAngleFromMouseToScreenCenter(scene){
     return fixRadians(angleRAD);
 }
 
+/*
+    Function Name: angleToBestFaceDirection
+    Function Parameters: 
+        angleRAD:
+            An angle in radians
+    Function Description: Converts an angle to a facing direction
+    Function Return: string
+*/
 function angleToBestFaceDirection(angleRAD){
     // If to the right
     if (angleBetweenCCWRAD(angleRAD, toRadians(315), toRadians(45))){
@@ -345,28 +486,36 @@ function angleToBestFaceDirection(angleRAD){
     }
 }
 
+/*
+    Function Name: calculateMSBetweenTicks
+    Function Parameters: None
+    Function Description: Calculates the number of ms between ticks
+    Function Return: number
+*/
 function calculateMSBetweenTicks(){
     return 1000 / getTickRate();
 }
 
+/*
+    Function Name: getTickRate
+    Function Parameters: None
+    Function Description: Gets the tick rate
+    Function Return: int
+*/
 function getTickRate(){
     return WTL_GAME_DATA["general"]["tick_rate"];
 }
 
-function roundUpToNearestMultipleOf(numberToRound, base){
-    let sign = (numberToRound < 0) ? -1 : 1;
-
-    // Remove sign from numberToRound
-    numberToRound = Math.abs(numberToRound);
-
-    // Make sure base is positive
-    base = Math.abs(base);
-
-    let multipleAmount = Math.ceil(numberToRound / base);
-
-    return sign * multipleAmount * base;
-}
-
+/*
+    Function Name: angleAndHypotenuseToXAndYSides
+    Function Parameters: 
+        angleRAD:
+            An angle in radians
+        distance:
+            Hypotenuse length / distance
+    Function Description: Converts an angle and hypotenuse to the x and y sides
+    Function Return: JSON
+*/
 function angleAndHypotenuseToXAndYSides(angleRAD, distance){
     return {
         "x": Math.cos(angleRAD) * distance,
@@ -374,14 +523,44 @@ function angleAndHypotenuseToXAndYSides(angleRAD, distance){
     }
 }
 
+/*
+    Function Name: calculateEuclideanDistance
+    Function Parameters: 
+        x1:
+            x coordinate
+        y1:
+            y coordinate
+        x2:
+            x coordinate
+        y2:
+            y coordinate
+    Function Description: Calculates the euclidean distance
+    Function Return: float
+*/
 function calculateEuclideanDistance(x1, y1, x2, y2){
     return Math.sqrt(Math.pow(x1-x2,2) + Math.pow(y1-y2,2));
 }
 
+/*
+    Function Name: getTeamNameFromClass
+    Function Parameters: 
+        characterClass:
+            A character class/model String
+    Function Description: Converts a class/model to team name
+    Function Return: String
+*/
 function getTeamNameFromClass(characterClass){
     return WTL_GAME_DATA["character_class_to_team_name"][characterClass];
 }
 
+/*
+    Function Name: getNumKeys
+    Function Parameters: 
+        obj:
+            A json object
+    Function Description: Counts the number of keys in a JSON object
+    Function Return: int
+*/
 function getNumKeys(obj){
     let count = 0;
     for (let objKey of Object.keys(obj)){
@@ -438,17 +617,38 @@ function angleBetweenCWRAD(angle, eAngle1, eAngle2){
     return distanceFromEAngle1ToAngleCW <= distanceFromEAngle1ToEAngle2CW;
 }
 
+/*
+    Function Name: getNoun
+    Function Parameters: 
+        teamName:
+            A team name string
+    Function Description: Gets the team name noun
+    Function Return: String
+*/
 function getNoun(teamName){
     return getTeamNameJSON(teamName)["noun"];
 }
 
+/*
+    Function Name: getProperAdjective
+    Function Parameters: 
+        teamName:
+            A team name string
+    Function Description: Gets the team name adjective
+    Function Return: String
+*/
 function getProperAdjective(teamName){
-    if (teamName === undefined){
-        debugger;
-    }
     return getTeamNameJSON(teamName)["proper_adjective"];
 }
 
+/*
+    Function Name: getProperAdjectivePlural
+    Function Parameters: 
+        teamName:
+            A team name string
+    Function Description: Gets the team name plural form
+    Function Return: String
+*/
 function getProperAdjectivePlural(teamName){
     return getTeamNameJSON(teamName)["proper_adjective_plural"];
 }
@@ -465,16 +665,32 @@ function toFixedRadians(angleDEG){
     return fixRadians(toRadians(angleDEG));
 }
 
+/*
+    Function Name: getTeamNameJSON
+    Function Parameters: 
+        teamName:
+            A team name string
+    Function Description: Finds a team name JSON from difference forms
+    Function Return: JSON Object
+*/
 function getTeamNameJSON(teamName){
     let searchableName = teamName.toLowerCase();
     for (let team of WTL_GAME_DATA["team_aliases"]){
-        if (team["noun"].toLowerCase() == searchableName || team["proper_adjective"].toLowerCase() == searchableName || team["proper_adjective_plural"].toLowerCase() == searchableName){
+        if (team["noun"].toLowerCase() === searchableName || team["proper_adjective"].toLowerCase() === searchableName || team["proper_adjective_plural"].toLowerCase() === searchableName){
             return team;
         }
     }
     throw new Error("Team not found.");
 }
 
+/*
+    Function Name: getPhysicalTileDetails
+    Function Parameters: 
+        physicalTileName:
+            The name of a physical tile type
+    Function Description: Gets the details about a physical tile type
+    Function Return: JSON Object or null
+*/
 function getPhysicalTileDetails(physicalTileName){
     for (let physicalTileDetails of WTL_GAME_DATA["physical_tiles"]){
         if (physicalTileDetails["name"] == physicalTileName){
@@ -484,20 +700,56 @@ function getPhysicalTileDetails(physicalTileName){
     return null;
 }
 
+/*
+    Function Name: ensureImageIsLoadedFromDetails
+    Function Parameters: 
+        imageDetails:
+            JSON object with info on an image
+    Function Description: Ensurse an image is loaded
+    Function Return: Promise (implicit)
+*/
 async function ensureImageIsLoadedFromDetails(imageDetails){
     await ensureImageIsLoaded(imageDetails["name"], imageDetails["file_link"])
 }
 
+/*
+    Function Name: ensureImageIsLoaded
+    Function Parameters: 
+        imageName:
+            The name of an image
+        fileLink:
+            A link to a file
+    Function Description: Ensures an image is loaded
+    Function Return: Promise (implicit)
+*/
 async function ensureImageIsLoaded(imageName, fileLink){
     if (!objectHasKey(IMAGES, imageName)){
         await loadTileToImages(imageName, fileLink);
     }
 }
 
+/*
+    Function Name: ensureImageIsLoaded
+    Function Parameters: 
+        imageName:
+            The name of an image
+        fileLink:
+            A link to a file
+    Function Description: Loads an image
+    Function Return: Promise (implicit)
+*/
 async function loadTileToImages(imageName, fileLink){
     IMAGES[imageName] = await loadLocalImage(fileLink);
 }
 
+/*
+    Function Name: loadLocalImage
+    Function Parameters: 
+        url:
+            URL to the image
+    Function Description: Loads a local image
+    Function Return: Promise (implicit)
+*/
 async function loadLocalImage(url){
     let newImage = null;
     let wait = new Promise(function(resolve, reject){
@@ -515,11 +767,32 @@ async function loadLocalImage(url){
     return newImage;
 }
 
+/*
+    Function Name: loadToImages
+    Function Parameters: 
+        imageName:
+            The name of an image
+        folderPrefix:
+            The folder prefix in images
+        type:
+            The type of file
+    Function Description: Loads an image to the image JSON
+    Function Return: Promise (implicit)
+*/
 async function loadToImages(imageName, folderPrefix="", type=".png"){
     IMAGES[imageName] = await loadLocalImage("images/" + folderPrefix + imageName + type);
 }
 
-// TODO: Comments
+/*
+    Function Name: listHasElement
+    Function Parameters: 
+        list:
+            A list
+        element:
+            An element of variable type
+    Function Description: Checks if a list contains an element
+    Function Return: boolean
+*/
 function listHasElement(list, element){
     for (let listElement of list){
         if (listElement === element){
@@ -529,27 +802,63 @@ function listHasElement(list, element){
     return false;
 }
 
-// TODO: Comments
+/*
+    Function Name: toFixedDegrees
+    Function Parameters: 
+        angleRAD:
+            A radian angle
+    Function Description: Converts an angle to a fixed number of degrees
+    Function Return: int [0,359]
+*/
 function toFixedDegrees(angleRAD){
     return fixDegrees(toDegrees(angleRAD));
 }
 
-// TODO: Comments
+/*
+    Function Name: pointInRectangle
+    Function Parameters: 
+        x:
+            x coordinate
+        y:
+            y coordinate
+        lX:
+            left x coordinate
+        rX:
+            right x coordinate
+        bY:
+            bottom y coordinate
+        tY:
+            top y coordinate
+    Function Description: Checks if a point is in a rectangle
+    Function Return: boolean
+*/
 function pointInRectangle(x, y, lX, rX, bY, tY){
     return x >= lX && x <= rX && y >= bY && y <= tY;
 }
 
-// TODO: Comments
+/*
+    Function Name: getImage
+    Function Parameters: 
+        imageName:
+            The name of an image
+    Function Description: Finds an image and returns it
+    Function Return: Image
+*/
 function getImage(imageName){
-    // If using Node JS return null
-    if (typeof window === "undefined"){
-        return null;
-    }
     return images[imageName];
 }
 
 
-// TODO: Comments
+/*
+    Function Name: objectHasKey
+    Function Parameters: 
+        obj:
+            A json object
+        key:
+            The key to look for
+    Function Description: Checks if a JSON object contains a key
+    Function Return: boolean
+*/
 function objectHasKey(obj, key){
     for (let foundKey of Object.keys(obj)){
         if (foundKey == key){ return true; }
@@ -711,6 +1020,14 @@ function getScreenHeight(){
     return window.innerHeight;
 }
 
+/*
+    Function Name: reverseList
+    Function Parameters: 
+        myList:
+            A list
+    Function Description: Reverses the order of elements in a list
+    Function Return: List of variable type contents
+*/
 function reverseList(myList){
     let newList = [];
     for (let i = myList.length - 1; i >= 0; i--){
@@ -719,6 +1036,14 @@ function reverseList(myList){
     return newList;
 }
 
+/*
+    Function Name: isJSON
+    Function Parameters: 
+        e:
+            A value
+    Function Description: Checks if a value is JSON or not
+    Function Return: boolean
+*/
 function isJSON(e){
     return e != null && e.constructor === ({}).constructor;
 }
@@ -749,6 +1074,16 @@ function copyArray(array, limit=array.length){
     return newArray;
 }
 
+/*
+    Function Name: copyArrayOfJSONObjects
+    Function Parameters: 
+        array:
+            An array
+        limit:
+            The number of objects to copy to copy
+    Function Description: Copies json objects from an array
+    Function Return: List of JSON objects
+*/
 function copyArrayOfJSONObjects(array, limit=array.length){
     let newArray = [];
     for (let i = 0; i < Math.min(array.length, limit); i++){
@@ -1045,10 +1380,26 @@ function randomFloatBetween(lowerBound, upperBound){
     return Math.random() * (upperBound - lowerBound) + lowerBound;
 }
 
+/*
+    Function Name: randomBoolean
+    Function Parameters: None
+    Function Description: Creates a random boolean
+    Function Return: boolean
+*/
 function randomBoolean(){
     return Math.random() < 0.5;
 }
 
+/*
+    Function Name: calculateAngleDiffRAD
+    Function Parameters: 
+        angle1:
+            A radian angle
+        angle2:
+            A radian angle
+    Function Description: Calculates the difference between two angles
+    Function Return: float in [0, PI]
+*/
 function calculateAngleDiffRAD(angle1, angle2){
     let diff = Math.max(angle1, angle2) - Math.min(angle1, angle2);
     if (diff > Math.PI){

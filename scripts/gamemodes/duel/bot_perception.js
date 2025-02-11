@@ -1,4 +1,18 @@
+/*
+    Class Name: BotPerception
+    Class Description: A perception management tool
+*/
 class BotPerception {
+    /*
+        Method Name: constructor
+        Method Parameters: 
+            player:
+                The associated player
+            reactionTimeTicks:
+                The player's reaction time measured in ticks
+        Method Description: constructor
+        Method Return: constructor
+    */
     constructor(player, reactionTimeTicks){
         this.player = player;
         this.reactionTimeTicks = reactionTimeTicks;
@@ -6,14 +20,38 @@ class BotPerception {
         this.data = {};
     }
 
+    /*
+        Method Name: clear
+        Method Parameters: None
+        Method Description: Clears all data
+        Method Return: void
+    */
     clear(){
         this.data = {};
     }
 
+    /*
+        Method Name: getReactionTimeTicks
+        Method Parameters: None
+        Method Description: Getter
+        Method Return: int
+    */
     getReactionTimeTicks(){
         return this.reactionTimeTicks;
     }
 
+    /*
+        Method Name: inputData
+        Method Parameters: 
+            dataKey:
+                Key to identify the data
+            dataValue:
+                Value to store
+            tick:
+                Tick of input
+        Method Description: Stores information
+        Method Return: void
+    */
     inputData(dataKey, dataValue, tick){
         // Make a place for the data if no place yet exists
         if (!objectHasKey(this.data, dataKey)){
@@ -47,6 +85,16 @@ class BotPerception {
         }
     }
 
+    /*
+        Method Name: hasDataToReactTo
+        Method Parameters: 
+            dataKey:
+                Key to identify the data
+            tick:
+                Tick of attempted retrieval
+        Method Description: Checks if there is available data given the current tick and data key
+        Method Return: boolean
+    */
     hasDataToReactTo(dataKey, tick){
         // Shouldn't be requesting data that hasn't been added yet
         if (!objectHasKey(this.data, dataKey)){
@@ -55,6 +103,16 @@ class BotPerception {
         return this.getDataToReactTo(dataKey, tick) != null;
     }
 
+    /*
+        Method Name: hasDataToReactToExact
+        Method Parameters: 
+            dataKey:
+                Key to identify the data
+            tick:
+                Tick of attempted retrieval
+        Method Description: Checks if there is available data given the current tick (matches the tick) and data key
+        Method Return: boolean
+    */
     hasDataToReactToExact(dataKey, tick){
         // Shouldn't be requesting data that hasn't been added yet
         if (!objectHasKey(this.data, dataKey)){
@@ -63,13 +121,21 @@ class BotPerception {
         return this.getDataToReactToExact(dataKey, tick) != null;
     }
 
+    /*
+        Method Name: getDataToReactToExact
+        Method Parameters: 
+            dataKey:
+                Key to identify the data
+            tick:
+                Tick of attempted retrieval
+        Method Description: Gets available data given the current tick (matches the tick) and data key
+        Method Return: Variable or null
+    */
     getDataToReactToExact(dataKey, tick){
         // Shouldn't be requesting data that hasn't been added yet
         if (!objectHasKey(this.data, dataKey)){
-            debugger;
             throw new Error("Requesting data that has not been received: " + dataKey);
         }
-        if (tick === undefined){ debugger; }
 
         let dataList = this.data[dataKey];
 
@@ -85,13 +151,22 @@ class BotPerception {
         return null;
     }
 
+    /*
+        Method Name: getDataToReactTo
+        Method Parameters: 
+            dataKey:
+                Key to identify the data
+            tick:
+                Tick of attempted retrieval
+        Method Description: Gets is available data given the current tick and data key
+        Method Return: Variable or null
+    */
     getDataToReactTo(dataKey, tick){
         // Shouldn't be requesting data that hasn't been added yet
         if (!objectHasKey(this.data, dataKey)){
-            debugger;
             throw new Error("Requesting data that has not been received: " + dataKey);
         }
-        if (tick === undefined){ debugger; }
+
         let bestTick = tick - this.getReactionTimeTicks();
 
         let dataList = this.data[dataKey];
@@ -115,9 +190,6 @@ class BotPerception {
 
         // If nothing found, return null
         if (newestAcceptableDataIndex === -1){
-            if (isRDebugging()){
-                debugger;
-            }
             return null;
         }
 

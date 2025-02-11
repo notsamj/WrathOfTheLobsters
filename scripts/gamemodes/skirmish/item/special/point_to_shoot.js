@@ -1,4 +1,17 @@
+/*  
+    Class Name: PointToMove
+    Class Description: A took for indicating a place for troops to move
+*/
 class PointToShoot extends Item {
+    /*
+        Method Name: constructor
+        Method Parameters: 
+            details:
+                JSON object with information
+        Method Description: constructor
+        Method Return: constructor
+    */
+
     constructor(details){
         super();
         this.player = objectHasKey(details, "player") ? details["player"] : null;
@@ -15,10 +28,24 @@ class PointToShoot extends Item {
         this.beingUsedForAction = false;
     }
 
+    /*
+        Method Name: isBeingUsedForAction
+        Method Parameters: None
+        Method Description: Checks if this is being using for an action
+        Method Return: boolean
+    */
     isBeingUsedForAction(){
         return this.beingUsedForAction;
     }
 
+    /*
+        Method Name: getCommandForTroop
+        Method Parameters: 
+            troop:
+                A character
+        Method Description: Checks if there is a command available for a troop
+        Method Return: void
+    */
     getCommandForTroop(troop){
         // Note: We know this troop is selected because it would otherwise not be asking for a command
         let command = {};
@@ -89,14 +116,32 @@ class PointToShoot extends Item {
         return command;
     }
 
+    /*
+        Method Name: resetSelectedTroopsForCurrentPosition
+        Method Parameters: None
+        Method Description: Resets the selected troops
+        Method Return: void
+    */
     resetSelectedTroopsForCurrentPosition(){
         this.selectedTroops = this.generateSelectedTroops();
     }
 
+    /*
+        Method Name: getSelectedTroops
+        Method Parameters: None
+        Method Description: Gets the selected troops
+        Method Return: List of SkirmishCharacter
+    */
     getSelectedTroops(){
         return this.selectedTroops;
     }
 
+    /*
+        Method Name: actOnDecisions
+        Method Parameters: None
+        Method Description: Acts on decisions
+        Method Return: void
+    */
     actOnDecisions(){
         // Tick 2 after trying to shot
         if (this.player.hasCommitedToAction() && this.isBeingUsedForAction() && this.allHaveShot()){
@@ -127,6 +172,12 @@ class PointToShoot extends Item {
         }
     }
 
+    /*
+        Method Name: generateWaitingToShootList
+        Method Parameters: None
+        Method Description: Generates a list of troops waiting to shoot
+        Method Return: List opf SkirmishCharacter
+    */
     generateWaitingToShootList(){
         let waitingToShootList = [];
         for (let troop of this.selectedTroops){
@@ -135,6 +186,14 @@ class PointToShoot extends Item {
         return waitingToShootList;
     }
 
+    /*
+        Method Name: removeFromShootList
+        Method Parameters: 
+            troopID:
+                ID of a troop
+        Method Description: Removes a troop from the shoot list
+        Method Return: void
+    */
     removeFromShootList(troopID){
         let listIndex = -1;
         for (let i = 0; i < this.waitingToShoot.length; i++){
@@ -151,10 +210,22 @@ class PointToShoot extends Item {
         this.waitingToShoot.shift();
     }
 
+    /*
+        Method Name: allHaveShot
+        Method Parameters: None
+        Method Description: Checks if all the troops on the shoot list shot
+        Method Return: boolean
+    */
     allHaveShot(){
         return this.waitingToShoot.length === 0;
     }
 
+    /*
+        Method Name: generateSelectedTroops
+        Method Parameters: None
+        Method Description: Generates the selected troops list
+        Method Return: List of SKirmishCharacter
+    */
     generateSelectedTroops(){
         let allTroopsOnMyTeam = this.getGamemode().getLivingTeamRosterFromName(this.player.getTeamName());
         let myPlayerTileX = this.player.getTileX();
@@ -174,10 +245,22 @@ class PointToShoot extends Item {
         return selectedTroops;
     }
 
+    /*
+        Method Name: getScene
+        Method Parameters: None
+        Method Description: Gets the player's scene
+        Method Return: void
+    */
     getScene(){
         return this.player.getScene();
     }
 
+    /*
+        Method Name: resetDecisions
+        Method Parameters: None
+        Method Description: Resets the decisions
+        Method Return: void
+    */
     resetDecisions(){
         this.player.amendDecisions({
             "crosshair_center_x": null,
@@ -187,14 +270,32 @@ class PointToShoot extends Item {
         });
     }
 
+    /*
+        Method Name: makeDecisions
+        Method Parameters: None
+        Method Description: Indicates that the player should make move pointer decisions
+        Method Return: void
+    */
     makeDecisions(){
         this.player.makeShootPointerDecisions();
     }
 
+    /*
+        Method Name: getGamemode
+        Method Parameters: None
+        Method Description: Gets the player's gamemode
+        Method Return: Skirmish instance
+    */
     getGamemode(){
         return this.player.getGamemode();
     }
 
+    /*
+        Method Name: select
+        Method Parameters: None
+        Method Description: Handles item selection logic
+        Method Return: void
+    */
     select(){
         let newTurn = this.player.getGamemode().getTurnCounter();
         let playerStandingX = this.player.getTileX();
@@ -211,9 +312,25 @@ class PointToShoot extends Item {
         this.selectedTroops = this.generateSelectedTroops();
     }
 
+    /*
+        Method Name: deselect
+        Method Parameters: None
+        Method Description: Dud
+        Method Return: void
+    */
     deselect(){
     }
 
+    /*
+        Method Name: displayItemSlot
+        Method Parameters: 
+            providedX:
+                The x of the item slot
+            providedY:
+                The y of the item slot
+        Method Description: Displays in the hotbar
+        Method Return: void
+    */
     displayItemSlot(providedX, providedY){
         let image = IMAGES["point_to_shoot"];
         let displayScale = WTL_GAME_DATA["inventory"]["slot_size"] / image.width;
@@ -231,9 +348,25 @@ class PointToShoot extends Item {
         translate(-1 * scaleX, -1 * scaleY);
     }
 
+    /*
+        Method Name: tick
+        Method Parameters: None
+        Method Description: Dud
+        Method Return: void
+    */
     tick(){
     }
 
+    /*
+        Method Name: display
+        Method Parameters: 
+            lX:
+                The x coordinate of the left side of the screen
+            bY:
+                The y coordinate of the bottom of the screen
+        Method Description: Displays the crosshair
+        Method Return: void
+    */
     display(lX, bY){
         if (!this.player.isMakingAMove()){ return; }
         let x = this.getScene().getDisplayXOfPoint(this.crosshairCenterX, lX);

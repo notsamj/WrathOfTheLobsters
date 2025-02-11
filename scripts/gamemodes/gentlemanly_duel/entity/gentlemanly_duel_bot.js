@@ -1,4 +1,23 @@
+/*
+    Class Name: GentlemanlyDuelBot
+    Class Description: A bot in a gentlemanly duel
+*/
+
 class GentlemanlyDuelBot extends GentlemanlyDuelCharacter {
+    /*
+        Method Name: constructor
+        Method Parameters: 
+            gamemode:
+                Relevant gamemode
+            model:
+                String. Model of character
+            extraDetails:
+                Extra details about character json
+            botExtraDetails:
+                Extra details about bot json
+        Method Description: constructor
+        Method Return: constructor
+    */
     constructor(gamemode, model, extraDetails, botExtraDetails){
         super(gamemode, model, extraDetails);
         this.perception = new BotPerception(this, Math.ceil(botExtraDetails["reaction_time_ms"] / calculateMSBetweenTicks()));
@@ -25,6 +44,18 @@ class GentlemanlyDuelBot extends GentlemanlyDuelCharacter {
         }
     }
 
+    /*
+        Method Name: drawGunCrosshair
+        Method Parameters: 
+            gun:
+                A gun instance
+            lX:
+                The x coordinate of the left side of the screen
+            bY:
+                The y coordinate of the bottom of the screen
+        Method Description: Draws the crosshair on the screen
+        Method Return: void
+    */
     drawGunCrosshair(gun, lX, bY){
         let enemy = this.getEnemy();
 
@@ -59,32 +90,82 @@ class GentlemanlyDuelBot extends GentlemanlyDuelCharacter {
         translate(-1 * x, -1 * y);
     }
 
+    /*
+        Method Name: getEnemyID
+        Method Parameters: None
+        Method Description: Gets the enemy's id
+        Method Return: String
+    */
     getEnemyID(){
         return this.getEnemy().getID();
     }
 
+    /*
+        Method Name: isDisabled
+        Method Parameters: None
+        Method Description: Checks if the bot is disabled
+        Method Return: boolean
+    */
     isDisabled(){
         return this.disabled;
     }
 
+    /*
+        Method Name: getDataToReactTo
+        Method Parameters: 
+            dataKey:
+                Key to the requested data
+        Method Description: Shortcut to perception function
+        Method Return: Variable
+    */
     getDataToReactTo(dataKey){
         return this.perception.getDataToReactTo(dataKey, this.getCurrentTick());
     }
 
+    /*
+        Method Name: hasDataToReactTo
+        Method Parameters: 
+            dataKey:
+                Key to the requested data
+        Method Description: Shortcut to perception function
+        Method Return: boolean
+    */
     hasDataToReactTo(dataKey){
         return this.perception.hasDataToReactTo(dataKey, this.getCurrentTick());
     }
 
+    /*
+        Method Name: inputPerceptionData
+        Method Parameters: 
+            dataKey:
+                Key to the requested data
+            dataValue:
+                Value to store
+        Method Description: Shortcut to perception function
+        Method Return: void
+    */
     inputPerceptionData(dataKey, dataValue){
         this.perception.inputData(dataKey, dataValue, this.getCurrentTick());
     }
 
+    /*
+        Method Name: tick
+        Method Parameters: None
+        Method Description: Handles actions during a tick
+        Method Return: void
+    */
     tick(){
         if (this.isDead()){ return; }
         this.perceive();
         super.tick();
     }
 
+    /*
+        Method Name: perceive
+        Method Parameters: None
+        Method Description: Perceives the world
+        Method Return: void
+    */
     perceive(){
         let duelStarted = this.gamemode.hasDuelStarted();
         this.inputPerceptionData("duel_started", duelStarted);
@@ -104,6 +185,12 @@ class GentlemanlyDuelBot extends GentlemanlyDuelCharacter {
         }
     }
     
+    /*
+        Method Name: makeDecisions
+        Method Parameters: None
+        Method Description: Makes decisions
+        Method Return: void
+    */
     makeDecisions(){
         if (this.getGamemode().isOver()){ return; }
         if (this.isDisabled()){ return; }
@@ -122,27 +209,69 @@ class GentlemanlyDuelBot extends GentlemanlyDuelCharacter {
         this.updateFromCommands();
     }
 
+    /*
+        Method Name: resetBotDecisions
+        Method Parameters: None
+        Method Description: Resets the bot decisions
+        Method Return: void
+    */
     resetBotDecisions(){
         this.botDecisionDetails["decisions"]["weapons"]["gun"]["trying_to_aim"] = false;
         this.botDecisionDetails["decisions"]["weapons"]["gun"]["trying_to_shoot"] = false;
         this.botDecisionDetails["decisions"]["weapons"]["gun"]["trying_to_reload"] = false;
     }
 
+    /*
+        Method Name: updateFromCommands
+        Method Parameters: None
+        Method Description: Makes decisions from game commands
+        Method Return: void
+    */
     updateFromCommands(){
         let command = this.gamemode.getCommandFromGame(this.getID());
         this.amendDecisions(command);
     }
 
+    /*
+        Method Name: botDecisions
+        Method Parameters: None
+        Method Description: Makes bot decisions
+        Method Return: void
+    */
     botDecisions(){
         // Execute state decisions
         this.engageInDuel();
     }
 
+    /*
+        Method Name: actOnDecisions
+        Method Parameters: None
+        Method Description: Takes actions
+        Method Return: void
+    */
     actOnDecisions(){
         if (this.getGamemode().isOver()){ return; }
         super.actOnDecisions();
     }
 
+    /*
+        Method Name: speculateOnHittingEnemy
+        Method Parameters: 
+            bulletRange:
+                The distance a bullet can reach
+            enemyCenterX:
+                The x location of the enemy's center
+            enemyCenterY:
+                The y location of the enemy's center
+            gunEndX:
+                The x location of the end of my gun
+            gunEndY:
+                The y location of the end of my gun
+            visualDirectionToFace:
+                The (visual) direction to face
+        Method Description: Speculates on the possibility of hitting the enemy with a gun
+        Method Return: JSON Object
+    */
 speculateOnHittingEnemy(bulletRange, enemyCenterX, enemyCenterY, gunEndX, gunEndY, visualDirectionToFace){
         let anglesToCheck = [];
 
@@ -330,6 +459,12 @@ speculateOnHittingEnemy(bulletRange, enemyCenterX, enemyCenterY, gunEndX, gunEnd
         return result;
     }
 
+    /*
+        Method Name: engageInDuel
+        Method Parameters: None
+        Method Description: Makes shooting decisions while dueling
+        Method Return: void
+    */
     engageInDuel(){
         // Nothing to do if the duel is yet to start
         if (!this.hasDataToReactTo("duel_started") || !this.getDataToReactTo("duel_started")){ return; }
@@ -391,11 +526,9 @@ speculateOnHittingEnemy(bulletRange, enemyCenterX, enemyCenterY, gunEndX, gunEnd
                     let decidedToShoot = guaranteedHit || decideToShootBasedOnRandom;
                     this.botDecisionDetails["decisions"]["weapons"]["gun"]["trying_to_shoot"] = decidedToShoot;
 
-                    /*if (decidedToShoot){
-                        console.log("Chance to hit", myChanceOfHittingAShot, msToShootWithThisChance)
-                    }*/
                 }else{
                     // Note: Expect this not to occur so.... 
+                    throw new Error("Unexpected behavior.")
                 }
             }
             // Else I am not aiming currently
@@ -415,6 +548,12 @@ speculateOnHittingEnemy(bulletRange, enemyCenterX, enemyCenterY, gunEndX, gunEnd
         }
     }   
 
+    /*
+        Method Name: getEnemy
+        Method Parameters: None
+        Method Description: Gets the enemy
+        Method Return: void
+    */
     getEnemy(){
         // If I've already saved the enemy in storage then just return it
         if (this.botDecisionDetails["enemy"] != null){
@@ -432,14 +571,32 @@ speculateOnHittingEnemy(bulletRange, enemyCenterX, enemyCenterY, gunEndX, gunEnd
         throw new Error("DuelBot failed to find enemy.");
     }
 
+    /*
+        Method Name: getRandom
+        Method Parameters: None
+        Method Description: Gets the random instance
+        Method Return: SeededRandomizer
+    */
     getRandom(){
         return this.gamemode.getRandom();
     }
 
+    /*
+        Method Name: getRandomEventManager
+        Method Parameters: None
+        Method Description: Getter
+        Method Return: Getter
+    */
     getRandomEventManager(){
         return this.randomEventManager;
     }
 
+    /*
+        Method Name: makePistolDecisions
+        Method Parameters: None
+        Method Description: Make character-level decisions on shooting a pistol
+        Method Return: void
+    */
     makePistolDecisions(){
         let canShoot = this.gamemode.canShoot(this.getID());
         let tryingToAim = this.botDecisionDetails["decisions"]["weapons"]["gun"]["trying_to_aim"] && canShoot;
@@ -454,5 +611,11 @@ speculateOnHittingEnemy(bulletRange, enemyCenterX, enemyCenterY, gunEndX, gunEnd
         });
     }
 
+    /*
+        Method Name: isHuman
+        Method Parameters: None
+        Method Description: Checks if this is a human
+        Method Return: boolean
+    */
     isHuman(){ return false; }
 }

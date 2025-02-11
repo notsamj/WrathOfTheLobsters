@@ -122,7 +122,7 @@ class GeneralDebuggerSwitch {
         Method Name: getName
         Method Parameters: None
         Method Description: Getter
-        Method Return: Getter
+        Method Return: String
     */
     getName(){
         return this.name;

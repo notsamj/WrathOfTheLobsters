@@ -128,7 +128,7 @@ class GameMakerUI extends Menu {
         Method Name: getConnectionButton
         Method Parameters: None
         Method Description: Getter
-        Method Return: Getter
+        Method Return: ConnectionButton
     */
     getConnectionButton(){
         return this.connectionButton;
@@ -310,7 +310,7 @@ class GameMakerUI extends Menu {
         Method Name: getImageSelector
         Method Parameters: None
         Method Description: Getter
-        Method Return: Getter
+        Method Return: ImageSelector
     */
     getImageSelector(){
         return this.imageSelector;
@@ -687,7 +687,7 @@ class SelectableImage {
         Method Name: getName
         Method Parameters: None
         Method Description: Getter
-        Method Return: Getter
+        Method Return: String
     */
     getName(){
         return this.name;

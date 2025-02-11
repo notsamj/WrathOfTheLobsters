@@ -1,4 +1,22 @@
+/*  
+    Class Name: DuelBot
+    Class Description: A bot that fights in a duel
+*/
 class DuelBot extends DuelCharacter {
+    /*
+        Method Name: constructor
+        Method Parameters: 
+            gamemode:
+                Relevant gamemode
+            model:
+                String. A character model
+            extraDetails:
+                A JSON object with extra information about the character
+            botExtraDetails:
+                A JSON object with extra information about the bot
+        Method Description: constructor
+        Method Return: constructor
+    */
     constructor(gamemode, model, extraDetails, botExtraDetails){
         super(gamemode, model, extraDetails);
         this.perception = new BotPerception(this, Math.ceil(botExtraDetails["reaction_time_ms"] / calculateMSBetweenTicks()));
@@ -38,6 +56,12 @@ class DuelBot extends DuelCharacter {
         }
     }
 
+    /*
+        Method Name: reset
+        Method Parameters: None
+        Method Description: Resets the bot
+        Method Return: void
+    */
     reset(){
         this.perception.clear();
         this.resetBotDecisions();
@@ -51,6 +75,18 @@ class DuelBot extends DuelCharacter {
         this.stunLock.restoreDefault();
     }
 
+    /*
+        Method Name: drawGunCrosshair
+        Method Parameters: 
+            gun:
+                A gun instance
+            lX:
+                The x coordinate of the left side of the screen
+            bY:
+                The y coordinate of the bottom of the screen
+        Method Description: Draws the crosshair on the screen
+        Method Return: void
+    */
     drawGunCrosshair(gun, lX, bY){
         let enemy = this.getEnemy();
 
@@ -85,37 +121,99 @@ class DuelBot extends DuelCharacter {
         translate(-1 * x, -1 * y);
     }
 
+    /*
+        Method Name: getEnemyID
+        Method Parameters: None
+        Method Description: Gets the enemy's id
+        Method Return: String
+    */
     getEnemyID(){
         return this.getEnemy().getID();
     }
 
+    /*
+        Method Name: notifyOfGunshot
+        Method Parameters: 
+            shooterTileX:
+                Tile x coordinate of a shooter
+            shooterTileY:
+                Tile y coordinate of a shooter
+            enemyFacingMovementDirection:
+                The facing direction of the enemy
+        Method Description: Informs the bot about a shot taken
+        Method Return: void
+    */
     notifyOfGunshot(shooterTileX, shooterTileY, enemyFacingMovementDirection){
         this.inputPerceptionData("enemy_location", {"tile_x": shooterTileX, "tile_y": shooterTileY});
         this.inputPerceptionData("enemy_facing_movement_direction", enemyFacingMovementDirection);
     }
 
+    /*
+        Method Name: isDisabled
+        Method Parameters: None
+        Method Description: Checks if the bot is disabled
+        Method Return: boolean
+    */
     isDisabled(){
         return this.disabled;
     }
 
+    /*
+        Method Name: getDataToReactTo
+        Method Parameters: 
+            dataKey:
+                Key to the requested data
+        Method Description: Shortcut to perception function
+        Method Return: Variable
+    */
     getDataToReactTo(dataKey){
         return this.perception.getDataToReactTo(dataKey, this.getCurrentTick());
     }
 
+    /*
+        Method Name: hasDataToReactTo
+        Method Parameters: 
+            dataKey:
+                Key to the requested data
+        Method Description: Shortcut to perception function
+        Method Return: boolean
+    */
     hasDataToReactTo(dataKey){
         return this.perception.hasDataToReactTo(dataKey, this.getCurrentTick());
     }
 
+    /*
+        Method Name: inputPerceptionData
+        Method Parameters: 
+            dataKey:
+                Key to the requested data
+            dataValue:
+                Value to store
+        Method Description: Shortcut to perception function
+        Method Return: void
+    */
     inputPerceptionData(dataKey, dataValue){
         this.perception.inputData(dataKey, dataValue, this.getCurrentTick());
     }
 
+    /*
+        Method Name: tick
+        Method Parameters: None
+        Method Description: Handles actions during a tick
+        Method Return: void
+    */
     tick(){
         if (this.isDead()){ return; }
         this.perceive();
         super.tick();
     }
 
+    /*
+        Method Name: perceive
+        Method Parameters: None
+        Method Description: Perceives the world
+        Method Return: void
+    */
     perceive(){
         // Focused on enemy
 
@@ -262,8 +360,14 @@ class DuelBot extends DuelCharacter {
         }
     }
 
+    /*
+        Method Name: resetBotDecisions
+        Method Parameters: None
+        Method Description: Resets the bot decisions
+        Method Return: void
+    */
     resetBotDecisions(){
-        // TODO: Something that copies decisions are beginning and pastes it here
+        // Note: in the future could use something that copies decisions are beginning and pastes it here
         this.botDecisionDetails["decisions"]["select_slot"] = null;
         this.botDecisionDetails["decisions"]["up"] = false;
         this.botDecisionDetails["decisions"]["down"] = false;
@@ -284,6 +388,12 @@ class DuelBot extends DuelCharacter {
         this.botDecisionDetails["decisions"]["weapons"]["musket"]["trying_to_stab"] = false;
     }
     
+    /*
+        Method Name: makeDecisions
+        Method Parameters: None
+        Method Description: Makes decisions
+        Method Return: void
+    */
     makeDecisions(){
         if (this.getGamemode().isOver()){ return; }
         if (this.isDisabled()){ return; }
@@ -305,6 +415,12 @@ class DuelBot extends DuelCharacter {
 
     }
 
+    /*
+        Method Name: botDecisions
+        Method Parameters: None
+        Method Description: Makes bot decisions
+        Method Return: void
+    */
     botDecisions(){
         // Decide if you want to change state
         this.determineState();
@@ -313,6 +429,12 @@ class DuelBot extends DuelCharacter {
         this.makeDecisionsBasedOnDecidedState();
     }
 
+    /*
+        Method Name: actOnDecisions
+        Method Parameters: None
+        Method Description: Takes actions
+        Method Return: void
+    */
     actOnDecisions(){
         if (this.getGamemode().isOver()){ return; }
 
@@ -320,22 +442,54 @@ class DuelBot extends DuelCharacter {
 
     }
 
+    /*
+        Method Name: getAction
+        Method Parameters: None
+        Method Description: Finds a stored action
+        Method Return: void
+    */
     getAction(){
         return this.botDecisionDetails["action"];
     }
 
+    /*
+        Method Name: setAction
+        Method Parameters: 
+            newActionName:
+                Name of the new action
+        Method Description: Sets the current stored action
+        Method Return: void
+    */
     setAction(newActionName){
         this.actionName = newActionName;
     }
 
+    /*
+        Method Name: cancelAction
+        Method Parameters: None
+        Method Description: Cancels the current action
+        Method Return: void
+    */
     cancelAction(){
         this.actionName = null;
     }
 
+    /*
+        Method Name: hasAction
+        Method Parameters: None
+        Method Description: Checks if there is a current action
+        Method Return: boolean
+    */
     hasAction(){
         return this.botDecisionDetails["action"] === null;
     }
 
+    /*
+        Method Name: makeDecisionsBasedOnDecidedState
+        Method Parameters: None
+        Method Description: Makes bot-level decisions
+        Method Return: void
+    */
     makeDecisionsBasedOnDecidedState(){
         let state = this.getState();
         if (state === "equip_a_weapon"){
@@ -347,11 +501,23 @@ class DuelBot extends DuelCharacter {
         }
     }
 
+    /*
+        Method Name: hasNoWeapons
+        Method Parameters: None
+        Method Description: Checks if the character has no weapons
+        Method Return: boolean
+    */
     hasNoWeapons(){
         let numberOfWeapons = this.getInventory().getNumberOfContents();
         return numberOfWeapons === 0;
     }
 
+    /*
+        Method Name: equipAWeapon
+        Method Parameters: None
+        Method Description: Equips a weapon
+        Method Return: void
+    */
     equipAWeapon(){
         if (this.hasAction() && this.getAction() === "switching_to_weapon"){
             return;
@@ -379,6 +545,12 @@ class DuelBot extends DuelCharacter {
         }
     }
 
+    /*
+        Method Name: determineState
+        Method Parameters: None
+        Method Description: Determines what state the bot should be in
+        Method Return: void
+    */
     determineState(){
         let state = this.getState();
         if (state === "starting"){
@@ -406,22 +578,50 @@ class DuelBot extends DuelCharacter {
         }
     }
 
+    /*
+        Method Name: hasWeaponEquipped
+        Method Parameters: None
+        Method Description: Checks if the character has a weapon equipped
+        Method Return: boolean
+    */
     hasWeaponEquipped(){
         if (!this.getInventory().hasSelectedItem()){ return false; }
         let equippedItem = this.getInventory().getSelectedItem();
         return (equippedItem instanceof Gun) || (equippedItem instanceof MeleeWeapon);
     }
 
+    /*
+        Method Name: getState
+        Method Parameters: None
+        Method Description: Gets the current state
+        Method Return: String
+    */
     getState(){
         return this.botDecisionDetails["state"];
     }
 
+    /*
+        Method Name: changeToState
+        Method Parameters: 
+            newStateName:
+                Name of the new state
+        Method Description: Changes to a new state
+        Method Return: void
+    */
     changeToState(newStateName){
         this.botDecisionDetails["state"] = newStateName;
 
         this.setInitialConditions(newStateName);
     }
 
+    /*
+        Method Name: setInitialConditions
+        Method Parameters: 
+            newStateName:
+                Name of the new state
+        Method Description: Sets up a new state
+        Method Return: void
+    */
     setInitialConditions(newStateName){
         // Prepare the state data json object
         this.botDecisionDetails["state_data"] = {};
@@ -430,10 +630,22 @@ class DuelBot extends DuelCharacter {
         }
     }
 
+    /*
+        Method Name: getStateData
+        Method Parameters: None
+        Method Description: Gets the stored state data
+        Method Return: JSON usually but Variable
+    */
     getStateData(){
         return this.botDecisionDetails["state_data"];
     }
 
+    /*
+        Method Name: prepareSearchingForEnemyState
+        Method Parameters: None
+        Method Description: Prepares the searching for enemy state
+        Method Return: void
+    */
     prepareSearchingForEnemyState(){
         let stateDataJSON = this.getStateData();
         stateDataJSON["route"] = null;
@@ -442,6 +654,12 @@ class DuelBot extends DuelCharacter {
     }
 
 
+    /*
+        Method Name: getEnemy
+        Method Parameters: None
+        Method Description: Gets the enemy
+        Method Return: void
+    */
     getEnemy(){
         // If I've already saved the enemy in storage then just return it
         if (this.botDecisionDetails["enemy"] != null){
@@ -457,10 +675,15 @@ class DuelBot extends DuelCharacter {
             }
         }
 
-        debugger;
         throw new Error("DuelBot failed to find enemy.");
     }
 
+    /*
+        Method Name: considerChangingWeapons
+        Method Parameters: None
+        Method Description: Consider changing weapons
+        Method Return: void
+    */
     considerChangingWeapons(){
         let heldWeapon = this.getInventory().getSelectedItem();
 
@@ -643,6 +866,12 @@ class DuelBot extends DuelCharacter {
         return false;
     }
 
+    /*
+        Method Name: makeFightingDecisions
+        Method Parameters: None
+        Method Description: Makes decisions during a fight
+        Method Return: void
+    */
     makeFightingDecisions(){
         let equippedItem = this.getInventory().getSelectedItem();
 
@@ -664,6 +893,12 @@ class DuelBot extends DuelCharacter {
         }
     }
 
+    /*
+        Method Name: considerReloadingWhileEnemyIsGone
+        Method Parameters: None
+        Method Description: Consider reloading because the enemy cannot be found
+        Method Return: boolean, true -> need to reload, false -> no need to reload
+    */
     considerReloadingWhileEnemyIsGone(){
         // Return true -> Don't do anything I'm reloading false -> I'm not reloading 
         let numGuns = 0;
@@ -724,6 +959,12 @@ class DuelBot extends DuelCharacter {
         return true;
     }
 
+    /*
+        Method Name: searchForEnemy
+        Method Parameters: None
+        Method Description: Search for the enemy
+        Method Return: void
+    */
     searchForEnemy(){
         let stateDataJSON = this.getStateData();
         // Check if you can see the enemy otherwise move around
@@ -770,12 +1011,24 @@ class DuelBot extends DuelCharacter {
         this.botDecisionDetails["decisions"]["sprint"] = (!this.isSprinting() && this.staminaBar.isFull()) || (this.isSprinting() && this.staminaBar.getStaminaProportion() > WTL_GAME_DATA["duel"]["ai"]["enemy_search_min_stamina_preference"]);
     }
 
+    /*
+        Method Name: getMaxSearchPathLength
+        Method Parameters: None
+        Method Description: Get the max search path length
+        Method Return: int
+    */
     getMaxSearchPathLength(){
         return WTL_GAME_DATA["duel"]["ai"]["search_path_max_length"];
         //return Math.ceil(this.getGamemode().getEnemyVisibilityDistance() / Math.sqrt(2)); // Basically the idea is you have a 1 / 1 / sqrt(2) triangle and you add up the two 1s to get the search range
         // return Math.ceil(Math.sqrt(2 * Math.pow(WTL_GAME_DATA["duel"]["area_size"], 2)));
     }
 
+    /*
+        Method Name: generateRouteToSearchForEnemy
+        Method Parameters: None
+        Method Description: Generates a route to search for the enemy
+        Method Return: Route
+    */
     generateRouteToSearchForEnemy(){
         let tilesToEndAt = this.exploreAvailableTiles(this.getTileX(), this.getTileY());
         // If no tiles to move to (including current)
@@ -788,10 +1041,22 @@ class DuelBot extends DuelCharacter {
         return Route.fromPath(tileChosen["shortest_path"]);
     }
 
+    /*
+        Method Name: getRandom
+        Method Parameters: None
+        Method Description: Gets the random instance
+        Method Return: SeededRandomizer
+    */
     getRandom(){
         return this.gamemode.getRandom();
     }
 
+    /*
+        Method Name: makeInventoryDecisions
+        Method Parameters: None
+        Method Description: Makes decisions in the inventory
+        Method Return: void
+    */
     makeInventoryDecisions(){
         // Reset
         this.amendDecisions({
@@ -806,6 +1071,24 @@ class DuelBot extends DuelCharacter {
         });
     }
 
+    /*
+        Method Name: speculateOnHittingEnemy
+        Method Parameters: 
+            bulletRange:
+                The distance a bullet can reach
+            enemyCenterX:
+                The x location of the enemy's center
+            enemyCenterY:
+                The y location of the enemy's center
+            gunEndX:
+                The x location of the end of my gun
+            gunEndY:
+                The y location of the end of my gun
+            visualDirectionToFace:
+                The (visual) direction to face
+        Method Description: Speculates on the possibility of hitting the enemy with a gun
+        Method Return: JSON Object
+    */
     speculateOnHittingEnemy(bulletRange, enemyCenterX, enemyCenterY, gunEndX, gunEndY, visualDirectionToFace){
         let anglesToCheck = [];
 
@@ -993,10 +1276,22 @@ class DuelBot extends DuelCharacter {
         return result;
     }
 
+    /*
+        Method Name: getRandomEventManager
+        Method Parameters: None
+        Method Description: Getter
+        Method Return: RandomEventmManager
+    */
     getRandomEventManager(){
         return this.randomEventManager;
     }
 
+    /*
+        Method Name: makePistolFightingDecisions
+        Method Parameters: None
+        Method Description: Makes decisions on how to fight with the pistol
+        Method Return: void
+    */
     makePistolFightingDecisions(){
         // No decisions to be made when not at rest
         if (this.isBetweenTiles()){ return; }
@@ -1188,7 +1483,6 @@ class DuelBot extends DuelCharacter {
                     }else if (this.getDataToReactTo("enemy_moving")){
                         // If enemy is moving then it's ok that I can't hit them because I will be able to after they hit the next tile or I will at least recompute
                     }else{
-                        debugger;
                         throw new Error("Bad tile selected to shoot from.");
                     }
                 }
@@ -1204,6 +1498,12 @@ class DuelBot extends DuelCharacter {
         }
     }
 
+    /*
+        Method Name: makeMusketFightingDecisions
+        Method Parameters: None
+        Method Description: Makes decisions for fighting with the musket
+        Method Return: void
+    */
     makeMusketFightingDecisions(){
         // Nothing to do if you can't see the enemy
         if (!this.hasDataToReactTo("enemy_location")){ return; }
@@ -1387,7 +1687,6 @@ class DuelBot extends DuelCharacter {
                         }else if (this.getDataToReactTo("enemy_moving")){
                             // If enemy is moving then it's ok that I can't hit them because I will be able to after they hit the next tile or I will at least recompute
                         }else{
-                            debugger;
                             throw new Error("Bad tile selected to shoot from.");
                         }
                     }
@@ -1519,6 +1818,12 @@ class DuelBot extends DuelCharacter {
         }
     }
 
+    /*
+        Method Name: makeUnarmedDecisions
+        Method Parameters: None
+        Method Description: Makes decisions when you have no weapons
+        Method Return: void
+    */
     makeUnarmedDecisions(){
         let loc = this.getDataToReactTo("enemy_location");
         let enemyTileX = loc["tile_x"];
@@ -1584,6 +1889,16 @@ class DuelBot extends DuelCharacter {
         }
     }
 
+    /*
+        Method Name: goToReloadPositionAndReload
+        Method Parameters: 
+            enemyTileX:
+                The tile x location of the enemy
+            enemyTileY:
+                The tile y location of the enemy
+        Method Description: Goes to a location to reload and reloads
+        Method Return: void
+    */
     goToReloadPositionAndReload(enemyTileX, enemyTileY){
         let stateDataJSON = this.getStateData();
         let movingToReloadPosition = objectHasKey(stateDataJSON, "current_objective") && stateDataJSON["current_objective"] === "move_to_reload_position";
@@ -1651,6 +1966,20 @@ class DuelBot extends DuelCharacter {
         }
     }
 
+    /*
+        Method Name: determineTilesToRunawayTo
+        Method Parameters: 
+            myTileX:
+                My current Tile x Location
+            myTileY:
+                My current Tile y Location
+            enemyTileX:
+                The enemy current Tile x Location
+            enemyTileY:
+                The enemy current Tile y Location
+        Method Description: Finds tiles that are worth running away to
+        Method Return: List of JSON objects
+    */
     determineTilesToRunawayTo(myTileX, myTileY, enemyTileX, enemyTileY){
         let allTiles = this.exploreAvailableTiles(myTileX, myTileY);
 
@@ -1733,13 +2062,20 @@ class DuelBot extends DuelCharacter {
 
             // Add the score
             tile["score"] = score;
-            if (isNaN(score)){
-                debugger;
-            }
         }
         return allTiles;
     }
 
+    /*
+        Method Name: determineTileToRunawayTo
+        Method Parameters: 
+            enemyTileX:
+                The tile x loc of an enemy
+            enemyTileY:
+                The tile y loc of an enemy
+        Method Description: Picks a tile to run away to
+        Method Return: JSON object
+    */
     determineTileToRunawayTo(enemyTileX, enemyTileY){
         let allTiles;
         let myTileX = this.getTileX();
@@ -1810,6 +2146,20 @@ class DuelBot extends DuelCharacter {
         return chosenTile;
     }
 
+    /*
+        Method Name: determineTilesToReloadFrom
+        Method Parameters: 
+            myTileX:
+                My current Tile x Location
+            myTileY:
+                My current Tile y Location
+            enemyTileX:
+                The enemy current Tile x Location
+            enemyTileY:
+                The enemy current Tile y Location
+        Method Description: Comes up with a list of tiles that would be good to reload from
+        Method Return: List of JSON Objects
+    */
     determineTilesToReloadFrom(myTileX, myTileY, enemyTileX, enemyTileY){
         let allTiles = this.exploreAvailableTiles(this.getTileX(), this.getTileY());
 
@@ -1903,6 +2253,16 @@ class DuelBot extends DuelCharacter {
         return allTiles;
     }
 
+    /*
+        Method Name: determineTileToReloadFrom
+        Method Parameters: 
+            enemyTileX:
+                The enemy current Tile x Location
+            enemyTileY:
+                The enemy current Tile y Location
+        Method Description: Picks a tile to reload from 
+        Method Return: JSON Object
+    */
     determineTileToReloadFrom(enemyTileX, enemyTileY){
         let allTiles;
         let myTileX = this.getTileX();
@@ -1932,11 +2292,9 @@ class DuelBot extends DuelCharacter {
 
         // If it's saved then request this tile data
         if (hasAllTilesStored){
-            if (allTilesStored === null){ debugger;}
             allTiles = allTilesStored;
         }else{
             allTiles = this.determineTilesToReloadFrom(myTileX, myTileY, enemyTileX, enemyTileY);
-            if (allTiles === null){ debugger; }
             if (!hasMyLocData){
                 myLocData = new NotSamXYCappedLengthSortedArrayList(100);
                 this.temporaryOperatingData.set("tiles_to_runaway_to", myLocData);
@@ -1974,6 +2332,18 @@ class DuelBot extends DuelCharacter {
         return chosenTile;
     }
 
+    /*
+        Method Name: generateShortestEvasiveRouteToPoint
+        Method Parameters: 
+            endTileX:
+                The tile x of the tile you are trying to reach
+            endTileY:
+                The tile y of the tile you are trying to reach
+            routeLengthLimit:
+                The maximum length of the route
+        Method Description: Generates a route to a point. An evasive route.
+        Method Return: Route or null
+    */
     generateShortestEvasiveRouteToPoint(endTileX, endTileY, routeLengthLimit=Number.MAX_SAFE_INTEGER){
         let startTileX = this.getTileX();
         let startTileY = this.getTileY();
@@ -2002,7 +2372,7 @@ class DuelBot extends DuelCharacter {
         if (hasODRoute){
             route = odRoute;
         }else{
-            route = this.generateShortestRouteFromPointToPoint(startTileX, startTileY, endTileX, endTileY, routeLengthLimit);
+            route = this.generateShortestEvasiveRoutePointToPoint(startTileX, startTileY, endTileX, endTileY, routeLengthLimit);
             if (!hasOriginArr){
                 originArr = new NotSamXYCappedLengthSortedArrayList(100);
                 this.temporaryOperatingData.set("shortest_evasive_route_p_to_p", originArr);
@@ -2024,7 +2394,18 @@ class DuelBot extends DuelCharacter {
         return route;
     }
 
-
+    /*
+        Method Name: generateShortestEvasiveRoutePointToPoint
+        Method Parameters: 
+            endTileX:
+                The tile x of the tile you are trying to reach
+            endTileY:
+                The tile y of the tile you are trying to reach
+            routeLengthLimit:
+                The maximum length of the route
+        Method Description: Generates a route to a point. An evasive route.
+        Method Return: Route or null
+    */
     generateShortestEvasiveRoutePointToPoint(endTileX, endTileY, routeLengthLimit=Number.MAX_SAFE_INTEGER){
         if (startTileX === endTileX && startTileY === endTileY){ return Route.fromPath([{"tile_x": startTileX, "tile_y": startTileY}]); }
         if (!this.canWalkOnTile(startTileX, startTileY)){ throw new Error("Invalid start tile."); }
@@ -2303,6 +2684,20 @@ class DuelBot extends DuelCharacter {
         return null;
     }
 
+    /*
+        Method Name: generateShortestRouteFromPointToPoint
+        Method Parameters: 
+            tile1X:
+                Start tile x
+            tile1Y:
+                Start tile y
+            tile2X:
+                End tile x
+            tile2Y:
+                End tile y
+        Method Description: Generates or gets from storage the shortest route from one point to another
+        Method Return: Route or null,
+    */
     generateShortestRouteFromPointToPoint(tile1X, tile1Y, tile2X, tile2Y){
         let hasOriginArr = this.temporaryOperatingData.has("shortest_route_p_to_p");
         let hasDestinationArr = false;
@@ -2325,11 +2720,9 @@ class DuelBot extends DuelCharacter {
         let route;
         // If it's saved then request this tile data
         if (hasODRoute){
-            if (odRoute === null){ debugger;}
             route = odRoute;
         }else{
             route = super.generateShortestRouteFromPointToPoint(tile1X, tile1Y, tile2X, tile2Y);
-            if (route === null){ debugger; }
             if (!hasOriginArr){
                 originArr = new NotSamXYCappedLengthSortedArrayList(100);
                 this.temporaryOperatingData.set("shortest_route_p_to_p", originArr);
@@ -2350,6 +2743,18 @@ class DuelBot extends DuelCharacter {
         return route;
     }
 
+    /*
+        Method Name: exploreAvailableTiles
+        Method Parameters: 
+            tileX:
+                The starting tileX
+            tileY:
+                The starting tileY
+            pathLength:
+                The maximum path length
+        Method Description: Comes up with a list of tiles you can walk to
+        Method Return: List of JSON Objects
+    */
     exploreAvailableTiles(tileX, tileY, pathLength=null){
         // If path length not specified then just use the max search path length
         if (pathLength === null){
@@ -2380,6 +2785,22 @@ class DuelBot extends DuelCharacter {
         return tiles;
     }
 
+    /*
+        Method Name: determineTilesToShootFrom
+        Method Parameters: 
+            myTileX:
+                My current tile x Location
+            myTileY:
+                My current tile y Location
+            enemyTileX:
+                The enemy current tile x Location
+            enemyTileY:
+                The enemy current tile y Location
+            gun:
+                My held gun
+        Method Description: Comes up with tiles you can shoot the enemy from
+        Method Return: List of JSON objects
+    */
     determineTilesToShootFrom(myTileX, myTileY, enemyTileX, enemyTileY, gun){
         let allTiles = this.exploreAvailableTiles(this.getTileX(), this.getTileY(), this.getMaxSearchPathLength());
         // Explore these tiles from the enemy perspective so I can save time calculating path length later
@@ -2512,8 +2933,6 @@ class DuelBot extends DuelCharacter {
                 throw new Error("Unexpected couldn't find tile from enemy perspective.");
             }
             let routeDistanceFromEnemy = tileFromEnemyPos["shortest_path"].length;
-            /*let mDistanceFromEnemy = calculateManhattanDistance(enemyTileX, enemyTileY, tileX, tileY);
-            let routeDistanceFromEnemy = mDistanceFromEnemy;*/
 
             let realDistanceFromEnemy = calculateEuclideanDistance(enemyCenterXAtTile, enemyCenterYAtTile, tileCenterX, tileCenterY);
 
@@ -2545,15 +2964,24 @@ class DuelBot extends DuelCharacter {
 
             // Add the score
             tile["score"] = score;
-            if (isNaN(score)){
-                debugger;
-            }
         }
 
         // Note: Could be an empty array
         return canHitEfficientTiles;
     }
 
+    /*
+        Method Name: determineTileToShootFrom
+        Method Parameters: 
+            enemyTileX:
+                The tile x of the enemy
+            enemyTileY:
+                The tile y of the enemy
+            gun:
+                My held gun
+        Method Description: Picks a tile to shoot the enemy from
+        Method Return: JSON Object
+    */
     determineTileToShootFrom(enemyTileX, enemyTileY, gun){
         let allTiles;
         let myTileX = this.getTileX();
@@ -2640,10 +3068,21 @@ class DuelBot extends DuelCharacter {
         return {"new_tile": chosenTile, "can_hit": true};
     }
 
+    /*
+        Method Name: calculateShortestRouteDistanceFromTilesToTileWithCondition
+        Method Parameters: 
+            startTileArray:
+                The starting tiles
+            conditionFunction:
+                Function to determine if a tile is a valid end point
+            maxRouteLength:
+                The maximum route length to explore
+        Method Description: Finds the shortest route distance from each tile to a tile with the correction condition
+        Method Return: NotSamdXYSortedArrayList
+    */
     calculateShortestRouteDistanceFromTilesToTileWithCondition(startTileArray, conditionFunction, maxRouteLength){
         // Note: startTileArray may include null values on function end
         if (maxRouteLength === undefined){
-            debugger;
             throw new Error("Please supply a valid max route length.");
         }
 
@@ -2825,10 +3264,7 @@ class DuelBot extends DuelCharacter {
         }
 
         // Loop until we need new chunks
-        let maxCount = 500;
-        let cCount = 0;
         while (stillLooking){
-            if (cCount++ > maxCount){ debugger; }
             // Add all end tiles within chunksToChunk
             for (let [chunkJSON, chunkX, chunkY] of chunksToCheck){
                 if (chunkJSON["extracted"]){ continue; }
@@ -2872,9 +3308,22 @@ class DuelBot extends DuelCharacter {
         return startTileArray;
     }   
 
+    /*
+        Method Name: calculateShortestRouteDistanceToTileWithCondition
+        Method Parameters: 
+            startTileX:
+                Tile x of starting tile
+            startTileY:
+                Tile y of starting tile
+            conditionFunction:
+                Function to determine if a tile is a valid end point
+            maxRouteLength:
+                The maximum route length to explore
+        Method Description: Finds the shortest route distance from a tile to another tile with the correction condition
+        Method Return: null or integer
+    */
     calculateShortestRouteDistanceToTileWithCondition(startTileX, startTileY, conditionFunction, maxRouteLength){
         if (maxRouteLength === undefined){
-            debugger;
             throw new Error("Please supply a valid max route length.");
         }
 
@@ -2893,11 +3342,6 @@ class DuelBot extends DuelCharacter {
         if (startingChunk === null){
             throw new Error("Chunk at starting location not found");
         }
-
-        /*
-        // Quick check for immediate
-        if (conditionFunction(startingChunk.getPhysicalTileAtLocation()))
-        */
 
 
         // Start by finding all the tiles with attribute in nearby chunks
@@ -3084,13 +3528,11 @@ class DuelBot extends DuelCharacter {
         }
 
         // Loop through chunks looking for tiles with this attribute until they get too far away
-        let infCount = 0;
         while (hasMoreChunksToCheck){
             // Add a ring of chunks around the original chunk at a specified distance
             addMoreChunks();
             // Increase distance for next ring
             distanceToNextChunkSet += 1;
-            if (infCount++ > 5000){ debugger; }
 
             // Loop through all chunks to check
             for (let i = 0; i < chunksToCheck.length; i++){
@@ -3128,9 +3570,6 @@ class DuelBot extends DuelCharacter {
                 }
                 // Else, if there are no paths from attribute tiles then
                 else if (edgeTilesFromAnEndWithAttribute.getLength() > 0){
-                    /*if (isRDebugging()){
-                        debugger;
-                    }*/
                     let bestPathData = selectBestPath(bestPossibleLengthSoFar);
 
                     // Update best m
@@ -3168,6 +3607,14 @@ class DuelBot extends DuelCharacter {
         return null;
     }
 
+    /*
+        Method Name: updateFromRouteDecision
+        Method Parameters: 
+            routeDecision:
+                A route decision object
+        Method Description: Updates bot-level decisions from a route decision
+        Method Return: void
+    */
     updateFromRouteDecision(routeDecision){
         let directions = ["up", "down", "left", "right"];
         for (let direction of directions){
@@ -3181,6 +3628,12 @@ class DuelBot extends DuelCharacter {
         this.botDecisionDetails["decisions"]["breaking_stride"] = true;
     }
 
+    /*
+        Method Name: makeSwordFightingDecisions
+        Method Parameters: None
+        Method Description: Makes decisions in a sword fight
+        Method Return: void
+    */
     makeSwordFightingDecisions(){
         let mySword = this.getInventory().getSelectedItem();
 
@@ -3385,6 +3838,12 @@ class DuelBot extends DuelCharacter {
         }
     }
 
+    /*
+        Method Name: decideToMoveToAdjacentTile
+        Method Parameters: None
+        Method Description: Make a decision to move to a random adjacent tile
+        Method Return: void
+    */
     decideToMoveToAdjacentTile(){
         let options = [];
         if (this.canWalkOnTile(this.getTileX(), this.getTileY() + 1)){
@@ -3408,6 +3867,12 @@ class DuelBot extends DuelCharacter {
         this.botDecisionDetails["decisions"]["sprint"] = (!this.isSprinting() && this.staminaBar.isFull()) || (this.isSprinting() && this.staminaBar.getStaminaProportion() > WTL_GAME_DATA["duel"]["ai"]["sword_fight_min_stamina_preference"]);
     }
 
+    /*
+        Method Name: makeSwordDecisions
+        Method Parameters: None
+        Method Description: Make character-level decisions on sword fighting
+        Method Return: void
+    */
     makeSwordDecisions(){
         let tryingToSwing = this.botDecisionDetails["decisions"]["weapons"]["sword"]["trying_to_swing_sword"];
         let tryingToBlock = this.botDecisionDetails["decisions"]["weapons"]["sword"]["trying_to_block"];
@@ -3417,6 +3882,12 @@ class DuelBot extends DuelCharacter {
         });
     }
 
+    /*
+        Method Name: makePistolDecisions
+        Method Parameters: None
+        Method Description: Make character-level decisions on shooting a pistol
+        Method Return: void
+    */
     makePistolDecisions(){
         let tryingToAim = this.botDecisionDetails["decisions"]["weapons"]["gun"]["trying_to_aim"];
         let tryingToShoot = this.botDecisionDetails["decisions"]["weapons"]["gun"]["trying_to_shoot"];
@@ -3432,6 +3903,12 @@ class DuelBot extends DuelCharacter {
         });
     }
 
+    /*
+        Method Name: makeMusketDecisions
+        Method Parameters: None
+        Method Description: Make character-level decisions on using a musket
+        Method Return: void
+    */
     makeMusketDecisions(){
         let tryingToAim = this.botDecisionDetails["decisions"]["weapons"]["gun"]["trying_to_aim"];
         let tryingToShoot = this.botDecisionDetails["decisions"]["weapons"]["gun"]["trying_to_shoot"];
@@ -3450,6 +3927,12 @@ class DuelBot extends DuelCharacter {
         });
     }
 
+    /*
+        Method Name: makeMovementDecisions
+        Method Parameters: None
+        Method Description: Makes character-level decisions on movement
+        Method Return: void
+    */
     makeMovementDecisions(){
         this.decisions["up"] = this.botDecisionDetails["decisions"]["up"];
         this.decisions["down"] = this.botDecisionDetails["decisions"]["down"];
@@ -3459,5 +3942,11 @@ class DuelBot extends DuelCharacter {
         this.decisions["breaking_stride"] = this.botDecisionDetails["decisions"]["breaking_stride"];
     }
 
+    /*
+        Method Name: isHuman
+        Method Parameters: None
+        Method Description: Checks if this is human
+        Method Return: boolean
+    */
     isHuman(){ return false; }
 }

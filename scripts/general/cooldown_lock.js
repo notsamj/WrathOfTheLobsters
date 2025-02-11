@@ -57,12 +57,6 @@ class CooldownLock extends Lock{
     getCooldown(){
         return this.cooldown;
     }
-
-    // TODO: Comments
-    // TODO: Why did I make this? It broke it...
-    /*unlock(){
-        this.lastLocked = 0;
-    }*/
 }
 // When this is opened in NodeJS, export the class
 if (typeof window === "undefined"){

@@ -1,10 +1,34 @@
+/*  
+    Class Name: SkirmishHuman
+    Class Description: A human-controlled character taking part in a skirmish
+*/
 class SkirmishHuman extends SkirmishCharacter {
+    /*
+        Method Name: constructor
+        Method Parameters: 
+            gamemode:
+                The Skirmish gamemode.
+            model:
+                The character's model. String
+            rankName:
+                The name of the character's rank. String.
+            team:
+                The name of the team the character is on. String
+        Method Description: constructor
+        Method Return: constructor
+    */
     constructor(gamemode, model, rank, team){
         super(gamemode, model, rank, team);
         this.usingTeamCamera = false;
         this.toggleModeLock = new Lock();
     }
 
+    /*
+        Method Name: makeDecisions
+        Method Parameters: None
+        Method Description: Make decisions
+        Method Return: void
+    */
     makeDecisions(){
         this.resetDecisions();
         if (this.isMakingAMove() && !this.hasCommitedToAction()){ 
@@ -18,6 +42,12 @@ class SkirmishHuman extends SkirmishCharacter {
         }
     }
 
+    /*
+        Method Name: makeShootPointerDecisions
+        Method Parameters: None
+        Method Description: Check if the player would like to do something with the shoot pointer
+        Method Return: void
+    */
     makeShootPointerDecisions(){
         // Reset
         this.amendDecisions({
@@ -39,6 +69,12 @@ class SkirmishHuman extends SkirmishCharacter {
         });
     }
 
+    /*
+        Method Name: makeCannonPointerDecisions
+        Method Parameters: None
+        Method Description: Check if the user wishes to use their cannon pointer
+        Method Return: void
+    */
     makeCannonPointerDecisions(){
         // Reset
         this.amendDecisions({
@@ -60,6 +96,12 @@ class SkirmishHuman extends SkirmishCharacter {
         });
     }
 
+    /*
+        Method Name: makeInventoryDecisions
+        Method Parameters: None
+        Method Description: Makes decisions relating to the inventory
+        Method Return: void
+    */
     makeInventoryDecisions(){
         // Reset
         this.amendDecisions({
@@ -93,6 +135,12 @@ class SkirmishHuman extends SkirmishCharacter {
         });
     }
 
+    /*
+        Method Name: makeSwordDecisions
+        Method Parameters: None
+        Method Description: Makes decisions for the sword
+        Method Return: void
+    */
     makeSwordDecisions(){
         let tryingToSwing = GAME_USER_INPUT_MANAGER.isActivated("left_click_ticked");
         this.amendDecisions({
@@ -100,8 +148,20 @@ class SkirmishHuman extends SkirmishCharacter {
         });
     }
 
+    /*
+        Method Name: isHuman
+        Method Parameters: None
+        Method Description: Checks if human
+        Method Return: boolean
+    */
     isHuman(){return true;}
 
+    /*
+        Method Name: makePistolDecisions
+        Method Parameters: None
+        Method Description: Makes decisions on shooting the pistol
+        Method Return: void
+    */
     makePistolDecisions(){
         let tryingToAim = GAME_USER_INPUT_MANAGER.isActivated("right_click");
         let tryingToShoot = GAME_USER_INPUT_MANAGER.isActivated("left_click_ticked");
@@ -114,6 +174,12 @@ class SkirmishHuman extends SkirmishCharacter {
         });
     }
 
+    /*
+        Method Name: makeMusketDecisions
+        Method Parameters: None
+        Method Description: Makes decisions about using the musket
+        Method Return: void
+    */
     makeMusketDecisions(){
         let tryingToAim = GAME_USER_INPUT_MANAGER.isActivated("right_click");
         let tryingToShoot = GAME_USER_INPUT_MANAGER.isActivated("left_click_ticked");
@@ -130,6 +196,12 @@ class SkirmishHuman extends SkirmishCharacter {
         });
     }
 
+    /*
+        Method Name: makeMovePointerDecisions
+        Method Parameters: None
+        Method Description: Makes decisions for moving troops around
+        Method Return: void
+    */
     makeMovePointerDecisions(){
         let canvasX = gMouseX;
         let canvasY = this.getScene().changeFromScreenY(gMouseY);
@@ -155,23 +227,53 @@ class SkirmishHuman extends SkirmishCharacter {
         });
     }
 
+    /*
+        Method Name: getGunHoldingAngleRAD
+        Method Parameters: None
+        Method Description: Determing the angle of shooting
+        Method Return: float [0,2*PI)
+    */
     getGunHoldingAngleRAD(){
         return getAngleFromMouseToScreenCenter(this.getScene());
     }
 
+    /*
+        Method Name: indicateMoveDone
+        Method Parameters: None
+        Method Description: Indicates that the move is done
+        Method Return: void
+    */
     indicateMoveDone(){
         super.indicateMoveDone();
         this.usingTeamCamera = false;
     }
 
+    /*
+        Method Name: isUsingTeamCamera
+        Method Parameters: None
+        Method Description: Check if the character is operating the team camera
+        Method Return: boolean
+    */
     isUsingTeamCamera(){
         return this.usingTeamCamera;
     }
 
+    /*
+        Method Name: getTeamCamera
+        Method Parameters: None
+        Method Description: Gets the team camera
+        Method Return: SkirmishCamera
+    */
     getTeamCamera(){
         return this.gamemode.getTeamCamera(this.getTeamName());
     }
 
+    /*
+        Method Name: getInterpolatedX
+        Method Parameters: None
+        Method Description: Determines the current x for display
+        Method Return: float
+    */
     getInterpolatedX(){
         if (this.isUsingTeamCamera()){
             return this.getTeamCamera().getInterpolatedX();
@@ -179,6 +281,12 @@ class SkirmishHuman extends SkirmishCharacter {
         return super.getInterpolatedX();
     }
     
+    /*
+        Method Name: getInterpolatedY
+        Method Parameters: None
+        Method Description: Determines the current y for display
+        Method Return: float
+    */
     getInterpolatedY(){
         if (this.isUsingTeamCamera()){
             return this.getTeamCamera().getInterpolatedY();
@@ -186,6 +294,12 @@ class SkirmishHuman extends SkirmishCharacter {
         return super.getInterpolatedY();
     }
 
+    /*
+        Method Name: tick
+        Method Parameters: None
+        Method Description: Performes processes during a tick
+        Method Return: void
+    */
     tick(){
         this.checkSwitchToTeamCamera();
         if (this.isUsingTeamCamera()){
@@ -195,6 +309,12 @@ class SkirmishHuman extends SkirmishCharacter {
         }
     }
 
+    /*
+        Method Name: checkSwitchToTeamCamera
+        Method Parameters: None
+        Method Description: Check if the user is trying to switch to the team camera
+        Method Return: void
+    */
     checkSwitchToTeamCamera(){
         if (!this.isMakingAMove()){ return; }
         if (GAME_USER_INPUT_MANAGER.isActivated("ticked_toggle_camera") && !this.isMoving() && !this.hasCommitedToAction()){
@@ -208,6 +328,12 @@ class SkirmishHuman extends SkirmishCharacter {
         }
     }
 
+    /*
+        Method Name: makeMovementDecisions
+        Method Parameters: None
+        Method Description: Makes decisions for moving
+        Method Return: void
+    */
     makeMovementDecisions(){
         if (this.hasCommitedToAction()){ return; }
         this.decisions["up"] = GAME_USER_INPUT_MANAGER.isActivated("move_up");
@@ -217,6 +343,20 @@ class SkirmishHuman extends SkirmishCharacter {
         this.decisions["sprint"] = GAME_USER_INPUT_MANAGER.isActivated("sprint");
     }
 
+    /*
+        Method Name: display
+        Method Parameters: 
+            lX:
+                The x value of the left of the screen
+            rX:
+                The x value of the right of the screen
+            bY:
+                The y value of the bottom of the screen
+            tY:
+                The y value of the top of the screen
+        Method Description: Displays the character
+        Method Return: void
+    */
     display(lX, rX, bY, tY){
         if (this.isUsingTeamCamera()){ return; }
         super.display(lX, rX, bY, tY);

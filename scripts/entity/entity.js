@@ -24,7 +24,7 @@ class Entity extends VisualItem {
             value:
                 A boolean value for the death state
         Method Description: Setter
-        Method Return: Setter
+        Method Return: void
     */
     setDead(value){
         this.dead = value;
@@ -36,7 +36,7 @@ class Entity extends VisualItem {
             value:
                 A boolean value for the alive state
         Method Description: Setter
-        Method Return: Setter
+        Method Return: void
     */
     setAlive(value){
         this.setDead(!value);
@@ -123,7 +123,7 @@ class Entity extends VisualItem {
             id:
                 A new id
         Method Description: Setter
-        Method Return: Setter
+        Method Return: void
     */
     setID(id){
         this.id = id; 
@@ -133,7 +133,7 @@ class Entity extends VisualItem {
         Method Name: getID
         Method Parameters: None
         Method Description: Getter
-        Method Return: Getter
+        Method Return: string
     */
     getID(){
         return this.id;
@@ -169,7 +169,7 @@ class Entity extends VisualItem {
         Method Name: getGamemode
         Method Parameters: None
         Method Description: Getter
-        Method Return: Getter
+        Method Return: Gamemode
     */
     getGamemode(){
         return this.gamemode;

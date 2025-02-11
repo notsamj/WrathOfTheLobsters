@@ -1,4 +1,20 @@
+/*  
+    Class Name: TurnBasedSkirmish
+    Class Description: A turn based skirmish gamemode
+*/
 class TurnBasedSkirmish extends Gamemode {
+    /*
+        Method Name: constructor
+        Method Parameters: 
+            britishAreHuman:
+                A boolean indicating that the british team are operated by a human
+            americansAreHuman:
+                A boolean indicating that the American team are operated by a human
+            aiSeed:
+                Seed for the AI
+        Method Description: constructor
+        Method Return: constructor
+    */
     constructor(britishAreHuman=true, americansAreHuman=true, aiSeed=null){
         super();
 
@@ -42,7 +58,6 @@ class TurnBasedSkirmish extends Gamemode {
             let troopTeam = tileChangeDetailsObject["team"];
             let otherTeam = this.getOtherTeam(troopTeam);
             let otherTeamIsABotTeam = this.gameState["operation_type"][getProperAdjective(otherTeam)] === "bot";
-            //console.log("Update visiblity!!!")
             if (otherTeamIsABotTeam){
                 let troopID = tileChangeDetailsObject["troop_id"];
                 let previouslyVisible = this.isVisibleToTeam(otherTeam, troopTeam, troopID);
@@ -82,12 +97,36 @@ class TurnBasedSkirmish extends Gamemode {
         this.startUp();
     }
 
+    /*
+        Method Name: getName
+        Method Parameters: None
+        Method Description: Gets the name of the gamemode
+        Method Return: String
+    */
     getName(){ return "skirmish"; }
 
+    /*
+        Method Name: isTeamBot
+        Method Parameters: 
+            teamName:
+                The name of a team
+        Method Description: Checks if a team is operated by a bot
+        Method Return: boolean
+    */
     isTeamBot(teamName){
         return this.gameState["operation_type"][getProperAdjective(teamName)] === "bot";
     }
 
+    /*
+        Method Name: getTroop
+        Method Parameters: 
+            teamName:
+                The team of the troop
+            troopID:
+                The id of the troop
+        Method Description: Gets a troop given identifying info
+        Method Return: Character or null
+    */
     getTroop(teamName, troopID){
         let roster = this.getTeamRosterFromName(teamName);
         for (let troop of roster){
@@ -98,40 +137,96 @@ class TurnBasedSkirmish extends Gamemode {
         return null;
     }
 
+    /*
+        Method Name: getTeamBrain
+        Method Parameters: 
+            teamName:
+                The name of the team related
+        Method Description: Gets the brain of a team
+        Method Return: BotSharedBrain
+    */
     getTeamBrain(teamName){
         return this.brains[getProperAdjective(teamName)];
     }
 
+    /*
+        Method Name: getEnemyVisibilityDistance
+        Method Parameters: None
+        Method Description: Gets the enemy visibility distance (tiles)
+        Method Return: int
+    */
     getEnemyVisibilityDistance(){
         return WTL_GAME_DATA["skirmish"]["enemy_visibility_distance"];
     }
 
+    /*
+        Method Name: getRandom
+        Method Parameters: None
+        Method Description: Getter
+        Method Return: SeededRandomizer
+    */
     getRandom(){
         return this.aiRandom;
     }
 
+    /*
+        Method Name: getOtherTeam
+        Method Parameters: 
+            teamNameString:
+                The name of the team (other team is not this team)
+        Method Description: Finds the other team
+        Method Return: string
+    */
     getOtherTeam(teamNameString){
-        if (getProperAdjective(teamNameString) == getProperAdjective("American")){
+        if (getProperAdjective(teamNameString) === getProperAdjective("American")){
             return getProperAdjective("British");
         }
         return getProperAdjective("American");
     }
 
+    /*
+        Method Name: getTeamCamera
+        Method Parameters: 
+            teamNameString:
+                The name of the team
+        Method Description: Gets a camera for a team
+        Method Return: SkirmishCamera
+    */
     getTeamCamera(teamNameString){
-        if (getProperAdjective(teamNameString) == getProperAdjective("American")){
+        if (getProperAdjective(teamNameString) === getProperAdjective("American")){
             return this.americanCamera;
         }
         return this.britishCamera;
     }
 
+    /*
+        Method Name: isBotGame
+        Method Parameters: None
+        Method Description: Checks if this is a bot vs bot game
+        Method Return: boolean
+    */
     isBotGame(){
         return this.gameState["operation_type"]["British"] === "bot" && this.gameState["operation_type"]["American"] === "bot";
     }
 
+    /*
+        Method Name: getAllTroops
+        Method Parameters: None
+        Method Description: Gets all the troops
+        Method Return: List of SkirmishCharacter
+    */
     getAllTroops(){
         return appendLists(this.britishTroops, this.americanTroops);
     }
 
+    /*
+        Method Name: getSpawnObjectByName
+        Method Parameters: 
+            teamNameString:
+                The name of the relevant team
+        Method Description: Gets the space object for a team
+        Method Return: JSON object with spawn info
+    */
     getSpawnObjectByName(teamNameString){
         let teamNameConverted = getProperAdjective(teamNameString);
         if (teamNameConverted == "American"){
@@ -140,6 +235,14 @@ class TurnBasedSkirmish extends Gamemode {
         return this.britishSpawn;
     }
 
+    /*
+        Method Name: getOfficerCommand
+        Method Parameters: 
+            troop:
+                Relevant troop
+        Method Description: Looks for a command for a troop
+        Method Return: JSON Object or null
+    */
     getOfficerCommand(troop){
         let officer = this.getTroopOfficer(troop);
 
@@ -160,6 +263,14 @@ class TurnBasedSkirmish extends Gamemode {
         return null;
     }
 
+    /*
+        Method Name: getTroopOfficer
+        Method Parameters: 
+            troop:
+                The relevant troop
+        Method Description: Finds the officer for a troop
+        Method Return: null or SkirmishCharacter
+    */
     getTroopOfficer(troop){
         let teamRoster = this.getLivingTeamRosterFromName(troop.getTeamName());
         // Since one officer per team, an officer cannot be selected
@@ -179,6 +290,14 @@ class TurnBasedSkirmish extends Gamemode {
         return null;
     }
 
+    /*
+        Method Name: isTroopSelected
+        Method Parameters: 
+            troop:
+                Relevant troop
+        Method Description: Checks if a given troop is selected by their officer
+        Method Return: boolean
+    */
     isTroopSelected(troop){
         let officer = this.getTroopOfficer(troop);
 
@@ -208,10 +327,28 @@ class TurnBasedSkirmish extends Gamemode {
         return false;
     }
 
+    /*
+        Method Name: getTurnCounter
+        Method Parameters: None
+        Method Description: Gets the turn counter
+        Method Return: int
+    */
     getTurnCounter(){
         return this.gameState["turn_counter"];
     }
 
+    /*
+        Method Name: isVisibleToTeam
+        Method Parameters: 
+            observerTeamName:
+                The name of the observing team
+            observedTeamName:
+                The name of the observed troop's team
+            characterID:
+                The id of the observed troop
+        Method Description: Checks if a troop is visible to a team
+        Method Return: boolean
+    */
     isVisibleToTeam(observerTeamName, observedTeamName, characterID){
         if (observerTeamName === "neutral"){
             return true;
@@ -229,6 +366,12 @@ class TurnBasedSkirmish extends Gamemode {
         return false;
     }
 
+    /*
+        Method Name: checkAndUpdateTeamVisibility
+        Method Parameters: None
+        Method Description: Recalculates the visibility of troops to teams
+        Method Return: void
+    */
     checkAndUpdateTeamVisibility(){
         let teamVisibilityJSON = this.gameState["team_visibility"];
         let getLastRecordedPosition = (troop) => {
@@ -247,7 +390,6 @@ class TurnBasedSkirmish extends Gamemode {
             "British": []
         };
 
-        //console.log("New visiblity calculation")
         let updateTroops = (teamName) => {
             let troops = this.getTeamRosterFromName(teamName);
             for (let troop of troops){
@@ -397,7 +539,6 @@ class TurnBasedSkirmish extends Gamemode {
             for (let troop of troops){
                 let sightObject = getRecordedSightsForTroop(troop);
                 for (let id of sightObject["troops_in_sight"]){
-                    //console.log("Adding", id)
                     addToArraySet(newList, id);
                 }
             }
@@ -413,6 +554,14 @@ class TurnBasedSkirmish extends Gamemode {
         }
     }
 
+    /*
+        Method Name: getTeamRosterFromName
+        Method Parameters: 
+            teamName:
+                Relevant team
+        Method Description: Gets the troop roster of a team
+        Method Return: List of SkirmishCharacter
+    */
     getTeamRosterFromName(teamName){
         let teamProperAdjective = getProperAdjective(teamName);
         if (teamProperAdjective == "British"){
@@ -421,6 +570,14 @@ class TurnBasedSkirmish extends Gamemode {
         return this.americanTroops;
     }
 
+    /*
+        Method Name: getLivingTeamRosterFromName
+        Method Parameters: 
+            teamName:
+                Relevant team
+        Method Description: Gets the troop roster of a team - those who are alive
+        Method Return: List of SkirmishCharacter
+    */
     getLivingTeamRosterFromName(teamName){
         let roster = this.getTeamRosterFromName(teamName);
         let livingRoster = [];
@@ -432,11 +589,25 @@ class TurnBasedSkirmish extends Gamemode {
         return livingRoster;
     }
 
+    /*
+        Method Name: gameTick
+        Method Parameters: None
+        Method Description: Handles game logic in a tick
+        Method Return: void
+    */
     gameTick(){
         if (this.isOver()){ return; }
         this.makeMove();
     }
 
+    /*
+        Method Name: updateCameraToNewMover
+        Method Parameters: 
+            currentlyMovingCharacter:
+                Character that is moving
+        Method Description: Focuses the camera on the currently moving character
+        Method Return: void
+    */
     updateCameraToNewMover(currentlyMovingCharacter){
         // If this game is bot vs bot then update the neutral camera
         if (this.isBotGame()){
@@ -461,6 +632,12 @@ class TurnBasedSkirmish extends Gamemode {
         }
     }
 
+    /*
+        Method Name: makeMove
+        Method Parameters: None
+        Method Description: Handles logic of making a move
+        Method Return: void
+    */
     makeMove(){
         // Assuming game still running
         let currentTeamName = this.gameState["turn"];
@@ -528,6 +705,16 @@ class TurnBasedSkirmish extends Gamemode {
         this.makeMove();
     }
 
+    /*
+        Method Name: initializeGameState
+        Method Parameters: 
+            britishAreHuman:
+                boolean
+            americansAreHuman:
+                boolean
+        Method Description: Sets up the game state
+        Method Return: void
+    */
     initializeGameState(britishAreHuman, americansAreHuman){
         this.gameState = {
             "turn": "British",
@@ -555,6 +742,12 @@ class TurnBasedSkirmish extends Gamemode {
         }
     }
 
+    /*
+        Method Name: startUp
+        Method Parameters: None
+        Method Description: Starts up the game
+        Method Return: Promise (implicit)
+    */
     async startUp(){
         await this.generateTiles();
 
@@ -568,10 +761,22 @@ class TurnBasedSkirmish extends Gamemode {
         this.startUpLock.unlock();
     }
 
+    /*
+        Method Name: isOver
+        Method Parameters: None
+        Method Description: Checks if the game is over
+        Method Return: boolean
+    */
     isOver(){
         return this.gameOver;
     }
 
+    /*
+        Method Name: checkWin
+        Method Parameters: None
+        Method Description: Checks if a team has won
+        Method Return: void
+    */
     checkWin(){
         let livingAmericans = false;
         for (let american of this.americanTroops){
@@ -598,6 +803,12 @@ class TurnBasedSkirmish extends Gamemode {
         }
     }
 
+    /*
+        Method Name: spawnTroops
+        Method Parameters: None
+        Method Description: Spawns all the troops
+        Method Return: void
+    */
     spawnTroops(){
         let officers = [];
         let privates = [];
@@ -726,6 +937,12 @@ class TurnBasedSkirmish extends Gamemode {
         this.checkAndUpdateTeamVisibility();
     }
 
+    /*
+        Method Name: generateTiles
+        Method Parameters: None
+        Method Description: Generates the arena
+        Method Return: Promise (implicit)
+    */
     async generateTiles(){
         let scene = this.getScene();
         let size = WTL_GAME_DATA["skirmish"]["area_size"];
@@ -1179,6 +1396,14 @@ class TurnBasedSkirmish extends Gamemode {
         }
     }
 
+    /*
+        Method Name: getSpawnOfTeam
+        Method Parameters: 
+            teamNameString:
+                Relevant team name
+        Method Description: Gets the spawn of a team
+        Method Return: A Json object
+    */
     getSpawnOfTeam(teamNameString){
         if (getProperAdjective(teamNameString) === "British"){
             return this.britishSpawn;
@@ -1186,10 +1411,22 @@ class TurnBasedSkirmish extends Gamemode {
         return this.americanSpawn;
     }
 
+    /*
+        Method Name: getRockHitboxes
+        Method Parameters: None
+        Method Description: Gets a list of rock hitboxes
+        Method Return: List of RockHitBox
+    */
     getRockHitboxes(){
         return this.rockHitboxes;
     }
 
+    /*
+        Method Name: display
+        Method Parameters: None
+        Method Description: Displays the game
+        Method Return: void
+    */
     display(){
         if (this.startUpLock.isLocked()){ return; }
         this.scene.display();
@@ -1197,6 +1434,12 @@ class TurnBasedSkirmish extends Gamemode {
         this.stats.display();
     }
 
+    /*
+        Method Name: displayRockHealthBars
+        Method Parameters: None
+        Method Description: Displays rock health bars
+        Method Return: void
+    */
     displayRockHealthBars(){
         let lX = this.scene.getLX();
         let bY = this.scene.getBY();
@@ -1207,6 +1450,12 @@ class TurnBasedSkirmish extends Gamemode {
         }
     }
 
+    /*
+        Method Name: tick
+        Method Parameters: None
+        Method Description: Handles tick logic
+        Method Return: void
+    */
     tick(){
         if (this.startUpLock.isLocked()){ return; }
         this.gameTick();
@@ -1216,12 +1465,17 @@ class TurnBasedSkirmish extends Gamemode {
         this.scene.tick();
     }
 
+    /*
+        Method Name: loadImages
+        Method Parameters: None
+        Method Description: Loads images for the game
+        Method Return: Promise (implicit)
+    */
     static async loadImages(){
         let folderURL = "skirmish/item/special/";
         for (let specialItemName of WTL_GAME_DATA["skirmish"]["special_item_names"]){
             // Do not load if already exists
             if (objectHasKey(IMAGES, specialItemName)){ continue; }
-            //console.log("Loading", specialItemName);
             await loadToImages(specialItemName, folderURL + specialItemName + "/");
         }
     }

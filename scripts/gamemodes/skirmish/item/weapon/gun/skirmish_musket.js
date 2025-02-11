@@ -1,8 +1,28 @@
+/*  
+    Class Name: SkirmishMusket
+    Class Description: A musket used in a skirmish
+*/
 class SkirmishMusket extends Musket {
+    /*
+        Method Name: constructor
+        Method Parameters: 
+            model:
+                Musket model
+            details:
+                Extra musket details JSON
+        Method Description: constructor
+        Method Return: constructor
+    */
     constructor(model, details){
         super(model, details);
     }
 
+    /*
+        Method Name: isAiming
+        Method Parameters: None
+        Method Description: Checks if aiming
+        Method Return: boolean
+    */
     isAiming(){
         let superTryingToAim = super.isAiming();
         let tryingToAimDuringTurn = superTryingToAim && !this.player.hasCommitedToAction();
@@ -13,6 +33,12 @@ class SkirmishMusket extends Musket {
         }
     }
 
+    /*
+        Method Name: shoot
+        Method Parameters: None
+        Method Description: Shoots
+        Method Return: void
+    */
     shoot(){
         // Two choices
 
@@ -33,6 +59,12 @@ class SkirmishMusket extends Musket {
         }
     }
 
+    /*
+        Method Name: unequipBayonet
+        Method Parameters: None
+        Method Description: Unequips the bayonet
+        Method Return: void
+    */
     unequipBayonet(){
         // Note: Disabled because atm there is no reason to unequip bayonet
         /*
@@ -41,6 +73,12 @@ class SkirmishMusket extends Musket {
         */
     }
 
+    /*
+        Method Name: equipBayonet
+        Method Parameters: None
+        Method Description: equips the bayonet
+        Method Return: void
+    */
     equipBayonet(){
         if (this.player.hasCommitedToAction()){
             return;
@@ -50,6 +88,12 @@ class SkirmishMusket extends Musket {
         this.player.indicateMoveDone();
     }
 
+    /*
+        Method Name: finishStab
+        Method Parameters: None
+        Method Description: finishes a stab
+        Method Return: void
+    */
     finishStab(){
         if (this.player.hasCommitedToAction()){
             return;

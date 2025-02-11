@@ -1,4 +1,22 @@
+/*
+    Class Name: SkirmishBot
+    Class Description: A bot in a skirmish
+*/
 class SkirmishBot extends SkirmishCharacter {
+    /*
+        Method Name: constructor
+        Method Parameters: 
+            gamemode:
+                The Skirmish gamemode.
+            model:
+                The character's model. String
+            rankName:
+                The name of the character's rank. String.
+            team:
+                The name of the team the character is on. String
+        Method Description: constructor
+        Method Return: constructor
+    */
     constructor(gamemode, model, rankName, team){
         super(gamemode, model, rankName, team);
         this.shotSinceLastTurn = false;
@@ -15,28 +33,64 @@ class SkirmishBot extends SkirmishCharacter {
         });
     }
 
+    /*
+        Method Name: indicateHasShotSinceLastTurn
+        Method Parameters: None
+        Method Description: Indicates that this bot has shot since their last turn
+        Method Return: void
+    */
     indicateHasShotSinceLastTurn(){
-        return this.shotSinceLastTurn = true;
+        this.shotSinceLastTurn = true;
     }
 
+    /*
+        Method Name: hasShotSinceLastTurn
+        Method Parameters: None
+        Method Description: Checks if the bot has shot since their last turn
+        Method Return: boolean
+    */
     hasShotSinceLastTurn(){
         return this.shotSinceLastTurn;
     }
 
+    /*
+        Method Name: getBrain
+        Method Parameters: None
+        Method Description: Gets the team brain
+        Method Return: BotSharedBrain
+    */
     getBrain(){
         return this.getGamemode().getTeamBrain(this.getTeamName());
     }
 
+    /*
+        Method Name: getRandom
+        Method Parameters: None
+        Method Description: Gets the random generator
+        Method Return: SeededRandomizer
+    */
     getRandom(){
         return this.getGamemode().getRandom();
     }
 
+    /*
+        Method Name: indicateTurn
+        Method Parameters: None
+        Method Description: Indicates to the bot that it is their turn
+        Method Return: void
+    */
     indicateTurn(){
         super.indicateTurn();
         // Async call
         this.generatePlan();
     }
 
+    /*
+        Method Name: makeDecisions
+        Method Parameters: None
+        Method Description: Makes decisions on how to act
+        Method Return: void
+    */
     makeDecisions(){
         this.resetDecisions();
         if (this.isMakingAMove() && !this.hasCommitedToAction()){
@@ -49,6 +103,14 @@ class SkirmishBot extends SkirmishCharacter {
         }
     }
 
+    /*
+        Method Name: generateSelectedTroopsSets
+        Method Parameters: 
+            possibleEndTiles:
+                Possible tiles to stand on for selecting troops
+        Method Description: Creates sets of troops that an officer can select during their turn
+        Method Return: List of lists of SkirmishBot 
+    */
     generateSelectedTroopsSets(possibleEndTiles){
         let troopSetsData = [];
         // Note: Using "lots" of storage but really not much its kinda wasteful though
@@ -98,6 +160,12 @@ class SkirmishBot extends SkirmishCharacter {
         return troopSetsData;
     }
 
+    /*
+        Method Name: generatePlan
+        Method Parameters: None
+        Method Description: Generates a plan
+        Method Return: Promise (implicit)
+    */
     async generatePlan(){
         // Indicate that the plan is being created
         this.planLock.lock();
@@ -183,7 +251,6 @@ class SkirmishBot extends SkirmishCharacter {
             closerTile["type"] = "move_closer";
             // In this case, there is an existing value. It is already between [0,1] so multiply by weight
             closerTile["value"] = closerTile["score"] * WTL_GAME_DATA["bot"]["weights"]["move_closer"];
-            //console.log(closerTile["value"])
             collectivePlans.push(closerTile);
         }
 
@@ -200,7 +267,6 @@ class SkirmishBot extends SkirmishCharacter {
             singleBushTile["type"] = "single_bush";
             // In this case, there is no existing value so directly assign the weight
             singleBushTile["value"] = WTL_GAME_DATA["bot"]["weights"]["single_bush"];
-            //console.log(singleBushTile["value"])
             collectivePlans.push(singleBushTile);
         }
 
@@ -290,24 +356,6 @@ class SkirmishBot extends SkirmishCharacter {
                         orderTroopWalkToLocationTile["attached_location"] = {"tile_x": locationToMoveIfOrderingButNotMoveOrder["tile_x"], "tile_y": locationToMoveIfOrderingButNotMoveOrder["tile_y"], "type": locationToMoveIfOrderingButNotMoveOrder["type"]}
                     }
 
-                    /*
-                    // TODO: Testing
-                    let locationsToOrderAMoveTo = appendLists(closerTiles, explorationTiles);
-                    locationsToOrderAMoveTo = appendLists(locationsToOrderAMoveTo, singleBushTiles);
-                    locationsToOrderAMoveTo = appendLists(locationsToOrderAMoveTo, multiBushTiles);
-
-                    // Sort the locations for selection
-                    locationsToOrderAMoveTo.sort(comparisonFunction);
-                    // Just in case it's empty add current location
-                    if (locationsToOrderAMoveTo.length === 0){
-                        locationsToOrderAMoveTo.push({"tile_x": this.getTileX(), "tile_y": this.getTileY(), "type": "debugger"});
-                    }
-
-                    let chosenIndex = randomlySelectIndex(locationsToOrderAMoveTo.length);
-                    let locationToOrderAMoveTo =  locationsToOrderAMoveTo[chosenIndex];
-                    let orderTroopWalkToLocationTiles = [{"tile_x": locationToOrderAMoveTo["tile_x"], "tile_y": locationToOrderAMoveTo["tile_y"], "score": locationToOrderAMoveTo["score"]}];
-                    orderTroopWalkToLocationTiles[0]["attached_location"] = {"tile_x": locationToMoveIfOrderingButNotMoveOrder["tile_x"], "tile_y": locationToMoveIfOrderingButNotMoveOrder["tile_y"], "type": locationToMoveIfOrderingButNotMoveOrder["type"]}
-                    */
                     // Add orderShootTargets tiles to collectiveplans
                     for (let orderShootTarget of orderShootTargets){
                         orderShootTarget["type"] = "order_shoot";
@@ -399,8 +447,6 @@ class SkirmishBot extends SkirmishCharacter {
         if (replacementPlan != null){
             bestPlan = replacementPlan;
         }
-        //console.log(this.getID(), " has a plan!")
-        //console.log(bestPlan)
 
         let debugPlanSelection = () => {
             let totalString = "";
@@ -428,11 +474,8 @@ class SkirmishBot extends SkirmishCharacter {
             console.log(totalString);
         }
 
-        debugPlanSelection();
+        //debugPlanSelection();
         this.plan = new BotPlan(this, bestPlan);
-        if (isRDebugging()){
-            debugger;
-        }
 
         // Clean up
         this.shotSinceLastTurn = false;
@@ -441,6 +484,14 @@ class SkirmishBot extends SkirmishCharacter {
         this.planLock.unlock();
     }
 
+    /*
+        Method Name: explainPlan
+        Method Parameters: 
+            plan:
+                A plan for action
+        Method Description: Creates a written explanation of a plan
+        Method Return: String
+    */
     explainPlan(plan){
         //let explanationString = "My ID: " + this.getID();
         //explanationString += '\n' + "My team: " + this.getTeamName();
@@ -495,6 +546,16 @@ class SkirmishBot extends SkirmishCharacter {
         return explanationString;
     }
 
+    /*
+        Method Name: determineOrderShootPossibilities
+        Method Parameters: 
+            squaresAroundEnemies:
+                A list of JSON rile reps around enemies
+            selectedTroops:
+                A list of SkirmishBot
+        Method Description: Determines a list of shooting possibilities
+        Method Return: List of JSON
+    */
     determineOrderShootPossibilities(squaresAroundEnemies, selectedTroops){
         let shootPossibilities = [];
         let scene = this.getScene();
@@ -561,13 +622,20 @@ class SkirmishBot extends SkirmishCharacter {
             let score = killScore * WTL_GAME_DATA["bot"]["kill_to_damage_importance_ratio"] + damageScore;
             // Score will be in range (-4, 4)
             // Skip if <= 0
-            //console.log("score for order shoot", score);
             if (score <= 0){ continue; }
             shootPossibilities.push({"x": tileCenterX, "y": tileCenterY, "score": score})
         }
         return shootPossibilities;
     }
 
+    /*
+        Method Name: determineTroopCannonDamageSpots
+        Method Parameters: 
+            squaresAroundEnemies:
+                A list of JSON rile reps around enemies
+        Method Description: Determines locations to shoot a cannon
+        Method Return: List of JSON
+    */
     determineTroopCannonDamageSpots(squaresAroundEnemies){
         let cannonTargets = [];
         let scene = this.getScene();
@@ -650,6 +718,12 @@ class SkirmishBot extends SkirmishCharacter {
         return cannonTargets;
     }
 
+    /*
+        Method Name: getSquaresAroundEnemies
+        Method Parameters: None
+        Method Description: Gets squares (tile locations) around enemies
+        Method Return: List of JSON
+    */
     getSquaresAroundEnemies(){
         let squaresAroundEnemies = [];
         let enemyData = this.getEnemyData();
@@ -732,6 +806,12 @@ class SkirmishBot extends SkirmishCharacter {
         return squaresAroundEnemies;
     }
 
+    /*
+        Method Name: determineRockTargets
+        Method Parameters: None
+        Method Description: Finds rock targets to shoot the cannon at
+        Method Return: List of JSON
+    */
     determineRockTargets(){
         // Determine rock spots
         let rockTargets = [];
@@ -797,14 +877,34 @@ class SkirmishBot extends SkirmishCharacter {
         return rockTargets;
     }
 
+    /*
+        Method Name: getEnemyData
+        Method Parameters: None
+        Method Description: Gets enemy data from the brain
+        Method Return: List of JSON
+    */
     getEnemyData(){
         return this.getBrain().getEnemyData();
     }
 
+    /*
+        Method Name: getFriends
+        Method Parameters: None
+        Method Description: Comes up with a list of friendly troops
+        Method Return: List of SkirmishCharacter
+    */
     getFriends(){
         return this.getGamemode().getLivingTeamRosterFromName(this.getTeamName());
     }
 
+    /*
+        Method Name: determineFurthestOutTiles
+        Method Parameters: 
+            possibleEndTiles:
+                A list of JSON tile locations
+        Method Description: Figures out the furthest tiles from a list
+        Method Return: List of JSON
+    */
     determineFurthestOutTiles(possibleEndTiles){
         let furtherTiles = [];
         let friendlies = this.getFriends();
@@ -851,6 +951,14 @@ class SkirmishBot extends SkirmishCharacter {
         return furtherTiles;
     }
 
+    /*
+        Method Name: getTilesCloserToUnexploredSpawnpoints
+        Method Parameters: 
+            possibleEndTiles:
+                A list of JSON tile locations
+        Method Description: Finds tiles closer to unexplored spawn points
+        Method Return: List of JSON
+    */
     getTilesCloserToUnexploredSpawnpoints(possibleEndTiles){
         let unexploredSpawnpoints = this.getBrain().getUnexploredSpawnpoints();
         let routes = [];
@@ -863,7 +971,6 @@ class SkirmishBot extends SkirmishCharacter {
             let spawnPointTileY = unexploredSpawnpointObj["tile_y"];
             // Note: Route cannot be null/empty/whatever because it is known there are no obstructions to spawn points
             let routeToLocation = this.generateShortestRouteToPoint(spawnPointTileX, spawnPointTileY);
-            //console.log(this.getTeamName(), routeToLocation)
             routes.push(routeToLocation);
         }
 
@@ -918,6 +1025,14 @@ class SkirmishBot extends SkirmishCharacter {
         return tilesGoodForExploring;
     }
 
+    /*
+        Method Name: determineExplorationTiles
+        Method Parameters: 
+            possibleEndTiles:
+                A list of JSON tile locations
+        Method Description: Determines tiles worth exploring
+        Method Return: List of JSON
+    */
     determineExplorationTiles(possibleEndTiles){
         let enemies = this.getEnemyData();
         let noEnemiesVisible = true;
@@ -943,6 +1058,16 @@ class SkirmishBot extends SkirmishCharacter {
         return [];
     }
 
+    /*
+        Method Name: determineCloserTiles
+        Method Parameters: 
+            possibleEndTiles:
+                A list of JSON tile locations
+            shootOneTiles:
+                List of tiles where one can shoot any enemy
+        Method Description: Determines tiles closer to the enemy
+        Method Return: List of JSON
+    */
     determineCloserTiles(possibleEndTiles, shootOneTiles){
         let closerTiles = [];
         let enemies = this.getEnemyData();
@@ -1040,6 +1165,16 @@ class SkirmishBot extends SkirmishCharacter {
         return closerTiles;
     }
 
+    /*
+        Method Name: determinePositionsCloseToMyTroops
+        Method Parameters: 
+            possibleEndTiles:
+                A list of JSON tile locations
+            shootOneTiles:
+                List of tiles where one can shoot any enemy
+        Method Description: Determine which positions may be close to my troops
+        Method Return: List of JSON
+    */
     determinePositionsCloseToMyTroops(possibleEndTiles, shootOneTiles){
         let closerTiles = [];
         let friends = this.getFriends();
@@ -1131,6 +1266,14 @@ class SkirmishBot extends SkirmishCharacter {
         return closerTiles;
     }
 
+    /*
+        Method Name: determineSingleBushTiles
+        Method Parameters: 
+            possibleEndTiles:
+                A list of JSON tile locations
+        Method Description: Determines which tiles are single bushes
+        Method Return: List of JSON
+    */
     determineSingleBushTiles(possibleEndTiles){
         let singleBushTiles = [];
         // Note: Weed out multi-bushes
@@ -1184,6 +1327,14 @@ class SkirmishBot extends SkirmishCharacter {
         return singleBushTiles;
     }
 
+    /*
+        Method Name: determineMultiBushTiles
+        Method Parameters: 
+            possibleEndTiles:
+                A list of JSON tile locations
+        Method Description: Determines which tiles are multi bushes
+        Method Return: List of JSON
+    */
     determineMultiBushTiles(possibleEndTiles){
         let multiBushTiles = [];
         // Note: Weed out single-bushes
@@ -1278,6 +1429,14 @@ class SkirmishBot extends SkirmishCharacter {
         return multiBushTiles;
     }
 
+    /*
+        Method Name: determineRoughShootAndStabTiles
+        Method Parameters: 
+            tileSelection:
+                A list of tiles to choose from (List of JSON)
+        Method Description: Dtermines tiles that one can shoot or stab an enemy from
+        Method Return: List of JSON
+    */
     determineRoughShootAndStabTiles(tileSelection){
         let roughShootTiles = [];
         let roughStabTiles = [];
@@ -1366,6 +1525,12 @@ class SkirmishBot extends SkirmishCharacter {
         return {"rough_shoot_tiles": roughShootTiles, "rough_stab_tiles": roughStabTiles};
     }
 
+    /*
+        Method Name: getGun
+        Method Parameters: None
+        Method Description: Gets my gun
+        Method Return: Gun or null
+    */
     getGun(){
         let inventory = this.getInventory();
         let items = inventory.getItems();
@@ -1379,19 +1544,31 @@ class SkirmishBot extends SkirmishCharacter {
         return null;
     }
 
+    /*
+        Method Name: getMeleeWeapon
+        Method Parameters: None
+        Method Description: Gets my melee weapon
+        Method Return: MeleeWeapon or null
+    */
     getMeleeWeapon(){
         let inventory = this.getInventory();
         let items = inventory.getItems();
         // Find gun and select it
         for (let i = 0; i < items.length; i++){
             let item = items[i];
-            if (item instanceof Sword){
+            if (item instanceof MeleeWeapon){
                 return item;
             }
         }
         return null;
     }
 
+    /*
+        Method Name: cannonIsOnCooldown
+        Method Parameters: None
+        Method Description: Checks if the cannon is on cooldown
+        Method Return: boolean
+    */
     cannonIsOnCooldown(){
         let inventory = this.getInventory();
         let items = inventory.getItems();
@@ -1405,6 +1582,12 @@ class SkirmishBot extends SkirmishCharacter {
         return null;
     }
 
+    /*
+        Method Name: getWhiteFlag
+        Method Parameters: None
+        Method Description: Gets my white flag
+        Method Return: WhiteFlag or null
+    */
     getWhiteFlag(){
         let inventory = this.getInventory();
         let items = inventory.getItems();
@@ -1418,7 +1601,17 @@ class SkirmishBot extends SkirmishCharacter {
         return null;
     }
 
-    // TODO: Move this to character.js or something this is defined in at least 2 other classes. Well not exactly but similar.
+    /*
+        Method Name: generateSelectedTroopsForPosition
+        Method Parameters: 
+            myPlayerTileX:
+                my tile x
+            myPlayerTileY:
+                my tile y
+        Method Description: Determines which friendly troops I can select from a given position
+        Method Return: List of SkirmishCharacter
+        Note: May be worth it at some point to move this to character.js or something this is defined in at least 2 other classes. Well not exactly but similar.
+    */
     generateSelectedTroopsForPosition(myPlayerTileX, myPlayerTileY){
         let allTroopsOnMyTeam = this.getGamemode().getLivingTeamRosterFromName(this.getTeamName());
         let selectedTroops = [];

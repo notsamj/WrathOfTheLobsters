@@ -1,4 +1,8 @@
-// Note: Assumes you NEVER remove an x/y
+/*
+    Class Name: NotSamXYSortedArrayList
+    Class Description: A sorted array list indexed with x and y indices
+    Note: Assumes you NEVER remove an x/y
+*/
 class NotSamXYSortedArrayList {
     constructor(size=1, size_inc=(size) => size * 2){
         this.size_inc = size_inc;
@@ -6,16 +10,26 @@ class NotSamXYSortedArrayList {
         this.clear();
     }
 
+    /*
+        Method Name: getNullVersion
+        Method Parameters: None
+        Method Description: Creates a null version of this 
+        Method Return: NotSamXYSortedArrayList
+    */
     getNullVersion(){
         let nullCopy = new NotSamXYSortedArrayList();
         for (let [value, x, y] of this){
             nullCopy.set(x, y, null);
         }
-        //console.log("Returning", nullCopy);
-        //debugger;
         return nullCopy;
     }
 
+    /*
+        Method Name: toList
+        Method Parameters: None
+        Method Description: Creates a list out of the stored values
+        Method Return: List of Variable type values
+    */
     toList(){
         let outputList = [];
         for (let [item, x, y] of this){
@@ -24,22 +38,52 @@ class NotSamXYSortedArrayList {
         return outputList;
     }
 
+    /*
+        Method Name: getMaxX
+        Method Parameters: None
+        Method Description: Getter
+        Method Return: int
+    */
     getMaxX(){
         return this.maxX;
     }
 
+    /*
+        Method Name: getMaxY
+        Method Parameters: None
+        Method Description: Getter
+        Method Return: int
+    */
     getMaxY(){
         return this.maxY;
     }
 
+    /*
+        Method Name: getMinX
+        Method Parameters: None
+        Method Description: Getter
+        Method Return: int
+    */
     getMinX(){
         return this.minX;
     }
 
+    /*
+        Method Name: getMinY
+        Method Parameters: None
+        Method Description: Getter
+        Method Return: int
+    */
     getMinY(){
         return this.minY;
     }
 
+    /*
+        Method Name: clear
+        Method Parameters: None
+        Method Description: Clears the XYArrayList
+        Method Return: void
+    */
     clear(){
         this.yLength = 0;
         this.yAxis = new Array(this.ySize);
@@ -51,6 +95,14 @@ class NotSamXYSortedArrayList {
         this.minY = null;
     }
 
+    /*
+        Method Name: updateStatsX
+        Method Parameters: 
+            x:
+                x value
+        Method Description: Updates the x stats
+        Method Return: void
+    */
     updateStatsX(x){
         if (this.maxX === null || x > this.maxX){
             this.maxX = x;
@@ -60,6 +112,14 @@ class NotSamXYSortedArrayList {
         }
     }
 
+    /*
+        Method Name: updateStatsY
+        Method Parameters: 
+            y:
+                y value
+        Method Description: Updates the y stats
+        Method Return: void
+    */
     updateStatsY(y){
         if (this.maxY === null || y > this.maxY){
             this.maxY = y;
@@ -69,10 +129,28 @@ class NotSamXYSortedArrayList {
         }
     }
 
+    /*
+        Method Name: getYLength
+        Method Parameters: None
+        Method Description: Getter
+        Method Return: int
+    */
     getYLength(){ return this.yLength; }
 
+    /*
+        Method Name: getYSize
+        Method Parameters: None
+        Method Description: Getter
+        Method Return: int
+    */
     getYSize(){ return this.ySize; }
 
+    /*
+        Method Name: resizeYAxis
+        Method Parameters: None
+        Method Description: Resizes the y axis
+        Method Return: void
+    */
     resizeYAxis(){
         let newYSize = this.size_inc(this.ySize);
         let newYAxis = new Array(newYSize);
@@ -86,6 +164,14 @@ class NotSamXYSortedArrayList {
         this.ySize = newYSize;
     }
 
+    /*
+        Method Name: resizeXAxis
+        Method Parameters: 
+            xArrayObj:
+                An object representing a row
+        Method Description: Resizes an x row
+        Method Return: void
+    */
     resizeXAxis(xArrayObj){
         let currentSize = xArrayObj["size"];
         let currentArray = xArrayObj["array"];
@@ -104,6 +190,12 @@ class NotSamXYSortedArrayList {
         xArrayObj["array"] = newXArray;
     }
 
+    /*
+        Method Name: getLength
+        Method Parameters: None
+        Method Description: Calculates the total length
+        Method Return: int
+    */
     getLength(){
         let length = 0;
         for (let yIndex = 0; yIndex < this.getYLength(); yIndex++){
@@ -112,8 +204,14 @@ class NotSamXYSortedArrayList {
         return length;
     }
 
+    /*
+        Method Name: getSize
+        Method Parameters: None
+        Method Description: Calculates the total size
+        Method Return: int
+        Method Note: This method is somewhat silly
+    */
     getSize(){
-        // Note: This method is somewhat silly
         let size = 0;
         // Calculate used slots on the y axis
         for (let yIndex = 0; yIndex < this.getYLength(); yIndex++){
@@ -124,6 +222,18 @@ class NotSamXYSortedArrayList {
         return size;
     }
 
+    /*
+        Method Name: findYIndex
+        Method Parameters: 
+            y:
+                A y coordinate
+            start:
+                Start index
+            end:
+                End index (inclusive)
+        Method Description: Finds the index in y of a y coordinate
+        Method Return: int
+    */
     findYIndex(y, start=0, end=this.yLength-1){
         // If empty return -1
         if (end < 0 || start > end){ return -1; }
@@ -148,11 +258,32 @@ class NotSamXYSortedArrayList {
         }
     }
 
-    // Note: Be careful with this function. Say you want index of 5 so you can find all < 5 but array only has 6 this will return index of 6. May cause problems. 
+    /*
+        Method Name: findYActualOrWouldBeLocation
+        Method Parameters: 
+            y:
+                A y coordinate
+        Method Description: Finds the y index of the y coordinate or the would be location if it were added
+        Method Return: int
+    */
     findYActualOrWouldBeLocation(y){
         return this.findYInsertionPoint(y);
     }
 
+    /*
+        Method Name: findYInsertionPoint
+        Method Parameters: 
+            y:
+                A y coordinate
+            start:
+                Start index
+            end:
+                End index (exclusive)
+            hardEnd:
+                Array end index (exclusive)
+        Method Description: Finds the insertion point of a y coordinate
+        Method Return: int
+    */
     findYInsertionPoint(y, start=0, end=this.yLength, hardEnd=this.yLength){
         // Handle empty case
         if (end === 0){ return 0; }
@@ -182,10 +313,28 @@ class NotSamXYSortedArrayList {
         }
     }
 
-    hasYIndex(y){
+    /*
+        Method Name: hasYIndex
+        Method Parameters: 
+            y :
+                A y coordinate
+        Method Description: Checks if a y value is present
+        Method Return: boolean
+    */
+    hasYValue(y){
         return this.findYIndex(y) != -1;
     }
 
+    /*
+        Method Name: addToYAxis
+        Method Parameters: 
+            y:
+                A y coordinate
+            insertionIndex:
+                The insetion index in the y axis
+        Method Description: Adds a y value to the y axis
+        Method Return: void
+    */
     addToYAxis(y, insertionIndex){
         // If the y axis needs expansion then expand it
         if (this.getYLength() === this.getYSize()){
@@ -206,6 +355,18 @@ class NotSamXYSortedArrayList {
         this.yLength++;
     }
 
+    /*
+        Method Name: addToXAxis
+        Method Parameters: 
+            x:
+                An x coordinate
+            insertionIndex:
+                Index at which to insert
+            xArrayObj:
+                A row in the xy array list
+        Method Description: Adds an x coordinate to the x axis
+        Method Return: void
+    */
     addToXAxis(x, insertionIndex, xArrayObj){
         // If the y axis needs expansion then expand it
         let xArrayLength = xArrayObj["length"];
@@ -227,13 +388,25 @@ class NotSamXYSortedArrayList {
         xArrayObj["length"] += 1;
     }
 
+    /*
+        Method Name: findXIndex
+        Method Parameters: 
+            x:
+                An x coordinate
+            xArray:
+                A row in the xy array list
+            start:
+                Start index
+            end:
+                End index (inclusive)
+        Method Description: Finds an the x index of an x coordinate
+        Method Return: int
+    */
     findXIndex(x, xArray, start, end){
         // If empty return -1
         if (end < 0 || start > end){ return -1; }
         let mid = Math.floor((start + end)/2);
-        if (xArray[mid] === undefined){
-            debugger;
-        }
+
         let comparisonResult = x - xArray[mid]["x"];
 
         // If we found the x value
@@ -254,11 +427,37 @@ class NotSamXYSortedArrayList {
         }
     }
 
-    // Note: Be careful with this function. Say you want index of 5 so you can find all < 5 but array only has 6 this will return index of 6. May cause problems. 
+    /*
+        Method Name: findXActualOrWouldBeLocation
+        Method Parameters: 
+            x:
+                An x coordinate
+            xArrayObj:
+                A row in the xy array list
+        Method Description: Finds the actual or would be location of an x coordinate
+        Method Return: int
+        Method Note: Be careful with this function. Say you want index of 5 so you can find all < 5 but array only has 6 this will return index of 6. May cause problems. 
+    */
     findXActualOrWouldBeLocation(x, xArrayObj){
         return this.findXInsertionPoint(x, xArrayObj["array"], 0, xArrayObj["length"], xArrayObj["length"]);
     }
 
+    /*
+        Method Name: findXInsertionPoint
+        Method Parameters: 
+            x:
+                An x coordinate
+            xArray:
+                A row
+            start:
+                Starting index
+            end:
+                End index (exlusivee)
+            hardEnd:
+                Row length 
+        Method Description: Finds the x insertion point of an x coordinate
+        Method Return: int
+    */
     findXInsertionPoint(x, xArray, start, end, hardEnd){
         // Handle empty case
         if (end === 0){ return 0; }
@@ -288,6 +487,18 @@ class NotSamXYSortedArrayList {
         }
     }
 
+    /*
+        Method Name: set
+        Method Parameters: 
+            x:
+                An x coordinate
+            y:
+                A y coordinate
+            value:
+                A value
+        Method Description: Sets the value at an x,y coordinate set
+        Method Return: void
+    */
     set(x, y, value){
         let yIndex = this.findYIndex(y);
         // If y is not found
@@ -319,12 +530,32 @@ class NotSamXYSortedArrayList {
         xArray[xIndex]["value"] = value;
     }
 
+    /*
+        Method Name: get
+        Method Parameters: 
+            x:
+                An x coordinate
+            y:
+                A y coordinate
+        Method Description: Gets the value at a given x,y coordinate set
+        Method Return: Variable
+    */
     get(x, y){
         let node = this.getNode(x, y);
         if (node === null){ return null; }
         return node["value"];
     }
 
+    /*
+        Method Name: getNode
+        Method Parameters: 
+            x:
+                An x coordinate
+            y:
+                A y coordinate
+        Method Description: Gets the Node at a given x,y coordinate set
+        Method Return: Variable
+    */
     getNode(x, y){
         let yIndex = this.findYIndex(y);
         // If y index is not found
@@ -344,16 +575,44 @@ class NotSamXYSortedArrayList {
         return xArray[xIndex];
     }
 
+    /*
+        Method Name: grabYAxis
+        Method Parameters: None
+        Method Description: Gets the y axis
+        Method Return: Array of JSON objects
+    */
     grabYAxis(){
         return this.yAxis;
     }
 
+    /*
+        Method Name: has
+        Method Parameters: 
+            x:
+                An x coordinate
+            y:
+                A y coordinate
+        Method Description: Checks if a coordinate set is present
+        Method Return: boolean
+    */
     has(x, y){
         return this.getNode(x,y) != null;
     }
 
+    /*
+        Method Name: isEmpty
+        Method Parameters: None
+        Method Description: Checks if the array is is empty
+        Method Return: boolean
+    */
     isEmpty(){ return this.getYLength() == 0; }
 
+    /*
+        Method Name: iterator
+        Method Parameters: None
+        Method Description: Loops through the xy array list and yields values
+        Method Return: [value, xCoordinate, yCoordinate]
+    */
     *[Symbol.iterator](){
         for (let yIndex = 0; yIndex < this.getYLength(); yIndex++){
             let xArrayObj = this.yAxis[yIndex];

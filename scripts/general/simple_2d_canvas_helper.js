@@ -25,6 +25,18 @@ class Colour {
         this.alpha = a;
     }
 
+    /*
+        Method Name: generateCodeFromValues
+        Method Parameters: 
+            redValue:
+                Red integer [0,255]
+            greenValue:
+                Green integer [0,255]
+            blueValue:
+                Blue integer [0,255]
+        Method Description: Generates a color code given values
+        Method Return: String
+    */
     static generateCodeFromValues(redValue, greenValue, blueValue){
         let redInt2 = redValue % 16;
         let greenInt2 = greenValue % 16;
@@ -361,6 +373,26 @@ function makeText(textStr, screenX, screenY, boxWidth, boxHeight, textColour, te
     }
 }
 
+/*
+    Function Name: makeTextExplicit
+    Function Parameters: 
+        textStr:
+            A text string
+        textSize:
+            The text size. int
+        textColour:
+            The text Colour instance
+        screenX:
+            The screen x of the text
+        screenY:
+            The screen y of the text
+        alignLR:
+            Text alignment (left-right) string
+        alignTB:
+            Text alignment (top-bottom) string
+    Function Description: Makes text on screen
+    Function Return: void
+*/
 function makeTextExplicit(textStr, textSize, textColour, screenX, screenY, alignLR, alignTB){
     updateFontSize(textSize);
     updateFillColour(textColour);

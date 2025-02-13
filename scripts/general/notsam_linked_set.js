@@ -1,7 +1,6 @@
 /*
     Class Name: NotSamLinkedSet
     Description: A doubly linked list functioning as a set
-    Note: TODO: Comments
 */
 class NotSamLinkedSet extends NotSamLinkedList {
         /*
@@ -16,6 +15,14 @@ class NotSamLinkedSet extends NotSamLinkedList {
         super(array);
     }
 
+    /*
+        Method Name: append
+        Method Parameters: 
+            value:
+                A value
+        Method Description: Adds a value to the set if it is not already present
+        Method Return: void
+    */
     append(value){
         if (this.has(value)){ return; }
         if (this.isEmpty()){

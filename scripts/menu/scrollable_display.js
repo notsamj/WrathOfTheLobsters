@@ -1,4 +1,18 @@
+/*
+    Class Name: ScrollableDisplay
+    Description: An area to display things that is aided by a scrollbar
+*/
 class ScrollableDisplay extends Component {
+    /*
+        Method Name: constructor
+        Method Parameters: 
+            scrollableDisplayJSON:
+                JSON info about the things being displayed
+            itemsList:
+                List of items to display
+        Method Description: constructor
+        Method Return: constructor
+    */
     constructor(scrollableDisplayJSON, itemsList){
         super();
         this.scrollBar = undefined; // Declare
@@ -10,18 +24,52 @@ class ScrollableDisplay extends Component {
         this.setup(scrollableDisplayJSON, itemsList);
     }
 
+    /*
+        Method Name: tick
+        Method Parameters: None
+        Method Description: Ticks the scrollbar
+        Method Return: void
+    */
     tick(){
         this.scrollBar.tick();
     }
 
+    /*
+        Method Name: getEntryYSize
+        Method Parameters: None
+        Method Description: Gets the y size of entries
+        Method Return: int
+    */
     getEntryYSize(){
         return this.entryYSize;
     }
 
+    /*
+        Method Name: covers
+        Method Parameters: 
+            mouseX:
+                A mouse x location
+            mouseY:
+                A mouse y location
+        Method Description: Checks if an x,y pair is covered
+        Method Return: boolean
+    */
     covers(x, y){
         return x >= this.entryXOffset && x <= getScreenWidth() - this.entryXOffset && y >= this.entryYOffset && y <= getScreenHeight() - this.entryYOffset;
     }
 
+    /*
+        Method Name: clicked
+        Method Parameters: 
+            menuInstance:
+                A menu instance
+            x:
+                An x coordinate
+            yFromBottom:
+                The y coordinate (w.r.t. the bottom of the screen)
+        Method Description: Handles a click on the component
+        Method Return: void
+    */
     clicked(menuInstance, x, yFromBottom){
         let yFromTop = MENU_MANAGER.changeToScreenY(yFromBottom);
         // Handle the entry y offset
@@ -47,6 +95,16 @@ class ScrollableDisplay extends Component {
         MENU_MANAGER.switchTo(this.displayItems.get(expectedI)["menu_name"]);
     }
 
+    /*
+        Method Name: setup
+        Method Parameters: 
+            scrollableDisplayJSON:
+                JSON info about the things being displayed
+            itemsList:
+                List of items to display
+        Method Description: Sets up the scrollable display
+        Method Return: void
+    */
     setup(scrollableDisplayJSON, itemsList){
         let entryXSize = scrollableDisplayJSON["entry"]["x_size"];
         this.entryXSize = entryXSize;
@@ -81,11 +139,23 @@ class ScrollableDisplay extends Component {
         this.scrollBar.increaseNumEntries(this.displayItems.getLength());
     }
 
+    /*
+        Method Name: display
+        Method Parameters: None
+        Method Description: Displays the scrollable display
+        Method Return: void
+    */
     display(){
         this.displayEntries();
         this.scrollBar.display();
     }
 
+    /*
+        Method Name: displayEntries
+        Method Parameters: None
+        Method Description: Displays all entries that are visible
+        Method Return: void
+    */
     displayEntries(){
         let itemIndicesToDisplay = this.scrollBar.getVisibleEntriesIndicesRange();
         let startI = itemIndicesToDisplay["start_index"];

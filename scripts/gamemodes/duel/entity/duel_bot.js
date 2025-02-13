@@ -2397,6 +2397,10 @@ class DuelBot extends DuelCharacter {
     /*
         Method Name: generateShortestEvasiveRoutePointToPoint
         Method Parameters: 
+            startTileX:
+                The tile x of the tile you are starting from
+            startTileX:
+                The tile y of the tile you are starting from
             endTileX:
                 The tile x of the tile you are trying to reach
             endTileY:
@@ -2406,7 +2410,7 @@ class DuelBot extends DuelCharacter {
         Method Description: Generates a route to a point. An evasive route.
         Method Return: Route or null
     */
-    generateShortestEvasiveRoutePointToPoint(endTileX, endTileY, routeLengthLimit=Number.MAX_SAFE_INTEGER){
+    generateShortestEvasiveRoutePointToPoint(startTileX, startTileY, endTileX, endTileY, routeLengthLimit=Number.MAX_SAFE_INTEGER){
         if (startTileX === endTileX && startTileY === endTileY){ return Route.fromPath([{"tile_x": startTileX, "tile_y": startTileY}]); }
         if (!this.canWalkOnTile(startTileX, startTileY)){ throw new Error("Invalid start tile."); }
         if (!this.canWalkOnTile(endTileX, endTileY)){ throw new Error("Invalid end tile."); }

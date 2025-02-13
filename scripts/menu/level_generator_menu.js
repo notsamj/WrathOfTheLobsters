@@ -1,4 +1,16 @@
+/*
+    Class Name: LevelGeneratorMenu
+    Description: The level generator menu menu
+*/
 class LevelGeneratorMenu extends Menu {
+    /*
+        Method Name: constructor
+        Method Parameters: 
+            game:
+                (optional) the gamemode containing this menu
+        Method Description: constructor
+        Method Return: constructor
+    */
     constructor(game=null){
         super("level_generator_menu");
         // Declare
@@ -39,6 +51,12 @@ class LevelGeneratorMenu extends Menu {
     }
 
 
+    /*
+        Method Name: tick
+        Method Parameters: None
+        Method Description: Checks for user actions
+        Method Return: void
+    */
     tick(){
         if (GENERAL_USER_INPUT_MANAGER.isActivated("left_arrow_ticked")){
             this.shiftPreset(-1);
@@ -48,22 +66,54 @@ class LevelGeneratorMenu extends Menu {
         super.tick();
     }
 
+    /*
+        Method Name: getPresetName
+        Method Parameters: None
+        Method Description: Gets the current preset name
+        Method Return: String
+    */
     getPresetName(){
         return this.getPresetData()["name"];
     }
 
+    /*
+        Method Name: getPresetData
+        Method Parameters: None
+        Method Description: Gets the current preset data
+        Method Return: JSON
+    */
     getPresetData(){
         return this.presets[this.currentPresetIndex];
     }
 
+    /*
+        Method Name: getPresetText
+        Method Parameters: None
+        Method Description: Creates and returns preset text
+        Method Return: String
+    */
     getPresetText(){
         return "Preset: " + this.getPresetName();
     }
 
+    /*
+        Method Name: getCurrentSeedText
+        Method Parameters: None
+        Method Description: Creates and returns seed text
+        Method Return: String
+    */
     getCurrentSeedText(){
         return "Seed: " + this.getCurrentSeedString();
     }
 
+    /*
+        Method Name: shiftPreset
+        Method Parameters: 
+            direction:
+                Positive or negative number (int)
+        Method Description: Scrolls through presets in a given direction
+        Method Return: void
+    */
     shiftPreset(direction){
         // Update preset index
         if (direction >= 0){
@@ -79,15 +129,37 @@ class LevelGeneratorMenu extends Menu {
         this.currentPresetLabel.setText(this.getPresetText());
     }
 
+    /*
+        Method Name: updateCurrentSeedString
+        Method Parameters: 
+            newStr:
+                String
+        Method Description: Updates the current seed string
+        Method Return: void
+    */
     updateCurrentSeedString(newStr){
         this.currentSeedString = newStr;
         this.currentSeedLabel.setText(this.getCurrentSeedText());
     }
 
+    /*
+        Method Name: getCurrentSeedString
+        Method Parameters: None
+        Method Description: Getter
+        Method Return: string
+    */
     getCurrentSeedString(){
         return this.currentSeedString;
     }
 
+    /*
+        Method Name: addNumber
+        Method Parameters: 
+            newNumberString:
+                String rep of a number
+        Method Description: Adds a number to the current seed string
+        Method Return: void
+    */
     addNumber(newNumberString){
         // If they try to add to a full seed then just reset
         if (this.currentSeedString.length >= this.maxDigits){
@@ -101,10 +173,22 @@ class LevelGeneratorMenu extends Menu {
         }
     }
 
-    clear(){
+    /*
+        Method Name: clearSeedGenerator
+        Method Parameters: None
+        Method Description: Resets the seed generator to zero
+        Method Return: void
+    */
+    clearSeedGenerator(){
         this.updateCurrentSeedString('0');
     }
 
+    /*
+        Method Name: submit
+        Method Parameters: None
+        Method Description: Submits the seed and starts the game (or if ingame then just loads the preset again)
+        Method Return: void
+    */
     submit(){
         if (!this.ingame){
             GAMEMODE_MANAGER.setActiveGamemode(new LevelGenerator(this.getPresetData(), parseInt(this.getCurrentSeedString())));
@@ -114,10 +198,22 @@ class LevelGeneratorMenu extends Menu {
         }
     }
 
+    /*
+        Method Name: random
+        Method Parameters: None
+        Method Description: Randomizes the current seed
+        Method Return: void
+    */
     random(){
         this.updateCurrentSeedString(randomNumberInclusive(0, Math.floor(Math.pow(10, this.maxDigits))-1).toString());
     }
 
+    /*
+        Method Name: setup
+        Method Parameters: None
+        Method Description: Sets up the menu
+        Method Return: void
+    */
     setup(){
         let menuData = WTL_GAME_DATA["menu"]["menus"]["level_generator_menu"];
 
@@ -227,7 +323,7 @@ class LevelGeneratorMenu extends Menu {
         }));
 
         this.components.push(new RectangleButton("CLEAR", buttonColourCode, buttonTextColourCode, xOfClearButton, yOfClearButton, numberButtonSize, numberButtonSize, (menuInstance) => {
-            this.clear();
+            this.clearSeedGenerator();
         }));
 
         let currentSeedLabelX = (innerWidth) => { return Math.floor((innerWidth - numberPadAreaSize) / 2) + (numberButtonSize + 1) * 2; };

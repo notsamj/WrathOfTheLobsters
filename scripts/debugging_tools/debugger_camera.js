@@ -249,8 +249,8 @@ class DebuggerCamera extends Entity {
                 The y value of the bottom of the screen
             tY:
                 The y value of the top of the screen
-        Method Description: TODO
-        Method Return: TODO
+        Method Description: Displays the dots
+        Method Return: void
     */
     display(lX, rX, bY, tY){
         MY_HUD.updateElement("Cursor Tile X", this.cursorTileX);

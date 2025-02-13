@@ -13,10 +13,22 @@ class MenuManager {
         this.secondaryMenus = [];
     }
 
+    /*
+        Method Name: getActiveMenu
+        Method Parameters: None
+        Method Description: Getter
+        Method Return: Menu or null
+    */
     getActiveMenu(){
         return this.activeMenu;
     }
 
+    /*
+        Method Name: setup
+        Method Parameters: None
+        Method Description: Sets up the menu manager
+        Method Return: void
+    */
     setup(){
         this.mainMenu = new MainMenu();
         this.helpMenu = new HelpMenu();
@@ -28,6 +40,14 @@ class MenuManager {
         }
     }
 
+    /*
+        Method Name: registerMenu
+        Method Parameters: 
+            menuInstance:
+                A menu instance
+        Method Description: Registers a secondary menu
+        Method Return: void
+    */
     registerMenu(menuInstance){
         this.secondaryMenus.push(menuInstance);
     }
@@ -119,6 +139,12 @@ class MenuManager {
     */
     changeToScreenY(y){ return this.changeFromScreenY(y); }
 
+    /*
+        Method Name: tick
+        Method Parameters: None
+        Method Description: Handles tick user actions
+        Method Return: void
+    */
     tick(){
         let leftClick = GENERAL_USER_INPUT_MANAGER.isActivated("left_click_ticked");
         if (leftClick){
@@ -142,6 +168,12 @@ class MenuManager {
 
     }
 
+    /*
+        Method Name: helpKey
+        Method Parameters: None
+        Method Description: Takes actions when the help key is pressed
+        Method Return: void
+    */
     helpKey(){
         if (this.activeMenu === this.helpMenu){
             this.helpMenu.returnToOrigin();
@@ -224,6 +256,14 @@ class MenuManager {
         }
     }
 
+    /*
+        Method Name: switchToMenu
+        Method Parameters: 
+            menu:
+                The new menu instance
+        Method Description: Switches to the new menu
+        Method Return: void
+    */
     switchToMenu(menu){
         if (menu === null){
             this.switchTo("game");
@@ -232,6 +272,14 @@ class MenuManager {
         }
     }
 
+    /*
+        Method Name: switchToSecondary
+        Method Parameters: 
+            secondaryMenuName:
+                The name of the secondary menu. String
+        Method Description: Switches to a secondary menu
+        Method Return: boolean, true -> found the secondary menu, false -> did not find it
+    */
     switchToSecondary(secondaryMenuName){
         let secondaryMenu = this.getMenuByName(secondaryMenuName);
         if (secondaryMenu != null){

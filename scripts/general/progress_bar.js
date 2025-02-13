@@ -5,7 +5,9 @@
 class ProgressBar {
     /*
         Method Name: constructor
-        Method Parameters: TODO
+        Method Parameters: 
+            maxValue:
+                Max value for the progress bar
         Method Description: Constructor
         Method Return: Constructor
     */
@@ -43,10 +45,22 @@ class ProgressBar {
         this.value = newValue;
     }
 
+    /*
+        Method Name: getValue
+        Method Parameters: None
+        Method Description: Getter
+        Method Return: float
+    */
     getValue(){
         return this.value;
     }
 
+    /*
+        Method Name: getMaxValue
+        Method Parameters: None
+        Method Description: Getter
+        Method Return: float
+    */
     getMaxValue(){
         return this.maxValue;
     }

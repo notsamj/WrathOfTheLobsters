@@ -17,10 +17,22 @@ class Menu {
         this.components = [];
     }
 
+    /*
+        Method Name: getName
+        Method Parameters: None
+        Method Description: Getter
+        Method Return: string
+    */
     getName(){
         return this.name;
     }
 
+    /*
+        Method Name: informSwitchedTo
+        Method Parameters: None
+        Method Description: Default method when menu is switched to
+        Method Return: void
+    */
     informSwitchedTo(){}
 
     /*
@@ -153,6 +165,12 @@ class Menu {
         }
     }
 
+    /*
+        Method Name: tick
+        Method Parameters: None
+        Method Description: Ticks all components in the menu
+        Method Return: void
+    */
     tick(){
         for (let component of this.components){
             if (component.isDisabled()){ continue; }

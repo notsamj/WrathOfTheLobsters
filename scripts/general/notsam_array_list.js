@@ -1,4 +1,9 @@
-// Note: This code has been tested with a comprehensive suite. JavaScript_REUSEABLE\Linked List Array List. Caution: May have been modified since testing.
+/*
+    Class Name: NotSamArrayList
+    Class Description: An array list implementation
+    Note: This code has been tested with a comprehensive suite. JavaScript_REUSEABLE\Linked List Array List.
+          Caution: May have been modified since testing.
+*/
 class NotSamArrayList {
     /*
         Method Name: constructor
@@ -25,7 +30,12 @@ class NotSamArrayList {
         }
     }
 
-    // TODO: Comments
+    /*
+        Method Name: clear
+        Method Parameters: None
+        Method Description: Clears the array (doesn't actually clear the memory)
+        Method Return: void
+    */
     clear(){
         this.length = 0;
     }
@@ -56,7 +66,6 @@ class NotSamArrayList {
         for (let i = 0; i < this.length; i++){
             newArray[i] = this.array[i];
         }
-        //console.log("Resize", this.size, this.size_inc(this.size))
         this.array = newArray;
     }
 
@@ -82,6 +91,16 @@ class NotSamArrayList {
         this.insert(value, this.getLength());
     }
 
+    /*
+        Method Name: insert
+        Method Parameters: 
+            value:
+                A value
+            index:
+                An index. int
+        Method Description: Inserts a value into the array
+        Method Return: void
+    */
     insert(value, index){
         let length = this.getLength();
         if (index > length || index < 0){
@@ -97,11 +116,9 @@ class NotSamArrayList {
         for (let i = length; i > index; i--){
             this.array[i] = this.array[i-1];
         }
-        //this.print();
         // Place in slot
         this.array[index] = value;
         this.length++;
-        //this.print();
     }
 
     /*
@@ -116,7 +133,14 @@ class NotSamArrayList {
         this.add(value);
     }
 
-    // TODO: Comments
+    /*
+        Method Name: push
+        Method Parameters: 
+            value:
+                A value
+        Method Description: Add a value to the end of the array list
+        Method Return: void
+    */
     push(value){
         this.add(value);
     }
@@ -219,6 +243,14 @@ class NotSamArrayList {
         return returnValue;
     }
 
+    /*
+        Method Name: remove
+        Method Parameters: 
+            index:
+                An index. int
+        Method Description: Removes the value at an index from the array list
+        Method Return: void
+    */
     remove(index){
         this.pop(index);
     }
@@ -237,6 +269,12 @@ class NotSamArrayList {
         return newArr;
     }
 
+    /*
+        Method Name: print
+        Method Parameters: None
+        Method Description: Prints the contents of the array list
+        Method Return: void
+    */
     print(){
         console.log("Array List");
         console.log("Size", this.getSize());

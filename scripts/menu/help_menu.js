@@ -1,4 +1,14 @@
+/*
+    Class Name: HelpMenu
+    Description: The help menu
+*/
 class HelpMenu extends Menu {
+    /*
+        Method Name: constructor
+        Method Parameters: None
+        Method Description: constructor
+        Method Return: constructor
+    */
     constructor(){
         super("help_menu");
         this.origin = undefined; // Note: expect overwritten before used
@@ -12,10 +22,24 @@ class HelpMenu extends Menu {
         this.setup();
     }
 
+    /*
+        Method Name: setOrigin
+        Method Parameters: 
+            originMenu:
+                The menu that directed to the help menu (or null)
+        Method Description: Sets the origin point for the help menu
+        Method Return: void
+    */
     setOrigin(originMenu){
         this.origin = originMenu;
     }
 
+    /*
+        Method Name: informSwitchedTo
+        Method Parameters: None
+        Method Description: Informs the menu that it has been switched to
+        Method Return: void
+    */
     informSwitchedTo(){
         let helpMenuName;
         if (this.origin != null){
@@ -29,30 +53,55 @@ class HelpMenu extends Menu {
         this.setUpHelpMenu(helpMenuName);
     }
 
+    /*
+        Method Name: setUpHelpMenu
+        Method Parameters: 
+            helpMenuName:
+                The kind of help that is looked for (String)
+        Method Description: Sets up the help menu
+        Method Return: void
+    */
     setUpHelpMenu(helpMenuName){
         let availableMenuJSON = WTL_GAME_DATA["menu"]["menus"]["help_menu"]["help_image"]["images"];
         // If there is no help then go to default
         if (!objectHasKey(availableMenuJSON, helpMenuName)){
             helpMenuName = "default";
         }
+
         this.imageNames = availableMenuJSON[helpMenuName];
-        if (this.imageNames === undefined){
-            debugger;
-        }
+
         this.currentImageIndex = 0;
         this.checkDisableArrowButtons();
         this.updateNOSText();
         this.updateImage();
     }
 
+    /*
+        Method Name: updateImage
+        Method Parameters: None
+        Method Description: Updates the help image
+        Method Return: void
+    */
     updateImage(){
         this.helpImage.setImage(IMAGES[this.imageNames[this.currentImageIndex]]);
     }
 
+    /*
+        Method Name: returnToOrigin
+        Method Parameters: None
+        Method Description: Returns to the origin
+        Method Return: void
+    */
     returnToOrigin(){
         MENU_MANAGER.switchToMenu(this.origin);
     }
 
+    /*
+        Method Name: setup
+        Method Parameters: None
+        Method Description: Sets up the help menus
+        Method Return: void
+    */
     setup(){
         // Background
         this.components.push(new LoadingScreenComponent(false));
@@ -147,6 +196,12 @@ class HelpMenu extends Menu {
         this.setUpHelpMenu("default");
     }
 
+    /*
+        Method Name: tick
+        Method Parameters: None
+        Method Description: Checks for user actions
+        Method Return: void
+    */
     tick(){
         if (GENERAL_USER_INPUT_MANAGER.isActivated("left_arrow_ticked")){
             this.slide(-1);
@@ -156,6 +211,14 @@ class HelpMenu extends Menu {
         super.tick();
     }
 
+    /*
+        Method Name: slide
+        Method Parameters: 
+            direction:
+                direction to slide in. int
+        Method Description: Slides the images in a direction
+        Method Return: void
+    */
     slide(direction){
         let newIndex = this.currentImageIndex + direction;
         // Ignore invalid indices (shouldn't happen anyway)
@@ -168,10 +231,22 @@ class HelpMenu extends Menu {
         this.updateImage();
     }
 
+    /*
+        Method Name: updateNOSText
+        Method Parameters: None
+        Method Description: Updates the text displaying the number of slides
+        Method Return: void
+    */
     updateNOSText(){
         this.numberOfSlidesText.setText((this.currentImageIndex + 1).toString() + "/" + this.imageNames.length);
     }
 
+    /*
+        Method Name: checkDisableArrowButtons
+        Method Parameters: None
+        Method Description: Checks if the arrow button should be disabled
+        Method Return: void
+    */
     checkDisableArrowButtons(){
         let enabledColourCode = WTL_GAME_DATA["menu"]["menus"]["help_menu"]["arrow_buttons"]["colour_code"];
         let disabledColourCode = WTL_GAME_DATA["menu"]["menus"]["help_menu"]["arrow_buttons"]["disabled_colour_code"];

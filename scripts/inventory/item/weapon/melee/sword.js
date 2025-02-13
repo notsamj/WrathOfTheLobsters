@@ -1,4 +1,19 @@
+/*
+    Class Name: Musket
+    Class Description: A musket
+*/
+
 class Sword extends MeleeWeapon {
+    /*
+        Method Name: constructor
+        Method Parameters: 
+            model:
+                Model of the sword (string)
+            details:
+                JSON details with extra information
+        Method Description: constructor
+        Method Return: constructor
+    */
     constructor(model, details){
         super();
         this.model = model;
@@ -14,6 +29,12 @@ class Sword extends MeleeWeapon {
         this.blockStartTick = null;
     }
 
+    /*
+        Method Name: reset
+        Method Parameters: None
+        Method Description: Resets the sword (usually) on equip
+        Method Return: void
+    */
     reset(){
         this.swinging = false;
         this.swingStartTick = null;
@@ -25,41 +46,95 @@ class Sword extends MeleeWeapon {
         this.blockStartTick = null;
     }
 
+    /*
+        Method Name: getSwingCooldownMS
+        Method Parameters: None
+        Method Description: Fetches the cooldown for this sword model
+        Method Return: int
+    */
     getSwingCooldownMS(){
-        return WTL_GAME_DATA["sword_data"]["swords"][this.getModel()]["swing_cooldown_ms"]
+        return WTL_GAME_DATA["sword_data"]["swords"][this.getModel()]["swing_cooldown_ms"];
     }
 
+    /*
+        Method Name: getSwingTimeMS
+        Method Parameters: None
+        Method Description: Fetches the cooldown for this sword model
+        Method Return: int
+    */
     getSwingTimeMS(){
         return WTL_GAME_DATA["sword_data"]["swords"][this.getModel()]["swing_time_ms"];
     }
 
+    /*
+        Method Name: startBlocking
+        Method Parameters: None
+        Method Description: Starts blocking with the sword
+        Method Return: void
+    */
     startBlocking(){
         this.blocking = true;
         this.blockStartTick = this.getPlayer().getGamemode().getCurrentTick();
     }
 
+    /*
+        Method Name: getSwingStartTick
+        Method Parameters: None
+        Method Description: Getter
+        Method Return: int
+    */
     getSwingStartTick(){
         return this.swingStartTick;
     }
 
+    /*
+        Method Name: getBlockStartTick
+        Method Parameters: Getter
+        Method Description: Getter
+        Method Return: int
+    */
     getBlockStartTick(){
         return this.blockStartTick;
     }
 
+    /*
+        Method Name: getPlayer
+        Method Parameters: None
+        Method Description: Getter
+        Method Return: Character
+    */
     getPlayer(){
         return this.player;
     }
 
+    /*
+        Method Name: resetDecisions
+        Method Parameters: None
+        Method Description: Resets the sword decisions
+        Method Return: void
+    */
     resetDecisions(){
         this.getPlayer().amendDecisions({
             "trying_to_swing_sword": false
         });
     }
 
+    /*
+        Method Name: makeDecisions
+        Method Parameters: None
+        Method Description: Tells player to make sword decisions
+        Method Return: void
+    */
     makeDecisions(){
         this.getPlayer().makeSwordDecisions();
     }
 
+    /*
+        Method Name: actOnDecisions
+        Method Parameters: None
+        Method Description: Takes actions based on decisions
+        Method Return: void
+    */
     actOnDecisions(){
         let tryingToSwing = this.getDecision("trying_to_swing_sword");
         if (tryingToSwing && !this.isSwinging() && !this.isBlocking() && this.getPlayer().getStaminaBar().hasStamina() && this.swingCooldownLock.isReady()){
@@ -75,6 +150,12 @@ class Sword extends MeleeWeapon {
         }
     }
 
+    /*
+        Method Name: startSwing
+        Method Parameters: None
+        Method Description: Starts a sword swing
+        Method Return: void
+    */
     startSwing(){
         this.getPlayer().getStaminaBar().useStamina(WTL_GAME_DATA["sword_data"]["swords"][this.getModel()]["stamina_usage_for_swing"]);
         this.swinging = true;
@@ -82,21 +163,68 @@ class Sword extends MeleeWeapon {
         this.swingStartTick = this.getPlayer().getGamemode().getCurrentTick();
         this.swingFacing = this.getPlayer().getFacingDirection();
         this.swingLock.resetAndLock();
-        //console.log("Starting swing", this.swingStartTick, this.player.model)
     }
 
+    /*
+        Method Name: getSwingRange
+        Method Parameters: None
+        Method Description: Gets the sword swing range
+        Method Return: TODO
+    */
     getSwingRange(){
         return WTL_GAME_DATA["sword_data"]["arm_length"] + WTL_GAME_DATA["sword_data"]["swords"][this.getModel()]["blade_length"];
     }
 
+    /*
+        Method Name: getSwingCenterX
+        Method Parameters:
+            playerLeftX:
+                The left x of the player
+            facingDirection:
+                The facing direction of the player (visual)
+        Method Description: Gets the center x of the sword swing
+        Method Return: float
+    */
     getSwingCenterX(playerLeftX=this.getPlayer().getInterpolatedTickX(), facingDirection=this.getPlayer().getFacingDirection()){
         return playerLeftX + WTL_GAME_DATA["model_positions"][this.getPlayer().getModelCategory()][this.getModel()]["swinging"][facingDirection]["x_offset"];
     }
 
+    /*
+        Method Name: getSwingCenterY
+        Method Parameters:
+            playerTopY:
+                The top y of the player
+            facingDirection:
+                The facing direction of the player (visual)
+        Method Description: Gets the center y of the sword swing
+        Method Return: float
+    */
     getSwingCenterY(playerTopY=this.getPlayer().getInterpolatedTickY(), facingDirection=this.getPlayer().getFacingDirection()){
         return playerTopY - WTL_GAME_DATA["model_positions"][this.getPlayer().getModelCategory()][this.getModel()]["swinging"][facingDirection]["y_offset"];
     }
 
+    /*
+        Method Name: swordCanHitCharacter
+        Method Parameters: 
+            characterHitbox:
+                A hitbox of a character (Hitbox)
+            swingHitbox:
+                A hitbox of the swing (Hitbox)
+            hitCenterX:
+                The center x of the swing hitbox (number)
+            hitCenterY:
+                The center y of the swing hitbox (number)
+            swingAngle:
+                The angle of swing (radian)
+            swingRange:
+                The range of the swing (number)
+            startAngle:
+                The starting angle of the swing (radian)
+            endAngle:
+                The ending angle of the swing (radian)
+        Method Description: Checks if the sword can hit a character given the parameters
+        Method Return: boolean
+    */
     static swordCanHitCharacter(characterHitbox, swingHitbox, hitCenterX, hitCenterY, swingAngle, swingRange, startAngle, endAngle){
         // If no collision ignore
         if (!characterHitbox.collidesWith(swingHitbox)){
@@ -202,6 +330,14 @@ class Sword extends MeleeWeapon {
         return false;
     }
 
+    /*
+        Method Name: getSwingAngle
+        Method Parameters: 
+            characterFacingDirection:
+                The facing direction of a character (visual) (string)
+        Method Description: Gets the swing angle
+        Method Return: float (radians)
+    */
     static getSwingAngle(characterFacingDirection){
         if (characterFacingDirection == "front"){
             return toFixedRadians(270);
@@ -215,6 +351,18 @@ class Sword extends MeleeWeapon {
         throw new Error("Invalid character facing direction: " + characterFacingDirection);
     }
 
+    /*
+        Method Name: facingTheRightDirectionToBlock
+        Method Parameters: 
+            victimMovementDirection:
+                The movement direction of the sword victim (string)
+            attackerToDefenderDisplacementX:
+                The displcement from attacker to victim (x)
+            attackerToDefenderDisplacementY:
+                The displcement from attacker to victim (y)
+        Method Description: Checks if the victim is facing the correct direction in order to block a sword swing
+        Method Return: boolean
+    */
     static facingTheRightDirectionToBlock(victimMovementDirection, attackerToDefenderDisplacementX, attackerToDefenderDisplacementY){
         // attackerToDefenderDisplacementX: > 0 attacker is to the right < 0 attacker is to the left
         // attackerToDefenderDisplacementY: > 0 attacker is above < 0 attacker is below
@@ -243,16 +391,27 @@ class Sword extends MeleeWeapon {
         return false;
     }
 
+    /*
+        Method Name: getSwingAngleRangeRAD
+        Method Parameters: None
+        Method Description: Generates the angle range for a swing
+        Method Return: float (radians)
+    */
     getSwingAngleRangeRAD(){
         return toFixedRadians(WTL_GAME_DATA["sword_data"]["swords"][this.getModel()]["swing_angle_range_deg"]);
     }
 
+    /*
+        Method Name: finishSwing
+        Method Parameters:
+            exclusionFunction:
+                A function that takes a character as parameter and returns true -> is exempted from being hit, false -> can be hit
+        Method Description: Hits nearby player with sword if one is present
+        Method Return: void
+    */
     finishSwing(exclusionFunction=(character)=>{ return false; }){
         this.swinging = false;
-        //console.log("Finish swing", this.player.isAlive());
-        if (!this.player.isAlive()){
-            debugger;
-        }
+
         // Calculate what it hit
         let swingRange = this.getSwingRange();
         let swingHitbox = new CircleHitbox(swingRange);
@@ -418,27 +577,73 @@ class Sword extends MeleeWeapon {
         }
     }
 
+    /*
+        Method Name: getSwingDamage
+        Method Parameters: None
+        Method Description: Gets the sword swing damage
+        Method Return: number
+    */
     getSwingDamage(){
         return WTL_GAME_DATA["sword_data"]["swords"][this.getModel()]["swing_damage"];
     }
 
+    /*
+        Method Name: isSwinging
+        Method Parameters: None
+        Method Description: Checks if the sword is swinging
+        Method Return: boolean
+    */
     isSwinging(){
         return this.swinging;
     }
 
+    /*
+        Method Name: cancelSwing
+        Method Parameters: None
+        Method Description: Cancels the current swing
+        Method Return: void
+    */
     cancelSwing(){
         this.swinging = false;
     }
 
+    /*
+        Method Name: breakAction
+        Method Parameters: None
+        Method Description: Breaks the current action
+        Method Return: void
+    */
     breakAction(){
         this.cancelSwing();
     }
 
+    /*
+        Method Name: select
+        Method Parameters: None
+        Method Description: handles action on item select
+        Method Return: void
+    */
     select(){}
+    /*
+        Method Name: deselect
+        Method Parameters: None
+        Method Description: handles action on item deselect
+        Method Return: void
+    */
     deselect(){
         this.breakAction();
     }
 
+    /*
+        Method Name: displayItemSlot
+        Method Parameters: 
+            providedX:
+                The x of the item slot
+            providedY:
+                The y of the item slot
+        Method Description: Displays in the hotbar
+        Method Return: void
+    */
     displayItemSlot(providedX, providedY){
         let image = IMAGES[this.getModel()];
         let displayScale = WTL_GAME_DATA["inventory"]["slot_size"] / image.width;
@@ -456,26 +661,62 @@ class Sword extends MeleeWeapon {
         translate(-1 * scaleX, -1 * scaleY);
     }
 
+    /*
+        Method Name: getModel
+        Method Parameters: None
+        Method Description: Gets the sword model
+        Method Return: string
+    */
     getModel(){
         return this.model;
     }
 
+    /*
+        Method Name: getWidth
+        Method Parameters: None
+        Method Description: Gets the sword width
+        Method Return: number
+    */
     getWidth(){
         return WTL_GAME_DATA["sword_data"]["swords"][this.getModel()]["image_width"] * WTL_GAME_DATA["sword_data"]["swords"][this.getModel()]["image_scale"];
     }
 
+    /*
+        Method Name: getHeight
+        Method Parameters: None
+        Method Description: Gets the sword height
+        Method Return: number
+    */
     getHeight(){
         return WTL_GAME_DATA["sword_data"]["swords"][this.getModel()]["image_height"] * WTL_GAME_DATA["sword_data"]["swords"][this.getModel()]["image_scale"];
     }
 
+    /*
+        Method Name: getScene
+        Method Parameters: None
+        Method Description: Gets the player's scene
+        Method Return: WTLGameScene
+    */
     getScene(){
         return this.getPlayer().getScene();
     }
 
+    /*
+        Method Name: getSwingFacingDirection
+        Method Parameters: None
+        Method Description: Gets the facing direction of the swing
+        Method Return: visual direction (string)
+    */
     getSwingFacingDirection(){
         return this.swingFacing;
     }
 
+    /*
+        Method Name: tick
+        Method Parameters: None
+        Method Description: Handles tick processes
+        Method Return: void
+    */
     tick(){
         // Check swing/block
         if (this.isSwinging()){
@@ -500,18 +741,46 @@ class Sword extends MeleeWeapon {
         }
     }
 
+    /*
+        Method Name: stopBlocking
+        Method Parameters: None
+        Method Description: Stops blocking
+        Method Return: void
+    */
     stopBlocking(){
         this.blocking = false;
     }
 
+    /*
+        Method Name: isBlocking
+        Method Parameters: None
+        Method Description: Checks if blocking
+        Method Return: boolean
+    */
     isBlocking(){
         return this.blocking;
     }
 
+    /*
+        Method Name: getBladeLength
+        Method Parameters: None
+        Method Description: TODO
+        Method Return: TODO
+    */
     getBladeLength(){
         return WTL_GAME_DATA["sword_data"]["swords"][this.getModel()]["blade_length"];
     }
 
+    /*
+        Method Name: display
+        Method Parameters: 
+            lX:
+                The x coordinate of the left side of the screen
+            bY:
+                The y coordinate of the bottom of the screen
+        Method Description: Displays the sword
+        Method Return: void
+    */
     display(lX, bY){
         let x = this.getImageX(lX); // player top left + offsetX
         let y = this.getImageY(bY); // player top left + offsetY
@@ -611,16 +880,41 @@ class Sword extends MeleeWeapon {
         translate(-1 * rotateX, -1 * rotateY);
     }
 
+    /*
+        Method Name: getImageX
+        Method Parameters: 
+            lX:
+                The x coordinate of the left side of the screen
+        Method Description: Determines the x position of the gun image when displaying
+        Method Return: number
+    */
     getImageX(lX){
         let x = this.getPlayer().getDisplayX(lX);
         return x + WTL_GAME_DATA["model_positions"][this.getPlayer().getModelCategory()][this.getModel()][this.isSwinging() ? "swinging" : "not_swinging"][this.getPlayer().getFacingDirection()]["x_offset"] * gameZoom - this.getPlayer().getWidth()/2 * gameZoom;
     }
 
+    /*
+        Method Name: getImageY
+        Method Parameters: 
+            bY:
+                The y coordinate of the bottom of the screen
+        Method Description: Determines the y position of the gun image when displaying
+        Method Return: number
+    */
     getImageY(bY){
         let y = this.getPlayer().getDisplayY(bY);
         return y + WTL_GAME_DATA["model_positions"][this.getPlayer().getModelCategory()][this.getModel()][this.isSwinging() ? "swinging" : "not_swinging"][this.getPlayer().getFacingDirection()]["y_offset"] * gameZoom - this.getPlayer().getHeight()/2 * gameZoom;
     }
 
+
+    /*
+        Method Name: loadAllImagesOfModel
+        Method Parameters: 
+            model:
+                A gun model (string)
+        Method Description: Loads all pictures of a sword model
+        Method Return: Promise (implicit)
+    */
     static async loadAllImagesOfModel(model){
         // Do not load if already exists
         if (objectHasKey(IMAGES, model)){ return; }
@@ -631,6 +925,12 @@ class Sword extends MeleeWeapon {
         }
     }
 
+    /*
+        Method Name: loadAllImages
+        Method Parameters: None
+        Method Description: Loads all images of a sword
+        Method Return: Promise (implicit)
+    */
     static async loadAllImages(){
         for (let swordModel of Object.keys(WTL_GAME_DATA["sword_data"]["swords"])){
             await Sword.loadAllImagesOfModel(swordModel);

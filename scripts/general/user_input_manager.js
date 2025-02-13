@@ -74,6 +74,14 @@ class UserInputManager {
         return newNode; */
     }
 
+    /*
+        Method Name: getOrCreate
+        Method Parameters: 
+            alias:
+                The new handler node name
+        Method Description: Creates if needed, retrieves a handler node
+        Method Return: UserInputNode
+    */
     getOrCreate(alias){
         let result = this.getMaybeNull(alias);
         if (result != null){
@@ -86,6 +94,14 @@ class UserInputManager {
         return newNode;
     }
 
+    /*
+        Method Name: getMaybeNull
+        Method Parameters: 
+            alias:
+                The new handler node name
+        Method Description: Retrieves a node
+        Method Return: UserInputNode or null
+    */
     getMaybeNull(alias){
         // Check if we have this node
         for (let handlerNode of this.handlerNodes){
@@ -126,7 +142,12 @@ class UserInputManager {
         return !this.isActivated(alias);
     }
 
-    // TODO: Comments
+    /*
+        Method Name: tick
+        Method Parameters: None
+        Method Description: Ticks nodes
+        Method Return: void
+    */
     tick(){
         for (let handlerNode of this.handlerNodes){
             if (handlerNode.isTicked()){
@@ -138,6 +159,14 @@ class UserInputManager {
         }
     }
 
+    /*
+        Method Name: registerSpecialType
+        Method Parameters: 
+            specialNode:
+                A new node
+        Method Description: Registers a special node
+        Method Return: void
+    */
     registerSpecialType(specialNode){
         this.specialNodes.push(specialNode);
     }
@@ -194,35 +223,96 @@ class UserInputNode {
         return this.activated;
     }
 
-    // TODO: Comments for these 3
+    /*
+        Method Name: setExtraInfo
+        Method Parameters: 
+            extraInfo:
+                JSON object with info
+        Method Description: Sets extra info about a handler node
+        Method Return: void
+    */
     setExtraInfo(extraInfo){
         if (extraInfo === null){ return; }
         this.extraInfo = extraInfo;
         this.ticked = extraInfo["ticked"];
     }
 
+    /*
+        Method Name: isTicked
+        Method Parameters: None
+        Method Description: Checks if a node is ticked
+        Method Return: boolean
+    */
     isTicked(){
         return this.ticked;
     }
 
+    /*
+        Method Name: tick
+        Method Parameters: None
+        Method Description: Handles the tick actions
+        Method Return: void
+    */
     tick(){
         this.activated = this.extraInfo["ticked_activation"];
     }
 }
 
+/*
+    Class Name: SpecialNode
+    Class Description: A special type of node. Intended as an abstract class
+*/
 class SpecialNode {
+    /*
+        Method Name: constructor
+        Method Parameters: 
+            alias:
+                String name of node
+        Method Description: constructor
+        Method Return: constructor
+    */
     constructor(alias){
         this.alias = alias;
     }
 
+    /*
+        Method Name: getAlias
+        Method Parameters: None
+        Method Description: Getter
+        Method Return: String
+    */
     getAlias(){
         return this.alias;
     }
 
+    /*
+        Method Name: tick
+        Method Parameters: None
+        Method Description: Dud
+        Method Return: void
+    */
     tick(){ throw new Error("Please implement this method."); }
 }
 
+/*
+    Class Name: TickedValueNode
+    Description: Takes values from events and resets on tick
+*/
 class TickedValueNode extends SpecialNode {
+    /*
+        Method Name: constructor
+        Method Parameters: 
+            alias:
+                The name of the node
+            eventName:
+                The name of the event that it is listening for
+            valueExtractorFunction:
+                Function that takes a value from a node
+            defaultValue:
+                Value to use when not activated by an event
+        Method Description: constructor
+        Method Return: constructor
+    */
     constructor(alias, eventName, valueExtractorFunction, defaultValue){
         super(alias);
         this.defaultValue = defaultValue;
@@ -233,14 +323,34 @@ class TickedValueNode extends SpecialNode {
         });
     }
 
+    /*
+        Method Name: getValue
+        Method Parameters: None
+        Method Description: Getter
+        Method Return: Variable
+    */
     getValue(){
         return this.value;
     }
 
+    /*
+        Method Name: updateValue
+        Method Parameters: 
+            event:
+                Event object
+        Method Description: Updates the value from an event
+        Method Return: void
+    */
     updateValue(event){
         this.value = this.valueExtractorFunction(event);
     }
 
+    /*
+        Method Name: tick
+        Method Parameters: None
+        Method Description: Resets the value
+        Method Return: void
+    */
     tick(){
         this.value = this.defaultValue;
     }

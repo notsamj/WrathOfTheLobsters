@@ -19,9 +19,22 @@ class OptionSlider extends Component {
         this.textColourCode = textColourCode;
     }
 
-    // Abstract
-    updateSliderX(){}
-    moveToX(mouseX){}
+    /*
+        Method Name: updateSliderX
+        Method Parameters: None
+        Method Description: Abstract method for updating slide x
+        Method Return: abstract
+    */
+    updateSliderX(){ throw new Error("Expected method implementation.") }
+    /*
+        Method Name: moveToX
+        Method Parameters: 
+            mouseX:
+                A mouse x location
+        Method Description: Abstract method that moves the slider to a given x
+        Method Return: abstract
+    */
+    moveToX(mouseX){ throw new Error("Expected method implementation.") }
 
     /*
         Method Name: getX

@@ -27,6 +27,12 @@ class TickLock extends Lock{
         }
     }
 
+    /*
+        Method Name: restoreDefault
+        Method Parameters: None
+        Method Description: Restores the default values
+        Method Return: void
+    */
     restoreDefault(){
         this.ticksLeft = 0;
     }
@@ -85,15 +91,34 @@ class TickLock extends Lock{
         this.ticksLeft = ticksLeft;
     }
 
+    /*
+        Method Name: addTime
+        Method Parameters: 
+            ticks:
+                Number of ticks to add
+        Method Description: Adds time to the tick lock
+        Method Return: void
+    */
     addTime(ticks){
         this.ticksLeft = Math.min(this.numTicks, this.ticksLeft + ticks);
     }
 
-    // TODO: Comments
+    /*
+        Method Name: reset
+        Method Parameters: None
+        Method Description: Resets the lock to max cooldown
+        Method Return: void
+    */
     reset(){
         this.ticksLeft = this.getCooldown();
     }
 
+    /*
+        Method Name: resetAndLock
+        Method Parameters: None
+        Method Description: Resets and locks
+        Method Return: void
+    */
     resetAndLock(){
         this.reset();
     }

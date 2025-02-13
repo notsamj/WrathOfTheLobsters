@@ -14,6 +14,12 @@ class Component {
         this.displayEnabled = true;
     }
 
+    /*
+        Method Name: tick
+        Method Parameters: None
+        Method Description: Default handler for actions on tick
+        Method Return: void
+    */
     tick(){}
 
     /*
@@ -109,38 +115,78 @@ class Component {
     }
 
 
-    // Either meant to be blank or meant to be overridden
-    covers(){}
+    /*
+        Method Name: covers
+        Method Parameters: None
+        Method Description: Default checker for component covering
+        Method Return: boolean
+    */
+    covers(){ return false; }
+    /*
+        Method Name: clicked
+        Method Parameters: None
+        Method Description: Default handler for click
+        Method Return: void
+    */
     clicked(){}
 
-    // Abstract Method
+    /*
+        Method Name: display
+        Method Parameters: None
+        Method Description: Default handler for display
+        Method Return: void
+    */
     display(){}
 }
 
-// TODO: Comments
+/*
+    Class Name: ComponentGroup
+    Class Description: A group of components
+*/
 class ComponentGroup extends Component {
+    /*
+        Method Name: constructor
+        Method Parameters: None
+        Method Description: constructor
+        Method Return: constructor
+    */
     constructor(){
         super();
         this.components = [];
     }
 
+    /*
+        Method Name: addComponent
+        Method Parameters: 
+            component:
+                A component
+        Method Description: Adds a component
+        Method Return: void
+    */
     addComponent(component){
         this.components.push(component);
     }
 
+    /*
+        Method Name: display
+        Method Parameters: None
+        Method Description: Displays all components
+        Method Return: void
+    */
     display(){
         for (let component of this.components){
             component.display();
         }
     }
 
+    /*
+        Method Name: getComponents
+        Method Parameters: None
+        Method Description: Getter
+        Method Return: List of Component
+    */
     getComponents(){
         return this.components;
-    }
-
-    covers(x, y){
-        console.log("Check y", y, "myY", this.getY())
-        return x >= this.getX() && x <= this.getX() + this.getWidth() && y <= this.getY() && y >= this.getY() - WTL_GAME_DATA["ui"]["game_maker"]["bottom_bar_height"];
     }
 
     /*
@@ -148,7 +194,10 @@ class ComponentGroup extends Component {
         Method Parameters:
             instance:
                 The menu responsible for the click
-            TODO
+            x:
+                X location of click
+            y:
+                Y location of click
         Method Description: Handles what occurs when clicked on
         Method Return: void
     */
@@ -161,8 +210,17 @@ class ComponentGroup extends Component {
         }
     }
 
+    /*
+        Method Name: covers
+        Method Parameters: 
+            x:
+                x location
+            y:
+                y location
+        Method Description: Checks if any components cover the location
+        Method Return: boolean
+    */
     covers(x, y){
-        console.log("Checkckckckc")
         for (let component of this.components){
             if (component.covers(x,y)){
                 return true;

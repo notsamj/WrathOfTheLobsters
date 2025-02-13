@@ -84,7 +84,13 @@ class Character extends Entity {
         this.movementDetails = null;
     }
 
-    // Abstract -> Expected to be implemented by subclasses otherwise blank
+    /*
+        Method Name: drawGunCrosshair
+        Method Parameters: None
+        Method Description: dud
+        Method Return: void
+        Method Note: Abstract -> Expected to be implemented by subclasses otherwise blank
+    */
     drawGunCrosshair(){}
 
     /*
@@ -1159,8 +1165,8 @@ class Character extends Entity {
     /*
         Method Name: makeDecisions
         Method Parameters: None
-        Method Description: TODO
-        Method Return: TODO
+        Method Description: dud
+        Method Return: void
     */
     makeDecisions(){}
 

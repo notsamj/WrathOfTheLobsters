@@ -1,9 +1,24 @@
+/*
+    Class Name: SettingsMenu
+    Description: Displays settings
+*/
 class SettingsMenu extends Menu {
-
+    /*
+        Method Name: constructor
+        Method Parameters: None
+        Method Description: constructor
+        Method Return: constructor
+    */
     constructor(){
         super("settings_menu");
     }
 
+    /*
+        Method Name: setup
+        Method Parameters: None
+        Method Description: Sets up the menu
+        Method Return: void
+    */
     setup(){
         // Background
         this.components.push(new LoadingScreenComponent());

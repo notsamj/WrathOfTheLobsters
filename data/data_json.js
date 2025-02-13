@@ -1074,9 +1074,9 @@ const WTL_GAME_DATA = {
                     "slider_height": 50,
                     "text_height": 50,
                     "y_offset": -20,
-                    "gun_skill_options": [0,1,2,3,4,5,6,7,8,9,10,15,20,25,30,35,40,45,50,55,60,65,70,75,80,85,90,95,100],
-                    "p1_default_gun_skill_index": 7,
-                    "p2_default_gun_skill_index": 25
+                    "gun_skill_options": [0.5,0,1,1.5,2,2.5,3,3.5,4,4.5,5,5.5,6,6.5,7,7.5,8,9,10,12,15,20,25,30,40,50,60,70,80,90,100],
+                    "p1_default_gun_skill_index": 10,
+                    "p2_default_gun_skill_index": 27
                 },
                 "level_generator_start_x": 950,
                 "number_button_size": 50,

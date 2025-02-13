@@ -1,12 +1,46 @@
+/*
+    Class Name: Pistol
+    Class Description: A pistol
+*/
 class Pistol extends Gun {
+    /*
+        Method Name: constructor
+        Method Parameters: 
+            model:
+                Model of the pistol (string)
+            details:
+                JSON details with extra information
+        Method Description: constructor
+        Method Return: constructor
+    */
     constructor(model, details){
         super(model, details);
     }
 
+    /*
+        Method Name: makeDecisions
+        Method Parameters: None
+        Method Description: Tells player to make pistol decisions
+        Method Return: void
+    */
     makeDecisions(){
         this.player.makePistolDecisions();
     }
 
+    /*
+        Method Name: getSimulatedGunEndPosition
+        Method Parameters: 
+            playerLeftX:
+                left x of a player
+            playerTopY:
+                top y of a player
+            playerDirection:
+                facing direction of a player (visual)
+            playerAimingAngleRAD:
+                Aiming direction of a player (radians) (float)
+        Method Description: Comes up with a simulated gun end position if given parameters
+        Method Return: JSON
+    */
     getSimulatedGunEndPosition(playerLeftX, playerTopY, playerDirection, playerAimingAngleRAD){
         let result = {};
         let gunDirection;
@@ -44,6 +78,12 @@ class Pistol extends Gun {
         return result;
     }
 
+    /*
+        Method Name: resetDecisions
+        Method Parameters: None
+        Method Description: Resets pistol decisions
+        Method Return: void
+    */
     resetDecisions(){
         this.player.amendDecisions({
             "trying_to_aim": false,
@@ -54,6 +94,12 @@ class Pistol extends Gun {
         });
     }
 
+    /*
+        Method Name: actOnDecisions
+        Method Parameters: None
+        Method Description: Takes actions based on decisions
+        Method Return: void
+    */
     actOnDecisions(){
         let tryingToShoot = this.getDecision("trying_to_shoot");
         if (this.isAiming() && tryingToShoot && this.isLoaded()){
@@ -68,12 +114,28 @@ class Pistol extends Gun {
         }
     }
 
+    /*
+        Method Name: deselect
+        Method Parameters: None
+        Method Description: Handles actions on weapon deselect
+        Method Return: void
+    */
     deselect(){
         if (this.isReloading()){
             this.cancelReload();
         }
     }
 
+    /*
+        Method Name: displayItemSlot
+        Method Parameters: 
+            providedX:
+                The x of the item slot
+            providedY:
+                The y of the item slot
+        Method Description: Displays in the hotbar
+        Method Return: void
+    */
     displayItemSlot(providedX, providedY){
         let image = IMAGES[this.model];
         let displayScale = WTL_GAME_DATA["inventory"]["slot_size"] / image.width;
@@ -113,6 +175,12 @@ class Pistol extends Gun {
         }
     }
 
+    /*
+        Method Name: tick
+        Method Parameters: None
+        Method Description: Handles tick processes
+        Method Return: void
+    */
     tick(){
         super.tick();
         // Removed 2025-01-10 this.resetDecisions();
@@ -129,6 +197,12 @@ class Pistol extends Gun {
         }
     }
 
+    /*
+        Method Name: getEndOfGunX
+        Method Parameters: None
+        Method Description: Determine the x location of the gun's end
+        Method Return: float
+    */
     getEndOfGunX(){
         let playerDirection = this.player.getFacingDirection();
         let playerAimingAngleRAD = this.getSwayedAngleRAD();
@@ -162,6 +236,12 @@ class Pistol extends Gun {
 
     }
 
+    /*
+        Method Name: getEndOfGunY
+        Method Parameters: None
+        Method Description: Determine the y location of the gun's end
+        Method Return: float
+    */
     getEndOfGunY(){
         let playerDirection = this.player.getFacingDirection();
         let playerAimingAngleRAD = this.getSwayedAngleRAD();
@@ -195,6 +275,16 @@ class Pistol extends Gun {
         return Math.sin(playerAimingAngleRAD) * (endOfBarrelXOffset * (flipped ? -1 : 1)) + Math.cos(playerAimingAngleRAD) * endOfBarrelYOffset + y;
     }
 
+    /*
+        Method Name: display
+        Method Parameters: 
+            lX:
+                The x coordinate of the left side of the screen
+            bY:
+                The y coordinate of the bottom of the screen
+        Method Description: Displays the gun
+        Method Return: void
+    */
     display(lX, bY){
         let x = this.getImageX(lX);
         let y = this.getImageY(bY);
@@ -271,16 +361,40 @@ class Pistol extends Gun {
         translate(-1 * rotateX, -1 * rotateY);
     }
 
+    /*
+        Method Name: getImageX
+        Method Parameters: 
+            lX:
+                The x coordinate of the left side of the screen
+        Method Description: Determines the x position of the gun image when displaying
+        Method Return: number
+    */
     getImageX(lX){
         let x = this.player.getDisplayX(lX);
         return x + WTL_GAME_DATA["model_positions"][this.player.getModelCategory()][this.model][this.player.getFacingDirection()]["x_offset"] * gameZoom - this.player.getWidth()/2 * gameZoom;
     }
 
+    /*
+        Method Name: getImageY
+        Method Parameters: 
+            bY:
+                The y coordinate of the bottom of the screen
+        Method Description: Determines the y position of the gun image when displaying
+        Method Return: number
+    */
     getImageY(bY){
         let y = this.player.getDisplayY(bY);
         return y + WTL_GAME_DATA["model_positions"][this.player.getModelCategory()][this.model][this.player.getFacingDirection()]["y_offset"] * gameZoom - this.player.getHeight()/2 * gameZoom;
     }
 
+    /*
+        Method Name: loadAllImagesOfModel
+        Method Parameters: 
+            model:
+                A gun model (string)
+        Method Description: Loads all pictures of a gun model
+        Method Return: Promise (implicit)
+    */
     static async loadAllImagesOfModel(model){
         // Do not load if already exists
         if (objectHasKey(IMAGES, model)){ return; }
@@ -292,6 +406,12 @@ class Pistol extends Gun {
         await loadToImages(model, folderURL);
     }
 
+    /*
+        Method Name: loadAllImages
+        Method Parameters: None
+        Method Description: Loads all images of a pistol
+        Method Return: Promise (implicit)
+    */
     static async loadAllImages(){
         for (let gunModel of Object.keys(WTL_GAME_DATA["gun_data"])){
             if (WTL_GAME_DATA["gun_data"][gunModel]["type"] != "pistol"){ continue; }

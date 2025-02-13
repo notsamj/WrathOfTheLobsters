@@ -20,8 +20,16 @@ class NotSamSortedArrayList extends NotSamArrayList {
         this.comparisonFunction = comparisonFunction;
     }
 
+    /*
+        Method Name: add
+        Method Parameters: 
+            value:
+                A value
+        Method Description: Adds a value to the array
+        Method Return: void
+    */
     add(value){
-        if (this.getLength() == this.getSize()){
+        if (this.getLength() === this.getSize()){
             this.resize();
         }
 
@@ -39,7 +47,10 @@ class NotSamSortedArrayList extends NotSamArrayList {
         Method Parameters:
             value:
                 Value to be checked
-            TODO
+            start:
+                The starting index for the search
+            end:
+                The ending index for the search (inclusive)
         Method Description: Search the array list for a value and return the index found (-1 if not found)
         Method Return: int
     */
@@ -68,6 +79,18 @@ class NotSamSortedArrayList extends NotSamArrayList {
         }
     }
 
+    /*
+        Method Name: findInsertionPoint
+        Method Parameters: 
+            value:
+                A value
+            start:
+                The starting index for the search
+            end:
+                The ending index for the search (exclusive)
+        Method Description: Finds an index at which to insert an element
+        Method Return: int
+    */
     findInsertionPoint(value, start=0, end=this.length){
         // Handle empty case
         if (end === 0){ return 0; }
@@ -97,6 +120,17 @@ class NotSamSortedArrayList extends NotSamArrayList {
         }
     }
 
+
+    /*
+        Method Name: sort
+        Method Parameters: 
+            start:
+                The starting index for the sort
+            end:
+                The ending index for the sort (inclusive)
+        Method Description: performs merge sort on the sorted array list
+        Method Return: void
+    */
     sort(start=0, end=this.length-1){
         let size = end - start + 1;
         

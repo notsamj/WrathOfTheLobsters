@@ -441,8 +441,8 @@ class PointToMove extends Item {
                 The x coordinate of the left side of the screen
             bY:
                 The y coordinate of the bottom of the screen
-        Method Description: TODO
-        Method Return: TODO
+        Method Description: Displays the crosshair
+        Method Return: void
     */
     display(lX, bY){
         if (!this.player.isMakingAMove()){ return; }

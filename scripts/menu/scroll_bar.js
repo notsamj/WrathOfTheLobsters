@@ -1,4 +1,34 @@
+/*
+    Class Name: ScrollBar
+    Description: The scrolling bar
+*/
 class ScrollBar extends Component {
+    /*
+        Method Name: constructor
+        Method Parameters: 
+            xFunction:
+                x position function
+            yFunction:
+                y position function
+            width:
+                Width of the scroll bar
+            minHeight:
+                Minimum height of the scroll bar
+            sliderHeight:
+                The height of the slider
+            maxHeightFunction:
+                The maximum height function
+            entryYSize:
+                The y size of an entry
+            entryYSpaceFunction:
+                The function that determines the amount of y space that entries take up
+            backgroundColourCode:
+                The color code of the background of the scroll bar
+            sliderColourCode:
+                The color code of the slider
+        Method Description: constructor
+        Method Return: constructor
+    */
     constructor(xFunction, yFunction, width, minHeight, sliderHeight, maxHeightFunction, entryYSize, entryYSpaceFunction, backgroundColourCode, sliderColourCode){
         super();
         this.xFunction = xFunction;
@@ -16,23 +46,52 @@ class ScrollBar extends Component {
         this.scrollWheelMultiplier = WTL_GAME_DATA["menu"]["menus"]["gamemode_viewer_menu"]["scrollable_display"]["scroll_bar"]["wheel_multiplier"];
     }
 
+    /*
+        Method Name: getMinHeight
+        Method Parameters: None
+        Method Description: Getter
+        Method Return: int
+    */
     getMinHeight(){
         return this.minHeight;
     }
 
+    /*
+        Method Name: getMaxEntries
+        Method Parameters: None
+        Method Description: Calculates the max number of entries that can be displayed at present
+        Method Return: int
+    */
     getMaxEntries(){
         let maxPositions = 1 + this.getMinHeight() - this.getSliderHeight();
         return maxPositions;
     }
 
+    /*
+        Method Name: increaseNumEntries
+        Method Parameters: 
+            amount:
+                Amount of entries to add
+        Method Description: Increases the number of entries
+        Method Return: void
+    */
     increaseNumEntries(amount=1){
-        this.numEntries += amount;
-        if (this.numEntries > this.getMaxEntries()){
-            debugger;
+        let newAmount = this.numEntries + amount;
+        
+        if (newAmount > this.getMaxEntries()){
             throw new Error("Too many entries!");  
         }
+        this.numEntries = newAmount;
     }
 
+    /*
+        Method Name: getYOffsetOf
+        Method Parameters: 
+            index:
+                An index (int)
+        Method Description: Gets the y offset of an index
+        Method Return: int
+    */
     getYOffsetOf(index){
         let sliderProgress = this.getSliderProgress();
         let fullYRange = this.getYRange();
@@ -42,6 +101,16 @@ class ScrollBar extends Component {
         return offsetOfIndex - offsetOfScreen;
     }
 
+    /*
+        Method Name: covers
+        Method Parameters: 
+            mouseX:
+                A mouse x location
+            mouseY:
+                A mouse y location
+        Method Description: Checks if an x,y pair is covered
+        Method Return: boolean
+    */
     covers(mouseX, mouseY){
         let displayHeight = this.getHeight();
         let displayWidth = this.getWidth();
@@ -53,6 +122,12 @@ class ScrollBar extends Component {
         return inX && inY;
     }
 
+    /*
+        Method Name: tick
+        Method Parameters: None
+        Method Description: Checks for user actions on a tick
+        Method Return: void
+    */
     tick(){
         let hasMouseOn = this.covers(gMouseX, gMouseY);
         let activated = GENERAL_USER_INPUT_MANAGER.isActivated("scroll_bar_grab");
@@ -68,6 +143,14 @@ class ScrollBar extends Component {
         }
     }
 
+    /*
+        Method Name: moveByScrollValue
+        Method Parameters: 
+            scrollValue:
+                An amount to scroll (up or down)
+        Method Description: Moves the slider
+        Method Return: void
+    */
     moveByScrollValue(scrollValue){
         let currentOffset = this.getSliderOffset();
         let newOffset = currentOffset + this.scrollWheelMultiplier * scrollValue;
@@ -77,6 +160,14 @@ class ScrollBar extends Component {
         this.sliderProgress = Math.max(0, Math.min(1, newSliderPogress));
     }
 
+    /*
+        Method Name: moveToY
+        Method Parameters: 
+            mouseY:
+                The mouse y to move to
+        Method Description: Moves to a given mouse y
+        Method Return: void
+    */
     moveToY(mouseY){
         let desiredCenterY = gMouseY - this.getY();
         let desiredOffset = desiredCenterY - this.getSliderHeight()/2;
@@ -85,18 +176,42 @@ class ScrollBar extends Component {
         this.sliderProgress = Math.max(0, Math.min(1, newProgress));
     }
 
+    /*
+        Method Name: getSliderProgress
+        Method Parameters: None
+        Method Description: Getter
+        Method Return: float
+    */
     getSliderProgress(){
         return this.sliderProgress;
     }
 
+    /*
+        Method Name: getNumEntries
+        Method Parameters: None
+        Method Description: Getter
+        Method Return: int
+    */
     getNumEntries(){
         return this.numEntries;
     }
 
+    /*
+        Method Name: getYRange
+        Method Parameters: None
+        Method Description: Calculates the y range of the scrollable area
+        Method Return: int
+    */
     getYRange(){
         return (this.getNumEntries() - 1) * this.getEntryYSize();
     }
 
+    /*
+        Method Name: getVisibleEntriesIndicesRange
+        Method Parameters: None
+        Method Description: Gets the range of visible indices
+        Method Return: JSON object
+    */
     getVisibleEntriesIndicesRange(){
         let screenYRegionSize = getScreenHeight() - 2 * this.getEntryYSize();
         let sliderProgress = this.getSliderProgress();
@@ -111,36 +226,84 @@ class ScrollBar extends Component {
         }
     }
 
+    /*
+        Method Name: getEntryYSize
+        Method Parameters: None
+        Method Description: Getter
+        Method Return: int
+    */
     getEntryYSize(){
         return this.entryYSize;
     }
 
+    /*
+        Method Name: getSliderHeight
+        Method Parameters: None
+        Method Description: Getter
+        Method Return: int
+    */
     getSliderHeight(){
         return this.sliderHeight;
     }
 
+    /*
+        Method Name: getSliderOffset
+        Method Parameters: None
+        Method Description: Gets the slider visual offset
+        Method Return: int
+    */
     getSliderOffset(){
         let scrollBarHeight = this.getHeight();
         let scrollBarHeightDiff = scrollBarHeight - this.getSliderHeight();
         return Math.floor(this.getSliderProgress() * scrollBarHeightDiff);
     }
 
+    /*
+        Method Name: getWidth
+        Method Parameters: None
+        Method Description: Getter
+        Method Return: int
+    */
     getWidth(){
         return this.width;
     }
 
+    /*
+        Method Name: getX
+        Method Parameters: None
+        Method Description: Calculates the current x
+        Method Return: int
+    */
     getX(){
         return this.xFunction(getScreenWidth());
     }
 
+    /*
+        Method Name: getY
+        Method Parameters: None
+        Method Description: Calculates the current y
+        Method Return: int
+    */
     getY(){
         return this.yFunction(getScreenHeight());
     }
 
+    /*
+        Method Name: getHeight
+        Method Parameters: None
+        Method Description: Calculates the current y
+        Method Return: int
+    */
     getHeight(){
         return Math.max(this.minHeight, this.maxHeightFunction(getScreenHeight()));
     }
 
+    /*
+        Method Name: display
+        Method Parameters: None
+        Method Description: Displays the scrollbar
+        Method Return: void
+    */
     display(){
         // Display the background
         let displayHeight = this.getHeight();

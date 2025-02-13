@@ -1,4 +1,18 @@
+/*
+    Class Name: Musket
+    Class Description: A musket
+*/
 class Musket extends Gun {
+    /*
+        Method Name: constructor
+        Method Parameters: 
+            model:
+                Model of the musket (string)
+            details:
+                JSON details with extra information
+        Method Description: constructor
+        Method Return: constructor
+    */
     constructor(model, details){
         super(model, details);
         this.bayonetOn = false;
@@ -9,6 +23,12 @@ class Musket extends Gun {
         this.stabFacing = null;
     }
 
+    /*
+        Method Name: reset
+        Method Parameters: None
+        Method Description: Resets the gun (usually) on equip
+        Method Return: void
+    */
     reset(){
         super.reset();
         this.bayonetOn = false;
@@ -19,6 +39,12 @@ class Musket extends Gun {
         this.stabFacing = null;
     }
 
+    /*
+        Method Name: resetDecisions
+        Method Parameters: None
+        Method Description: Resets musket decisions
+        Method Return: void
+    */
     resetDecisions(){
         this.player.amendDecisions({
             "trying_to_aim": false,
@@ -30,10 +56,22 @@ class Musket extends Gun {
         });
     }
 
+    /*
+        Method Name: makeDecisions
+        Method Parameters: None
+        Method Description: Tells player to make gun decisions
+        Method Return: void
+    */
     makeDecisions(){
         this.player.makeMusketDecisions();
     }
 
+    /*
+        Method Name: actOnDecisions
+        Method Parameters: None
+        Method Description: Takes actions based on decisions
+        Method Return: void
+    */
     actOnDecisions(){
         let tryingToShoot = this.getDecision("trying_to_shoot");
         if (this.isAiming() && tryingToShoot && this.isLoaded() && !this.isStabbing() && !this.player.isMoving()){
@@ -60,6 +98,12 @@ class Musket extends Gun {
         }
     }
 
+    /*
+        Method Name: startStab
+        Method Parameters: None
+        Method Description: Starts a bayonet stab
+        Method Return: void
+    */
     startStab(){
         this.stabbing = true;
         this.stabAngle = this.getDecidedAngleRAD();
@@ -68,6 +112,12 @@ class Musket extends Gun {
         this.getPlayer().getStaminaBar().useStamina(WTL_GAME_DATA["gun_data"][this.getModel()]["stamina_usage_for_stab"]);
     }
 
+    /*
+        Method Name: finishStab
+        Method Parameters: None
+        Method Description: Finishes a bayonet stab
+        Method Return: void
+    */
     finishStab(){
         this.stabbing = false;
         // Calculate what it hit
@@ -92,18 +142,42 @@ class Musket extends Gun {
         }
     }
 
+    /*
+        Method Name: getStabAngle
+        Method Parameters: None
+        Method Description: Gets the stab angle
+        Method Return: float [0, 2*PI)
+    */
     getStabAngle(){
         return this.stabAngle;
     }
 
+    /*
+        Method Name: isStabbing
+        Method Parameters: None
+        Method Description: Checks if the musket is currently stabbing
+        Method Return: boolean
+    */
     isStabbing(){
         return this.stabbing;
     }
 
+    /*
+        Method Name: cancelStab
+        Method Parameters: None
+        Method Description: Cancels a stab
+        Method Return: void
+    */
     cancelStab(){
         this.stabbing = false;
     }
 
+    /*
+        Method Name: deselect
+        Method Parameters: None
+        Method Description: Handles actions on weapon deselect
+        Method Return: void
+    */
     deselect(){
         if (this.isReloading()){
             this.cancelReload();
@@ -112,18 +186,46 @@ class Musket extends Gun {
         }
     }
 
+    /*
+        Method Name: equipBayonet
+        Method Parameters: None
+        Method Description: Equips a bayonet
+        Method Return: void
+    */
     equipBayonet(){
         this.bayonetOn = true;
     }
 
+    /*
+        Method Name: unequipBayonet
+        Method Parameters: None
+        Method Description: unequips a bayonet
+        Method Return: void
+    */
     unequipBayonet(){
         this.bayonetOn = false;
     }
 
+    /*
+        Method Name: hasBayonetEquipped
+        Method Parameters: None
+        Method Description: Checks if a bayonet is equipped
+        Method Return: TODO
+    */
     hasBayonetEquipped(){
         return this.bayonetOn;
     }
 
+    /*
+        Method Name: displayItemSlot
+        Method Parameters: 
+            providedX:
+                The x of the item slot
+            providedY:
+                The y of the item slot
+        Method Description: Displays in the hotbar
+        Method Return: void
+    */
     displayItemSlot(providedX, providedY){
         let image = IMAGES[this.model + "_right" + (this.hasBayonetEquipped() ? "_bayonet" : "")];
         let displayScale = WTL_GAME_DATA["inventory"]["slot_size"] / image.width;
@@ -163,18 +265,42 @@ class Musket extends Gun {
         }
     }
 
+    /*
+        Method Name: getWidth
+        Method Parameters: None
+        Method Description: Gets the item width
+        Method Return: number
+    */
     getWidth(){
         return WTL_GAME_DATA["general"]["tile_size"];
     }
 
+    /*
+        Method Name: getHeight
+        Method Parameters: None
+        Method Description: Gets the item height
+        Method Return: number
+    */
     getHeight(){
         return WTL_GAME_DATA["general"]["tile_size"];
     }
 
+    /*
+        Method Name: isAiming
+        Method Parameters: None
+        Method Description: Checks if conditions are met such that the musket is aiming
+        Method Return: boolean
+    */
     isAiming(){
         return this.getDecision("trying_to_aim") && this.directionToAimIsOk() && !this.isReloading() && !this.isStabbing();
     }
 
+    /*
+        Method Name: tick
+        Method Parameters: None
+        Method Description: Handles tick processes
+        Method Return: void
+    */
     tick(){
         super.tick();
         if (this.isReloading()){
@@ -199,6 +325,20 @@ class Musket extends Gun {
         }
     }
 
+    /*
+        Method Name: getSimulatedGunEndPosition
+        Method Parameters: 
+            playerLeftX:
+                left x of a player
+            playerTopY:
+                top y of a player
+            playerDirection:
+                facing direction of a player (visual)
+            playerAimingAngleRAD:
+                Aiming direction of a player (radians) (float)
+        Method Description: Comes up with a simulated gun end position if given parameters
+        Method Return: JSON
+    */
     getSimulatedGunEndPosition(playerLeftX, playerTopY, playerDirection, playerAimingAngleRAD){
         let result = {};
         // Get tile x of player (player not moving)
@@ -242,6 +382,12 @@ class Musket extends Gun {
         return result;
     }
 
+    /*
+        Method Name: getEndOfGunX
+        Method Parameters: None
+        Method Description: Determine the x location of the gun's end
+        Method Return: float
+    */
     getEndOfGunX(){
         // Get tile x of player (player not moving)
         let x = this.getScene().getXOfTile(this.player.getTileX());
@@ -276,6 +422,12 @@ class Musket extends Gun {
 
     }
 
+    /*
+        Method Name: getEndOfGunY
+        Method Parameters: None
+        Method Description: Determine the y location of the gun's end
+        Method Return: float
+    */
     getEndOfGunY(){
         // Get tile y of player (player not moving)
         let y = this.getScene().getYOfTile(this.player.getTileY());
@@ -310,6 +462,16 @@ class Musket extends Gun {
         return Math.sin(playerAimingAngleRAD) * endOfBarrelXOffset + Math.cos(playerAimingAngleRAD) * endOfBarrelYOffset + y;
     }
 
+    /*
+        Method Name: display
+        Method Parameters: 
+            lX:
+                The x coordinate of the left side of the screen
+            bY:
+                The y coordinate of the bottom of the screen
+        Method Description: Displays the gun
+        Method Return: void
+    */
     display(lX, bY){
         let x = this.getImageX(lX);
         let y = this.getImageY(bY);
@@ -401,16 +563,40 @@ class Musket extends Gun {
         translate(-1 * rotateX, -1 * rotateY);
     }
 
+    /*
+        Method Name: getImageX
+        Method Parameters: 
+            lX:
+                The x coordinate of the left side of the screen
+        Method Description: Determines the x position of the gun image when displaying
+        Method Return: number
+    */
     getImageX(lX){
         let x = this.player.getDisplayX(lX);
         return x + WTL_GAME_DATA["model_positions"][this.player.getModelCategory()][this.model][this.isAiming() ? "aiming" : "not_aiming"][this.player.getFacingDirection()]["x_offset"] * gameZoom - this.player.getWidth()/2 * gameZoom;
     }
 
+    /*
+        Method Name: getImageY
+        Method Parameters: 
+            bY:
+                The y coordinate of the bottom of the screen
+        Method Description: Determines the y position of the gun image when displaying
+        Method Return: number
+    */
     getImageY(bY){
         let y = this.player.getDisplayY(bY);
         return y + WTL_GAME_DATA["model_positions"][this.player.getModelCategory()][this.model][this.isAiming() ? "aiming" : "not_aiming"][this.player.getFacingDirection()]["y_offset"] * gameZoom - this.player.getHeight()/2 * gameZoom;
     }
 
+    /*
+        Method Name: loadAllImagesOfModel
+        Method Parameters: 
+            model:
+                A gun model (string)
+        Method Description: Loads all pictures of a gun model
+        Method Return: Promise (implicit)
+    */
     static async loadAllImagesOfModel(model){
         // Do not load if already exists
         if (objectHasKey(IMAGES, model + "_left")){ return; }
@@ -425,6 +611,12 @@ class Musket extends Gun {
         await loadToImages(model + "_right" + "_bayonet", folderURL);
     }
 
+    /*
+        Method Name: loadAllImages
+        Method Parameters: None
+        Method Description: Loads all images of a musket
+        Method Return: Promise (implicit)
+    */
     static async loadAllImages(){
         for (let gunModel of Object.keys(WTL_GAME_DATA["gun_data"])){
             if (WTL_GAME_DATA["gun_data"][gunModel]["type"] != "musket"){ continue; }

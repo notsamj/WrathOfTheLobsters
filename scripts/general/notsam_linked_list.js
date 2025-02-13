@@ -1,5 +1,17 @@
-// Note: This code has been tested with a comprehensive suite. JavaScript_REUSEABLE\Linked List Array List. Caution: May have been modified since testing.
+/*
+    Class Name: NotSamLinkedList
+    Class Description: A doubly linked list implementation
+    Note: This code has been tested with a comprehensive suite. JavaScript_REUSEABLE\Linked List Array List. Caution: May have been modified since testing.
+*/
 class NotSamLinkedList {
+    /*
+        Method Name: constructor
+        Method Parameters: 
+            providedList=null:
+                Initial list
+        Method Description: constructor
+        Method Return: constructor
+    */
     constructor(providedList=null){
         this.head = null;
         this.end = null;
@@ -12,12 +24,26 @@ class NotSamLinkedList {
         }
     }
 
+    /*
+        Method Name: updateFromList
+        Method Parameters: 
+            list:
+                A list to update from
+        Method Description: Adds a list to the linked list
+        Method Return: void
+    */
     updateFromList(list){
         for (let element of list){
             this.push(element);
         }
     }
 
+    /*
+        Method Name: print
+        Method Parameters: None
+        Method Description: Prints the contents
+        Method Return: void
+    */
     print(){
         console.log("Linked List");
         console.log("Size", this.getSize());
@@ -27,6 +53,12 @@ class NotSamLinkedList {
         }
     }
     
+    /*
+        Method Name: clear
+        Method Parameters: None
+        Method Description: Clears the linked list
+        Method Return: void
+    */
     clear(){
         this.head = null;
         this.end = null;
@@ -35,6 +67,16 @@ class NotSamLinkedList {
         this.lastAccessedIndex = -1;
     }
     
+    /*
+        Method Name: insert
+        Method Parameters: 
+            value:
+                A value. Variable type.
+            index:
+                An index. int
+        Method Description: Inserts a value into the list at an index
+        Method Return: void
+    */
     insert(value, index){
         let size = this.getSize();
         if (index > size || index < 0){
@@ -87,16 +129,46 @@ class NotSamLinkedList {
         this.storedLength++;
     }
     
+    /*
+        Method Name: append
+        Method Parameters: 
+            value:
+                A value. Variable type.
+        Method Description: Attaches a value to the end of the linked list
+        Method Return: void
+    */
     append(value){
         this.insert(value, this.getSize());
     }
 
+    /*
+        Method Name: push
+        Method Parameters: 
+            value:
+                A value. Variable type.
+        Method Description: Attaches a value to the end of the linked list
+        Method Return: void
+    */
     push(value){ this.append(value); }
 
     
+    /*
+        Method Name: add
+        Method Parameters: 
+            value:
+                A value. Variable type.
+        Method Description: Attaches a value to the end of the linked list
+        Method Return: void
+    */
     add(value){ this.append(value); }
 
     
+    /*
+        Method Name: calculateSize
+        Method Parameters: None
+        Method Description: Calculates the size of the linked list
+        Method Return: int
+    */
     calculateSize(){
         let current = this.head;
         let size = 0;
@@ -109,22 +181,49 @@ class NotSamLinkedList {
     }
 
     
+    /*
+        Method Name: getSize
+        Method Parameters: None
+        Method Description: Getter
+        Method Return: int
+    */
     getSize(){
         return this.storedLength;
     }
 
     
+    /*
+        Method Name: getLength
+        Method Parameters: None
+        Method Description: Getter
+        Method Return: int
+    */
     getLength(){
         return this.getSize();
     }
 
     
+    /*
+        Method Name: get
+        Method Parameters: 
+            index:
+                An index. int
+        Method Description: Get the value at an index
+        Method Return: Variable
+    */
     get(index){
         let node = this.getNode(index);
-        if (node === null){ debugger; }
         return node.value;
     }
 
+    /*
+        Method Name: getNode
+        Method Parameters: 
+            index:
+                An index. int
+        Method Description: Gets a node at an index
+        Method Return: Node or null
+    */
     getNode(index){
         // If the index is out of bounds
         if (this.getSize() < index + 1 || index < 0){
@@ -174,8 +273,15 @@ class NotSamLinkedList {
         return current;
     }
 
+    /*
+        Method Name: search
+        Method Parameters: 
+            value:
+                A value. Variable type.
+        Method Description: Searches the linked list for a value
+        Method Return: int
+    */
     search(value){
-        // TODO: Change
         let index = -1;
         let current = this.head;
         let i = 0;
@@ -191,11 +297,17 @@ class NotSamLinkedList {
     }
 
     
+    /*
+        Method Name: pop
+        Method Parameters: 
+            index:
+                An index. int
+        Method Description: Removes and returns the element at an index
+        Method Return: void
+    */
     pop(index){
         let size = this.getSize();
         if (!((index >= 0 && index < size))){
-            console.log("index", index);
-            console.log("size", size);
             throw new Error("Received invalid removal index");
         }
         let returnValue;
@@ -245,26 +357,64 @@ class NotSamLinkedList {
         return returnValue;
     }
 
+    /*
+        Method Name: remove
+        Method Parameters: 
+            index:
+                An index. int
+        Method Description: Removes the element at an index
+        Method Return: void
+    */
     remove(index){
         this.pop(index);
     }
 
     
+    /*
+        Method Name: set
+        Method Parameters: 
+            index:
+                An index. int
+            value:
+                A value. Variable type.
+        Method Description: Sets the value at an index
+        Method Return: void
+    */
     set(index, value){
         let node = this.getNode(index);
         node.value = value;
     }
 
     
+    /*
+        Method Name: isEmpty
+        Method Parameters: None
+        Method Description: Checks if empty
+        Method Return: bool
+    */
     isEmpty(){
         return this.storedLength === 0;
     }
 
+    /*
+        Method Name: getLastNode
+        Method Parameters: None
+        Method Description: Gets the last node
+        Method Return: void
+    */
     getLastNode(){
         return this.end;
     }
 
     
+    /*
+        Method Name: deleteWithCondition
+        Method Parameters: 
+            conditionFunction:
+                A condition function, return: true -> delete, false -> do not deleted
+        Method Description: Applies a condition function to each value and removes those that match
+        Method Return: void
+    */
     deleteWithCondition(conditionFunction){
         if (this.isEmpty()){ return; }
         let current = this.getLastNode();
@@ -291,6 +441,12 @@ class NotSamLinkedList {
         this.storedLength = this.calculateSize();
     }
 
+    /*
+        Method Name: iterator
+        Method Parameters: None
+        Method Description: Iterates through the items in the linked list and yields them
+        Method Return: [value, index]
+    */
     *[Symbol.iterator](){
         let current = this.head;
         let i = 0;
@@ -302,7 +458,21 @@ class NotSamLinkedList {
     }
 
 }
+/*
+    Class Name: DLLNode
+    Class Description: A doubly linked list node
+*/
 class DLLNode {
+    /*
+        Method Name: constructor
+        Method Parameters: 
+            previous:
+                The previous node. DLLNode.
+            value:
+                A value. Variable type.
+        Method Description: constructor
+        Method Return: constructor
+    */
     constructor(previous, value){
         this.value = value;
         this.previous = previous;

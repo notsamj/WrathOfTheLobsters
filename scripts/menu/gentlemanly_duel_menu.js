@@ -1,4 +1,15 @@
+/*
+    Class Name: DuelMenu
+    Description: The menu for the duel gamemode
+*/
+
 class GentlemanlyDuelMenu extends Menu {
+    /*
+        Method Name: constructor
+        Method Parameters: None
+        Method Description: constructor
+        Method Return: constructor
+    */
     constructor(){
         super("gentlemanly_duel_menu");
         // Declare
@@ -47,6 +58,12 @@ class GentlemanlyDuelMenu extends Menu {
         this.resetSavedInfo();
     }
 
+    /*
+        Method Name: startGame
+        Method Parameters: None
+        Method Description: Starts the gentlemanly duel game
+        Method Return: void
+    */
     startGame(){
         let gentlemanlyDuelMenu =  WTL_GAME_DATA["menu"]["menus"]["gentlemanly_duel_menu"];
         let gameDetails = copyObject(WTL_GAME_DATA["default_settings"]["gentlemanly_duel"]);
@@ -70,42 +87,110 @@ class GentlemanlyDuelMenu extends Menu {
         MENU_MANAGER.switchTo("game");
     }
 
+    /*
+        Method Name: getP1ReactionTime
+        Method Parameters: None
+        Method Description: Getter
+        Method Return: int
+    */
     getP1ReactionTime(){
         return this.p1ReactionTime;
     }
 
+    /*
+        Method Name: getP2ReactionTime
+        Method Parameters: None
+        Method Description: Getter
+        Method Return: int
+    */
     getP2ReactionTime(){
         return this.p2ReactionTime;
     }
 
+    /*
+        Method Name: setP1ReactionTime
+        Method Parameters: 
+            newReactionTimeMS:
+                Ms (int)
+        Method Description: Setter
+        Method Return: void
+    */
     setP1ReactionTime(newReactionTimeMS){
         this.p1ReactionTime = newReactionTimeMS;
     }
     
+    /*
+        Method Name: setP2ReactionTime
+        Method Parameters: 
+            newReactionTimeMS:
+                Ms (int)
+        Method Description: Setter
+        Method Return: void
+    */
     setP2ReactionTime(newReactionTimeMS){
         this.p2ReactionTime = newReactionTimeMS;
     }
 
+    /*
+        Method Name: getP1GunSkill
+        Method Parameters: None
+        Method Description: Getter
+        Method Return: int
+    */
     getP1GunSkill(){
         return this.p1GunSkill;
     }
 
+    /*
+        Method Name: getP2GunSkill
+        Method Parameters: None
+        Method Description: Getter
+        Method Return: int
+    */
     getP2GunSkill(){
         return this.p2GunSkill;
     }
 
+    /*
+        Method Name: setP1GunSkill
+        Method Parameters: 
+            newGunSkill:
+                int
+        Method Description: Setter
+        Method Return: void
+    */
     setP1GunSkill(newGunSkill){
         this.p1GunSkill = newGunSkill;
     }
     
+    /*
+        Method Name: setP2GunSkill
+        Method Parameters: 
+            newGunSkill:
+                int
+        Method Description: Setter
+        Method Return: void
+    */
     setP2GunSkill(newGunSkill){
         this.p2GunSkill = newGunSkill;
     }
 
+    /*
+        Method Name: resetSavedInfo
+        Method Parameters: None
+        Method Description: Resets the saved info
+        Method Return: void
+    */
     resetSavedInfo(){
         this.p1IsBot = false;
     }
 
+    /*
+        Method Name: toggleP1IsBot
+        Method Parameters: None
+        Method Description: Toggles the first player being a bot
+        Method Return: void
+    */
     toggleP1IsBot(){
         this.p1IsBot = !this.p1IsBot;
         let switchedToBot = this.p1IsBot;
@@ -125,19 +210,47 @@ class GentlemanlyDuelMenu extends Menu {
         }
     }
 
+    /*
+        Method Name: getCurrentSeedText
+        Method Parameters: None
+        Method Description: Creates and returns seed text
+        Method Return: String
+    */
     getCurrentSeedText(){
         return "Seed: " + this.getCurrentSeedString();
     }
 
+    /*
+        Method Name: updateCurrentSeedString
+        Method Parameters: 
+            newStr:
+                String
+        Method Description: Updates the current seed string
+        Method Return: void
+    */
     updateCurrentSeedString(newStr){
         this.currentSeedString = newStr;
         this.currentSeedLabel.setText(this.getCurrentSeedText());
     }
 
+    /*
+        Method Name: getCurrentSeedString
+        Method Parameters: None
+        Method Description: Getter
+        Method Return: string
+    */
     getCurrentSeedString(){
         return this.currentSeedString;
     }
 
+    /*
+        Method Name: addNumber
+        Method Parameters: 
+            newNumberString:
+                String rep of a number
+        Method Description: Adds a number to the current seed string
+        Method Return: void
+    */
     addNumber(newNumberString){
         // If they try to add to a full seed then just reset
         if (this.currentSeedString.length >= this.maxDigits){
@@ -151,14 +264,32 @@ class GentlemanlyDuelMenu extends Menu {
         }
     }
 
+    /*
+        Method Name: clearSeedGenerator
+        Method Parameters: None
+        Method Description: Resets the seed generator to zero
+        Method Return: void
+    */
     clearSeedGenerator(){
         this.updateCurrentSeedString('0');
     }
 
+    /*
+        Method Name: random
+        Method Parameters: None
+        Method Description: Randomizes the current seed
+        Method Return: void
+    */
     random(){
         this.updateCurrentSeedString(randomNumberInclusive(0, Math.floor(Math.pow(10, this.maxDigits))-1).toString());
     }
 
+    /*
+        Method Name: setup
+        Method Parameters: None
+        Method Description: Sets up the menu
+        Method Return: void
+    */
     setup(){
         // Background
         this.components.push(new LoadingScreenComponent());

@@ -22,10 +22,22 @@ class SeededRandomizer {
         this.lastNumber = seed;
     }
 
+    /*
+        Method Name: getLastNumber
+        Method Parameters: None
+        Method Description: Getter
+        Method Return: int
+    */
     getLastNumber(){
         return this.lastNumber;
     }
 
+    /*
+        Method Name: reset
+        Method Parameters: None
+        Method Description: Resets to the initial value
+        Method Return: int
+    */
     reset(){
         this.lastNumber = this.seed;
     }
@@ -76,6 +88,12 @@ class SeededRandomizer {
         return this.getIntInRangeInclusive(start, end-1);
     }
 
+    /*
+        Method Name: getRandomFloat
+        Method Parameters: None
+        Method Description: Generates a random float
+        Method Return: float
+    */
     getRandomFloat(){
         let str = "0.";
         for (let i = 0; i < SeededRandomizer.FLOAT_LENGTH; i++){
@@ -84,10 +102,26 @@ class SeededRandomizer {
         return parseFloat(str);
     }
 
+    /*
+        Method Name: getFloatInRange
+        Method Parameters:
+            start:
+                The first number in the range
+            end:
+                The last number in the range
+        Method Description: Generates a float integer in a range
+        Method Return: Integer
+    */
     getFloatInRange(start, end){
         return this.getRandomFloat() * (end-start) + start;
     }
 
+    /*
+        Method Name: getBoolean
+        Method Parameters: None
+        Method Description: Generates a random boolean
+        Method Return: boolean
+    */
     getBoolean(){
         return this.getIntInRangeInclusive(0, 1) === 0;
     }

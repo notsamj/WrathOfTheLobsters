@@ -107,6 +107,12 @@ class SoundManager {
         this.pauseAllIfPrepared();
     }
 
+    /*
+        Method Name: display
+        Method Parameters: None
+        Method Description: Displays the sound text
+        Method Return: void
+    */
     display(){
         let displayEnabled = WTL_GAME_DATA["sound_data"]["active_sound_display"]["enabled"];
         if (!displayEnabled){ return; }
@@ -476,7 +482,7 @@ class Sound {
     prepareToPause(){
         if (!this.ongoing){ return; }
         // Check if its been 100ms since last played then ready to dismiss
-        if (Date.now() < this.lastPlayed + WTL_GAME_DATA["sound_data"]["last_played_delay_ms"]){ // Just using 100ms as the standard TODO: Save this in a data file
+        if (Date.now() < this.lastPlayed + WTL_GAME_DATA["sound_data"]["last_played_delay_ms"]){ // Just using 100ms as the standard
             return;
         }
         this.preparedToPause = true;

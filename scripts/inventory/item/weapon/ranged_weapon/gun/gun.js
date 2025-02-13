@@ -1,4 +1,18 @@
+/*
+    Class Name: Gun
+    Class Description: A gun
+*/
 class Gun extends RangedWeapon {
+    /*
+        Method Name: constructor
+        Method Parameters: 
+            model:
+                Model of the gun (string)
+            details:
+                JSON details with extra information
+        Method Description: constructor
+        Method Return: constructor
+    */
     constructor(model, details){
         super();
         this.model = model;
@@ -24,6 +38,12 @@ class Gun extends RangedWeapon {
         this.swayStartTick = -1;
     }
 
+    /*
+        Method Name: reset
+        Method Parameters: None
+        Method Description: Resets the gun on equip
+        Method Return: void
+    */
     reset(){
         this.currentAngleOffsetRAD = 0;
         this.currentAngleOffsetVelocity = 0;
@@ -34,6 +54,12 @@ class Gun extends RangedWeapon {
         this.reloadLock.restoreDefault();
     }
 
+    /*
+        Method Name: displayUIAssociated
+        Method Parameters: None
+        Method Description: Displays UI associated with the gun - crosshair 
+        Method Return: void
+    */
     displayUIAssociated(){
         let lX = this.getScene().getLX();
         let bY = this.getScene().getBY();
@@ -42,19 +68,47 @@ class Gun extends RangedWeapon {
         }
     }
 
+    /*
+        Method Name: getPlayer
+        Method Parameters: None
+        Method Description: Getter
+        Method Return: Character
+    */
     getPlayer(){
         return this.player;
     }
 
+    /*
+        Method Name: breakAction
+        Method Parameters: None
+        Method Description: Breaks the current action
+        Method Return: void
+    */
     breakAction(){
         this.cancelReload();
         this.resetSway();
     }
 
+    /*
+        Method Name: drawCrosshair
+        Method Parameters: 
+            lX:
+                The x coordinate of the left of the screen
+            bY:
+                The y coordinate of the bottom of the screen
+        Method Description: Draws the crosshair on the screen
+        Method Return: void
+    */
     drawCrosshair(lX, bY){
         this.player.drawGunCrosshair(this, lX, bY);
     }
 
+    /*
+        Method Name: resetSway
+        Method Parameters: None
+        Method Description: Resets the gun sway
+        Method Return: void
+    */
     resetSway(){
         // If already acknowledged that swaying is stopped then ignore
         if (!this.isSwaying()){
@@ -68,19 +122,45 @@ class Gun extends RangedWeapon {
         this.swaying = false;
     }
 
+    /*
+        Method Name: startSwaying
+        Method Parameters: None
+        Method Description: Starts the gun sway
+        Method Return: void
+    */
     startSwaying(){
         this.swaying = true;
         this.swayStartTick = this.player.getGamemode().getCurrentTick();
     }
 
+    /*
+        Method Name: isSwaying
+        Method Parameters: None
+        Method Description: Checks if the gun is swaying
+        Method Return: boolean
+    */
     isSwaying(){
         return this.swaying;
     }
 
+    /*
+        Method Name: getRandom
+        Method Parameters: None
+        Method Description: Gets the random instance
+        Method Return: SeededRandomizer
+    */
     getRandom(){
         return this.player.getRandom();
     }
 
+    /*
+        Method Name: getMaxSwayOffsetOverTime
+        Method Parameters: 
+            timeMS:
+                A period of time (ms)
+        Method Description: Gets the maximum sway offset over a period of time
+        Method Return: void
+    */
     getMaxSwayOffsetOverTime(timeMS){
         let newAngleOffset = this.currentAngleOffsetRAD;
         let correctiveAcceleration = this.currentAngleOffsetRAD * -1 * this.swayConstantC + this.currentAngleOffsetVelocity * -1 * this.swayConstantD;
@@ -132,6 +212,12 @@ class Gun extends RangedWeapon {
 
     }
 
+    /*
+        Method Name: getNewSwayValues
+        Method Parameters: None
+        Method Description: Determines new sway values
+        Method Return: JSON
+    */
     getNewSwayValues(){
         let newAngleOffset = this.currentAngleOffsetRAD;
         let correctiveAcceleration = this.currentAngleOffsetRAD * -1 * this.swayConstantC + this.currentAngleOffsetVelocity * -1 * this.swayConstantD;
@@ -166,6 +252,12 @@ class Gun extends RangedWeapon {
         return {"new_offset": newOffset, "new_velocity": newVelocity} ;
     }
 
+    /*
+        Method Name: updateSway
+        Method Parameters: None
+        Method Description: Updates the gun sway
+        Method Return: void
+    */
     updateSway(){
         if (this.isAiming()){
             if (!this.isSwaying()){
@@ -180,83 +272,198 @@ class Gun extends RangedWeapon {
         }
     }
 
+    /*
+        Method Name: getCurrentAngleOffsetRAD
+        Method Parameters: None
+        Method Description: Getter
+        Method Return: float [0,2*PI)
+    */
     getCurrentAngleOffsetRAD(){
         return this.currentAngleOffsetRAD;
     }
 
+    /*
+        Method Name: getSwayedAngleRAD
+        Method Parameters: None
+        Method Description: Determines the angle - takes into account current sway
+        Method Return: float [0,2*PI)
+    */
     getSwayedAngleRAD(){
         return fixRadians(this.getDecidedAngleRAD() + this.getCurrentAngleOffsetRAD());
     }
 
+    /*
+        Method Name: getSwayConstantA
+        Method Parameters: None
+        Method Description: Getter
+        Method Return: number
+    */
     getSwayConstantA(){
         return this.swayDeclineA;
     }
 
+    /*
+        Method Name: getSwayConstantB
+        Method Parameters: None
+        Method Description: Getter
+        Method Return: number
+    */
     getSwayConstantB(){
         return this.swayDeclineB;
     }
 
+    /*
+        Method Name: getMaxSwayVelocityRAD
+        Method Parameters: None
+        Method Description: Getter
+        Method Return: float [0,2*PI)
+    */
     getMaxSwayVelocityRAD(){
         return this.maxSwayVelocityRAD;
     }
 
+    /*
+        Method Name: getSwayMaxAngleRAD
+        Method Parameters: None
+        Method Description: Getter
+        Method Return: float [0,2*PI)
+    */
     getSwayMaxAngleRAD(){
         return this.swayMaxAngleRAD;
     }
 
+    /*
+        Method Name: tick
+        Method Parameters: None
+        Method Description: Handles tick processes
+        Method Return: void
+    */
     tick(){
         this.updateSway();
     }
 
+    /*
+        Method Name: makeDecisions
+        Method Parameters: None
+        Method Description: Tells player to make gun decisions
+        Method Return: void
+    */
     makeDecisions(){
         this.player.makeGunDecisions();
     }
 
+    /*
+        Method Name: forceReload
+        Method Parameters: None
+        Method Description: Forces a gun reload
+        Method Return: void
+    */
     forceReload(){
         this.reloading = false;
         this.reloadLock.reset();
         this.loaded = true;
     }
 
+    /*
+        Method Name: getDecidedAngleRAD
+        Method Parameters: None
+        Method Description: Determines the current desired angle of the holder
+        Method Return: float [0,2*PI)
+    */
     getDecidedAngleRAD(){
         return this.getDecision("aiming_angle_rad");
     }
 
-    // Abstract
-    makeDecisions(){}
-
-    // Abstract
+    /*
+        Method Name: getSimulatedGunEndPosition
+        Method Parameters: None
+        Method Description: abstract
+        Method Return: abstract
+    */
     getSimulatedGunEndPosition(){}
 
+    /*
+        Method Name: getScene
+        Method Parameters: None
+        Method Description: Gets the scene of the player
+        Method Return: WTLGameScene
+    */
     getScene(){
         return this.player.getScene();
     }
 
+    /*
+        Method Name: reload
+        Method Parameters: None
+        Method Description: Reloads the gun
+        Method Return: void
+    */
     reload(){
         this.reloading = true;
         this.reloadLock.resetAndLock();
     }
 
+    /*
+        Method Name: isReloading
+        Method Parameters: None
+        Method Description: Checks if the gun is reloading
+        Method Return: boolean
+    */
     isReloading(){
         return this.reloading;
     }
 
+    /*
+        Method Name: cancelReload
+        Method Parameters: None
+        Method Description: Cancels the gun reload
+        Method Return: void
+    */
     cancelReload(){
         this.reloading = false;
     }
 
+    /*
+        Method Name: select
+        Method Parameters: None
+        Method Description: abstract
+        Method Return: abstract
+    */
     select(){}
-    // Abstract
+    /*
+        Method Name: deselect
+        Method Parameters: None
+        Method Description: abstract
+        Method Return: abstract
+    */
     deselect(){}
 
+    /*
+        Method Name: getModel
+        Method Parameters: None
+        Method Description: Getter
+        Method Return: string
+    */
     getModel(){
         return this.model;
     }
 
+    /*
+        Method Name: getBulletRange
+        Method Parameters: None
+        Method Description: Gets the bullet range for this gun
+        Method Return: number
+    */
     getBulletRange(){
         return WTL_GAME_DATA["gun_data"][this.getModel()]["range"];
     }
 
+    /*
+        Method Name: shoot
+        Method Parameters: None
+        Method Description: Shoots the gun
+        Method Return: void
+    */
     shoot(){
         // Add smoke where gun is shot
         this.getGamemode().getEventHandler().emit({
@@ -287,20 +494,46 @@ class Gun extends RangedWeapon {
         this.loaded = false;
     }
 
+    /*
+        Method Name: isLoaded
+        Method Parameters: None
+        Method Description: Checks if the gun is loaded
+        Method Return: boolean
+    */
     isLoaded(){
         return this.loaded;
     }
 
+    /*
+        Method Name: isAiming
+        Method Parameters: None
+        Method Description: Checks if conditions are met such that the gun is aiming
+        Method Return: boolean
+    */
     isAiming(){
         return this.getDecision("trying_to_aim") && this.directionToAimIsOk() && !this.player.isMoving() && !this.isReloading();
     }
 
+    /*
+        Method Name: directionToAimIsOk
+        Method Parameters: None
+        Method Description: Checks if the aiming direction is ok
+        Method Return: boolean
+    */
     directionToAimIsOk(){
         let angleTryingToAimAtRAD = this.getDecidedAngleRAD();
         let playerVisualDirection = this.player.getFacingDirection();
         return Gun.isAngleValidForVisualDirection(angleTryingToAimAtRAD, playerVisualDirection);
     }
 
+    /*
+        Method Name: getLeftAngleForVisualDirection
+        Method Parameters: 
+            visualDirection:
+                A character visual direction
+        Method Description: Gets the "left angle" (counter clockwise end) of a range given a facing direction
+        Method Return: string
+    */
     static getLeftAngleForVisualDirection(visualDirection){
         if (visualDirection === "front"){
             return toRadians(0);
@@ -314,6 +547,14 @@ class Gun extends RangedWeapon {
         throw new Error(`Invalid player direction: ${visualDirection}`);
     }
 
+    /*
+        Method Name: getRightAngleForVisualDirection
+        Method Parameters: 
+            visualDirection:
+                A character visual direction
+        Method Description: Gets the "right angle" (clockwise end) of a range given a facing direction
+        Method Return: string
+    */
     static getRightAngleForVisualDirection(visualDirection){
         if (visualDirection === "front"){
             return toRadians(180);
@@ -327,6 +568,16 @@ class Gun extends RangedWeapon {
         throw new Error(`Invalid player direction: ${visualDirection}`);
     }
 
+    /*
+        Method Name: isAngleValidForVisualDirection
+        Method Parameters: 
+            angleRAD:
+                An angle in radians (float)
+            visualDirection:
+                A character visual direction (string)
+        Method Description: Checks if an angle is valid to shoot when facing a given direction
+        Method Return: boolean
+    */
     static isAngleValidForVisualDirection(angleRAD, visualDirection){
         return angleBetweenCCWRAD(angleRAD, Gun.getRightAngleForVisualDirection(visualDirection), Gun.getLeftAngleForVisualDirection(visualDirection));
     }

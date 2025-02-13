@@ -1,4 +1,14 @@
+/*
+    Class Name: MyProjectsMenu
+    Description: The my projects menu
+*/
 class MyProjectsMenu extends Menu {
+    /*
+        Method Name: constructor
+        Method Parameters: None
+        Method Description: constructor
+        Method Return: constructor
+    */
     constructor(){
         super("my_projects_menu");
         this.leftArrow = undefined;
@@ -10,6 +20,12 @@ class MyProjectsMenu extends Menu {
         this.currentImageIndex = 0;
     }
 
+    /*
+        Method Name: tick
+        Method Parameters: None
+        Method Description: Checks for user actions
+        Method Return: void
+    */
     tick(){
         if (GENERAL_USER_INPUT_MANAGER.isActivated("left_arrow_ticked")){
             this.slide(-1);
@@ -19,10 +35,22 @@ class MyProjectsMenu extends Menu {
         super.tick();
     }
 
+    /*
+        Method Name: updateImage
+        Method Parameters: None
+        Method Description: Updates the help image
+        Method Return: void
+    */
     updateImage(){
         this.projectImage.setImage(IMAGES[this.imageNames[this.currentImageIndex]]);
     }
 
+    /*
+        Method Name: setup
+        Method Parameters: None
+        Method Description: Sets up the menu
+        Method Return: void
+    */
     setup(){
         // Background
         this.components.push(new LoadingScreenComponent(false));
@@ -123,6 +151,14 @@ class MyProjectsMenu extends Menu {
         this.updateNOSText();
     }
 
+    /*
+        Method Name: slide
+        Method Parameters: 
+            direction:
+                direction to slide in. int
+        Method Description: Slides the images in a direction
+        Method Return: void
+    */
     slide(direction){
         let newIndex = this.currentImageIndex + direction;
         // Ignore invalid indices (shouldn't happen anyway)
@@ -135,10 +171,22 @@ class MyProjectsMenu extends Menu {
         this.updateImage();
     }
 
+    /*
+        Method Name: updateNOSText
+        Method Parameters: None
+        Method Description: Updates the text displaying the number of slides
+        Method Return: void
+    */
     updateNOSText(){
         this.numberOfSlidesText.setText((this.currentImageIndex + 1).toString() + "/" + this.imageNames.length);
     }
 
+    /*
+        Method Name: checkDisableArrowButtons
+        Method Parameters: None
+        Method Description: Checks if the arrow button should be disabled
+        Method Return: void
+    */
     checkDisableArrowButtons(){
         let enabledColourCode = WTL_GAME_DATA["menu"]["menus"]["my_projects_menu"]["arrow_buttons"]["colour_code"];
         let disabledColourCode = WTL_GAME_DATA["menu"]["menus"]["my_projects_menu"]["arrow_buttons"]["disabled_colour_code"];

@@ -30,7 +30,7 @@ class StaminaBar {
         Method Return: float
     */
     getMaxStamina(){
-        return this.getMaxStamina;
+        return this.maxStamina;
     }
 
 

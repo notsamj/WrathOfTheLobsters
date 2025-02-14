@@ -1,4 +1,14 @@
+/*
+    Class Name: CharacterAnimationManager
+    Class Description: Manages animations for a character.
+*/
 class CharacterAnimationManager extends AnimationManager {
+    /*
+        Method Name: constructor
+        Method Parameters: None
+        Method Description: constructor
+        Method Return: constructor
+    */
     constructor(){
         super();
         this.visualDirection = "front";
@@ -8,19 +18,51 @@ class CharacterAnimationManager extends AnimationManager {
         this.movingStepCD = new CooldownLock(WTL_GAME_DATA["general"]["animation_frame_time"]);
     }
 
+    /*
+        Method Name: getVisualDirection
+        Method Parameters: None
+        Method Description: Getter
+        Method Return: string
+    */
     getVisualDirection(){
         return this.visualDirection;
     }
 
+    /*
+        Method Name: setVisualDirection
+        Method Parameters: 
+            visualDirection:
+                A visual direction (string)
+        Method Description: Setter
+        Method Return: void
+    */
     setVisualDirection(visualDirection){
         this.visualDirection = visualDirection;
     }
 
+    /*
+        Method Name: setVisualDirectionFromMovementDirection
+        Method Parameters: 
+            movementDirection:
+                A movement direction (string)
+        Method Description: Sets the visual direction given a movement direction
+        Method Return: void
+    */
     setVisualDirectionFromMovementDirection(movementDirection){
         let visualDirection = getVisualDirectionOf(movementDirection);
         this.setVisualDirection(visualDirection);
     }
 
+    /*
+        Method Name: getCurrentImageSuffix
+        Method Parameters: 
+            xVelocity:
+                The current x velocity
+            yVelocity:
+                The current y velcoity
+        Method Description: Determines the current image suffix of the character
+        Method Return: string
+    */
     getCurrentImageSuffix(xVelocity, yVelocity){
         let suffixStart = "_64";
         if (xVelocity < 0){
@@ -53,6 +95,16 @@ class CharacterAnimationManager extends AnimationManager {
         }
     }
 
+    /*
+        Method Name: updateWalkingCountIfMoving
+        Method Parameters: 
+            xVelocity:
+                The current x velocity
+            yVelocity:
+                The current y velcoity
+        Method Description: Updates the walking animation count
+        Method Return: void
+    */
     updateWalkingCountIfMoving(xVelocity, yVelocity){
         let moving = xVelocity != 0 || yVelocity != 0;
         if (!moving || !this.movingStepCD.isReady()){
@@ -74,6 +126,14 @@ class CharacterAnimationManager extends AnimationManager {
         }
     }
 
+    /*
+        Method Name: loadAllImagesOfModel
+        Method Parameters: 
+            model:
+                The character model
+        Method Description: Loads all the images of the character to storage
+        Method Return: Promise (implicit)
+    */
     static async loadAllImagesOfModel(model){
         // Do not load if already exists
         if (objectHasKey(IMAGES, model + "_64")){ return; }
@@ -93,6 +153,14 @@ class CharacterAnimationManager extends AnimationManager {
         await loadToImages(model + "_64" + "_left_step1", model + "/");
     }
 
+    /*
+        Method Name: loadAllImages
+        Method Parameters: 
+            model:
+                The character model
+        Method Description: Loads all the images of all the characters to storage
+        Method Return: Promise (implicit)
+    */
     static async loadAllImages(){
         for (let characterModel of Object.keys(WTL_GAME_DATA["model_to_model_category"])){
             await CharacterAnimationManager.loadAllImagesOfModel(characterModel);

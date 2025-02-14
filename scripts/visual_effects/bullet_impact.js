@@ -5,28 +5,40 @@
 class BulletImpact {
     /*
         Method Name: constructor
-        Method Parameters:
-            TODO
-        Method Description: Constructor
-        Method Return: Constructor
+        Method Parameters: 
+            circles:
+                List of JSON object "squares"
+        Method Description: constructor
+        Method Return: constructor
     */
     constructor(squares){
         this.squares = squares;
     }
 
+    /*
+        Method Name: getYCategory
+        Method Parameters: None
+        Method Description: Gets the y category
+        Method Return: string
+    */
     getYCategory(){
         return "ground";
     }
 
     /*
         Method Name: display
-        Method Parameters:
-            TODO
+        Method Parameters: 
+            scene:
+                The relevant scene
             lX:
-                The bottom left x displayed on the canvas relative to the focused entity
+                The x coordinate on the left of the screen
+            rX:
+                The x coordinate on the right of the screen
             bY:
-                The bottom left y displayed on the canvas relative to the focused entity
-        Method Description: Displays all the squares in the cloud.
+                The y coordinate at the bottom of the screen
+            tY:
+                The y coordinate at the top of the screen
+        Method Description: Displays the effect
         Method Return: void
     */
     display(scene, lX, rX, bY, tY){
@@ -42,6 +54,20 @@ class BulletImpact {
         }
     }
 
+    /*
+        Method Name: touchesRegion
+        Method Parameters: 
+            lX:
+                The x coordinate on the left of the region
+            rX:
+                The x coordinate on the right of the region
+            bY:
+                The y coordinate at the bottom of the region
+            tY:
+                The y coordinate at the top of the region
+        Method Description: Checks if the effect touches the region
+        Method Return: boolean
+    */
     touchesRegion(lX, rX, bY, tY){
         let bottomY = Number.MAX_SAFE_INTEGER;
         let topY = Number.MIN_SAFE_INTEGER;
@@ -61,6 +87,12 @@ class BulletImpact {
         return true;
     }
 
+    /*
+        Method Name: isExpired
+        Method Parameters: None
+        Method Description: Checks if the effect is expired
+        Method Return: boolean
+    */
     isExpired(){
         let currentTime = Date.now();
         for (let square of this.squares){

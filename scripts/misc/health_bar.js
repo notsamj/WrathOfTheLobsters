@@ -1,5 +1,20 @@
+/*
+    Class Name: HealthBar
+    Class Description: A health bar. May be used for health tracking.
+*/
 class HealthBar {
-
+    /*
+        Method Name: constructor
+        Method Parameters: 
+            maxHealth:
+                The maximum health (float)
+            recoveryTimeMS:
+                The time (ms) to fully recover health (0 to max)
+            regenerationEnabled:
+                Specifies if health regenerates (boolean)
+        Method Description: constructor
+        Method Return: constructor
+    */
     constructor(maxHealth=1, recoveryTimeMS=1000, regenerationEnabled=false){
         this.maxHealth = maxHealth;
         this.regenerationEnabled = regenerationEnabled;
@@ -11,26 +26,64 @@ class HealthBar {
         this.activelyDraining = false;
     }
 
+    /*
+        Method Name: setHealth
+        Method Parameters: 
+            newHealth:
+                The new amount of health
+        Method Description: Sets the health to a new amount
+        Method Return: void
+    */
     setHealth(newHealth){
         this.health = newHealth;
     }
 
+    /*
+        Method Name: isHealthRecoveryEnabled
+        Method Parameters: None
+        Method Description: Checks if regeneration is enabled
+        Method Return: boolean
+    */
     isHealthRecoveryEnabled(){
         return this.regenerationEnabled;
     }
 
+    /*
+        Method Name: isFull
+        Method Parameters: None
+        Method Description: Checks if health is full
+        Method Return: boolean
+    */
     isFull(){
         return this.health === this.maxHealth;
     }
 
+    /*
+        Method Name: getHealth
+        Method Parameters: None
+        Method Description: Getter
+        Method Return: float
+    */
     getHealth(){
         return this.health;
     }
 
+    /*
+        Method Name: getHealthProportion
+        Method Parameters: None
+        Method Description: Calculates the health proportion
+        Method Return: float [0,1]
+    */
     getHealthProportion(){
         return Math.max(0, this.health) / this.maxHealth;
     }
 
+    /*
+        Method Name: isOutOfHealth
+        Method Parameters: None
+        Method Description: Checks if health is zero
+        Method Return: boolean
+    */
     isOutOfHealth(){
         return !this.hasHealth();
     }
@@ -38,7 +91,7 @@ class HealthBar {
     /*
         Method Name: reset
         Method Parameters: None
-        Method Description: Resets the stamina bar
+        Method Description: Resets the health bar
         Method Return: void
     */
     reset(){
@@ -60,10 +113,10 @@ class HealthBar {
             this.recoveryDelayTicks--;
             return;
         }
-        // Nothing to do if already at maximum stamina
+        // Nothing to do if already at maximum health
         if (this.health === this.maxHealth){ return; }
 
-        // Recovery stamina if not actively draining
+        // Recovery health if not actively draining
         if (!this.isActivelyDraining() && this.isHealthRecoveryEnabled()){
             this.health = Math.min(this.maxHealth, this.health + this.maxHealth * WTL_GAME_DATA["general"]["ms_between_ticks"] / this.recoveryTimeMS);
             // Determine whether to cancel prehibatory recovery
@@ -71,7 +124,7 @@ class HealthBar {
                 this.emergencyRecovery = false;
             }
         }
-        // If a tick goes by with no active stamina drain then be ready to recovery
+        // If a tick goes by with no active health drain then be ready to recovery
         this.activelyDraining = false;
     }
 
@@ -90,7 +143,7 @@ class HealthBar {
         Method Parameters:
             timePassedMS:
                 The milliseconds since the last tick
-        Method Description: Determines the stamina of the create at a given time after the last tick
+        Method Description: Determines the health of the create at a given time after the last tick
         Method Return: Float
     */
     getInterpolatedHealth(timePassedMS){
@@ -102,7 +155,7 @@ class HealthBar {
     /*
         Method Name: isExperiencingEmergencyRecovery
         Method Parameters: None
-        Method Description: Checks if the stamina bar is performing emergency recovery
+        Method Description: Checks if the health bar is performing emergency recovery
         Method Return: Boolean
     */
     isExperiencingEmergencyRecovery(){
@@ -113,15 +166,15 @@ class HealthBar {
         Method Name: useHealth
         Method Parameters:
             amount:
-                Amount of stamina to use
-        Method Description: Reduces stamina by an amount
+                Amount of health to use
+        Method Description: Reduces health by an amount
         Method Return: void
         Note: Assumes hasHealth has been checked
     */
     useHealth(amount){
         this.activelyDraining = true;
         this.health = this.health-amount;
-        // If stamina has reached 0 then start emergency recovery
+        // If health has reached 0 then start emergency recovery
         if (this.health <= 0){
             this.emergencyRecovery = true;
             this.recoveryDelayTicks = this.maxRecoveryDelayTicks;
@@ -131,7 +184,7 @@ class HealthBar {
     /*
         Method Name: hasHealth
         Method Parameters: None
-        Method Description: Checks if the creatue has stamina to use
+        Method Description: Checks if the creatue has health to use
         Method Return: Boolean
     */
     hasHealth(){
@@ -143,12 +196,12 @@ class HealthBar {
         Method Parameters:
             timePassed:
                 The time in milliseconds since the last tick
-        Method Description: Displays the stamina bar on the screen
+        Method Description: Displays the health bar on the screen
         Method Return: void
     */
     display(timePassed=WTL_GAME_DATA["general"]["ms_between_ticks"]){
         let displayHealth = this.getInterpolatedHealth(timePassed);
-        // No need to display if at full stamina
+        // No need to display if at full health
         if (displayHealth === this.maxHealth){
             return;
         }

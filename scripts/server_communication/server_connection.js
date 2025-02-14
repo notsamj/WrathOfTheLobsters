@@ -1,7 +1,6 @@
 /*
     Class Name: ServerConnection
     Description: An object used for handling server connections.
-    TODO: Comment this class
 */
 class ServerConnection {
     /*
@@ -22,11 +21,23 @@ class ServerConnection {
         this.classLock = new Lock();
     }
 
+    /*
+        Method Name: close
+        Method Parameters: None
+        Method Description: Closes the connection
+        Method Return: void
+    */
     close(){
-        if (this.socket == null){ return; }
+        if (this.socket === null){ return; }
         this.socket.close();
     }
 
+    /*
+        Method Name: setupConnection
+        Method Parameters: None
+        Method Description: Sets up a connection
+        Method Return: void
+    */
     async setupConnection(){
         await this.classLock.awaitUnlock(true);
         this.openedLock.lock();
@@ -67,21 +78,55 @@ class ServerConnection {
         return true;
     }
 
+    /*
+        Method Name: testConnection
+        Method Parameters: None
+        Method Description: Tests the connection
+        Method Return: Promise<boolean>
+    */
     async testConnection(){
         await this.classLock.awaitUnlock();
         let response = await this.sendMail({"action": "ping"}, "ping");
         return response != null;
     }
 
+    /*
+        Method Name: sendMail
+        Method Parameters: 
+            jsonObject:
+                A JSON object
+            mailBox:
+                A mailbox
+            timeout:
+                The timeout (ms)
+        Method Description: Sends mail with a timeout
+        Method Return: Promise<JSON>
+    */
     async sendMail(jsonObject, mailBox, timeout=1000){
         if (!this.setup){ return null; }
         return await this.mailService.sendJSON(mailBox, jsonObject, timeout)
     }
 
+    /*
+        Method Name: sendJSON
+        Method Parameters: 
+            jsonObject:
+                A JSON object
+        Method Description: Sends a json object
+        Method Return: Promise (implicit)
+    */
     async sendJSON(jsonObject){
         this.send(JSON.stringify(jsonObject));
     }
 
+    /*
+        Method Name: send
+        Method Parameters: 
+            message:
+                A string message
+        Method Description: Sends a string
+        Method Return: Promise (implicit)
+    */
     async send(message){
         await this.classLock.awaitUnlock(true);
         await this.socket.send(message);

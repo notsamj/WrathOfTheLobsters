@@ -1,10 +1,21 @@
-// TODO: File needs comments
 const fs = require("fs");
 const WebSocketServer = require("ws").WebSocketServer;
 const NotSamLinkedList = require("../scripts/general/notsam_linked_list.js");
 const Lock = require("../scripts/general/lock.js");
 const WTL_GAME_DATA = require("../data/data_json.js");
+/*
+    Class Name: Server
+    Class Description: A WS server
+*/
 class Server {
+    /*
+        Method Name: constructor
+        Method Parameters: 
+            port:
+                Server port. int
+        Method Description: constructor
+        Method Return: constructor
+    */
     constructor(port){
         this.server = new WebSocketServer({ "port": port })
         this.port = port;
@@ -20,7 +31,19 @@ class Server {
     }
 }
 
+/*
+    Class Name: Client
+    Class Description: A WS client
+*/
 class Client {
+    /*
+        Method Name: constructor
+        Method Parameters: 
+            ws:
+                A websocket
+        Method Description: constructor
+        Method Return: constructor
+    */
     constructor(ws){
         this.ws = ws;
         console.log("Somebody is attempting to communicate.");
@@ -32,6 +55,14 @@ class Client {
         });
     }
 
+    /*
+        Method Name: handleMessage
+        Method Parameters:
+            dataString:
+                A string of data
+        Method Description: Handles a message
+        Method Return: void
+    */
     handleMessage(dataString){
         let dataJSON = JSON.parse(dataString);
         let action = dataJSON["action"];
@@ -63,10 +94,26 @@ class Client {
         }
     }
 
+    /*
+        Method Name: sendJSON
+        Method Parameters:
+            messageJSON:
+                A json to send
+        Method Description: Sends json
+        Method Return: void
+    */
     sendJSON(messageJSON){
         this.send(JSON.stringify(messageJSON));
     }
 
+    /*
+        Method Name: send
+        Method Parameters:
+            message:
+                A string to send
+        Method Description: Sends a string
+        Method Return: void
+    */
     send(message){
         this.ws.send(message);
     }

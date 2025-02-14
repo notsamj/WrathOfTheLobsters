@@ -23,18 +23,42 @@ class StaminaBar {
         this.activelyDraining = false;
     }
 
+    /*
+        Method Name: isFull
+        Method Parameters: None
+        Method Description: Checks if stamina is full
+        Method Return: boolean
+    */
     isFull(){
         return this.stamina === this.maxStamina;
     }
 
+    /*
+        Method Name: getStamina
+        Method Parameters: None
+        Method Description: Getter
+        Method Return: float
+    */
     getStamina(){
         return this.stamina;
     }
 
+    /*
+        Method Name: getStaminaProportion
+        Method Parameters: None
+        Method Description: Calculates the stamina proportion
+        Method Return: float [0,1]
+    */
     getStaminaProportion(){
         return Math.max(0, this.stamina) / this.maxStamina;
     }
 
+    /*
+        Method Name: isOutOfStamina
+        Method Parameters: None
+        Method Description: Checks if stamina is zero
+        Method Return: boolean
+    */
     isOutOfStamina(){
         return !this.hasStamina();
     }

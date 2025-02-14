@@ -1,12 +1,46 @@
+/*
+    Class Name: BloodSpray
+    Class Description: TODO
+*/
 class BloodSpray {
+    /*
+        Method Name: constructor
+        Method Parameters: 
+            circles:
+                List of JSON object "circles"
+        Method Description: constructor
+        Method Return: constructor
+    */
     constructor(circles){
         this.circles = circles;
     }
 
+    /*
+        Method Name: getYCategory
+        Method Parameters: None
+        Method Description: Gets the y category
+        Method Return: string
+    */
     getYCategory(){
         return "air"; // "air" || "ground"
     }
 
+    /*
+        Method Name: display
+        Method Parameters: 
+            scene:
+                The relevant scene
+            lX:
+                The x coordinate on the left of the screen
+            rX:
+                The x coordinate on the right of the screen
+            bY:
+                The y coordinate at the bottom of the screen
+            tY:
+                The y coordinate at the top of the screen
+        Method Description: Displays the effect
+        Method Return: void
+    */
     display(scene, lX, rX, bY, tY){
         // If gore is disabled -> do not display
         if (!WTL_GAME_DATA["user_chosen_settings"]["gore"]){ return; }
@@ -24,6 +58,20 @@ class BloodSpray {
         }
     }
 
+    /*
+        Method Name: touchesRegion
+        Method Parameters: 
+            lX:
+                The x coordinate on the left of the region
+            rX:
+                The x coordinate on the right of the region
+            bY:
+                The y coordinate at the bottom of the region
+            tY:
+                The y coordinate at the top of the region
+        Method Description: Checks if the effect touches the region
+        Method Return: boolean
+    */
     touchesRegion(lX, rX, bY, tY){
         let bottomY = Number.MAX_SAFE_INTEGER;
         let topY = Number.MIN_SAFE_INTEGER;
@@ -43,6 +91,12 @@ class BloodSpray {
         return true;
     }
 
+    /*
+        Method Name: isExpired
+        Method Parameters: None
+        Method Description: Checks if the effect is expired
+        Method Return: boolean
+    */
     isExpired(){
         let currentTime = Date.now();
         for (let circle of this.circles){
@@ -53,6 +107,16 @@ class BloodSpray {
         return true; 
     }
 
+    /*
+        Method Name: create
+        Method Parameters:
+            x: 
+                Center x of the effect
+            y:
+                Center y of the effect
+        Method Description: Creates a blood spray object given x, y
+        Method Return: BloodSpray
+    */
     static create(x, y){
         let circles = [];
         let numCircles = randomNumberInclusive(WTL_GAME_DATA["visual_effects"]["blood_spray"]["min_circles"], WTL_GAME_DATA["visual_effects"]["blood_spray"]["max_circles"]);

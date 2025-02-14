@@ -1154,7 +1154,6 @@ class Character extends Entity {
         this.lookingDetails["look_lock"].tick();
         this.staminaBar.tick();
         this.stunLock.tick();
-        this.inventory.tick();
         this.inventory.tickSelectedItem();
 
         this.makeDecisions();

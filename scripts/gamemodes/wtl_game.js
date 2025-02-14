@@ -438,6 +438,8 @@ async function tick(){
     // Display loading screen
     if (setupOngoing){
         displayLoading();
+        // Don't speed it up too much
+        await sleep(WTL_GAME_DATA["general"]["ms_between_ticks"]);
         requestAnimationFrame(tick);
         return;
     }

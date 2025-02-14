@@ -1,6 +1,6 @@
 /*
     Class Name: BloodSpray
-    Class Description: TODO
+    Class Description: A spray of blood when a character is injured
 */
 class BloodSpray {
     /*

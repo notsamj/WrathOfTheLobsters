@@ -488,7 +488,7 @@ class Gun extends RangedWeapon {
         // If it hits a physical tile or nothing then create bullet collision particle
         else if (collision["collision_type"] === null || collision["collision_type"] === "physical_tile"){
             // If the shot didn't hit anything alive then show particles when it hit
-            // TODO: Add an event for this
+            // Note: in the future dd an event for this
             this.getScene().addExpiringVisual(BulletImpact.create(collision["x"], collision["y"]));
         }
         this.loaded = false;

@@ -165,7 +165,7 @@ class RandomEventManager {
             probability:
                 The p value for the event
             numTrials:
-                TODO
+                The number of trials
             limit:
                 The limit of trials until returning true is guaranteed
             tickGap=1:

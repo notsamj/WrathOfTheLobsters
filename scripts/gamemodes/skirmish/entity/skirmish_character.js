@@ -14,8 +14,8 @@ class SkirmishCharacter extends Character {
                 The name of the character's rank. String.
             team:
                 The name of the team the character is on. String
-        Method Description: TODO
-        Method Return: TODO
+        Method Description: constructor
+        Method Return: constructor
     */
     constructor(gamemode, model, rankName, team){
         super(gamemode, model);

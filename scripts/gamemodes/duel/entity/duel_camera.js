@@ -185,8 +185,8 @@ class DuelCamera extends Entity {
     /*
         Method Name: checkSnap
         Method Parameters: None
-        Method Description: TODO
-        Method Return: TODO
+        Method Description: Checks if the user is trying to snap the camera
+        Method Return: void
     */
     checkSnap(){
         let wantsToSnap = GAME_USER_INPUT_MANAGER.isActivated("f_ticked");

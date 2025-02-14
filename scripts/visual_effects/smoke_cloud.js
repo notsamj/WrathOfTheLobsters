@@ -131,23 +131,4 @@ class SmokeCloud {
         }
         return new SmokeCloud(circles);
     }
-
-    /*
-    /*
-        Method Name: create
-        Method Parameters: 
-            x:
-                TODO
-            y:
-                TODO
-        Method Description: TODO
-        Method Return: TODO
-    */
-    static create(x, y){
-        let circles = [];
-        let spawnTime = Date.now();
-        circles.push({"x": x, "y": y, "radius": 5, "spawn_time": spawnTime, "expirey": spawnTime + 10000, "x_velocity": 0, "y_velocity": 0});
-        return new SmokeCloud(circles);
-    }
-    */
 }

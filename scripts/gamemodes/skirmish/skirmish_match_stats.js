@@ -37,7 +37,8 @@ class SkirmishMatchStats {
     /*
         Method Name: addKill
         Method Parameters:
-            TODO
+            victimClass:
+                A string representing the class of the victim
             killerClass:
                 A string representing the class of the killer
         Method Description: Updates the number of kills of the given killer type
@@ -148,6 +149,12 @@ class SkirmishMatchStats {
         Menu.makeText(this.americanText, SkirmishMatchStats.getTeamNameColour(getProperAdjective("Americans")), Math.floor(getScreenWidth()/2), Math.floor(getScreenHeight()*2/3), Math.floor(getScreenWidth()/2), Math.floor(getScreenHeight()*2/3), "left", "middle");
     }
 
+    /*
+        Method Name: displayKillFeed
+        Method Parameters: None
+        Method Description: Displays the kill feed
+        Method Return: void
+    */
     displayKillFeed(){
         let lastToDisplayIndex = this.kills.length - 1 - this.killFeedOffset;
         let firstToDisplayIndex = Math.max(0, lastToDisplayIndex - this.maxKillRowsToDisplay);
@@ -162,7 +169,6 @@ class SkirmishMatchStats {
             let currentY = startY + (i - firstToDisplayIndex) * textSize;
             let killerClass = this.kills[i]["killer_class"];
             let victimClass = this.kills[i]["victim_class"];
-            //console.log(WTL_GAME_DATA["character_class_to_team_name"][killerClass], WTL_GAME_DATA["character_class_to_team_name"][victimClass])
             let killerTeam = getProperAdjective(WTL_GAME_DATA["character_class_to_team_name"][killerClass]);
             let victimTeam = getProperAdjective(WTL_GAME_DATA["character_class_to_team_name"][victimClass]);
             let killerTeamColour = Colour.fromCode(SkirmishMatchStats.getTeamNameColour(killerTeam));
@@ -176,6 +182,12 @@ class SkirmishMatchStats {
         }
     }
 
+    /*
+        Method Name: tick
+        Method Parameters: None
+        Method Description: handles tick logic
+        Method Return: void
+    */
     tick(){
         let newKillFeedOffset = this.killFeedOffset;
         let up = GAME_USER_INPUT_MANAGER.isActivated("kill_feed_up");

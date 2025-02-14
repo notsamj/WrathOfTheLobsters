@@ -736,8 +736,8 @@ class LevelGenerator extends Gamemode {
     /*
         Method Name: end
         Method Parameters: None
-        Method Description: TODO
-        Method Return: TODO
+        Method Description: Handles end of game logic
+        Method Return: void
     */
     end(){
         MY_HUD.clearElement("seed");

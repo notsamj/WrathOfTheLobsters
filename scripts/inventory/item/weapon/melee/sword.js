@@ -169,7 +169,7 @@ class Sword extends MeleeWeapon {
         Method Name: getSwingRange
         Method Parameters: None
         Method Description: Gets the sword swing range
-        Method Return: TODO
+        Method Return: number
     */
     getSwingRange(){
         return WTL_GAME_DATA["sword_data"]["arm_length"] + WTL_GAME_DATA["sword_data"]["swords"][this.getModel()]["blade_length"];
@@ -764,8 +764,8 @@ class Sword extends MeleeWeapon {
     /*
         Method Name: getBladeLength
         Method Parameters: None
-        Method Description: TODO
-        Method Return: TODO
+        Method Description: Gets the blade length
+        Method Return: number
     */
     getBladeLength(){
         return WTL_GAME_DATA["sword_data"]["swords"][this.getModel()]["blade_length"];

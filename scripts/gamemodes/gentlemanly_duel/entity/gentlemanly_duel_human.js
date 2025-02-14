@@ -127,8 +127,8 @@ class GentlemanlyDuelHuman extends GentlemanlyDuelCharacter {
     /*
         Method Name: getGunHoldingAngleRAD
         Method Parameters: None
-        Method Description: TODO
-        Method Return: TODO
+        Method Description: Gets the angle from center of screen to croisshair
+        Method Return: radian (float)
     */
     getGunHoldingAngleRAD(){
         return getAngleFromMouseToScreenCenter(this.getScene());

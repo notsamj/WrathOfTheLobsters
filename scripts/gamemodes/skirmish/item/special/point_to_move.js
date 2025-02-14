@@ -136,8 +136,8 @@ class PointToMove extends Item {
     /*
         Method Name: isMovingTroops
         Method Parameters: None
-        Method Description: TODO
-        Method Return: TODO
+        Method Description: Checks if moving troops
+        Method Return: boolean
     */
     isMovingTroops(){
         return this.troopMovementInProgress;

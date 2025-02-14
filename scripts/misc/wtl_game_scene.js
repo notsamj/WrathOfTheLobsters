@@ -1123,8 +1123,8 @@ class WTLGameScene {
                 A tile x coordinate
             tileY:
                 A tile y coordinate
-        Method Description: TODO
-        Method Return: TODO
+        Method Description: Gets a visual tile at the location
+        Method Return: VisualTile / null
         Method Note: This is only tiles naturally at location not just covering
     */
     getVisualTileAtLocation(tileX, tileY){
@@ -1615,7 +1615,7 @@ class WTLGameScene {
 
 /*
     Class Name: Chunk
-    Class Description: TODO
+    Class Description: A chunk of tiles
 */
 class Chunk {
     /*
@@ -1680,7 +1680,7 @@ class Chunk {
                 A tile x coordinate
             tileY:
                 A tile y Checks if there is a visual tile at a given position
-        Method Description: TODO
+        Method Description: Checks if there is a visual tile at a location
         Method Return: boolean
     */
     hasVisualTileAtLocation(tileX, tileY){

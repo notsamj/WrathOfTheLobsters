@@ -210,7 +210,7 @@ class Musket extends Gun {
         Method Name: hasBayonetEquipped
         Method Parameters: None
         Method Description: Checks if a bayonet is equipped
-        Method Return: TODO
+        Method Return: boolean
     */
     hasBayonetEquipped(){
         return this.bayonetOn;

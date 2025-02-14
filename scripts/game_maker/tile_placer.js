@@ -124,8 +124,8 @@ class TilePlacer extends Entity {
                 The y coordinate of the bottom of the screen
             tY:
                 The y coordinate of the top of the screen
-        Method Description: TODO
-        Method Return: TODO
+        Method Description: Display ui and tile placer
+        Method Return: void
     */
     display(lX, rX, bY, tY){
         let x = this.getScene().getDisplayXFromTileX(lX, this.placerTileX);

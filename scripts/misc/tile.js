@@ -62,7 +62,7 @@ class Tile extends VisualItem {
         Method Name: getTileY
         Method Parameters: None
         Method Description: Gets the tile y location of the tile
-        Method Return: TODO
+        Method Return: int
     */
     getTileY(){
         return this.tileY;

@@ -73,7 +73,7 @@ class SkirmishCamera extends Entity {
             troop:
                 A character
         Method Description: Checks if the camera and troop are on the same team
-        Method Return: TODO
+        Method Return: boolean
     */
     isOnSameTeam(troop){
         return this.getTeamName() === troop.getTeamName();

@@ -81,7 +81,6 @@ class BotSharedBrain {
         if (bestEnemyObj["status"] === "unknown"){
             this.lastKnownLocations[bestEnemyObj["enemy_id"]] = {"status": "last_known", "tile_x": shooterTileX, "tile_y": shooterTileY, "health": WTL_GAME_DATA["bot"]["unknown_enemy_health_assumption"]};
         }else{
-            if (bestEnemyObj["enemy_id"] === null){ debugger; }
             this.lastKnownLocations[bestEnemyObj["enemy_id"]]["tile_x"] = shooterTileX;
             this.lastKnownLocations[bestEnemyObj["enemy_id"]]["tile_y"] = shooterTileY;
         }

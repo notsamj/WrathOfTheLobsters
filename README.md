@@ -5,7 +5,7 @@ https://notsamj.github.io/WrathOfTheLobsters/
 # Description
 This is a tile based shooting-focused game made to run in a browser. For information about how to play, one can open the game and press 'H' on any menu/game.
 
-# Demo
+# Demo Video
 Not necessary. Press H on any menu/game for information.
 
 # Photo guide

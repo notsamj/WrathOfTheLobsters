@@ -202,7 +202,6 @@ class PointToMove extends Item {
         let startTile = route.getStartTile();
         let startOfRouteX = startTile["tile_x"];
         let startOfRouteY = startTile["tile_y"];
-        //debugger;
         let distanceFromStart = Math.sqrt(Math.pow(troopXAfter - startOfRouteX, 2) + Math.pow(troopYAfter - startOfRouteY, 2));
         // Don't let troop keep moving if the troop has moved far enough
         if (distanceFromStart > troop.getWalkingBar().getMaxValue()){

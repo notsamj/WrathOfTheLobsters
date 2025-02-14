@@ -1419,7 +1419,6 @@ class DuelBot extends DuelCharacter {
                         let enemyLocationIsTheSame = dataJSON["enemy_tile_x"] === enemyTileX && dataJSON["enemy_tile_y"] === enemyTileY;
                         if (enemyLocationIsTheSame && dataJSON["tile_x"] === myTileX && dataJSON["tile_y"] === myTileY){
                             newTile = dataJSON["tile"];
-                            if (newTile === undefined){ debugger; }
                             // If we can_hit with the current tile then don't bother changing
                             needToCalculate = false;
                         }
@@ -1435,7 +1434,6 @@ class DuelBot extends DuelCharacter {
                         let ttsfData = this.determineTileToShootFrom(enemyTileX, enemyTileY, myGun);
                         let canHit = ttsfData["can_hit"];
                         newTile = ttsfData["new_tile"];
-                        if (newTile === undefined){ debugger; }
                         // update saved data
                         let dataJSON = {
                             "tile_x": myTileX,
@@ -1623,7 +1621,6 @@ class DuelBot extends DuelCharacter {
                             let enemyLocationIsTheSame = dataJSON["enemy_tile_x"] === enemyTileX && dataJSON["enemy_tile_y"] === enemyTileY;
                             if (enemyLocationIsTheSame && dataJSON["tile_x"] === myTileX && dataJSON["tile_y"] === myTileY){
                                 newTile = dataJSON["tile"];
-                                if (newTile === undefined){ debugger; }
                                 // If we can_hit with the current tile then don't bother changing
                                 needToCalculate = false;
                             }
@@ -1639,7 +1636,6 @@ class DuelBot extends DuelCharacter {
                             let ttsfData = this.determineTileToShootFrom(enemyTileX, enemyTileY, myMusket);
                             let canHit = ttsfData["can_hit"];
                             newTile = ttsfData["new_tile"];
-                            if (newTile === undefined){ debugger; }
                             // update saved data
                             let dataJSON = {
                                 "tile_x": myTileX,
@@ -2104,11 +2100,9 @@ class DuelBot extends DuelCharacter {
         }
         // If it's saved then request this tile data
         if (hasAllTilesStored){
-            if (allTilesStored === null){ debugger;}
             allTiles = allTilesStored;
         }else{
             allTiles = this.determineTilesToRunawayTo(myTileX, myTileY, enemyTileX, enemyTileY);
-            if (allTiles === null){ debugger; }
             if (!hasMyLocData){
                 myLocData = new NotSamXYCappedLengthSortedArrayList(100);
                 this.temporaryOperatingData.set("tiles_to_runaway_to", myLocData);
@@ -2245,9 +2239,6 @@ class DuelBot extends DuelCharacter {
 
             // Add the score
             tile["score"] = score;
-            if (isNaN(score)){
-                debugger;
-            }
         }
 
         return allTiles;
@@ -2619,9 +2610,6 @@ class DuelBot extends DuelCharacter {
 
                 // Go to next
                 previousData = knownPathsFromStart.get(previousTileX, previousTileY);
-                if (previousData === null){
-                    debugger;
-                }
                 previousTileX = previousData["previous_tile_x"];
                 previousTileY = previousData["previous_tile_y"];
 
@@ -2643,9 +2631,6 @@ class DuelBot extends DuelCharacter {
 
                 // Go to next
                 previousData = knownPathsFromEnd.get(previousTileX, previousTileY);
-                if (previousData === null){
-                    debugger;
-                }
                 previousTileX = previousData["previous_tile_x"];
                 previousTileY = previousData["previous_tile_y"];
 
@@ -3016,11 +3001,9 @@ class DuelBot extends DuelCharacter {
 
         // If it's saved then request this tile data
         if (hasAllTilesStored){
-            if (allTilesStored === null){ debugger;}
             allTiles = allTilesStored;
         }else{
             allTiles = this.determineTilesToShootFrom(myTileX, myTileY, enemyTileX, enemyTileY, gun);
-            if (allTiles === null){ debugger; }
             if (!hasMyLocData){
                 myLocData = new NotSamXYCappedLengthSortedArrayList(100);
                 this.temporaryOperatingData.set("tiles_to_stand_and_shoot_from", myLocData);

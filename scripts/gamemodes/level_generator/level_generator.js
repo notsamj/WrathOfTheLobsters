@@ -379,7 +379,6 @@ class LevelGenerator extends Gamemode {
         let exploreEdgeTile = (edgeTile) => {
             let edgeTileX = edgeTile["tile_x"];
             let edgeTileY = edgeTile["tile_y"];
-            if (edgeTileX === undefined){ debugger; }
             let adjacentTiles = [[edgeTileX+1,edgeTileY], [edgeTileX-1, edgeTileY], [edgeTileX, edgeTileY+1], [edgeTileX, edgeTileY-1]];
             // Look through adjacent tiles to find obstructions
             for (let adjacentTile of adjacentTiles){

@@ -240,7 +240,6 @@ class Character extends Entity {
         }
 
         if (startTileX === undefined){
-            debugger;
             throw new Error("Please supply a start tile x.");
         }
 
@@ -510,9 +509,6 @@ class Character extends Entity {
 
                 // Go to next
                 previousData = knownPathsFromStart.get(previousTileX, previousTileY);
-                if (previousData === null){
-                    debugger;
-                }
                 previousTileX = previousData["previous_tile_x"];
                 previousTileY = previousData["previous_tile_y"];
 
@@ -534,9 +530,6 @@ class Character extends Entity {
 
                 // Go to next
                 previousData = knownPathsFromEnd.get(previousTileX, previousTileY);
-                if (previousData === null){
-                    debugger;
-                }
                 previousTileX = previousData["previous_tile_x"];
                 previousTileY = previousData["previous_tile_y"];
 
@@ -719,10 +712,6 @@ class Character extends Entity {
                 this.movementDetails = null;
             }
             return; 
-        }
-
-        if (isRDebugging()){
-            debugger;
         }
 
         let desiredMoveSpeed = WTL_GAME_DATA["general"]["walk_speed"];

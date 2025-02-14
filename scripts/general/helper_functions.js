@@ -256,9 +256,6 @@ function accessDataJSONValue(path){
 function getDataJSONObjAtPath(path){
     let obj = WTL_GAME_DATA;
     while (path.length > 1){
-        if (obj === undefined){
-            debugger;
-        }
         obj = obj[path.shift()];
     }
     return obj;

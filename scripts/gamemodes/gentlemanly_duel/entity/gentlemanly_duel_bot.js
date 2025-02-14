@@ -508,10 +508,6 @@ speculateOnHittingEnemy(bulletRange, enemyCenterX, enemyCenterY, gunEndX, gunEnd
                         mySwayOffsetMagnitude = myGun.getSwayMaxAngleRAD();
                     }
                     let myChanceOfHittingAShot = calculateAngleRangeOverlapProportion(speculationResult["right_angle"], speculationResult["left_angle"], speculationResult["best_angle"] - mySwayOffsetMagnitude/2, speculationResult["best_angle"] + mySwayOffsetMagnitude/2);
-                    if (myChanceOfHittingAShot < 0){
-                        debugger;
-                        calculateAngleRangeOverlapProportion(speculationResult["right_angle"], speculationResult["left_angle"], speculationResult["best_angle"] - mySwayOffsetMagnitude/2, speculationResult["best_angle"] + mySwayOffsetMagnitude/2);
-                    }
 
                     let shotAConstant = WTL_GAME_DATA["gentlemanly_duel"]["ai"]["shot_take_function_a_constant"];
                     let shotBConstant = WTL_GAME_DATA["gentlemanly_duel"]["ai"]["shot_take_function_b_constant"];

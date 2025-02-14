@@ -712,7 +712,6 @@ class SkirmishBot extends SkirmishCharacter {
             // Score will be in range (-4, 4)
             // Skip if <= 0 
             if (score <= 0){ continue; }
-            if (isNaN(tileCenterX)){ debugger; }
             cannonTargets.push({"cannon_center_x": tileCenterX, "cannon_center_y": tileCenterY, "score": score})
         }
         return cannonTargets;
@@ -736,10 +735,6 @@ class SkirmishBot extends SkirmishCharacter {
                 }
             }
 
-            // So its not present
-            if (isNaN(tileX) || tileX === undefined || isNaN(tileY) || tileY === undefined){
-                debugger;
-            }
             squaresAroundEnemies.push({"tile_x": tileX, "tile_y": tileY});
         }
         let addSquaresAroundSpot = (tileX, tileY) => {

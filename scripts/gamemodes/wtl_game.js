@@ -135,25 +135,6 @@ async function loadProjectImages(){
 */
 async function setup() {
     setupOngoing = true;
-    try {
-        for (let imageName of WTL_GAME_DATA["basic_images"]){
-            await loadToImages(imageName);
-        }
-        await CharacterAnimationManager.loadAllImages();
-        await Musket.loadAllImages();
-        await Sword.loadAllImages();
-        await Pistol.loadAllImages();
-        await TurnBasedSkirmish.loadImages();
-        await loadHelpImages();
-        await loadProjectImages();
-    }catch(error){
-        console.error("Failed to load images:", error);
-    }
-
-    // Make sure all physical tiles are loaded
-    for (let tileDetails of WTL_GAME_DATA["physical_tiles"]){
-        await ensureImageIsLoadedFromDetails(tileDetails);
-    }
 
     WTL_GAME_DATA["general"]["ms_between_ticks"] = Math.floor(1000 / WTL_GAME_DATA["general"]["tick_rate"]); // Expected to be an integer so floor isn't really necessary
     
@@ -296,10 +277,35 @@ async function setup() {
 
     GAME_TICK_SCHEDULER.setStartTime(Date.now());
 
-    MENU_MANAGER.setup();
-    
-    setupOngoing = false;
+    // Start loading screen
     requestAnimationFrame(tick);
+
+    // Load images
+    
+    try {
+        for (let imageName of WTL_GAME_DATA["basic_images"]){
+            await loadToImages(imageName);
+        }
+        await CharacterAnimationManager.loadAllImages();
+        await Musket.loadAllImages();
+        await Sword.loadAllImages();
+        await Pistol.loadAllImages();
+        await TurnBasedSkirmish.loadImages();
+        await loadHelpImages();
+        await loadProjectImages();
+    }catch(error){
+        console.error("Failed to load images:", error);
+    }
+
+    // Make sure all physical tiles are loaded
+    for (let tileDetails of WTL_GAME_DATA["physical_tiles"]){
+        await ensureImageIsLoadedFromDetails(tileDetails);
+    }
+
+    // Setup menus
+    MENU_MANAGER.setup();
+
+    setupOngoing = false;
 }
 
 /*
@@ -413,7 +419,28 @@ function stop(){
     Function Description: Runs a tick
     Function Return: Promise (implicit)
 */
+function displayLoading(){
+    LOADING_SCREEN.display(true);
+    let sW = getScreenWidth();
+    let sH = getScreenHeight();
+    let cX = Math.ceil(sW/2);
+    let cY = Math.ceil(sH/2);
+    Menu.makeText("Loading...", "#000000", cX, cY, sW, sH, "center", "middle");
+}
+
+/*
+    Function Name: tick
+    Function Parameters: None
+    Function Description: Runs a tick
+    Function Return: Promise (implicit)
+*/
 async function tick(){
+    // Display loading screen
+    if (setupOngoing){
+        displayLoading();
+        requestAnimationFrame(tick);
+        return;
+    }
     if (programOver){ return; }
     if (GAME_TICK_SCHEDULER.getTickLock().notReady()){ 
         requestAnimationFrame(tick);
@@ -491,6 +518,7 @@ function getCanvasHeight(){
 // Start Up
 window.addEventListener("load", () => {
     setup();
+    requestAnimationFrame(tick);
 });
 
 /*

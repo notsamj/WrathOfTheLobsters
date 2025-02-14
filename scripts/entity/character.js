@@ -75,6 +75,28 @@ class Character extends Entity {
     }
 
     /*
+        Method Name: setStamina
+        Method Parameters: 
+            newStamina:
+                The new amount of stamina
+        Method Description: Sets the new amount of character stamina in the stamina bar
+        Method Return: void
+    */
+    setStamina(newStamina){
+        this.staminaBar.setStamina(newStamina);
+    }
+
+    /*
+        Method Name: resetStamina
+        Method Parameters: None
+        Method Description: Fills the stamina bar
+        Method Return: void
+    */
+    resetStamina(){
+        this.staminaBar.setStamina(this.staminaBar.getMaxStamina());
+    }
+
+    /*
         Method Name: resetMovement
         Method Parameters: None
         Method Description: Stops the character from moving

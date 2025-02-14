@@ -148,6 +148,10 @@ async function setup() {
         gLastClickedMouseY = event.clientY;
     }
 
+    window.onerror = (event) => {
+        programOver = true;
+    };
+
     // Game Maker
 
     GAME_USER_INPUT_MANAGER.register("left_click", "mousedown", (event) => { return event.which===KEY_CODE_LEFT_CLICK; });
@@ -293,13 +297,13 @@ async function setup() {
         await TurnBasedSkirmish.loadImages();
         await loadHelpImages();
         await loadProjectImages();
+
+        // Make sure all physical tiles are loaded
+        for (let tileDetails of WTL_GAME_DATA["physical_tiles"]){
+            await ensureImageIsLoadedFromDetails(tileDetails);
+        }
     }catch(error){
         console.error("Failed to load images:", error);
-    }
-
-    // Make sure all physical tiles are loaded
-    for (let tileDetails of WTL_GAME_DATA["physical_tiles"]){
-        await ensureImageIsLoadedFromDetails(tileDetails);
     }
 
     // Setup menus

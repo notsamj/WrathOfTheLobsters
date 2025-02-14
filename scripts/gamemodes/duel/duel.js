@@ -427,6 +427,7 @@ class Duel extends Gamemode {
             participant.setTileY(spawn[1]);
             participant.setFacingUDLRDirection("down");
             participant.setHealth(1);
+            participant.resetStamina();
             participant.setAlive(true);
 
             // Reload all weapons

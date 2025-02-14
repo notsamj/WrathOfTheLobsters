@@ -3,6 +3,32 @@
     Description: An abstract type of component. A sliding bar for choosing between options for a value.
 */
 class OptionSlider extends Component {
+    /*
+        Method Name: constructor
+        Method Parameters:
+            x:
+                x location of the option slider
+            y:
+                y location of the option slider
+            width:
+                Width of the option slider
+            height:
+                Height of the option slider
+            textHeight:
+                Height of the text (px) (int)
+            getValueFunction:
+                Function to call to get the value
+            setValueFunction:
+                Function to call to set the value
+            backgroundBarColourCode:
+                Colour of the bar background (code)
+            sliderColourCode:
+                Colour of the slider (code)
+            textColourCode:
+                Colour of the text (code)
+        Method Description: Constructor
+        Method Return: Constructor
+    */
     constructor(x, y, width, height, textHeight, getValueFunction, setValueFunction, backgroundBarColourCode="#000000", sliderColourCode="#ffffff", textColourCode="#000000"){
         super();
         this.x = x;

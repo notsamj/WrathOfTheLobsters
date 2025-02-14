@@ -26,7 +26,7 @@ class UserInputManager {
             onOff:
                 Whether or not the event activates or deactivates the node
             extraInfo:
-                Extra information for setting up the noode
+                Extra information for setting up the node
         Method Description: Sets up a listener for an event and potentially creates a node
         Method Return: void
     */

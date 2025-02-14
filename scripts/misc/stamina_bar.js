@@ -24,6 +24,29 @@ class StaminaBar {
     }
 
     /*
+        Method Name: getMaxStamina
+        Method Parameters: None
+        Method Description: Getter
+        Method Return: float
+    */
+    getMaxStamina(){
+        return this.getMaxStamina;
+    }
+
+
+    /*
+        Method Name: setStamina
+        Method Parameters: 
+            newStamina:
+                The new amount of stamina
+        Method Description: Setter
+        Method Return: void
+    */
+    setStamina(newStamina){
+        this.stamina = newStamina;
+    }
+
+    /*
         Method Name: isFull
         Method Parameters: None
         Method Description: Checks if stamina is full

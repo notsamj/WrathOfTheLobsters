@@ -3,8 +3,40 @@
     Description: A type of option slider. A sliding bar for setting a integer or float value in a range.
 */
 class QuantitySlider extends OptionSlider {
-    constructor(x, y, width, height, textHeight, getValueFunction, setValueFunction, minValue, maxValue, usingFloat=false, backgroundBarColour="#000000", sliderColour="#ffffff", textColour="#000000"){
-        super(x, y, width, height, textHeight, getValueFunction, setValueFunction, backgroundBarColour, sliderColour, textColour);
+    /*
+        Method Name: constructor
+        Method Parameters:
+            x:
+                x location of the quantity slider
+            y:
+                y location of the quantity slider
+            width:
+                Width of the quantity slider
+            height:
+                Height of the quantity slider
+            textHeight:
+                Height of the text (px) (int)
+            getValueFunction:
+                Function to call to get the value
+            setValueFunction:
+                Function to call to set the value
+            minValue:
+                Minimum value
+            maxValue:
+                Maximum value
+            usingFloat:
+                Whether using floats rather than integers
+            backgroundBarColourCode:
+                Colour of the bar background (code)
+            sliderColourCode:
+                Colour of the slider (code)
+            textColourCode:
+                Colour of the text (code)
+        Method Description: Constructor
+        Method Return: Constructor
+    */
+    constructor(x, y, width, height, textHeight, getValueFunction, setValueFunction, minValue, maxValue, usingFloat=false, backgroundBarColourCode="#000000", sliderColourCode="#ffffff", textColourCode="#000000"){
+        super(x, y, width, height, textHeight, getValueFunction, setValueFunction, backgroundBarColourCode, sliderColourCode, textColourCode);
         this.minValue = minValue;
         this.maxValue = maxValue;
         this.usingFloat = usingFloat;

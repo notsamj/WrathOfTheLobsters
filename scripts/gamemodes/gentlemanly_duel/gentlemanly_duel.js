@@ -614,6 +614,7 @@ class GentlemanlyDuel extends Gamemode {
             participant.setTileX(spawn[0]);
             participant.setTileY(spawn[1]);
             participant.setHealth(1);
+            participant.resetStamina();
             participant.setAlive(true);
 
             let isLeftSpawn = spawn[0] === leftSpawnX;

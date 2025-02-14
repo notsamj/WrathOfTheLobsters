@@ -60,5 +60,5 @@ Not necessary. Press H on any menu/game for information.
 ![Level Generator Overview](./images/help/level_generator/help_menu_level_generator_overview.png)
 ![Level Generator General Controls 8](./images/help/level_generator/help_menu_level_generator_general_controls.png)
 ![Level Generator Camera Controls](./images/help/level_generator/help_menu_level_generator_camera_controls.png)
-![Level Generator 1](./images/help/level_generator/help_menu_duel_1.png)
-![Level Generator 2](./images/help/level_generator/help_menu_duel_2.png)
+![Level Generator 1](./images/help/level_generator/help_menu_level_generator_1.png)
+![Level Generator 2](./images/help/level_generator/help_menu_level_generator_2.png)

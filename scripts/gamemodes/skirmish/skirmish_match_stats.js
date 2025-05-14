@@ -226,7 +226,7 @@ class SkirmishMatchStats {
         Method Return: String
     */
     static getTeamNameColour(team){
-        return WTL_GAME_DATA["team_to_colour"][team];
+        return WTL_GAME_DATA["team_to_colour_code"][team];
     }
 
     /*

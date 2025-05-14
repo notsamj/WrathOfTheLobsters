@@ -218,7 +218,7 @@ class StaminaBar {
         // Determine bar colour
         // Note: The code after the && checks if the cooling will be over next tick
         if (this.isExperiencingEmergencyRecovery()){
-            staminaBarColourCode = WTL_GAME_DATA["stamina_bar"]["cooling_colour"];
+            staminaBarColourCode = WTL_GAME_DATA["stamina_bar"]["recovery_colour"];
         }else if (realStaminaPercentage < WTL_GAME_DATA["stamina_bar"]["threshold_3"]){
             staminaBarColourCode = WTL_GAME_DATA["stamina_bar"]["threshold_3_colour"];
         }else if (realStaminaPercentage < WTL_GAME_DATA["stamina_bar"]["threshold_2"]){

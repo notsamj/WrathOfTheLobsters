@@ -269,7 +269,7 @@ const WTL_GAME_DATA = {
     },
 
     "stamina_bar": {
-        "cooling_colour": "#ff212c",
+        "recovery_colour": "#ff212c",
         "threshold_3_colour": "#ff212c",
         "threshold_2_colour": "#ff7536",
         "threshold_1_colour": "#73e34b",
@@ -654,7 +654,7 @@ const WTL_GAME_DATA = {
         }
     ],
 
-    "team_to_colour": {
+    "team_to_colour_code": {
         "British": "#8c130a",
         "American": "#0a0c8c"
     },

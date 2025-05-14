@@ -215,7 +215,7 @@ class HealthBar {
         // Determine bar colour
         // Note: The code after the && checks if the cooling will be over next tick
         if (this.isExperiencingEmergencyRecovery()){
-            healthBarColourCode = WTL_GAME_DATA["health_bar"]["cooling_colour"];
+            healthBarColourCode = WTL_GAME_DATA["health_bar"]["recovery_colour"];
         }else if (realHealthPercentage < WTL_GAME_DATA["health_bar"]["threshold_3"]){
             healthBarColourCode = WTL_GAME_DATA["health_bar"]["threshold_3_colour"];
         }else if (realHealthPercentage < WTL_GAME_DATA["health_bar"]["threshold_2"]){
